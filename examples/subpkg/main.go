@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/emicklei/gi/examples/subpkg/pkg"
+	"subpkg/pkg"
 )
 
 func main() {
