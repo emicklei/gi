@@ -13,6 +13,10 @@ type Ident struct {
 	*ast.Ident
 }
 
+func (i Ident) CanEval(vm *VM) bool {
+	return vm.localEnv().valueLookUp(i.Name).IsValid()
+}
+
 func (i Ident) Eval(vm *VM) {
 	vm.pushOperand(vm.localEnv().valueLookUp(i.Name))
 }

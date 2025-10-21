@@ -2,8 +2,11 @@ package gi
 
 import "github.com/emicklei/gi/internal"
 
-func Run(absolutePath string) error {
-	gopkg, err := internal.LoadPackage(absolutePath, nil)
+// Run loads, builds, and runs the Go package located at the specified file path.
+// filePath is the file path to a folder that contains a main.go file
+// or any Go source file with a main function.
+func Run(filePath string) error {
+	gopkg, err := internal.LoadPackage(filePath, nil)
 	if err != nil {
 		return err
 	}
@@ -14,17 +17,19 @@ func Run(absolutePath string) error {
 	return internal.RunPackageFunction(ffpkg, "main", nil)
 }
 
-func ParseSource(source string) (*internal.Package, error) {
+// ParseSource parses the provided Go source code string and returns a Package representation of it.
+// The source must be a valid Go package, e.g. main package with a main function.
+func ParseSource(source string) (*Package, error) {
 	return internal.ParseSource(source)
 }
 
-// type Package = internal.Package
+// Package represents a Go package loaded and parsed by the gi library.
+type Package = internal.Package
 
-// func LoadPackage(absolutePath string) (*Package, error) {
-// 	return nil, nil
-// }
-
-func Call(pkg *internal.Package, funcName string, args []any) ([]any, error) {
+// Call calls a function named funcName in the given package pkg with the provided args.
+// It returns the results of the function call as a slice of any type and an error if any occurred during the call.
+func Call(pkg *Package, funcName string, args ...any) ([]any, error) {
+	// TODO: implement argument passing and return value handling
 	internal.RunPackageFunction(pkg, funcName, nil)
 	return nil, nil
 }

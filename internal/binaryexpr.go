@@ -16,6 +16,15 @@ type BinaryExpr struct {
 	Y Expr // right
 }
 
+// func (s BinaryExpr) CanEval(vm *VM) bool {
+// 	if vm.isStepping {
+// 		right := vm.callStack.top().peek(0)
+// 		left := vm.callStack.top().peek(1)
+// 		return left.IsValid() && right.IsValid()
+// 	}
+// 	return s.X.CanEval(vm) && s.Y.CanEval(vm)
+// }
+
 func (s BinaryExpr) Eval(vm *VM) {
 	var left, right reflect.Value
 	if vm.isStepping {

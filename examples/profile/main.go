@@ -9,7 +9,10 @@ import (
 	"github.com/emicklei/gi"
 )
 
-var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var (
+	cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+	count      = flag.Int("count", 1000, "number of iterations")
+)
 
 func main() {
 	flag.Parse()
@@ -41,7 +44,7 @@ func main() {
 	}
 }`
 	pkg, _ := gi.ParseSource(src)
-	for i := 0; i < 1000; i++ {
+	for range *count {
 		_, _ = gi.Call(pkg, "main", nil)
 	}
 }

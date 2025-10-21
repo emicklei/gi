@@ -71,11 +71,11 @@ func (p *Package) String() string {
 	return fmt.Sprintf("Package(%s,%s)", p.Name, p.PkgPath)
 }
 
-func LoadPackage(absolutePath string, optionalConfig *packages.Config) (*packages.Package, error) {
+func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package, error) {
 	if trace {
 		now := time.Now()
 		defer func() {
-			fmt.Printf("LoadPackage(%s) took %v\n", absolutePath, time.Since(now))
+			fmt.Printf("LoadPackage(%s) took %v\n", dir, time.Since(now))
 		}()
 	}
 	var cfg *packages.Config
@@ -85,7 +85,7 @@ func LoadPackage(absolutePath string, optionalConfig *packages.Config) (*package
 		cfg = &packages.Config{
 			Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles,
 			Fset: token.NewFileSet(),
-			Dir:  absolutePath,
+			Dir:  dir,
 		}
 	}
 	pkgs, err := packages.Load(cfg, ".")

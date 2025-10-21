@@ -25,3 +25,12 @@ func (s stack[T]) top() T {
 func (s stack[T]) isEmpty() bool {
 	return len(s) == 0
 }
+
+func (s stack[T]) peek(offsetFromTop int) T {
+	i := len(s) - 1 - offsetFromTop
+	if i < 0 || i >= len(s) {
+		var zero T
+		return zero
+	}
+	return s[i]
+}
