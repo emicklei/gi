@@ -62,7 +62,7 @@ func TestProgramTypeUnsignedConvert(t *testing.T) {
 			if got, want := out, "3"; got != want {
 				t.Errorf("[run] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
-			os.Setenv("DOT", fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", tt.typeName))
+			os.Setenv("GI_DOT", fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", tt.typeName))
 			out = parseAndWalk(t, src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("[step] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
@@ -624,7 +624,7 @@ func main() {
 }
 
 func TestTypeAlias(t *testing.T) {
-	testProgram(t, false, false, `
+	testProgram(t, true, true, `
 package main
 
 type MyInt = int
@@ -636,7 +636,7 @@ func main() {
 }
 
 func TestFunctionLiteral(t *testing.T) {
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 
 func main() {
 	f := func(a int) int { return a } 

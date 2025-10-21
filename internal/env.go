@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-var trace = os.Getenv("TRACE") != ""
+var trace = os.Getenv("GI_TRACE") != ""
 
 type Env interface {
 	valueLookUp(name string) reflect.Value

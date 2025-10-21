@@ -356,7 +356,7 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			s.callGraph = s.Flow(g)
 
 			// for debugging
-			if fileName := os.Getenv("DOT"); fileName != "" {
+			if fileName := os.Getenv("GI_DOT"); fileName != "" {
 				g.dotFile = fileName
 				g.dotify()
 				// will fail in pipeline without graphviz installed

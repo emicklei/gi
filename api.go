@@ -1,6 +1,10 @@
 package gi
 
-import "github.com/emicklei/gi/internal"
+import (
+	"os"
+
+	"github.com/emicklei/gi/internal"
+)
 
 // Run loads, builds, and runs the Go package located at the specified file path.
 // filePath is the file path to a folder that contains a main.go file
@@ -10,7 +14,7 @@ func Run(filePath string) error {
 	if err != nil {
 		return err
 	}
-	ffpkg, err := internal.BuildPackage(gopkg, false)
+	ffpkg, err := internal.BuildPackage(gopkg, os.Getenv("GI_STEP") != "")
 	if err != nil {
 		return err
 	}

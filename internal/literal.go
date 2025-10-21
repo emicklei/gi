@@ -107,7 +107,7 @@ type FuncLit struct {
 	*ast.FuncLit
 	Type      *FuncType
 	Body      *BlockStmt // TODO not sure what to do when Body and/or Type is nil
-	callGraph Step
+	callGraph Step       // TODO used?
 }
 
 func (s FuncLit) Eval(vm *VM) {
@@ -115,8 +115,14 @@ func (s FuncLit) Eval(vm *VM) {
 }
 
 func (s FuncLit) Flow(g *graphBuilder) (head Step) {
+	if s.Body != nil {
+		head = s.Body.Flow(g)
+	}
 	g.next(s)
-	return g.current
+	if head == nil {
+		head = g.current
+	}
+	return
 }
 
 func (s FuncLit) String() string {

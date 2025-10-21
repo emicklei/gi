@@ -20,7 +20,7 @@ func main() {
 }`
 
 	//trace = true
-	os.Setenv("DOT", "testgraphs/TestGrapherFor.dot")
+	os.Setenv("GI_DOT", "testgraphs/TestGrapherFor.dot")
 	out := parseAndWalk(t, source)
 	expected := `0122`
 	if out != expected {

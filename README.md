@@ -20,6 +20,12 @@ See [status](STATUS.md) for the supported Go language features.
 
     gi run .
 
+For development, the following environment variables control the execution and output:
+
+- `GI_TRACE=1` : produce tracing of the virtual machine that executes the statements and expressions.
+- `GI_STEP=1` : use the call graph of steps to execute the program; use the mirror AST otherwise.
+- `GI_DOT=out.dot` : produce a Graphviz DOT file showing the call graph.
+
 ## Use as package
 
 ```go

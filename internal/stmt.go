@@ -63,13 +63,15 @@ type LabeledStmt struct {
 }
 
 func (s LabeledStmt) String() string {
-	return fmt.Sprintf("LabeledStmt(%v)", s.Label)
+	return fmt.Sprintf("LabeledStmt(%v,%v)", s.Label, s.Stmt)
 }
 
-func (s LabeledStmt) stmtStep() Evaluable { return s }
-
 func (s LabeledStmt) Eval(vm *VM) {
-	vm.eval(s.Stmt.stmtStep())
+	if trace {
+		vm.eval(s.Stmt.stmtStep())
+	} else {
+		s.Stmt.stmtStep().Eval(vm)
+	}
 }
 
 var _ Stmt = BranchStmt{}
@@ -107,13 +109,23 @@ func (s SwitchStmt) stmtStep() Evaluable { return s }
 func (s SwitchStmt) Eval(vm *VM) {
 	vm.pushNewFrame()
 	defer vm.popFrame() // to handle break statements
-	if s.Init != nil {
-		vm.eval(s.Init.stmtStep())
+	if trace {
+		if s.Init != nil {
+			vm.eval(s.Init.stmtStep())
+		}
+		if s.Tag != nil {
+			vm.eval(s.Tag)
+		}
+		vm.eval(s.Body)
+	} else {
+		if s.Init != nil {
+			s.Init.stmtStep().Eval(vm)
+		}
+		if s.Tag != nil {
+			s.Tag.Eval(vm)
+		}
+		s.Body.Eval(vm)
 	}
-	if s.Tag != nil {
-		vm.eval(s.Tag)
-	}
-	vm.eval(s.Body)
 }
 func (s SwitchStmt) String() string {
 	return fmt.Sprintf("SwitchStmt(%v,%v,%v)", s.Init, s.Tag, s.Body)
@@ -151,7 +163,11 @@ func (c CaseClause) Eval(vm *VM) {
 	if c.List == nil {
 		// default case
 		for _, stmt := range c.Body {
-			vm.eval(stmt.stmtStep())
+			if trace {
+				vm.eval(stmt.stmtStep())
+			} else {
+				stmt.stmtStep().Eval(vm)
+			}
 		}
 		return
 	}

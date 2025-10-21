@@ -74,12 +74,6 @@ func parseAndRun(t *testing.T, source string) string {
 	return vm.output.String()
 }
 
-func testProgramIn(t *testing.T, dir string) {
-	//gopkg, _ := LoadPackage(dir, nil)
-	//ffpkg, _ := BuildPackage(gopkg, false)
-
-}
-
 func testProgram(t *testing.T, running bool, stepping bool, source string, wantFuncOrString any) {
 	t.Parallel()
 	t.Helper()
@@ -100,9 +94,9 @@ func testProgram(t *testing.T, running bool, stepping bool, source string, wantF
 	}
 	if stepping {
 		os.WriteFile(fmt.Sprintf("testgraphs/%s.src", t.Name()), []byte(source), 0644)
-		os.Setenv("DOT", fmt.Sprintf("testgraphs/%s.dot", t.Name()))
+		os.Setenv("GI_DOT", fmt.Sprintf("testgraphs/%s.dot", t.Name()))
 		out := parseAndWalk(t, source)
-		os.Unsetenv("DOT")
+		os.Unsetenv("GI_DOT")
 		if fn, ok := wantFuncOrString.(func(string) bool); ok {
 			if !fn(out) {
 				t.Errorf("got [%v] which does not match predicate", out)
