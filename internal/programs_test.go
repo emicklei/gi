@@ -461,6 +461,16 @@ func main() {
 }`, "0hello1world")
 }
 
+func TestRangeOfInt(t *testing.T) {
+	testProgram(t, false, false, `package main
+
+func main() { 
+	for range 2 {
+		print("a")
+	}
+}`, "aa")
+}
+
 func TestRangeOfMap(t *testing.T) {
 	testProgram(t, true, false, `package main
 

@@ -18,7 +18,7 @@ func Run(filePath string) error {
 }
 
 // ParseSource parses the provided Go source code string and returns a Package representation of it.
-// The source must be a valid Go package, e.g. main package with a main function.
+// The source must be a valid Go, e.g. main package with a main function.
 func ParseSource(source string) (*Package, error) {
 	return internal.ParseSource(source)
 }

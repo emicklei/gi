@@ -11,31 +11,24 @@ import (
 
 type stackFrame struct {
 	env          Env
-	operandStack stack[reflect.Value]
+	operandStack []reflect.Value
 	returnValues []reflect.Value
 }
 
 // push adds a value onto the operand stack.
 func (f *stackFrame) push(v reflect.Value) {
-	f.operandStack.push(v)
-}
-
-func (f stackFrame) withOperand(v reflect.Value) stackFrame {
-	f.operandStack.push(v)
-	return f
-}
-func (f stackFrame) withReturnValue(v reflect.Value) stackFrame {
-	f.returnValues = append(f.returnValues, v)
-	return f
+	f.operandStack = append(f.operandStack, v)
 }
 
 // pop removes and returns the top value from the operand stack.
 func (f *stackFrame) pop() reflect.Value {
-	return f.operandStack.pop()
+	v := f.operandStack[len(f.operandStack)-1]
+	f.operandStack = f.operandStack[:len(f.operandStack)-1]
+	return v
 }
 
 type VM struct {
-	callStack  stack[*stackFrame] // TODO use value io pointer?
+	callStack  stack[*stackFrame]
 	isStepping bool
 	output     *bytes.Buffer
 }
@@ -54,16 +47,15 @@ func (vm *VM) localEnv() Env {
 // returnsEval evaluates the argument and returns the popped value that was pushed onto the operand stack.
 func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 	if trace {
-		fmt.Println("vm.returnsEval", e)
+		vm.eval(e)
+	} else {
+		e.Eval(vm)
 	}
-	vm.eval(e)
 	return vm.callStack.top().pop()
 }
 
 // pushOperand pushes a value onto the operand stack as the result of an evaluation.
 func (vm *VM) pushOperand(v reflect.Value) {
-	// TODO consider add pushOperand to callStack so stackFrame can be value that is replaced on top.
-
 	if trace {
 		if v.IsValid() && v.CanInterface() {
 			fmt.Printf("vm.pushOperand: %v (%T)\n", v.Interface(), v.Interface())
@@ -73,13 +65,12 @@ func (vm *VM) pushOperand(v reflect.Value) {
 	}
 	vm.callStack.top().push(v)
 }
-func (vm *VM) pushNewFrame() *stackFrame {
+func (vm *VM) pushNewFrame() {
 	frame := &stackFrame{env: vm.localEnv().newChild()}
 	vm.callStack.push(frame)
-	return frame
 }
-func (vm *VM) popFrame() *stackFrame {
-	return vm.callStack.pop()
+func (vm *VM) popFrame() {
+	vm.callStack.pop()
 }
 func (vm *VM) fatal(err any) {
 	s := structexplorer.NewService("vm", vm)

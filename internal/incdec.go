@@ -24,7 +24,7 @@ func (i IncDecStmt) Flow(g *graphBuilder) (head Step) {
 func (i IncDecStmt) Eval(vm *VM) {
 	var val reflect.Value
 	if vm.isStepping {
-		val = vm.callStack.top().operandStack.pop() // TODO
+		val = vm.callStack.top().pop()
 	} else {
 		val = vm.returnsEval(i.X)
 	}

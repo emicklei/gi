@@ -16,7 +16,11 @@ type ExprStmt struct {
 func (s ExprStmt) stmtStep() Evaluable { return s }
 
 func (s ExprStmt) Eval(vm *VM) {
-	vm.eval(s.X)
+	if trace {
+		vm.eval(s.X)
+	} else {
+		s.X.Eval(vm)
+	}
 }
 
 func (s ExprStmt) String() string {
@@ -153,7 +157,7 @@ func (c CaseClause) Eval(vm *VM) {
 	}
 	f := vm.callStack.top()
 	var left reflect.Value
-	if !f.operandStack.isEmpty() {
+	if len(f.operandStack) != 0 {
 		left = vm.callStack.top().pop()
 	}
 	for _, expr := range c.List {

@@ -32,7 +32,7 @@ func (a AssignStmt) Eval(vm *VM) {
 		each := a.Lhs[i]
 		var v reflect.Value
 		// handle "ok" idiom for map index expressions
-		if vm.callStack.top().operandStack.isEmpty() {
+		if len(vm.callStack.top().operandStack) == 0 {
 			v = reflect.ValueOf(!lastVal.IsZero())
 		} else {
 			v = vm.callStack.top().pop()

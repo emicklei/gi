@@ -22,12 +22,22 @@ func (f ForStmt) String() string {
 }
 func (f ForStmt) Eval(vm *VM) {
 	vm.pushNewFrame()
-	if f.Init != nil {
-		vm.eval(f.Init.stmtStep())
-	}
-	for vm.returnsEval(f.Cond).Bool() {
-		vm.eval(f.Body.stmtStep())
-		vm.eval(f.Post.stmtStep())
+	if trace {
+		if f.Init != nil {
+			vm.eval(f.Init.stmtStep())
+		}
+		for vm.returnsEval(f.Cond).Bool() {
+			vm.eval(f.Body.stmtStep())
+			vm.eval(f.Post.stmtStep())
+		}
+	} else {
+		if f.Init != nil {
+			f.Init.stmtStep().Eval(vm)
+		}
+		for vm.returnsEval(f.Cond).Bool() {
+			f.Body.stmtStep().Eval(vm)
+			f.Post.stmtStep().Eval(vm)
+		}
 	}
 	vm.popFrame()
 }

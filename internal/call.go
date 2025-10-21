@@ -105,7 +105,8 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 		}
 		args[i] = val
 	}
-	frame := vm.pushNewFrame()
+	vm.pushNewFrame()
+	frame := vm.callStack.top()
 	// take all parameters and put them in the env of the new frame
 	p := 0
 	for _, field := range fl.Type.Params.List {
@@ -118,9 +119,14 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 		// when stepping we already have the call graph in FuncLit
 		vm.takeAll(fl.callGraph)
 	} else {
-		vm.eval(fl.Body)
+		if trace {
+			vm.eval(fl.Body)
+		} else {
+			fl.Body.Eval(vm)
+		}
 	}
-	top := vm.popFrame()
+	top := vm.callStack.top()
+	vm.popFrame()
 	vm.pushCallResults(top.returnValues)
 }
 func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
@@ -136,7 +142,8 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 		}
 		args[i] = val
 	}
-	frame := vm.pushNewFrame()
+	vm.pushNewFrame()
+	frame := vm.callStack.top()
 	// take all parameters and put them in the env of the new frame
 	p := 0
 	for _, field := range fd.Type.Params.List {
@@ -149,9 +156,14 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 		// when stepping we already have the call graph in FuncDecl
 		vm.takeAll(fd.callGraph)
 	} else {
-		vm.eval(fd.Body)
+		if trace {
+			vm.eval(fd.Body)
+		} else {
+			fd.Body.Eval(vm)
+		}
 	}
-	top := vm.popFrame()
+	top := vm.callStack.top()
+	vm.popFrame()
 	vm.pushCallResults(top.returnValues)
 }
 
