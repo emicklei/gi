@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"reflect"
+	"time"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -71,6 +72,12 @@ func (p *Package) String() string {
 }
 
 func LoadPackage(absolutePath string, optionalConfig *packages.Config) (*packages.Package, error) {
+	if trace {
+		now := time.Now()
+		defer func() {
+			fmt.Printf("LoadPackage(%s) took %v\n", absolutePath, time.Since(now))
+		}()
+	}
 	var cfg *packages.Config
 	if optionalConfig != nil {
 		cfg = optionalConfig
@@ -95,6 +102,12 @@ func LoadPackage(absolutePath string, optionalConfig *packages.Config) (*package
 }
 
 func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
+	if trace {
+		now := time.Now()
+		defer func() {
+			fmt.Printf("BuildPackageFromAST(%s) took %v\n", ast.Name.Name, time.Since(now))
+		}()
+	}
 	b := newStepBuilder()
 	b.opts = buildOptions{callGraph: isStepping}
 	for _, imp := range ast.Imports {
@@ -109,6 +122,12 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 }
 
 func BuildPackage(pkg *packages.Package, isStepping bool) (*Package, error) {
+	if trace {
+		now := time.Now()
+		defer func() {
+			fmt.Printf("BuildPackage(%s) took %v\n", pkg.PkgPath, time.Since(now))
+		}()
+	}
 	b := newStepBuilder()
 	b.opts = buildOptions{callGraph: isStepping}
 	for _, stx := range pkg.Syntax {
