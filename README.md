@@ -6,6 +6,8 @@
 
 a Go interpreter that can be used in plugins and debuggers.
 
+![gi logo](docs/gi-logo.png)
+
 ## status
 
 This is work in progress.
