@@ -61,7 +61,11 @@ func (p *Package) Initialize(vm *VM) error {
 	// then run all inits
 	for _, each := range p.Env.inits {
 		vm.pushNewFrame()
-		each.Eval(vm)
+		if trace {
+			vm.eval(each)
+		} else {
+			each.Eval(vm)
+		}
 		vm.popFrame()
 	}
 	return nil

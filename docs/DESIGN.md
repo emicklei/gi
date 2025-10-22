@@ -67,3 +67,7 @@ The first step is the head of the chain.
 - a literal eval is pushing the value as operand; other literals should do the same.
 - fallthrough cannot be used with a type switch.
 - declTable must be declSlice; the order is important , see TestDeclarationExample
+
+if a program imports external packages then a new `gi` is created using
+additional generated sources that will setup all exported functions,consts and vars to the environment.
+this technique is also applied in `varvoy`.
