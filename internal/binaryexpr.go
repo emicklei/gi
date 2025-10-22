@@ -145,9 +145,35 @@ func (b BinaryExprValue) Eval() reflect.Value {
 		return b.StringEval(b.left.String())
 	case reflect.Bool:
 		return b.BoolEval(b.left.Bool())
+	case reflect.Pointer:
+		return b.PointerEval(b.left)
 	}
 	panic("not implemented: BinaryExprValue.Eval:" + b.left.Kind().String())
 }
+
+func (b BinaryExprValue) PointerEval(left reflect.Value) reflect.Value {
+	switch b.op {
+	case token.EQL:
+		if left.Interface() == untypedNil && b.right.Interface() == untypedNil {
+			return reflectTrue
+		}
+		if left.Interface() != b.right.Interface() {
+			return reflectFalse
+		}
+		return reflectCondition(left.Pointer() == b.right.Pointer())
+	case token.NEQ:
+		if left.Interface() == untypedNil {
+			return reflectCondition(b.right.Interface() != untypedNil)
+		}
+		if b.right.Interface() == untypedNil {
+			return reflectCondition(left.Interface() != untypedNil)
+		}
+		// both non untypedNil
+		return reflectCondition(left.Elem() != b.right.Elem())
+	}
+	panic("not implemented: BinaryExprValue.PointerEval:" + b.right.Kind().String())
+}
+
 func (b BinaryExprValue) BoolEval(left bool) reflect.Value {
 	switch b.op {
 	case token.LAND:

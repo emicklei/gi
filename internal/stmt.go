@@ -107,7 +107,7 @@ type SwitchStmt struct {
 func (s SwitchStmt) stmtStep() Evaluable { return s }
 
 func (s SwitchStmt) Eval(vm *VM) {
-	vm.pushNewFrame()
+	vm.pushNewFrame(s)
 	defer vm.popFrame() // to handle break statements
 	if trace {
 		if s.Init != nil {
@@ -187,7 +187,7 @@ func (c CaseClause) Eval(vm *VM) {
 			cond = right.Bool()
 		}
 		if cond {
-			vm.pushNewFrame()
+			vm.pushNewFrame(c)
 			defer vm.popFrame()
 			for _, stmt := range c.Body {
 				vm.eval(stmt.stmtStep())

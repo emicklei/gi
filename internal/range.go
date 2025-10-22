@@ -21,7 +21,7 @@ type RangeStmt struct {
 
 func (r RangeStmt) Eval(vm *VM) {
 	rangeable := vm.returnsEval(r.X)
-	vm.pushNewFrame()
+	vm.pushNewFrame(r)
 
 	// special case for Map
 	if rangeable.Kind() == reflect.Map {

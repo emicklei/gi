@@ -104,7 +104,7 @@ func (p *pushStackFrameStep) Traverse(g *dot.Graph, visited map[int]dot.Node) do
 }
 
 func (p *pushStackFrameStep) Take(vm *VM) Step {
-	vm.pushNewFrame()
+	vm.pushNewFrame(p.Evaluable)
 	return p.next
 }
 

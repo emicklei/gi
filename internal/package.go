@@ -69,7 +69,7 @@ func (p *Package) Initialize(vm *VM) error {
 	}
 	// then run all inits
 	for _, each := range p.Env.inits {
-		vm.pushNewFrame()
+		vm.pushNewFrame(each)
 		if trace {
 			vm.eval(each)
 		} else {
@@ -172,8 +172,9 @@ func RunPackageFunction(pkg *Package, functionName string, optionalVM *VM) error
 		return fmt.Errorf("%s function definition not found", functionName)
 	}
 	// TODO
-	vm.pushNewFrame()
+
 	fundecl := fun.Interface().(FuncDecl)
+	vm.pushNewFrame(fundecl)
 	fundecl.Eval(vm)
 	vm.popFrame()
 	return nil

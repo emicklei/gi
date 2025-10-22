@@ -6,15 +6,23 @@ import (
 	"reflect"
 )
 
+var _ Expr = StarExpr{}
+
 type StarExpr struct {
-	X Expr
 	*ast.StarExpr
+	X Expr
 }
 
 func (s StarExpr) Eval(vm *VM) {
 	v := vm.returnsEval(s.X)
 	vm.pushOperand(v.Elem())
 }
+func (s StarExpr) Flow(g *graphBuilder) (head Step) {
+	head = s.X.Flow(g)
+	g.next(s)
+	return
+}
+
 func (s StarExpr) Assign(vm *VM, value reflect.Value) {
 	// TODO
 	//v := vm.ReturnsEval(s.X)

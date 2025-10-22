@@ -841,13 +841,29 @@ func main() {
 // about nil
 // https://github.com/golang/go/issues/51649
 func TestNilError(t *testing.T) {
-	trace = true
-	testProgram(t, true, false, `package main
+	// trace = true
+	testProgram(t, true, true, `package main
 import "errors"
 func main() {
 	var err error = nil	
 	print(err)
 }`, "<nil>")
+}
+
+func TestNilArgumentIntPointer(t *testing.T) {
+	testProgram(t, false, false, `package main
+func show(arg *int) {
+	if arg != nil {
+		print(*arg)
+	} else {
+ 		print(nil)
+	}
+}
+func main() {
+	show(nil)
+	i := 42
+	show(&i)
+}`, "nil42")
 }
 
 func TestError(t *testing.T) {

@@ -5,9 +5,23 @@ import (
 	"reflect"
 )
 
-var untypedNil = Nil{}
+var (
+	untypedNil   = Nil{}
+	reflectTrue  = reflect.ValueOf(true)
+	reflectFalse = reflect.ValueOf(false)
+)
+
+// reflectCondition converts a boolean to shared reflect.Value.
+func reflectCondition(b bool) reflect.Value {
+	if b {
+		return reflectTrue
+	}
+	return reflectFalse
+}
 
 type Nil struct{}
+
+func (Nil) String() string { return "untyped nil" }
 
 // https://pkg.go.dev/builtin
 var builtinsMap = map[string]reflect.Value{

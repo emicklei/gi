@@ -21,7 +21,7 @@ func (f ForStmt) String() string {
 	return fmt.Sprintf("ForStmt(%v)", f.Cond)
 }
 func (f ForStmt) Eval(vm *VM) {
-	vm.pushNewFrame()
+	vm.pushNewFrame(f)
 	if trace {
 		if f.Init != nil {
 			vm.eval(f.Init.stmtStep())

@@ -10,6 +10,7 @@ import (
 )
 
 type stackFrame struct {
+	creator      Evaluable
 	env          Env
 	operandStack []reflect.Value
 	returnValues []reflect.Value
@@ -25,6 +26,13 @@ func (f *stackFrame) pop() reflect.Value {
 	v := f.operandStack[len(f.operandStack)-1]
 	f.operandStack = f.operandStack[:len(f.operandStack)-1]
 	return v
+}
+
+func (f *stackFrame) String() string {
+	if f.creator != nil {
+		return fmt.Sprintf("%v", f.creator)
+	}
+	return "unknown frame creator"
 }
 
 type VM struct {
@@ -54,6 +62,21 @@ func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 	return vm.callStack.top().pop()
 }
 
+func (vm *VM) returnsType(e Evaluable) reflect.Type {
+	if id, ok := e.(Ident); ok {
+		typ, ok := builtinTypesMap[id.Name]
+		if ok {
+			return typ
+		}
+	}
+	if star, ok := e.(StarExpr); ok {
+		nonStarType := vm.returnsType(star.X)
+		return reflect.PointerTo(nonStarType)
+	}
+	vm.fatal(fmt.Sprintf("todo returnsType	for %v", e))
+	return nil
+}
+
 // pushOperand pushes a value onto the operand stack as the result of an evaluation.
 func (vm *VM) pushOperand(v reflect.Value) {
 	if trace {
@@ -65,14 +88,20 @@ func (vm *VM) pushOperand(v reflect.Value) {
 	}
 	vm.callStack.top().push(v)
 }
-func (vm *VM) pushNewFrame() {
-	frame := &stackFrame{env: vm.localEnv().newChild()}
+func (vm *VM) pushNewFrame(e Evaluable) {
+	frame := &stackFrame{creator: e, env: vm.localEnv().newChild()}
 	vm.callStack.push(frame)
 }
 func (vm *VM) popFrame() {
-	vm.callStack.pop()
 }
 func (vm *VM) fatal(err any) {
+	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)
+	fmt.Fprintln(os.Stderr, "")
+	// dump the callstack
+	for i := len(vm.callStack) - 1; i >= 0; i-- {
+		frame := vm.callStack[i]
+		fmt.Fprintln(os.Stderr, "[gi]", frame)
+	}
 	s := structexplorer.NewService("vm", vm)
 	for i, each := range vm.callStack {
 		s.Explore(fmt.Sprintf("vm.callStack.%d", i), each, structexplorer.Column(0))
@@ -84,7 +113,6 @@ func (vm *VM) fatal(err any) {
 	if trace {
 		panic(err)
 	}
-	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)
 	os.Exit(1)
 }
 

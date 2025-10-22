@@ -63,7 +63,7 @@ func (c CallExpr) Eval(vm *VM) {
 			c.handleBuiltinFunc(vm, bf)
 			return
 		}
-		vm.fatal("expected FuncDecl or FuncLit, got " + fmt.Sprintf("%T", fn.Interface()))
+		vm.fatal(fmt.Sprintf("expected FuncDecl,FuncLit or builtinFunc, got %T", fn.Interface()))
 	default:
 		vm.fatal(fmt.Sprintf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface()))
 	}
@@ -80,6 +80,8 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		// the argument of clear needs to be replaced
 		if identArg, ok := c.Args[0].(Ident); ok {
 			vm.callStack.top().env.set(identArg.Name, cleared)
+		} else {
+			vm.fatal("clear argument must be an identifier")
 		}
 	case "min":
 		c.evalMin(vm)
@@ -105,13 +107,18 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 		}
 		args[i] = val
 	}
-	vm.pushNewFrame()
+	vm.pushNewFrame(c)
 	frame := vm.callStack.top()
 	// take all parameters and put them in the env of the new frame
 	p := 0
 	for _, field := range fl.Type.Params.List {
 		for _, name := range field.Names {
-			frame.env.set(name.Name, args[p])
+			val := args[p]
+			if val.Interface() == untypedNil {
+				// create a zero value of the expected type
+				val = reflect.Zero(vm.returnsType(field.Type))
+			}
+			frame.env.set(name.Name, val)
 			p++
 		}
 	}
@@ -142,13 +149,18 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 		}
 		args[i] = val
 	}
-	vm.pushNewFrame()
+	vm.pushNewFrame(c)
 	frame := vm.callStack.top()
 	// take all parameters and put them in the env of the new frame
 	p := 0
 	for _, field := range fd.Type.Params.List {
 		for _, name := range field.Names {
-			frame.env.set(name.Name, args[p])
+			val := args[p]
+			if val.Interface() == untypedNil {
+				// create a zero value of the expected type
+				val = reflect.Zero(vm.returnsType(field.Type))
+			}
+			frame.env.set(name.Name, val)
 			p++
 		}
 	}
