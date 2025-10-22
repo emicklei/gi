@@ -90,7 +90,7 @@ func testProgram(t *testing.T, running bool, stepping bool, source string, wantF
 			t.Errorf("[run] got [%v] want [%v]", got, want)
 		}
 	} else {
-		t.Log("TODO skipped run:", t.Name())
+		t.Log("TODO skipped run: ", t.Name())
 	}
 	if stepping {
 		os.WriteFile(fmt.Sprintf("testgraphs/%s.src", t.Name()), []byte(source), 0644)

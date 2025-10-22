@@ -5,6 +5,8 @@ import (
 	"go/ast"
 	"go/token"
 	"reflect"
+
+	"github.com/emicklei/dot"
 )
 
 var (
@@ -23,8 +25,8 @@ func (r RangeStmt) Eval(vm *VM) {
 	rangeable := vm.returnsEval(r.X)
 	vm.pushNewFrame(r)
 
-	// special case for Map
-	if rangeable.Kind() == reflect.Map {
+	switch rangeable.Kind() {
+	case reflect.Map:
 		iter := rangeable.MapRange()
 		for iter.Next() {
 			if r.Key != nil {
@@ -37,10 +39,13 @@ func (r RangeStmt) Eval(vm *VM) {
 					ca.Define(vm, iter.Value())
 				}
 			}
-			vm.eval(r.Body)
+			if trace {
+				vm.eval(r.Body)
+			} else {
+				r.Body.Eval(vm)
+			}
 		}
-	}
-	if rangeable.Kind() == reflect.Slice || rangeable.Kind() == reflect.Array {
+	case reflect.Slice, reflect.Array:
 		for i := 0; i < rangeable.Len(); i++ {
 			if r.Key != nil {
 				if ca, ok := r.Key.(CanAssign); ok {
@@ -52,51 +57,138 @@ func (r RangeStmt) Eval(vm *VM) {
 					ca.Define(vm, rangeable.Index(i))
 				}
 			}
-			vm.eval(r.Body)
+			if trace {
+				vm.eval(r.Body)
+			} else {
+				r.Body.Eval(vm)
+			}
+		}
+	case reflect.Int:
+		for i := 0; i < int(rangeable.Int()); i++ {
+			if r.Key != nil {
+				if ca, ok := r.Key.(CanAssign); ok {
+					ca.Define(vm, reflect.ValueOf(i))
+				}
+			}
+			if r.Value != nil {
+				if ca, ok := r.Value.(CanAssign); ok {
+					ca.Define(vm, rangeable.Index(i))
+				}
+			}
+			if trace {
+				vm.eval(r.Body)
+			} else {
+				r.Body.Eval(vm)
+			}
 		}
 	}
 	vm.popFrame()
 }
 
+// Flow builds the control flow graph for the RangeStmt
+// It is transformed into a ForStmt that uses an hidden index variable.
+// TODO fix position info
 func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)
-	push := g.newPushStackFrame()
-	g.nextStep(push)
+	switcher := &rangeIteratorSwitchStep{
+		step: newStep(nil),
+	}
+	g.nextStep(switcher)
+	rangeDone := newStep(nil)
+
+	g.current = switcher
+	switcher.mapFlow = r.MapFlow(g)
+	g.nextStep(rangeDone)
+
+	g.current = switcher
+	switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
+	g.nextStep(rangeDone)
+
+	g.current = switcher
+	switcher.intFlow = r.IntFlow(g)
+	g.nextStep(rangeDone)
+	return
+}
+
+func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
+	// TODO
+	return g.current
+}
+
+func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
+	// TODO
+	return g.current
+}
+
+func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
 	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", idgen)}} // must be unique in env
 	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
-	assign := AssignStmt{
+	initIndex := AssignStmt{
 		AssignStmt: &ast.AssignStmt{
 			Tok: token.DEFINE,
 		},
 		Lhs: []Expr{indexVar},
 		Rhs: []Expr{zeroInt},
 	}
-	assign.Flow(g)
-
+	// key := x[0]
+	// value := x[0]
+	initKeyValue := AssignStmt{
+		AssignStmt: &ast.AssignStmt{
+			Tok: token.DEFINE,
+		},
+		Lhs: []Expr{r.Key, r.Value},
+		Rhs: []Expr{indexVar, IndexExpr{
+			X:     r.X,
+			Index: indexVar,
+		}},
+	}
+	init := BlockStmt{
+		List: []Stmt{
+			initIndex,
+			initKeyValue,
+		},
+	}
 	// index < len(x)
-	condition := BinaryExpr{
+	cond := BinaryExpr{
 		BinaryExpr: &ast.BinaryExpr{
 			Op: token.LSS,
 		},
 		X: indexVar,
 		Y: ReflectLenExpr{X: r.X},
 	}
-	condition.Flow(g)
-
 	// index++
-	indexInc := IncDecStmt{
+	post := IncDecStmt{
 		IncDecStmt: &ast.IncDecStmt{
 			Tok: token.INC,
 		},
 		X: indexVar,
 	}
-	indexInc.Flow(g)
-
-	pop := g.newPopStackFrame()
-	g.nextStep(pop)
-	return
+	// key = x[index]
+	// value = x[index]
+	updateKeyValue := AssignStmt{
+		AssignStmt: &ast.AssignStmt{
+			Tok: token.ASSIGN,
+		},
+		Lhs: []Expr{r.Key, r.Value},
+		Rhs: []Expr{indexVar, IndexExpr{
+			X:     r.X,
+			Index: indexVar,
+		}},
+	}
+	// body with updated key/value assignment at the top
+	body := &BlockStmt{
+		List: append([]Stmt{updateKeyValue}, r.Body.List...),
+	}
+	// now build it
+	forstmt := ForStmt{
+		Init: init,
+		Cond: cond,
+		Post: post,
+		Body: body,
+	}
+	return forstmt.Flow(g)
 }
 
 func (r RangeStmt) String() string {
@@ -121,4 +213,51 @@ func (r ReflectLenExpr) Flow(g *graphBuilder) (head Step) {
 }
 func (r ReflectLenExpr) String() string {
 	return fmt.Sprintf("ReflectLenExpr(%v)", r.X)
+}
+
+// rangeIteratorSwitchStep looks at the Kind of the value of X to determine which flow to use.
+type rangeIteratorSwitchStep struct {
+	*step
+	mapFlow          Step
+	sliceOrArrayFlow Step
+	intFlow          Step
+}
+
+func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
+	rangeable := vm.callStack.top().pop()
+	switch rangeable.Kind() {
+	case reflect.Map:
+		return i.mapFlow.Take(vm)
+	case reflect.Slice, reflect.Array:
+		return i.sliceOrArrayFlow.Take(vm)
+	case reflect.Int:
+		return i.intFlow.Take(vm)
+	default:
+		panic(fmt.Sprintf("cannot range over type %v", rangeable.Type()))
+	}
+}
+func (i *rangeIteratorSwitchStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	me := i.step.traverse(g, i.step.String(), "switch-iterator", visited)
+	if i.mapFlow != nil {
+		// no edge if visited before
+		if _, ok := visited[i.mapFlow.ID()]; !ok {
+			mapNode := i.mapFlow.Traverse(g, visited)
+			me.Edge(mapNode, "map")
+		}
+	}
+	if i.sliceOrArrayFlow != nil {
+		// no edge if visited before
+		if _, ok := visited[i.sliceOrArrayFlow.ID()]; !ok {
+			sliceOrArrayNode := i.sliceOrArrayFlow.Traverse(g, visited)
+			me.Edge(sliceOrArrayNode, "sliceOrArray")
+		}
+	}
+	if i.intFlow != nil {
+		// no edge if visited before
+		if _, ok := visited[i.intFlow.ID()]; !ok {
+			intNode := i.intFlow.Traverse(g, visited)
+			me.Edge(intNode, "int")
+		}
+	}
+	return me
 }

@@ -451,7 +451,7 @@ func main() {
 }
 
 func TestRangeOfStrings(t *testing.T) {
-	testProgram(t, true, false, `package main
+	testProgram(t, true, true, `package main
 
 func main() {
 	strings := []string{"hello", "world"}
@@ -462,7 +462,7 @@ func main() {
 }
 
 func TestRangeOfInt(t *testing.T) {
-	testProgram(t, false, false, `package main
+	testProgram(t, true, false, `package main
 
 func main() { 
 	for range 2 {
