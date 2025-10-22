@@ -5,6 +5,10 @@ import (
 	"reflect"
 )
 
+var untypedNil = Nil{}
+
+type Nil struct{}
+
 // https://pkg.go.dev/builtin
 var builtinsMap = map[string]reflect.Value{
 	"byte":       reflect.ValueOf(func(i int) byte { return byte(i) }), // alias for uint8
@@ -21,6 +25,7 @@ var builtinsMap = map[string]reflect.Value{
 	"int8":       reflect.ValueOf(func(i int) int8 { return int8(i) }),
 	"imag":       reflect.ValueOf(func(c complex128) float64 { return imag(c) }),
 	"len":        reflect.ValueOf(func(v any) int { return reflect.ValueOf(v).Len() }),
+	"nil":        reflect.ValueOf(untypedNil),
 	"panic":      reflect.ValueOf(func(v any) { panic(v) }),
 	"print":      reflect.ValueOf(func(args ...any) { fmt.Print(args...) }),
 	"println":    reflect.ValueOf(func(args ...any) { fmt.Println(args...) }),

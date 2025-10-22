@@ -33,6 +33,14 @@ func (v ConstOrVar) Declare(vm *VM) bool {
 		if !val.IsValid() {
 			return false
 		}
+		if val.Interface() == untypedNil {
+			// if nil then zero
+			if z, ok := v.Type.(HasZeroValue); ok {
+				zv := z.ZeroValue(vm.localEnv())
+				vm.localEnv().set(v.Name.Name, zv)
+				return true
+			}
+		}
 		vm.localEnv().set(v.Name.Name, val)
 		return true
 	}

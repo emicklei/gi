@@ -841,7 +841,8 @@ func main() {
 // about nil
 // https://github.com/golang/go/issues/51649
 func TestNilError(t *testing.T) {
-	testProgram(t, false, false, `package main
+	trace = true
+	testProgram(t, true, false, `package main
 import "errors"
 func main() {
 	var err error = nil	
