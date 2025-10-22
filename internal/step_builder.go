@@ -238,6 +238,17 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			b.envSet(pkgName, reflect.ValueOf(p))
 			break
 		}
+		// check for imported external package
+		if symbols := importedPkgs[unq]; symbols != nil {
+			p := ExternalPackage{StandardPackage: StandardPackage{
+				Name:        pkgName,
+				PkgPath:     unq,
+				symbolTable: symbols,
+			}}
+			b.envSet(pkgName, reflect.ValueOf(p))
+			break
+		}
+
 		// load and build the package
 		root := b.env.rootPackageEnv()
 		ffpkg := root.packageTable[unq]

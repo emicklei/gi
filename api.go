@@ -2,6 +2,7 @@ package gi
 
 import (
 	"os"
+	"reflect"
 
 	"github.com/emicklei/gi/internal"
 )
@@ -36,4 +37,12 @@ func Call(pkg *Package, funcName string, args ...any) ([]any, error) {
 	// TODO: implement argument passing and return value handling
 	internal.RunPackageFunction(pkg, funcName, nil)
 	return nil, nil
+}
+
+// RegisterPackage registers an external package with its symbols for use within gi-executed code.
+func RegisterPackage(pkgPath string, symbols map[string]reflect.Value) {
+	if pkgPath == "" || symbols == nil {
+		panic("pkgPath and symbols must be non-nil/empty")
+	}
+	internal.RegisterPackage(pkgPath, symbols)
 }

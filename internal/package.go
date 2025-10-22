@@ -28,6 +28,15 @@ func (p StandardPackage) String() string {
 	return fmt.Sprintf("StandardPackage(%s,%s)", p.Name, p.PkgPath)
 }
 
+type ExternalPackage struct {
+	StandardPackage
+}
+
+func (p ExternalPackage) String() string {
+	return fmt.Sprintf("ExternalPackage(%s,%s)", p.Name, p.PkgPath)
+}
+
+// TODO rename to LocalPackage?
 type Package struct {
 	*packages.Package
 	Env         *PkgEnvironment
