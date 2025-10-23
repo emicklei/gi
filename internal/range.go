@@ -85,8 +85,14 @@ func (r RangeStmt) Eval(vm *VM) {
 	vm.popFrame()
 }
 
-// Flow builds the control flow graph for the RangeStmt
-// It is transformed into a ForStmt that uses an hidden index variable.
+// Flow builds the control flow graph for the RangeStmt.
+// Based on the Kind of X, it will branch into one of three flows:
+//   - mapFlow for maps
+//   - sliceOrArrayFlow for slices and arrays
+//   - intFlow for integers
+//
+// All three flows converge to a done step.
+// Each subflow is transformed into a ForStmt that uses an hidden index variable.
 // TODO fix position info
 func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)
@@ -94,30 +100,148 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 		step: newStep(nil),
 	}
 	g.nextStep(switcher)
+	// all flows converge to this done step
 	rangeDone := newStep(nil)
 
-	g.current = switcher
+	// start the map flow, detached from the current
+	g.current = newStep(nil)
 	switcher.mapFlow = r.MapFlow(g)
 	g.nextStep(rangeDone)
 
-	g.current = switcher
+	// start the list flow, detached from the current
+	g.current = newStep(nil)
 	switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
 	g.nextStep(rangeDone)
 
-	g.current = switcher
+	// start the int flow, detached from the current
+	g.current = newStep(nil)
 	switcher.intFlow = r.IntFlow(g)
 	g.nextStep(rangeDone)
 	return
 }
 
+type rangeMapIteratorStep struct {
+	*step
+	iterator   *reflect.MapIter
+	assignFlow Step
+	bodyFlow   Step
+}
+
+func (r *rangeMapIteratorStep) Take(vm *VM) Step {
+	if r.iterator == nil {
+		rangeable := vm.callStack.top().pop()
+		r.iterator = rangeable.MapRange()
+	}
+	if r.iterator.Next() {
+		// first value then key to match assignment order
+		vm.callStack.top().push(reflect.ValueOf(r.iterator.Value()))
+		vm.callStack.top().push(reflect.ValueOf(r.iterator.Key()))
+		r.assignFlow.Take(vm)
+		return r.bodyFlow
+	}
+	return r.next
+}
+
 func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
-	// TODO
+	head = r.X.Flow(g) // again on the stack
+	iter := &rangeMapIteratorStep{
+		step: newStep(nil),
+	}
+	g.nextStep(iter)
+
+	// start the assign flow, detached from the current
+	g.current = newStep(nil)
+
+	// key = key
+	// value = x[value]
+	updateKeyValue := AssignStmt{
+		AssignStmt: &ast.AssignStmt{
+			Tok: token.ASSIGN,
+		},
+		Lhs: []Expr{r.Key, r.Value},
+		Rhs: []Expr{NoExpr{}, NoExpr{}},
+	}
+	iter.assignFlow = updateKeyValue.Flow(g)
+
+	g.current = head
+	g.nextStep(iter)
+	return
+}
+
+type NoExpr struct{}
+
+func (NoExpr) Eval(vm *VM) {}
+func (n NoExpr) Flow(g *graphBuilder) (head Step) {
+	g.next(n)
 	return g.current
 }
 
 func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
-	// TODO
-	return g.current
+
+	// index := 0
+	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", idgen)}} // must be unique in env
+	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
+	initIndex := AssignStmt{
+		AssignStmt: &ast.AssignStmt{
+			Tok: token.DEFINE,
+		},
+		Lhs: []Expr{indexVar},
+		Rhs: []Expr{zeroInt},
+	}
+	init := BlockStmt{
+		List: []Stmt{
+			initIndex,
+		},
+	}
+	// key := 0 // only one var permitted
+	if r.Key != nil {
+		initKey := AssignStmt{
+			AssignStmt: &ast.AssignStmt{
+				Tok: token.DEFINE,
+			},
+			Lhs: []Expr{r.Key},
+			Rhs: []Expr{indexVar},
+		}
+		init.List = append(init.List, initKey)
+	}
+	// index < x
+	cond := BinaryExpr{
+		BinaryExpr: &ast.BinaryExpr{
+			Op: token.LSS,
+		},
+		X: indexVar,
+		Y: r.X,
+	}
+	// index++
+	post := IncDecStmt{
+		IncDecStmt: &ast.IncDecStmt{
+			Tok: token.INC,
+		},
+		X: indexVar,
+	}
+	body := &BlockStmt{
+		List: r.Body.List,
+	}
+	// key = index
+	if r.Key != nil {
+		updateKey := AssignStmt{
+			AssignStmt: &ast.AssignStmt{
+				Tok: token.ASSIGN,
+			},
+			Lhs: []Expr{r.Key},
+			Rhs: []Expr{indexVar},
+		}
+		// body with updated key assignment at the top
+		body.List = append([]Stmt{updateKey}, body.List...)
+	}
+	// now build it
+	forstmt := ForStmt{
+		Init: init,
+		Cond: cond,
+		Post: post,
+		Body: body,
+	}
+	return forstmt.Flow(g)
 }
 
 func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
@@ -237,7 +361,7 @@ func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
 	}
 }
 func (i *rangeIteratorSwitchStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	me := i.step.traverse(g, i.step.String(), "switch-iterator", visited)
+	me := i.step.traverse(g, i.step.StringWith("switch-iterator"), "next", visited)
 	if i.mapFlow != nil {
 		// no edge if visited before
 		if _, ok := visited[i.mapFlow.ID()]; !ok {

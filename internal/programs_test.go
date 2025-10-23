@@ -462,7 +462,7 @@ func main() {
 }
 
 func TestRangeOfInt(t *testing.T) {
-	testProgram(t, true, false, `package main
+	testProgram(t, false, true, `package main
 
 func main() { 
 	for range 2 {
@@ -472,7 +472,7 @@ func main() {
 }
 
 func TestRangeOfMap(t *testing.T) {
-	testProgram(t, true, false, `package main
+	testProgram(t, false, false, `package main
 
 func main() {
 	m := map[string]int{"a":1, "b":2}

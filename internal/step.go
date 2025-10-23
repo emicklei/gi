@@ -78,6 +78,13 @@ func (s *step) String() string {
 	return fmt.Sprintf("%2d:step(%v)", s.id, s.Evaluable)
 }
 
+func (s *step) StringWith(label string) string {
+	if s == nil {
+		return "nil"
+	}
+	return fmt.Sprintf("%2d:step(%s)", s.id, label)
+}
+
 func (s *step) Next() Step {
 	return s.next
 }

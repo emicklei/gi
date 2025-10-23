@@ -28,6 +28,8 @@ For development, the following environment variables control the execution and o
 
 ## Use as package
 
+### run a program
+
 ```go
 package main
 
@@ -36,7 +38,7 @@ import (
 )
 
 func main() {
-    gi.Run("path/to/program")        
+    gi.Run("path/to/main.go") // or gi.Run(".")       
 }
 ```
 
