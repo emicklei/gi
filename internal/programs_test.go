@@ -470,8 +470,8 @@ func main() {
 }
 
 func TestRangeOfMap(t *testing.T) {
-	trace = true
-	defer func() { trace = false }()
+	// trace = true
+	// defer func() { trace = false }()
 	testProgram(t, true, true, `package main
 
 func main() {

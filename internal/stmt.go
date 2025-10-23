@@ -223,7 +223,7 @@ func (d DeferStmt) Eval(vm *VM) {
 		return
 	}
 	// TODO: keep defer stack in the current frame?
-	defer vm.traceEval(d.Call)
+	defer d.Call.Eval(vm)
 }
 
 func (d DeferStmt) Flow(g *graphBuilder) (head Step) {

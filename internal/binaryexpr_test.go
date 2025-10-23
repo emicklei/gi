@@ -152,7 +152,7 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 			BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
 		}
 		vm := newVM(newEnvironment(nil))
-		vm.traceEval(expr)
+		expr.Eval(vm)
 		result := vm.returnsEval(expr)
 		if result.Kind() != reflect.String {
 			t.Fatalf("expected string result, got %v", result.Kind())

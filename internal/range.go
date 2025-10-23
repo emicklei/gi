@@ -123,7 +123,6 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	return
 }
 
-// instead of MapRangeExpr TODO
 type rangeMapIteratorInitStep struct {
 	*step
 	localVarName string
@@ -181,7 +180,7 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g) // again on the stack
 
 	// create the iterator
-	localVarName := fmt.Sprintf("_mapIter_%d", idgen) // must be unique in env
+	localVarName := fmt.Sprintf("_mapIter_%d", idgen)
 	init := &rangeMapIteratorInitStep{
 		step:         newStep(nil),
 		localVarName: localVarName,
