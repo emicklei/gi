@@ -16,7 +16,11 @@ type FuncDecl struct {
 
 func (f FuncDecl) Eval(vm *VM) {
 	if f.Body != nil {
-		vm.eval(f.Body)
+		if trace {
+			vm.traceEval(f.Body)
+		} else {
+			f.Body.Eval(vm)
+		}
 	}
 }
 

@@ -84,7 +84,11 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 					BinaryExpr: &ast.BinaryExpr{Op: tt.op},
 				}
 				vm := newVM(newEnvironment(nil))
-				vm.eval(expr)
+				if trace {
+					vm.traceEval(expr)
+				} else {
+					expr.Eval(vm)
+				}
 				result := vm.returnsEval(expr)
 				if math.Abs(result.Float()-tt.expected) > 1e-9 {
 					t.Errorf("expected %f, got %f", tt.expected, result.Float())
@@ -102,7 +106,11 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 			BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
 		}
 		vm := newVM(newEnvironment(nil))
-		vm.eval(expr)
+		if trace {
+			vm.traceEval(expr)
+		} else {
+			expr.Eval(vm)
+		}
 		result := vm.returnsEval(expr)
 		if result.Kind() != reflect.Float64 {
 			t.Fatalf("expected float64 result, got %v", result.Kind())
@@ -121,7 +129,11 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 			BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
 		}
 		vm := newVM(newEnvironment(nil))
-		vm.eval(expr)
+		if trace {
+			vm.traceEval(expr)
+		} else {
+			expr.Eval(vm)
+		}
 		result := vm.returnsEval(expr)
 		if result.Kind() != reflect.Float64 {
 			t.Fatalf("expected float64 result, got %v", result.Kind())
@@ -140,7 +152,7 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 			BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
 		}
 		vm := newVM(newEnvironment(nil))
-		vm.eval(expr)
+		vm.traceEval(expr)
 		result := vm.returnsEval(expr)
 		if result.Kind() != reflect.String {
 			t.Fatalf("expected string result, got %v", result.Kind())

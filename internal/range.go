@@ -39,7 +39,7 @@ func (r RangeStmt) Eval(vm *VM) {
 				}
 			}
 			if trace {
-				vm.eval(r.Body)
+				vm.traceEval(r.Body)
 			} else {
 				r.Body.Eval(vm)
 			}
@@ -59,7 +59,7 @@ func (r RangeStmt) Eval(vm *VM) {
 				}
 			}
 			if trace {
-				vm.eval(r.Body)
+				vm.traceEval(r.Body)
 			} else {
 				r.Body.Eval(vm)
 			}
@@ -79,7 +79,7 @@ func (r RangeStmt) Eval(vm *VM) {
 				}
 			}
 			if trace {
-				vm.eval(r.Body)
+				vm.traceEval(r.Body)
 			} else {
 				r.Body.Eval(vm)
 			}
@@ -136,8 +136,8 @@ func (r *rangeMapIteratorStep) Take(vm *VM) Step {
 	}
 	if r.iterator.Next() {
 		// first value then key to match assignment order
-		vm.callStack.top().push(reflect.ValueOf(r.iterator.Value()))
-		vm.callStack.top().push(reflect.ValueOf(r.iterator.Key()))
+		vm.pushOperand(reflect.ValueOf(r.iterator.Value()))
+		vm.pushOperand(reflect.ValueOf(r.iterator.Key()))
 		return r.bodyFlow
 	}
 	return r.next
@@ -155,6 +155,10 @@ func (r *rangeMapIteratorStep) Traverse(g *dot.Graph, visited map[int]dot.Node) 
 	return me
 }
 
+func (r *rangeMapIteratorStep) String() string {
+	return r.step.StringWith("range-map-iterator")
+}
+
 func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g) // again on the stack
 	iter := &rangeMapIteratorStep{
@@ -164,8 +168,6 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 
 	// start the body flow, detached from the current
 	g.current = newStep(nil)
-	bodyFlow := g.newPushStackFrame()
-	g.nextStep(bodyFlow)
 	// key = key
 	// value = x[value]
 	// value and key are on the operand stack
@@ -176,7 +178,7 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 		Lhs: []Expr{r.Key, r.Value},
 		Rhs: []Expr{NoExpr{}, NoExpr{}},
 	}
-	updateKeyValue.Flow(g)
+	bodyFlow := updateKeyValue.Flow(g)
 	r.Body.Flow(g)
 	g.nextStep(iter) // back to iterator
 	iter.bodyFlow = bodyFlow
@@ -192,6 +194,7 @@ func (n NoExpr) Flow(g *graphBuilder) (head Step) {
 	g.next(n)
 	return g.current
 }
+func (NoExpr) String() string { return "NoExpr" }
 
 func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 

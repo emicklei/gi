@@ -24,7 +24,11 @@ func (a AssignStmt) Eval(vm *VM) {
 		// right to left
 		for i := len(a.Rhs) - 1; i >= 0; i-- {
 			each := a.Rhs[i]
-			vm.eval(each)
+			if trace {
+				vm.traceEval(each)
+			} else {
+				each.Eval(vm)
+			}
 		}
 	}
 	var lastVal reflect.Value
@@ -33,6 +37,9 @@ func (a AssignStmt) Eval(vm *VM) {
 		var v reflect.Value
 		// handle "ok" idiom for map index expressions
 		if len(vm.callStack.top().operandStack) == 0 {
+			if !lastVal.IsValid() {
+				panic("internal error: missing value for assignment")
+			}
 			v = reflect.ValueOf(!lastVal.IsZero())
 		} else {
 			v = vm.callStack.top().pop()

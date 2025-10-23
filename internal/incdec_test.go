@@ -32,7 +32,11 @@ func TestIncDec(t *testing.T) {
 				IncDecStmt: &ast.IncDecStmt{Tok: tc.tok},
 				X:          Ident{Ident: &ast.Ident{Name: "x"}},
 			}
-			vm.eval(n)
+			if trace {
+				vm.traceEval(n)
+			} else {
+				n.Eval(vm)
+			}
 			v := vm.localEnv().valueLookUp("x")
 			if got, want := v.Interface(), tc.end.Interface(); got != want {
 				t.Errorf("got %v want %v", got, want)

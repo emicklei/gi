@@ -55,7 +55,7 @@ func (vm *VM) localEnv() Env {
 // returnsEval evaluates the argument and returns the popped value that was pushed onto the operand stack.
 func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 	if trace {
-		vm.eval(e)
+		vm.traceEval(e)
 	} else {
 		e.Eval(vm)
 	}
@@ -116,10 +116,8 @@ func (vm *VM) fatal(err any) {
 	os.Exit(1)
 }
 
-func (vm *VM) eval(e Evaluable) {
-	if trace {
-		fmt.Println("vm.eval:", e)
-	}
+func (vm *VM) traceEval(e Evaluable) {
+	fmt.Println("vm.eval:", e)
 	e.Eval(vm)
 }
 

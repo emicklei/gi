@@ -71,7 +71,7 @@ func (p *Package) Initialize(vm *VM) error {
 	for _, each := range p.Env.inits {
 		vm.pushNewFrame(each)
 		if trace {
-			vm.eval(each)
+			vm.traceEval(each)
 		} else {
 			each.Eval(vm)
 		}

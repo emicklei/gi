@@ -24,11 +24,11 @@ func (f ForStmt) Eval(vm *VM) {
 	vm.pushNewFrame(f)
 	if trace {
 		if f.Init != nil {
-			vm.eval(f.Init.stmtStep())
+			vm.traceEval(f.Init.stmtStep())
 		}
 		for vm.returnsEval(f.Cond).Bool() {
-			vm.eval(f.Body.stmtStep())
-			vm.eval(f.Post.stmtStep())
+			vm.traceEval(f.Body.stmtStep())
+			vm.traceEval(f.Post.stmtStep())
 		}
 	} else {
 		if f.Init != nil {

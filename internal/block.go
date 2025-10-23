@@ -21,7 +21,7 @@ func (b BlockStmt) String() string {
 func (b BlockStmt) Eval(vm *VM) {
 	for _, stmt := range b.List {
 		if trace {
-			vm.eval(stmt.stmtStep())
+			vm.traceEval(stmt.stmtStep())
 		} else {
 			stmt.stmtStep().Eval(vm)
 		}

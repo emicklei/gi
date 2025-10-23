@@ -127,7 +127,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 		vm.takeAll(fl.callGraph)
 	} else {
 		if trace {
-			vm.eval(fl.Body)
+			vm.traceEval(fl.Body)
 		} else {
 			fl.Body.Eval(vm)
 		}
@@ -169,7 +169,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 		vm.takeAll(fd.callGraph)
 	} else {
 		if trace {
-			vm.eval(fd.Body)
+			vm.traceEval(fd.Body)
 		} else {
 			fd.Body.Eval(vm)
 		}

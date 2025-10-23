@@ -24,15 +24,15 @@ func (i IfStmt) String() string {
 func (i IfStmt) Eval(vm *VM) {
 	if trace {
 		if i.Init != nil {
-			vm.eval(i.Init)
+			vm.traceEval(i.Init)
 		}
 		rv := vm.returnsEval(i.Cond)
 		if rv.Bool() {
-			vm.eval(i.Body)
+			vm.traceEval(i.Body)
 			return
 		}
 		if i.Else != nil {
-			vm.eval(i.Else.stmtStep())
+			vm.traceEval(i.Else.stmtStep())
 			return
 		}
 	} else {

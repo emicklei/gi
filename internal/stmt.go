@@ -17,7 +17,7 @@ func (s ExprStmt) stmtStep() Evaluable { return s }
 
 func (s ExprStmt) Eval(vm *VM) {
 	if trace {
-		vm.eval(s.X)
+		vm.traceEval(s.X)
 	} else {
 		s.X.Eval(vm)
 	}
@@ -68,7 +68,7 @@ func (s LabeledStmt) String() string {
 
 func (s LabeledStmt) Eval(vm *VM) {
 	if trace {
-		vm.eval(s.Stmt.stmtStep())
+		vm.traceEval(s.Stmt.stmtStep())
 	} else {
 		s.Stmt.stmtStep().Eval(vm)
 	}
@@ -111,12 +111,12 @@ func (s SwitchStmt) Eval(vm *VM) {
 	defer vm.popFrame() // to handle break statements
 	if trace {
 		if s.Init != nil {
-			vm.eval(s.Init.stmtStep())
+			vm.traceEval(s.Init.stmtStep())
 		}
 		if s.Tag != nil {
-			vm.eval(s.Tag)
+			vm.traceEval(s.Tag)
 		}
-		vm.eval(s.Body)
+		vm.traceEval(s.Body)
 	} else {
 		if s.Init != nil {
 			s.Init.stmtStep().Eval(vm)
@@ -164,7 +164,7 @@ func (c CaseClause) Eval(vm *VM) {
 		// default case
 		for _, stmt := range c.Body {
 			if trace {
-				vm.eval(stmt.stmtStep())
+				vm.traceEval(stmt.stmtStep())
 			} else {
 				stmt.stmtStep().Eval(vm)
 			}
@@ -190,7 +190,11 @@ func (c CaseClause) Eval(vm *VM) {
 			vm.pushNewFrame(c)
 			defer vm.popFrame()
 			for _, stmt := range c.Body {
-				vm.eval(stmt.stmtStep())
+				if trace {
+					vm.traceEval(stmt.stmtStep())
+				} else {
+					stmt.stmtStep().Eval(vm)
+				}
 			}
 			return
 		}
@@ -219,7 +223,7 @@ func (d DeferStmt) Eval(vm *VM) {
 		return
 	}
 	// TODO: keep defer stack in the current frame?
-	defer vm.eval(d.Call)
+	defer vm.traceEval(d.Call)
 }
 
 func (d DeferStmt) Flow(g *graphBuilder) (head Step) {
