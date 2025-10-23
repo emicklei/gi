@@ -472,7 +472,7 @@ func main() {
 func TestRangeOfMap(t *testing.T) {
 	trace = true
 	defer func() { trace = false }()
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 
 func main() {
 	m := map[string]int{"a":1, "b":2}

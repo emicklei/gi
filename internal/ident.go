@@ -21,7 +21,11 @@ func (i Ident) Eval(vm *VM) {
 	vm.pushOperand(vm.localEnv().valueLookUp(i.Name))
 }
 func (i Ident) Assign(vm *VM, value reflect.Value) {
-	vm.localEnv().valueOwnerOf(i.Name).set(i.Name, value)
+	owner := vm.localEnv().valueOwnerOf(i.Name)
+	if owner == nil {
+		vm.fatal("undefined identifier: " + i.Name)
+	}
+	owner.set(i.Name, value)
 }
 func (i Ident) Define(vm *VM, value reflect.Value) {
 	vm.localEnv().set(i.Name, value)

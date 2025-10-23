@@ -123,28 +123,46 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	return
 }
 
-type rangeMapIteratorStep struct {
+// instead of MapRangeExpr TODO
+type rangeMapIteratorInitStep struct {
 	*step
-	iterator *reflect.MapIter
-	bodyFlow Step
+	localVarName string
 }
 
-func (r *rangeMapIteratorStep) Take(vm *VM) Step {
-	if r.iterator == nil {
-		rangeable := vm.callStack.top().pop()
-		r.iterator = rangeable.MapRange()
-	}
-	if r.iterator.Next() {
+func (r *rangeMapIteratorInitStep) Take(vm *VM) Step {
+	rangeable := vm.callStack.top().pop()
+	iter := rangeable.MapRange()
+	vm.localEnv().set(r.localVarName, reflect.ValueOf(iter))
+	return r.next
+}
+
+func (r *rangeMapIteratorInitStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return r.step.traverse(g, r.step.StringWith("map-iterator-init"), "next", visited)
+}
+
+func (r *rangeMapIteratorInitStep) String() string {
+	return r.step.StringWith("range-map-iterator-init:" + r.localVarName)
+}
+
+type rangeMapIteratorNextStep struct {
+	*step
+	localVarName string
+	bodyFlow     Step
+}
+
+func (r *rangeMapIteratorNextStep) Take(vm *VM) Step {
+	iterator := vm.localEnv().valueLookUp(r.localVarName).Interface().(*reflect.MapIter)
+	if iterator.Next() {
 		// first value then key to match assignment order
-		vm.pushOperand(reflect.ValueOf(r.iterator.Value()))
-		vm.pushOperand(reflect.ValueOf(r.iterator.Key()))
+		vm.pushOperand(iterator.Value())
+		vm.pushOperand(iterator.Key())
 		return r.bodyFlow
 	}
 	return r.next
 }
 
-func (r *rangeMapIteratorStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	me := r.step.traverse(g, r.step.StringWith("map-iterator"), "next", visited)
+func (r *rangeMapIteratorNextStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	me := r.step.traverse(g, r.step.StringWith("map-iterator-next"), "next", visited)
 	if r.bodyFlow != nil {
 		// no edge if visited before
 		if _, ok := visited[r.bodyFlow.ID()]; !ok {
@@ -155,14 +173,25 @@ func (r *rangeMapIteratorStep) Traverse(g *dot.Graph, visited map[int]dot.Node) 
 	return me
 }
 
-func (r *rangeMapIteratorStep) String() string {
-	return r.step.StringWith("range-map-iterator")
+func (r *rangeMapIteratorNextStep) String() string {
+	return r.step.StringWith("range-map-iterator-next:" + r.localVarName)
 }
 
 func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g) // again on the stack
-	iter := &rangeMapIteratorStep{
-		step: newStep(nil),
+
+	// create the iterator
+	localVarName := fmt.Sprintf("_mapIter_%d", idgen) // must be unique in env
+	init := &rangeMapIteratorInitStep{
+		step:         newStep(nil),
+		localVarName: localVarName,
+	}
+	g.nextStep(init)
+
+	// iterator next step
+	iter := &rangeMapIteratorNextStep{
+		step:         newStep(nil),
+		localVarName: localVarName,
 	}
 	g.nextStep(iter)
 
@@ -170,13 +199,13 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	g.current = newStep(nil)
 	// key = key
 	// value = x[value]
-	// value and key are on the operand stack
+	// value and key are on the operand stack by the iterator step
 	updateKeyValue := AssignStmt{
 		AssignStmt: &ast.AssignStmt{
-			Tok: token.ASSIGN,
+			Tok: token.DEFINE,
 		},
 		Lhs: []Expr{r.Key, r.Value},
-		Rhs: []Expr{NoExpr{}, NoExpr{}},
+		Rhs: []Expr{NoExpr{}, NoExpr{}}, // TODO feels hacky, could the step to do this directly?
 	}
 	bodyFlow := updateKeyValue.Flow(g)
 	r.Body.Flow(g)
@@ -189,9 +218,8 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 
 type NoExpr struct{}
 
-func (NoExpr) Eval(vm *VM) {}
+func (NoExpr) Eval(vm *VM) {} // used?
 func (n NoExpr) Flow(g *graphBuilder) (head Step) {
-	g.next(n)
 	return g.current
 }
 func (NoExpr) String() string { return "NoExpr" }

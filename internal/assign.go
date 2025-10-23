@@ -43,6 +43,9 @@ func (a AssignStmt) Eval(vm *VM) {
 			v = reflect.ValueOf(!lastVal.IsZero())
 		} else {
 			v = vm.callStack.top().pop()
+			if trace {
+				fmt.Printf("lhs %v (%T)", v.Interface(), v.Interface())
+			}
 			lastVal = v
 		}
 		target, ok_ := each.(CanAssign)
