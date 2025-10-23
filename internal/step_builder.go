@@ -14,7 +14,8 @@ import (
 var _ ast.Visitor = (*stepBuilder)(nil)
 
 type buildOptions struct {
-	callGraph bool
+	callGraph   bool
+	dotFilename string
 }
 
 type stepBuilder struct {
@@ -264,7 +265,7 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 				fmt.Fprintf(os.Stderr, "failed to load imported package %s: %v\n", unq, err)
 				break
 			}
-			p, err := BuildPackage(gopkg, b.opts.callGraph)
+			p, err := BuildPackage(gopkg, b.opts.dotFilename, b.opts.callGraph)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to build imported package %s: %v\n", unq, err)
 				break
@@ -367,7 +368,7 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			s.callGraph = s.Flow(g)
 
 			// for debugging
-			if fileName := os.Getenv("GI_DOT"); fileName != "" {
+			if fileName := b.opts.dotFilename; fileName != "" {
 				g.dotFile = fileName
 				g.dotify()
 				// will fail in pipeline without graphviz installed

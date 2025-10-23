@@ -23,12 +23,11 @@ type RangeStmt struct {
 
 func (r RangeStmt) Eval(vm *VM) {
 	rangeable := vm.returnsEval(r.X)
-	vm.pushNewFrame(r)
-
 	switch rangeable.Kind() {
 	case reflect.Map:
 		iter := rangeable.MapRange()
 		for iter.Next() {
+			vm.pushNewFrame(r)
 			if r.Key != nil {
 				if ca, ok := r.Key.(CanAssign); ok {
 					ca.Define(vm, iter.Key())
@@ -44,9 +43,11 @@ func (r RangeStmt) Eval(vm *VM) {
 			} else {
 				r.Body.Eval(vm)
 			}
+			vm.popFrame()
 		}
 	case reflect.Slice, reflect.Array:
 		for i := 0; i < rangeable.Len(); i++ {
+			vm.pushNewFrame(r)
 			if r.Key != nil {
 				if ca, ok := r.Key.(CanAssign); ok {
 					ca.Define(vm, reflect.ValueOf(i))
@@ -62,9 +63,11 @@ func (r RangeStmt) Eval(vm *VM) {
 			} else {
 				r.Body.Eval(vm)
 			}
+			vm.popFrame()
 		}
 	case reflect.Int:
 		for i := 0; i < int(rangeable.Int()); i++ {
+			vm.pushNewFrame(r)
 			if r.Key != nil {
 				if ca, ok := r.Key.(CanAssign); ok {
 					ca.Define(vm, reflect.ValueOf(i))
@@ -80,9 +83,9 @@ func (r RangeStmt) Eval(vm *VM) {
 			} else {
 				r.Body.Eval(vm)
 			}
+			vm.popFrame()
 		}
 	}
-	vm.popFrame()
 }
 
 // Flow builds the control flow graph for the RangeStmt.
@@ -122,9 +125,8 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 
 type rangeMapIteratorStep struct {
 	*step
-	iterator   *reflect.MapIter
-	assignFlow Step
-	bodyFlow   Step
+	iterator *reflect.MapIter
+	bodyFlow Step
 }
 
 func (r *rangeMapIteratorStep) Take(vm *VM) Step {
@@ -136,10 +138,21 @@ func (r *rangeMapIteratorStep) Take(vm *VM) Step {
 		// first value then key to match assignment order
 		vm.callStack.top().push(reflect.ValueOf(r.iterator.Value()))
 		vm.callStack.top().push(reflect.ValueOf(r.iterator.Key()))
-		r.assignFlow.Take(vm)
 		return r.bodyFlow
 	}
 	return r.next
+}
+
+func (r *rangeMapIteratorStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	me := r.step.traverse(g, r.step.StringWith("map-iterator"), "next", visited)
+	if r.bodyFlow != nil {
+		// no edge if visited before
+		if _, ok := visited[r.bodyFlow.ID()]; !ok {
+			bodyNode := r.bodyFlow.Traverse(g, visited)
+			me.Edge(bodyNode, "body")
+		}
+	}
+	return me
 }
 
 func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
@@ -149,11 +162,13 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	}
 	g.nextStep(iter)
 
-	// start the assign flow, detached from the current
+	// start the body flow, detached from the current
 	g.current = newStep(nil)
-
+	bodyFlow := g.newPushStackFrame()
+	g.nextStep(bodyFlow)
 	// key = key
 	// value = x[value]
+	// value and key are on the operand stack
 	updateKeyValue := AssignStmt{
 		AssignStmt: &ast.AssignStmt{
 			Tok: token.ASSIGN,
@@ -161,10 +176,12 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 		Lhs: []Expr{r.Key, r.Value},
 		Rhs: []Expr{NoExpr{}, NoExpr{}},
 	}
-	iter.assignFlow = updateKeyValue.Flow(g)
+	updateKeyValue.Flow(g)
+	r.Body.Flow(g)
+	g.nextStep(iter) // back to iterator
+	iter.bodyFlow = bodyFlow
 
-	g.current = head
-	g.nextStep(iter)
+	g.current = iter
 	return
 }
 

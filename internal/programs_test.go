@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 )
@@ -20,7 +19,7 @@ func TestProgramTypeConvert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.typeName, func(t *testing.T) {
 			t.Parallel()
-			src := fmt.Sprintf(`package main			
+			src := fmt.Sprintf(`package main
 			func main() {
 				a := %s(1) + 2
 				print(a)
@@ -29,7 +28,7 @@ func TestProgramTypeConvert(t *testing.T) {
 			if got, want := out, "3"; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
-			out = parseAndWalk(t, src)
+			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", t.Name()), src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -53,7 +52,7 @@ func TestProgramTypeUnsignedConvert(t *testing.T) {
 			t.Parallel()
 			src := fmt.Sprintf(`
 			package main
-			
+
 			func main() {
 				a := %s(1) + %s(2)
 				print(a)
@@ -62,8 +61,7 @@ func TestProgramTypeUnsignedConvert(t *testing.T) {
 			if got, want := out, "3"; got != want {
 				t.Errorf("[run] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
-			os.Setenv("GI_DOT", fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", tt.typeName))
-			out = parseAndWalk(t, src)
+			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", tt.typeName), src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("[step] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -92,7 +90,7 @@ func TestAssignmentOperators(t *testing.T) {
 		t.Run(tt.op, func(t *testing.T) {
 			src := fmt.Sprintf(`
 			package main
-			
+
 			func main() {
 				a := 1
 				a %s 2
@@ -102,7 +100,7 @@ func TestAssignmentOperators(t *testing.T) {
 			if got, want := out, tt.want; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
-			out = parseAndWalk(t, src)
+			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", t.Name()), src)
 			if got, want := out, tt.want; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -115,7 +113,7 @@ func TestPrint(t *testing.T) {
 
 func main() {
 	print("gi")
-	print("flow")	
+	print("flow")
 }`, "giflow")
 }
 
@@ -192,7 +190,7 @@ func main() {
 	}
 	for i := 9; i > 0; i-- {
 		print(i)
-	}	
+	}
 }`, "0123456789987654321")
 }
 
@@ -235,9 +233,9 @@ func TestConst(t *testing.T) {
 const (
 	C = A+1
 	A = 0
-	B = 1	
+	B = 1
 )
-func main() {	
+func main() {
 	print(A,B,C)
 }`, "011")
 }
@@ -250,7 +248,7 @@ var (
 	s string
 	b bool
 )
-func main() {	
+func main() {
 	print(a,s,b)
 }`, "1false")
 }
@@ -462,9 +460,9 @@ func main() {
 }
 
 func TestRangeOfInt(t *testing.T) {
-	testProgram(t, false, true, `package main
+	testProgram(t, true, true, `package main
 
-func main() { 
+func main() {
 	for range 2 {
 		print("a")
 	}
@@ -472,7 +470,9 @@ func main() {
 }
 
 func TestRangeOfMap(t *testing.T) {
-	testProgram(t, false, false, `package main
+	trace = true
+	defer func() { trace = false }()
+	testProgram(t, true, false, `package main
 
 func main() {
 	m := map[string]int{"a":1, "b":2}
@@ -639,7 +639,7 @@ func TestFunctionLiteral(t *testing.T) {
 	testProgram(t, true, true, `package main
 
 func main() {
-	f := func(a int) int { return a } 
+	f := func(a int) int { return a }
 	print(f(1))
 }`, "1")
 }
@@ -693,7 +693,7 @@ func TestFuncAsPackageVar(t *testing.T) {
 
 const h = "1"
 var f = func() string { return h }
-	
+
 func main() {
 	print(f())
 }`, "1")
@@ -775,16 +775,16 @@ func TestUnaries(t *testing.T) {
 			t.Parallel()
 			src := fmt.Sprintf(`
 			package main
-			
+
 			func main() {
-				v := %s				
+				v := %s
 				print(%sv)
 			}`, tt.src, tt.op)
 			out := parseAndRun(t, src)
 			if got, want := out, tt.want; got != want {
 				t.Errorf("%s got [%[1]v:%[1]T] want [%[2]v:%[2]T]", tt.src, got, want)
 			}
-			out = parseAndWalk(t, src)
+			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", t.Name()), src)
 			if got, want := out, tt.want; got != want {
 				t.Errorf("%s got [%[1]v:%[1]T] want [%[2]v:%[2]T]", tt.src, got, want)
 			}
@@ -845,7 +845,7 @@ func TestNilError(t *testing.T) {
 	testProgram(t, true, true, `package main
 import "errors"
 func main() {
-	var err error = nil	
+	var err error = nil
 	print(err)
 }`, "<nil>")
 }

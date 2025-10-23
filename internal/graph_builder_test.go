@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"os"
 	"testing"
 )
 
@@ -19,9 +18,8 @@ func main() {
 	print(j)
 }`
 
-	//trace = true
-	os.Setenv("GI_DOT", "testgraphs/TestGrapherFor.dot")
-	out := parseAndWalk(t, source)
+	//trace = true)
+	out := parseAndWalk(t, "testgraphs/TestGrapherFor.dot", source)
 	expected := `0122`
 	if out != expected {
 		t.Fatalf("expected %q got %q", expected, out)

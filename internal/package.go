@@ -134,7 +134,8 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 	}, Env: b.env.(*PkgEnvironment)}, nil
 }
 
-func BuildPackage(pkg *packages.Package, isStepping bool) (*Package, error) {
+// TODO build options
+func BuildPackage(pkg *packages.Package, dotFilename string, isStepping bool) (*Package, error) {
 	if trace {
 		now := time.Now()
 		defer func() {
@@ -142,7 +143,7 @@ func BuildPackage(pkg *packages.Package, isStepping bool) (*Package, error) {
 		}()
 	}
 	b := newStepBuilder()
-	b.opts = buildOptions{callGraph: isStepping}
+	b.opts = buildOptions{callGraph: isStepping, dotFilename: dotFilename}
 	for _, stx := range pkg.Syntax {
 		for _, decl := range stx.Decls {
 			b.Visit(decl)

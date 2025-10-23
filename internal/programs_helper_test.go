@@ -12,7 +12,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func buildPackage(t *testing.T, source string) *Package {
+func buildPackage(t *testing.T, dotFilename, source string) *Package {
 	t.Helper()
 	cwd, _ := os.Getwd()
 	cfg := &packages.Config{
@@ -27,7 +27,7 @@ func buildPackage(t *testing.T, source string) *Package {
 	if err != nil {
 		t.Fatalf("failed to load packages: %v", err)
 	}
-	ffpkg, err := BuildPackage(gopkg, true)
+	ffpkg, err := BuildPackage(gopkg, dotFilename, true)
 	if err != nil {
 		t.Fatalf("failed to build package: %v", err)
 	}
@@ -51,10 +51,10 @@ func collectPrintOutput(vm *VM) {
 	}))
 }
 
-func parseAndWalk(t *testing.T, source string) string {
+func parseAndWalk(t *testing.T, dotFilename, source string) string {
 	t.Helper()
 	idgen = 0
-	pkg := buildPackage(t, source)
+	pkg := buildPackage(t, dotFilename, source)
 	vm := newVM(pkg.Env)
 	collectPrintOutput(vm)
 	if err := WalkPackageFunction(pkg, "main", vm); err != nil {
@@ -65,7 +65,7 @@ func parseAndWalk(t *testing.T, source string) string {
 
 func parseAndRun(t *testing.T, source string) string {
 	t.Helper()
-	pkg := buildPackage(t, source)
+	pkg := buildPackage(t, "", source)
 	vm := newVM(pkg.Env)
 	collectPrintOutput(vm)
 	if err := RunPackageFunction(pkg, "main", vm); err != nil {
@@ -83,20 +83,19 @@ func testProgram(t *testing.T, running bool, stepping bool, source string, wantF
 			if !fn(out) {
 				t.Errorf("got [%v] which does not match predicate", out)
 			}
-			return
-		}
-		want := wantFuncOrString.(string)
-		if got, want := out, want; got != want {
-			t.Errorf("[run] got [%v] want [%v]", got, want)
+		} else {
+			want := wantFuncOrString.(string)
+			if got, want := out, want; got != want {
+				t.Errorf("[run] got [%v] want [%v]", got, want)
+			}
 		}
 	} else {
 		t.Log("TODO skipped run: ", t.Name())
 	}
 	if stepping {
 		os.WriteFile(fmt.Sprintf("testgraphs/%s.src", t.Name()), []byte(source), 0644)
-		os.Setenv("GI_DOT", fmt.Sprintf("testgraphs/%s.dot", t.Name()))
-		out := parseAndWalk(t, source)
-		os.Unsetenv("GI_DOT")
+		gidot := fmt.Sprintf("testgraphs/%s.dot", t.Name())
+		out := parseAndWalk(t, gidot, source)
 		if fn, ok := wantFuncOrString.(func(string) bool); ok {
 			if !fn(out) {
 				t.Errorf("got [%v] which does not match predicate", out)

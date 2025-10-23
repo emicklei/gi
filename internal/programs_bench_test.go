@@ -59,7 +59,7 @@ func main() {
 		})
 	}
 	{
-		prog, err := BuildPackage(pkg, false)
+		prog, err := BuildPackage(pkg, "", false)
 		if err != nil {
 			b.Fatalf("failed to build program: %v", err)
 		}
@@ -74,7 +74,7 @@ func main() {
 		})
 	}
 	{
-		prog, err := BuildPackage(pkg, false)
+		prog, err := BuildPackage(pkg, "", false)
 		if err != nil {
 			b.Fatalf("failed to build program: %v", err)
 		}

@@ -23,7 +23,7 @@ func (g *graphBuilder) next(e Evaluable) {
 func (g *graphBuilder) nextStep(next Step) {
 	if g.current != nil {
 		if g.current.Next() != nil {
-			fmt.Printf("BUG: current %s already has a next %s, failing %s\n", g.current, g.current.Next(), next)
+			panic(fmt.Sprintf("current %s already has a next %s, wanted %s\n", g.current, g.current.Next(), next))
 		}
 		g.current.SetNext(next)
 	} else {

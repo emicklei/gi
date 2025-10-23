@@ -15,7 +15,7 @@ func Run(filePath string) error {
 	if err != nil {
 		return err
 	}
-	ffpkg, err := internal.BuildPackage(gopkg, os.Getenv("GI_STEP") != "")
+	ffpkg, err := internal.BuildPackage(gopkg, os.Getenv("GI_DOT"), os.Getenv("GI_STEP") != "")
 	if err != nil {
 		return err
 	}
