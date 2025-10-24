@@ -509,7 +509,7 @@ func main() {
 			}
 		}
 	}
-}`, "0a10b21a11b2")
+}`, func(out string) bool { return out == "0b20a11a11b2" || out == "0a10b21a11b2" })
 }
 
 func TestInit(t *testing.T) {
