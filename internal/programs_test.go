@@ -205,6 +205,17 @@ func main() {
 	print(j)
 }`, "0122")
 }
+func TestForScopeDefine(t *testing.T) {
+	testProgram(t, true, true, `package main
+func main() {
+	j := 1
+	for i := 0; i < 3; i++ {
+		j := i
+		print(j)
+	}
+	print(j)
+}`, "0121")
+}
 
 func TestGeneric(t *testing.T) {
 	t.Skip()
@@ -480,6 +491,25 @@ func main() {
 		print(k,v)
 	}
 }`, func(out string) bool { return out == "a1b2" || out == "b2a1" })
+}
+
+func TestRangeNested(t *testing.T) {
+	testProgram(t, true, false, `package main
+
+func main() {
+	m := map[string]int{"a": 1, "b": 2}
+	for j := range []int{0, 1} {
+		for range j {
+			for i := range 2 {
+				for k, v := range m {
+					print(i)
+					print(k)
+					print(v)
+				}
+			}
+		}
+	}
+}`, "0a10b21a11b2")
 }
 
 func TestInit(t *testing.T) {

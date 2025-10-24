@@ -1,3 +1,18 @@
+```
+func main() {
+	for i := 0; i < 100; i++ {
+		for j := 0; j < 100; j++ {
+			if i == j {
+				print("a")
+			} else if i < j {
+				print("b")
+			} else {
+				print("c")
+			}
+		}
+	}
+}
+```
 23-10-20025
 ```
 BenchmarkIfElseIfElse/native-12                 1000000000               0.0000491 ns/op               0 B/op          0 allocs/op

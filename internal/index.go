@@ -15,9 +15,10 @@ type IndexExpr struct {
 	Index Expr
 }
 
-func (i IndexExpr) String() string {
-	return fmt.Sprintf("IndexExpr(%v, %v)", i.X, i.Index)
-}
+// func (i IndexExpr) EvalKind() reflect.Kind {
+// 	return i.X.EvalKind()
+// }
+
 func (i IndexExpr) Eval(vm *VM) {
 	var index, target reflect.Value
 	if vm.isStepping {
@@ -62,4 +63,8 @@ func (i IndexExpr) Flow(g *graphBuilder) (head Step) {
 	i.Index.Flow(g)
 	g.next(i)
 	return head
+}
+
+func (i IndexExpr) String() string {
+	return fmt.Sprintf("IndexExpr(%v, %v)", i.X, i.Index)
 }

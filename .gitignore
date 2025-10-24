@@ -38,3 +38,4 @@ internal/testgraphs/*.src
 PERF.md
 vm-panic.html
 *.prof
+.DS_Store

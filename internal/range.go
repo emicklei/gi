@@ -24,6 +24,7 @@ type RangeStmt struct {
 func (r RangeStmt) Eval(vm *VM) {
 	rangeable := vm.returnsEval(r.X)
 	switch rangeable.Kind() {
+	//switch r.X.EvalKind() {
 	case reflect.Map:
 		iter := rangeable.MapRange()
 		for iter.Next() {
