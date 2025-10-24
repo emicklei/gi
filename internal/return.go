@@ -20,7 +20,9 @@ func (r ReturnStmt) String() string {
 }
 
 func (r ReturnStmt) Eval(vm *VM) {
-	// TODO optimize for empty results
+	if len(r.Results) == 0 {
+		return
+	}
 	results := make([]reflect.Value, len(r.Results))
 	for i, each := range r.Results {
 		var val reflect.Value
@@ -38,7 +40,6 @@ func (r ReturnStmt) Eval(vm *VM) {
 }
 
 func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {
-	//head = g.current
 	// reverse order to keep Eval correct
 	for i := len(r.Results) - 1; i >= 0; i-- {
 		each := r.Results[i]
@@ -48,14 +49,6 @@ func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {
 		}
 		each.Flow(g)
 	}
-	// for i := 0; i < len(r.Results); i++ {
-	// 	each := r.Results[i]
-	// 	if i == 0 {
-	// 		head = each.Flow(g)
-	// 		continue
-	// 	}
-	// 	each.Flow(g)
-	// }
 	g.next(r)
 	if head == nil {
 		head = g.current

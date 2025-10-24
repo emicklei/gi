@@ -132,9 +132,10 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 			fl.Body.Eval(vm)
 		}
 	}
-	top := vm.callStack.top()
+	// take values before popping frame
+	vals := vm.callStack.top().returnValues
 	vm.popFrame()
-	vm.pushCallResults(top.returnValues)
+	vm.pushCallResults(vals)
 }
 func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	// TODO deduplicate with handleFuncLit
@@ -174,9 +175,11 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 			fd.Body.Eval(vm)
 		}
 	}
-	top := vm.callStack.top()
+	// top == frame? TODO
+	// take values before popping frame
+	vals := vm.callStack.top().returnValues
 	vm.popFrame()
-	vm.pushCallResults(top.returnValues)
+	vm.pushCallResults(vals)
 }
 
 func (c CallExpr) Flow(g *graphBuilder) (head Step) {

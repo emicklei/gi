@@ -10,6 +10,7 @@ import (
 )
 
 func TestBinaryExprValue_Eval(t *testing.T) {
+	t.Parallel()
 	t.Run("int op int", func(t *testing.T) {
 		cases := []struct {
 			op       token.Token
@@ -58,6 +59,7 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 						t.Errorf("expected %v, got %v", expected, result.Bool())
 					}
 				}
+				vm.popFrame()
 			})
 		}
 	})
@@ -93,6 +95,7 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 				if math.Abs(result.Float()-tt.expected) > 1e-9 {
 					t.Errorf("expected %f, got %f", tt.expected, result.Float())
 				}
+				vm.popFrame()
 			})
 		}
 	})
@@ -118,6 +121,7 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 		if result.Float() != 45.14 {
 			t.Fatalf("expected 45.14, got %f", result.Float())
 		}
+		vm.popFrame()
 	})
 
 	t.Run("float op int", func(t *testing.T) {
@@ -141,6 +145,7 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 		if result.Float() != 45.14 {
 			t.Fatalf("expected 45.14, got %f", result.Float())
 		}
+		vm.popFrame()
 	})
 
 	t.Run("string op string", func(t *testing.T) {
@@ -160,10 +165,12 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 		if result.String() != "Hello, World!" {
 			t.Fatalf(`expected "Hello, World!", got %s`, result.String())
 		}
+		vm.popFrame()
 	})
 }
 
 func TestBinaryExprValue_IntOpInt(t *testing.T) {
+	t.Parallel()
 	bv := BinaryExprValue{
 		op:    token.ADD,
 		left:  reflect.ValueOf(int(1)),

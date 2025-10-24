@@ -5,9 +5,16 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sync"
 
 	"github.com/emicklei/structexplorer"
 )
+
+var framePool = sync.Pool{
+	New: func() any {
+		return &stackFrame{}
+	},
+}
 
 type stackFrame struct {
 	creator      Evaluable
@@ -43,7 +50,8 @@ type VM struct {
 
 func newVM(env Env) *VM {
 	vm := &VM{output: new(bytes.Buffer)}
-	frame := &stackFrame{env: env}
+	frame := framePool.Get().(*stackFrame)
+	frame.env = env
 	vm.callStack.push(frame)
 	return vm
 }
@@ -89,10 +97,19 @@ func (vm *VM) pushOperand(v reflect.Value) {
 	vm.callStack.top().push(v)
 }
 func (vm *VM) pushNewFrame(e Evaluable) {
-	frame := &stackFrame{creator: e, env: vm.localEnv().newChild()}
+	frame := framePool.Get().(*stackFrame)
+	frame.creator = e
+	frame.env = vm.localEnv().newChild()
 	vm.callStack.push(frame)
 }
 func (vm *VM) popFrame() {
+	frame := vm.callStack.pop()
+	// reset references
+	frame.operandStack = frame.operandStack[:0]
+	frame.returnValues = frame.returnValues[:0]
+	frame.env = nil
+	frame.creator = nil
+	framePool.Put(frame)
 }
 func (vm *VM) fatal(err any) {
 	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)

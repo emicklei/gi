@@ -88,7 +88,7 @@ func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package
 	if trace {
 		now := time.Now()
 		defer func() {
-			fmt.Printf("LoadPackage(%s) took %v\n", dir, time.Since(now))
+			fmt.Printf("pkg.load(%s) took %v\n", dir, time.Since(now))
 		}()
 	}
 	var cfg *packages.Config
@@ -118,7 +118,7 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 	if trace {
 		now := time.Now()
 		defer func() {
-			fmt.Printf("BuildPackageFromAST(%s) took %v\n", ast.Name.Name, time.Since(now))
+			fmt.Printf("pkg.buildFromAST(%s) took %v\n", ast.Name.Name, time.Since(now))
 		}()
 	}
 	b := newStepBuilder()
@@ -139,7 +139,7 @@ func BuildPackage(pkg *packages.Package, dotFilename string, isStepping bool) (*
 	if trace {
 		now := time.Now()
 		defer func() {
-			fmt.Printf("BuildPackage(%s) took %v\n", pkg.PkgPath, time.Since(now))
+			fmt.Printf("pkg.build(%s) took %v\n", pkg.PkgPath, time.Since(now))
 		}()
 	}
 	b := newStepBuilder()

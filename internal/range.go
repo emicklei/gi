@@ -95,7 +95,7 @@ func (r RangeStmt) Eval(vm *VM) {
 //   - intFlow for integers
 //
 // All three flows converge to a done step.
-// Each subflow is transformed into a ForStmt that uses an hidden index variable.
+// The last 2 subflows are transformed into a ForStmt that uses a hidden index variable.
 // TODO fix position info
 func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)

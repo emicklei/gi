@@ -689,7 +689,9 @@ func main() {
 }
 
 func TestFuncAsPackageVar(t *testing.T) {
-	testProgram(t, true, false, `package main
+	// trace = true
+	// defer func() { trace = false }()
+	testProgram(t, true, true, `package main
 
 const h = "1"
 var f = func() string { return h }
