@@ -907,3 +907,60 @@ func main() {
 	print(err2Msg)
 }`, "an error")
 }
+
+func TestPointerBasic(t *testing.T) {
+	testProgram(t, false, false, `package main
+func main() {
+	x := 42
+	p := &x
+	print(*p)
+}`, "42")
+}
+
+func TestPointerAssignment(t *testing.T) {
+	testProgram(t, false, false, `package main
+func main() {
+	x := 10
+	p := &x
+	*p = 20
+	print(x)
+}`, "20")
+}
+
+func TestPointerMultipleAssignments(t *testing.T) {
+	testProgram(t, false, false, `package main
+func main() {
+	x := 1
+	y := 2
+	px := &x
+	py := &y
+	*px = 100
+	*py = 200
+	print(x, y)
+}`, "100200")
+}
+
+func TestPointerToString(t *testing.T) {
+	testProgram(t, false, false, `package main
+func main() {
+	s := "hello"
+	p := &s
+	*p = "world"
+	print(s)
+}`, "world")
+}
+
+func TestPointerSwap(t *testing.T) {
+	testProgram(t, false, false, `package main
+func swap(a, b *int) {
+	temp := *a
+	*a = *b
+	*b = temp
+}
+func main() {
+	x := 5
+	y := 10
+	swap(&x, &y)
+	print(x, y)
+}`, "105")
+}
