@@ -29,5 +29,12 @@ func (vp *VarPointer) Assign(value reflect.Value) {
 }
 
 func (vp *VarPointer) String() string {
-	return fmt.Sprintf("&%s", vp.name)
+	// Get the underlying value to access its pointer address
+	val := vp.Deref()
+	if val.CanAddr() {
+		return fmt.Sprintf("%p", val.Addr().Interface())
+	}
+	// For non-addressable values, use the pointer to VarPointer itself
+	// This creates a consistent address representation
+	return fmt.Sprintf("%p", vp)
 }
