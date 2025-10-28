@@ -353,7 +353,7 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.FuncDecl:
 		// any declarations inside the function scope
 		b.pushEnv()
-		s := FuncDecl{FuncDecl: n, labelToListIndex: make(map[string]int)}
+		s := FuncDecl{FuncDecl: n, labelToStmt: make(map[string]statementReference)}
 		b.pushFuncDecl(s)
 		defer b.popFuncDecl()
 		if n.Recv != nil {
@@ -574,7 +574,7 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 		// add label -> statement by index mapping
 		// TODO refactor to method on FuncDecl
 		listIndex := slices.Index(b.funcStack.top().FuncDecl.Body.List, ast.Stmt(n))
-		b.funcStack.top().labelToListIndex[s.Label.Name] = listIndex
+		b.funcStack.top().labelToStmt[s.Label.Name] = statementReference{index: listIndex, step: newStep(nil)}
 
 		b.Visit(n.Stmt)
 		e := b.pop()

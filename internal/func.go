@@ -27,15 +27,24 @@ func (af *activeFuncDecl) setDone() {
 	af.bodyListIndex = len(af.FuncDecl.Body.List)
 }
 
+type statementReference struct {
+	step  Step
+	index int
+}
+
+func (r statementReference) withStep(s Step) statementReference {
+	r.step = s
+	return r
+}
+
 type FuncDecl struct {
 	*ast.FuncDecl
-	Name      *Ident
-	Recv      *FieldList
-	Body      *BlockStmt
-	Type      *FuncType
-	callGraph Step
-	// for labelled statements
-	labelToListIndex map[string]int
+	Name        *Ident
+	Recv        *FieldList
+	Body        *BlockStmt
+	Type        *FuncType
+	callGraph   Step
+	labelToStmt map[string]statementReference
 }
 
 func (f FuncDecl) Eval(vm *VM) {
@@ -57,7 +66,9 @@ func (f FuncDecl) Eval(vm *VM) {
 func (f FuncDecl) Flow(g *graphBuilder) (head Step) {
 	head = g.current
 	if f.Body != nil {
+		g.funcStack.push(f)
 		head = f.Body.Flow(g)
+		g.funcStack.pop()
 	}
 	return
 }

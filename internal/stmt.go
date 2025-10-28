@@ -72,7 +72,13 @@ func (s LabeledStmt) Eval(vm *VM) {
 }
 
 func (s LabeledStmt) Flow(g *graphBuilder) (head Step) {
-	return s.Stmt.Flow(g)
+	head = s.Stmt.Flow(g)
+	// add label -> statement mapping
+	// TODO refactor to method on FuncDecl
+	fd := g.funcStack.top()
+	ref := fd.labelToStmt[s.Label.Name]
+	ref.step.SetNext(head)
+	return
 }
 
 func (s LabeledStmt) String() string {
@@ -91,21 +97,25 @@ type BranchStmt struct {
 
 func (s BranchStmt) Eval(vm *VM) {
 	switch s.Tok {
-	case token.BREAK:
-	case token.CONTINUE:
 	case token.GOTO:
-		f := vm.funcStack.top()
-		index := f.FuncDecl.labelToListIndex[s.Label.Name]
-		f.setNextIndex(index)
-
-		// vm.callStack.top().nextStmtIndex = index
-	case token.FALLTHROUGH:
+		af := vm.funcStack.top()
+		ref := af.FuncDecl.labelToStmt[s.Label.Name]
+		af.setNextIndex(ref.index)
+	default:
+		// TODO handle break, continue, fallthrough
 	}
 }
 
 func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
-	// TODO
-	return g.current
+	switch s.Tok {
+	case token.GOTO:
+		fd := g.funcStack.top()
+		ref := fd.labelToStmt[s.Label.Name]
+		return ref.step
+	default:
+		// TODO handle break, continue, fallthrough
+	}
+	return
 }
 
 func (s BranchStmt) String() string {
