@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -509,7 +510,10 @@ func main() {
 			}
 		}
 	}
-}`, func(out string) bool { return true }) // TODO better check
+}`, func(out string) bool {
+		ok, _ := regexp.MatchString("^(?:0a10b2|0b20a1)(?:1a11b2|1b21a1)$", out)
+		return ok
+	}) // TODO better check
 }
 
 func TestInit(t *testing.T) {
