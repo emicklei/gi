@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"go/types"
 	"reflect"
 
 	"github.com/emicklei/dot"
@@ -24,7 +25,6 @@ type RangeStmt struct {
 func (r RangeStmt) Eval(vm *VM) {
 	rangeable := vm.returnsEval(r.X)
 	switch rangeable.Kind() {
-	//switch r.X.EvalKind() {
 	case reflect.Map:
 		iter := rangeable.MapRange()
 		for iter.Next() {
@@ -107,20 +107,28 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	// all flows converge to this done step
 	rangeDone := newStep(nil)
 
-	// start the map flow, detached from the current
-	g.current = newStep(nil)
-	switcher.mapFlow = r.MapFlow(g)
-	g.nextStep(rangeDone)
+	// determine the type of X
+	goType := g.goPkg.TypesInfo.TypeOf(r.RangeStmt.X)
 
-	// start the list flow, detached from the current
-	g.current = newStep(nil)
-	switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
-	g.nextStep(rangeDone)
+	switch goType.Underlying().(type) {
+	case *types.Map:
+		// start the map flow, detached from the current
+		g.current = newStep(nil)
+		switcher.mapFlow = r.MapFlow(g)
+		g.nextStep(rangeDone)
 
-	// start the int flow, detached from the current
-	g.current = newStep(nil)
-	switcher.intFlow = r.IntFlow(g)
-	g.nextStep(rangeDone)
+	case *types.Slice, *types.Array:
+		// start the list flow, detached from the current
+		g.current = newStep(nil)
+		switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
+		g.nextStep(rangeDone)
+
+	case *types.Basic:
+		// start the int flow, detached from the current
+		g.current = newStep(nil)
+		switcher.intFlow = r.IntFlow(g)
+		g.nextStep(rangeDone)
+	}
 	return
 }
 
@@ -146,16 +154,21 @@ func (r *rangeMapIteratorInitStep) String() string {
 
 type rangeMapIteratorNextStep struct {
 	*step
-	localVarName string
-	bodyFlow     Step
+	localVarName         string
+	bodyFlow             Step
+	yieldKey, yieldValue bool
 }
 
 func (r *rangeMapIteratorNextStep) Take(vm *VM) Step {
 	iterator := vm.localEnv().valueLookUp(r.localVarName).Interface().(*reflect.MapIter)
 	if iterator.Next() {
 		// first value then key to match assignment order
-		vm.pushOperand(iterator.Value())
-		vm.pushOperand(iterator.Key())
+		if r.yieldValue {
+			vm.pushOperand(iterator.Value())
+		}
+		if r.yieldKey {
+			vm.pushOperand(iterator.Key())
+		}
 		return r.bodyFlow
 	}
 	return r.next
@@ -192,26 +205,40 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	iter := &rangeMapIteratorNextStep{
 		step:         newStep(nil),
 		localVarName: localVarName,
+		yieldKey:     r.Key != nil,
+		yieldValue:   r.Value != nil,
 	}
 	g.nextStep(iter)
 
 	// start the body flow, detached from the current
 	g.current = newStep(nil)
-	// key = key
-	// value = x[value]
-	// value and key are on the operand stack by the iterator step
-	updateKeyValue := AssignStmt{
-		AssignStmt: &ast.AssignStmt{
-			Tok: token.DEFINE,
-		},
-		Lhs: []Expr{r.Key, r.Value},
-		Rhs: []Expr{NoExpr{}, NoExpr{}}, // TODO feels hacky, could the step to do this directly?
+	if iter.yieldKey || iter.yieldValue {
+		// key = key
+		// value = x[value]
+		// value and key are on the operand stack by the iterator step
+		lhs, rhs := []Expr{}, []Expr{}
+		if iter.yieldKey {
+			lhs = append(lhs, r.Key)
+			rhs = append(rhs, NoExpr{}) // feels hacky
+		}
+		if iter.yieldValue {
+			lhs = append(lhs, r.Value)
+			rhs = append(rhs, NoExpr{}) // feels hacky
+		}
+		updateKeyValue := AssignStmt{
+			AssignStmt: &ast.AssignStmt{
+				Tok: token.DEFINE,
+			},
+			Lhs: lhs,
+			Rhs: rhs,
+		}
+		bodyFlow := updateKeyValue.Flow(g)
+		iter.bodyFlow = bodyFlow
+		r.Body.Flow(g)
+	} else {
+		iter.bodyFlow = r.Body.Flow(g)
 	}
-	bodyFlow := updateKeyValue.Flow(g)
-	r.Body.Flow(g)
 	g.nextStep(iter) // back to iterator
-	iter.bodyFlow = bodyFlow
-
 	g.current = iter
 	return
 }

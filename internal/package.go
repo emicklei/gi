@@ -96,7 +96,7 @@ func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package
 		cfg = optionalConfig
 	} else {
 		cfg = &packages.Config{
-			Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles,
+			Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles | packages.NeedTypesInfo,
 			Fset: token.NewFileSet(),
 			Dir:  dir,
 			// set the [parser.SkipObjectResolution] parser flag to disable syntactic object resolution
@@ -125,7 +125,10 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 			fmt.Printf("pkg.buildFromAST(%s) took %v\n", ast.Name.Name, time.Since(now))
 		}()
 	}
-	b := newStepBuilder()
+	goPkg := &packages.Package{
+		ID: "main", Name: ast.Name.Name, PkgPath: "main",
+	}
+	b := newStepBuilder(goPkg)
 	b.opts = buildOptions{callGraph: isStepping}
 	for _, imp := range ast.Imports {
 		b.Visit(imp)
@@ -133,9 +136,7 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 	for _, decl := range ast.Decls {
 		b.Visit(decl)
 	}
-	return &Package{Package: &packages.Package{
-		ID: "main", Name: ast.Name.Name, PkgPath: "main",
-	}, Env: b.env.(*PkgEnvironment)}, nil
+	return &Package{Package: goPkg, Env: b.env.(*PkgEnvironment)}, nil
 }
 
 // TODO build options
@@ -146,7 +147,7 @@ func BuildPackage(pkg *packages.Package, dotFilename string, isStepping bool) (*
 			fmt.Printf("pkg.build(%s) took %v\n", pkg.PkgPath, time.Since(now))
 		}()
 	}
-	b := newStepBuilder()
+	b := newStepBuilder(pkg)
 	b.opts = buildOptions{callGraph: isStepping, dotFilename: dotFilename}
 	for _, stx := range pkg.Syntax {
 		for _, decl := range stx.Decls {

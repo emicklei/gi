@@ -875,7 +875,6 @@ func main() {
 func TestNilError(t *testing.T) {
 	// trace = true
 	testProgram(t, true, true, `package main
-import "errors"
 func main() {
 	var err error = nil
 	print(err)

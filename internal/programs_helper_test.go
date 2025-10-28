@@ -18,7 +18,8 @@ func buildPackage(t *testing.T, dotFilename, source string) *Package {
 	t.Helper()
 	cwd, _ := os.Getwd()
 	cfg := &packages.Config{
-		Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles,
+		// copied from Package.go
+		Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles | packages.NeedTypesInfo,
 		Fset: token.NewFileSet(),
 		Dir:  path.Join(cwd, "../examples"),
 		// copied from Package.go

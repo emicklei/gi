@@ -24,7 +24,6 @@ type CanDeclare interface {
 }
 
 type Expr interface {
-	// EvalKind() reflect.Kind
 	Flowable
 	Evaluable
 }

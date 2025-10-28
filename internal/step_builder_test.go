@@ -3,7 +3,7 @@ package internal
 import "testing"
 
 func TestEnvPushPop(t *testing.T) {
-	b := newStepBuilder()
+	b := newStepBuilder(nil)
 	top := b.env
 	b.pushEnv()
 	if b.env.getParent() != top {

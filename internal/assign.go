@@ -50,7 +50,7 @@ func (a AssignStmt) Eval(vm *VM) {
 		}
 		target, ok_ := each.(CanAssign)
 		if !ok_ {
-			vm.fatal("cannot assign to " + fmt.Sprintf("%T", each))
+			vm.fatal(fmt.Sprintf("cannot assign %v to a %T", v.Interface(), each))
 		}
 		switch a.AssignStmt.Tok {
 		case token.DEFINE: // :=

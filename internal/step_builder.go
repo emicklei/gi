@@ -9,6 +9,8 @@ import (
 	"path"
 	"reflect"
 	"strconv"
+
+	"golang.org/x/tools/go/packages"
 )
 
 var _ ast.Visitor = (*stepBuilder)(nil)
@@ -22,12 +24,13 @@ type stepBuilder struct {
 	stack []*step
 	env   Env
 	opts  buildOptions
+	goPkg *packages.Package
 }
 
-func newStepBuilder() stepBuilder {
+func newStepBuilder(goPkg *packages.Package) stepBuilder {
 	builtins := newBuiltinsEnvironment(nil)
 	pkgenv := newPkgEnvironment(builtins)
-	return stepBuilder{env: pkgenv, opts: buildOptions{callGraph: true}}
+	return stepBuilder{goPkg: goPkg, env: pkgenv, opts: buildOptions{callGraph: true}}
 }
 
 func (b *stepBuilder) pushEnv() {
@@ -97,7 +100,7 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 		//
 		if b.opts.callGraph {
 			// store call graph in the FuncLit
-			g := new(graphBuilder)
+			g := newGraphBuilder(b.goPkg)
 			s.callGraph = s.Flow(g)
 		}
 
@@ -364,7 +367,7 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 
 		if b.opts.callGraph {
 			// store call graph in the FuncDecl
-			g := new(graphBuilder)
+			g := newGraphBuilder(b.goPkg)
 			s.callGraph = s.Flow(g)
 
 			// for debugging
@@ -382,7 +385,6 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 		if pe, ok := b.env.(*PkgEnvironment); ok {
 			if n.Name.Name == "init" {
 				pe.addInit(s)
-				break
 			}
 		}
 
