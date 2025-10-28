@@ -46,6 +46,7 @@ type VM struct {
 	callStack  stack[*stackFrame]
 	isStepping bool
 	output     *bytes.Buffer
+	funcStack  stack[*activeFuncDecl] // active function declarations, TODO store in stackFrame?
 }
 
 func newVM(env Env) *VM {

@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"reflect"
 )
 
@@ -62,10 +63,6 @@ type LabeledStmt struct {
 	Stmt  Stmt
 }
 
-func (s LabeledStmt) String() string {
-	return fmt.Sprintf("LabeledStmt(%v,%v)", s.Label, s.Stmt)
-}
-
 func (s LabeledStmt) Eval(vm *VM) {
 	if trace {
 		vm.traceEval(s.Stmt.stmtStep())
@@ -73,6 +70,16 @@ func (s LabeledStmt) Eval(vm *VM) {
 		s.Stmt.stmtStep().Eval(vm)
 	}
 }
+
+func (s LabeledStmt) Flow(g *graphBuilder) (head Step) {
+	return s.Stmt.Flow(g)
+}
+
+func (s LabeledStmt) String() string {
+	return fmt.Sprintf("LabeledStmt(%v,%v)", s.Label, s.Stmt)
+}
+
+func (s LabeledStmt) stmtStep() Evaluable { return s }
 
 var _ Stmt = BranchStmt{}
 
@@ -82,17 +89,30 @@ type BranchStmt struct {
 	Label *Ident
 }
 
-func (s BranchStmt) Eval(vm *VM) {}
+func (s BranchStmt) Eval(vm *VM) {
+	switch s.Tok {
+	case token.BREAK:
+	case token.CONTINUE:
+	case token.GOTO:
+		f := vm.funcStack.top()
+		index := f.FuncDecl.labelToListIndex[s.Label.Name]
+		f.setNextIndex(index)
+
+		// vm.callStack.top().nextStmtIndex = index
+	case token.FALLTHROUGH:
+	}
+}
+
+func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
+	// TODO
+	return g.current
+}
 
 func (s BranchStmt) String() string {
 	return fmt.Sprintf("BranchStmt(%v)", s.Label)
 }
 
 func (s BranchStmt) stmtStep() Evaluable { return s }
-
-func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
-	return head // TODO
-}
 
 var _ Stmt = SwitchStmt{}
 

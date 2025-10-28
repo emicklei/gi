@@ -539,7 +539,7 @@ func main() {
 }
 
 func TestGoto(t *testing.T) {
-	testProgram(t, false, false, `
+	testProgram(t, true, false, `
 package main
 
 func main() {
@@ -557,7 +557,7 @@ two:
 	s++
 	goto one
 }
-`, "aaa")
+`, "123")
 }
 
 func TestMap(t *testing.T) {

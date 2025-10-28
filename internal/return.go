@@ -20,6 +20,9 @@ func (r ReturnStmt) String() string {
 }
 
 func (r ReturnStmt) Eval(vm *VM) {
+	// abort function body iteration
+	vm.funcStack.top().setDone()
+
 	if len(r.Results) == 0 {
 		return
 	}

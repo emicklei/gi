@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path"
 	"reflect"
+	"slices"
 	"strconv"
 
 	"golang.org/x/tools/go/packages"
@@ -21,10 +22,11 @@ type buildOptions struct {
 }
 
 type stepBuilder struct {
-	stack []*step
-	env   Env
-	opts  buildOptions
-	goPkg *packages.Package
+	stack     []*step
+	env       Env
+	opts      buildOptions
+	goPkg     *packages.Package
+	funcStack stack[FuncDecl]
 }
 
 func newStepBuilder(goPkg *packages.Package) stepBuilder {
@@ -62,6 +64,13 @@ func (b *stepBuilder) pop() Evaluable {
 
 func (b *stepBuilder) envSet(name string, value reflect.Value) {
 	b.env.set(name, value)
+}
+
+func (b *stepBuilder) pushFuncDecl(f FuncDecl) {
+	b.funcStack.push(f)
+}
+func (b *stepBuilder) popFuncDecl() {
+	b.funcStack.pop()
 }
 
 // Visit implements the ast.Visitor interface
@@ -344,7 +353,9 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.FuncDecl:
 		// any declarations inside the function scope
 		b.pushEnv()
-		s := FuncDecl{FuncDecl: n}
+		s := FuncDecl{FuncDecl: n, labelToListIndex: make(map[string]int)}
+		b.pushFuncDecl(s)
+		defer b.popFuncDecl()
 		if n.Recv != nil {
 			b.Visit(n.Recv)
 			e := b.pop()
@@ -560,6 +571,11 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			e := b.pop().(Ident)
 			s.Label = &e
 		}
+		// add label -> statement by index mapping
+		// TODO refactor to method on FuncDecl
+		listIndex := slices.Index(b.funcStack.top().FuncDecl.Body.List, ast.Stmt(n))
+		b.funcStack.top().labelToListIndex[s.Label.Name] = listIndex
+
 		b.Visit(n.Stmt)
 		e := b.pop()
 		s.Stmt = e.(Stmt)
