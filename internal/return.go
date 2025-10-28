@@ -21,7 +21,12 @@ func (r ReturnStmt) String() string {
 
 func (r ReturnStmt) Eval(vm *VM) {
 	// abort function body iteration
-	vm.funcStack.top().setDone()
+	// TEMPORARY use funcStack
+	if !vm.isStepping {
+		if len(vm.funcStack) != 0 {
+			vm.funcStack.top().setDone()
+		}
+	}
 
 	if len(r.Results) == 0 {
 		return

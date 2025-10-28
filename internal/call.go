@@ -172,7 +172,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 		if trace {
 			vm.traceEval(fd.Body)
 		} else {
-			fd.Body.Eval(vm)
+			fd.Eval(vm)
 		}
 	}
 	// top == frame? TODO
