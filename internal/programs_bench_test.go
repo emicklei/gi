@@ -67,7 +67,7 @@ func main() {
 			for i := 0; i < b.N; i++ {
 				vm := newVM(prog.Env)
 				collectPrintOutput(vm)
-				if err := RunPackageFunction(prog, "main", vm); err != nil {
+				if _, err := RunPackageFunction(prog, "main", nil, vm); err != nil {
 					b.Fatal(err)
 				}
 			}

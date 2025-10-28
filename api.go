@@ -19,11 +19,13 @@ func Run(filePath string) error {
 	if err != nil {
 		return err
 	}
-	return internal.RunPackageFunction(ffpkg, "main", nil)
+	_, err = internal.RunPackageFunction(ffpkg, "main", nil, nil)
+	return err
 }
 
 // ParseSource parses the provided Go source code string and returns a Package representation of it.
 // The source must be a valid Go, e.g. main package with a main function.
+// It cannot have external dependencies ; only standard library packages are allowed.
 func ParseSource(source string) (*Package, error) {
 	return internal.ParseSource(source)
 }
@@ -31,12 +33,10 @@ func ParseSource(source string) (*Package, error) {
 // Package represents a Go package loaded and parsed by the gi library.
 type Package = internal.Package
 
-// Call calls a function named funcName in the given package pkg with the provided args.
-// It returns the results of the function call as a slice of any type and an error if any occurred during the call.
-func Call(pkg *Package, funcName string, args ...any) ([]any, error) {
-	// TODO: implement argument passing and return value handling
-	internal.RunPackageFunction(pkg, funcName, nil)
-	return nil, nil
+// Call calls a function named funcName in the given package pkg with the provided parameters values.
+// It returns the results of the function call and an error if any occurred during the call.
+func Call(pkg *Package, funcName string, params ...any) ([]any, error) {
+	return internal.RunPackageFunction(pkg, funcName, params, nil)
 }
 
 // RegisterPackage registers an external package with its symbols for use within gi-executed code.

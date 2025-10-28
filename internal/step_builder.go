@@ -261,6 +261,8 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			loc := ""
 			if unq == "github.com/emicklei/gi/examples/subpkg/pkg" {
 				loc = "/Users/ernestmicklei/Projects/gi/examples/subpkg/pkg"
+			} else {
+				panic("TODO: does not work on this machine")
 			}
 
 			gopkg, err := LoadPackage(loc, nil)

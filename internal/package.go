@@ -85,6 +85,9 @@ func (p *Package) String() string {
 }
 
 func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package, error) {
+	if dir == "" {
+		return nil, fmt.Errorf("directory must be specified")
+	}
 	if trace {
 		now := time.Now()
 		defer func() {
@@ -157,7 +160,7 @@ func BuildPackage(pkg *packages.Package, dotFilename string, isStepping bool) (*
 	return &Package{Package: pkg, Env: b.env.(*PkgEnvironment)}, nil
 }
 
-func RunPackageFunction(pkg *Package, functionName string, optionalVM *VM) error {
+func RunPackageFunction(pkg *Package, functionName string, args []any, optionalVM *VM) ([]any, error) {
 	var vm *VM
 	if optionalVM != nil {
 		vm = optionalVM
@@ -167,23 +170,48 @@ func RunPackageFunction(pkg *Package, functionName string, optionalVM *VM) error
 	for _, subpkg := range pkg.Env.packageTable {
 		subvm := newVM(subpkg.Env)
 		if err := subpkg.Initialize(subvm); err != nil {
-			return fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
+			return nil, fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
 		}
 	}
 	if err := pkg.Initialize(vm); err != nil {
-		return fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
+		return nil, fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
 	}
 	fun := pkg.Env.valueLookUp(functionName)
 	if !fun.IsValid() {
-		return fmt.Errorf("%s function definition not found", functionName)
+		return nil, fmt.Errorf("%s function definition not found", functionName)
 	}
 	// TODO
 
 	fundecl := fun.Interface().(FuncDecl)
 	vm.pushNewFrame(fundecl)
+
+	// COPIED FROM FUNCDECL. TODO refactor to avoid code duplication
+
+	frame := vm.callStack.top()
+	// take all parameters and put them in the env of the new frame
+	p := 0
+	for _, field := range fundecl.Type.Params.List {
+		for _, name := range field.Names {
+			val := reflect.ValueOf(args[p])
+			frame.env.set(name.Name, val)
+			p++
+		}
+	}
+	// END COPIED FROM FUNCDECL
+
 	fundecl.Eval(vm)
+	top := vm.callStack.top()
 	vm.popFrame()
-	return nil
+	// collect non-reflection return values
+	results := make([]any, len(top.returnValues))
+	for i, rv := range top.returnValues {
+		if rv.CanInterface() {
+			results[i] = rv.Interface()
+		} else {
+			results[i] = nil
+		}
+	}
+	return results, nil
 }
 
 func WalkPackageFunction(pkg *Package, functionName string, optionalVM *VM) error {

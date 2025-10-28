@@ -75,7 +75,7 @@ func parseAndRun(t *testing.T, source string) string {
 	pkg := buildPackage(t, "", source)
 	vm := newVM(pkg.Env)
 	collectPrintOutput(vm)
-	if err := RunPackageFunction(pkg, "main", vm); err != nil {
+	if _, err := RunPackageFunction(pkg, "main", nil, vm); err != nil {
 		t.Fatal(err)
 	}
 	return vm.output.String()
