@@ -2,6 +2,8 @@ package internal
 
 import (
 	"fmt"
+	"go/ast"
+	"go/parser"
 	"go/token"
 	"io"
 	"os"
@@ -19,6 +21,10 @@ func buildPackage(t *testing.T, dotFilename, source string) *Package {
 		Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles,
 		Fset: token.NewFileSet(),
 		Dir:  path.Join(cwd, "../examples"),
+		// copied from Package.go
+		ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+			return parser.ParseFile(fset, filename, src, parser.SkipObjectResolution)
+		},
 		Overlay: map[string][]byte{
 			path.Join(cwd, "../examples/main.go"): []byte(source),
 		},

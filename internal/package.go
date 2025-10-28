@@ -99,6 +99,10 @@ func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package
 			Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles,
 			Fset: token.NewFileSet(),
 			Dir:  dir,
+			// set the [parser.SkipObjectResolution] parser flag to disable syntactic object resolution
+			ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+				return parser.ParseFile(fset, filename, src, parser.SkipObjectResolution)
+			},
 		}
 	}
 	pkgs, err := packages.Load(cfg, ".")
