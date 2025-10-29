@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"reflect"
 	"slices"
 	"strconv"
@@ -261,30 +262,28 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			break
 		}
 
-		// load and build the package
+		// handle local file system package
 		root := b.env.rootPackageEnv()
 		ffpkg := root.packageTable[unq]
 		if ffpkg == nil {
-			// TODO handle local file system packages
-			loc := ""
-			if unq == "github.com/emicklei/gi/examples/subpkg/pkg" {
-				loc = "/Users/ernestmicklei/Projects/gi/examples/subpkg/pkg"
-			} else {
-				panic("TODO: does not work on this machine")
+			// strip module prefix
+			loc, err := filepath.Abs(filepath.Join("..", unq))
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to locate imported package %s: %v\n", unq, err)
+				break
 			}
-
 			gopkg, err := LoadPackage(loc, nil)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to load imported package %s: %v\n", unq, err)
 				break
 			}
-			p, err := BuildPackage(gopkg, b.opts.dotFilename, b.opts.callGraph)
+			pkg, err := BuildPackage(gopkg, b.opts.dotFilename, b.opts.callGraph)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to build imported package %s: %v\n", unq, err)
 				break
 			}
-			root.packageTable[unq] = p
-			ffpkg = p
+			root.packageTable[unq] = pkg
+			ffpkg = pkg
 		}
 		b.envSet(ffpkg.Name, reflect.ValueOf(ffpkg))
 	case *ast.BasicLit:
@@ -385,7 +384,7 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			// for debugging
 			if fileName := b.opts.dotFilename; fileName != "" {
 				g.dotFile = fileName
-				g.dotify()
+				g.dotify(s.callGraph)
 				// will fail in pipeline without graphviz installed
 				exec.Command("dot", "-Tpng", "-o", g.dotFilename()+".png", g.dotFilename()).Run()
 			}
@@ -570,15 +569,16 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			e := b.pop().(Ident)
 			s.Label = &e
 		}
-		// add label -> statement by index mapping
-		// TODO refactor to method on FuncDecl
-		listIndex := slices.Index(b.funcStack.top().FuncDecl.Body.List, ast.Stmt(n))
-		b.funcStack.top().labelToStmt[s.Label.Name] = statementReference{index: listIndex, step: newStep(nil)}
-
 		b.Visit(n.Stmt)
 		e := b.pop()
 		s.Stmt = e.(Stmt)
 		b.push(s)
+
+		// add label -> statement by index mapping in current function
+		index := slices.Index(b.funcStack.top().FuncDecl.Body.List, ast.Stmt(n))
+		ref := statementReference{index: index, step: &labeledStep{step: new(step), label: s.Label.Name}} // has no ID
+		b.funcStack.top().labelToStmt[s.Label.Name] = ref
+
 	case *ast.BranchStmt:
 		s := BranchStmt{BranchStmt: n}
 		if n.Label != nil {

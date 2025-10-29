@@ -73,8 +73,7 @@ func (s LabeledStmt) Eval(vm *VM) {
 
 func (s LabeledStmt) Flow(g *graphBuilder) (head Step) {
 	head = s.Stmt.Flow(g)
-	// add label -> statement mapping
-	// TODO refactor to method on FuncDecl
+	// get statement reference and update its step
 	fd := g.funcStack.top()
 	ref := fd.labelToStmt[s.Label.Name]
 	ref.step.SetNext(head)
@@ -100,7 +99,7 @@ func (s BranchStmt) Eval(vm *VM) {
 	case token.GOTO:
 		af := vm.activeFuncStack.top()
 		ref := af.FuncDecl.labelToStmt[s.Label.Name]
-		af.setNextIndex(ref.index)
+		af.setNextStmtIndex(ref.index)
 	default:
 		// TODO handle break, continue, fallthrough
 	}
@@ -109,9 +108,12 @@ func (s BranchStmt) Eval(vm *VM) {
 func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
 	switch s.Tok {
 	case token.GOTO:
+		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.Label.Name))
+		g.nextStep(head)
 		fd := g.funcStack.top()
 		ref := fd.labelToStmt[s.Label.Name]
-		return ref.step
+		g.nextStep(ref.step)
+		return
 	default:
 		// TODO handle break, continue, fallthrough
 	}

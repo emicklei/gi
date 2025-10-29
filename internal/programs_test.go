@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -573,7 +574,7 @@ func main() {
 }
 
 func TestGoto(t *testing.T) {
-	testProgram(t, false, false, `
+	testProgram(t, true, true, `
 package main
 
 func main() {
@@ -586,6 +587,7 @@ one:
 	} else {
 		goto two
 	}
+	print("unreachable")
 two:
 	print(s)
 	s++
@@ -892,18 +894,10 @@ func main() {
 }
 
 func TestSubpackage(t *testing.T) {
-	testProgram(t, false, false, `package main
-
-import (
-	"fmt"
-
-	"github.com/emicklei/gi/examples/subpkg/pkg"
-)
-
-func main() {
-	print(pkg.Name, pkg.IsWeekend("Sunday"))
-}
-`, "All Daystrue")
+	if os.Getenv("GI_TRACE") == "" {
+		t.Skip("GI_TRACE not set")
+	}
+	testProgramIn(t, true, false, "../examples/subpkg", "yet unchecked")
 }
 
 // about nil

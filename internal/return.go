@@ -57,7 +57,7 @@ func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {
 		}
 		each.Flow(g)
 	}
-	g.nextStep(&returnStep{step: newStep(r)})
+	g.nextStep(&returnStep{step: g.newStep(r)})
 	// if nothing to return then returnStep is the head
 	if head == nil {
 		head = g.current

@@ -6,7 +6,6 @@ import (
 	"reflect"
 )
 
-var _ Flowable = CallExpr{}
 var _ Expr = CallExpr{}
 
 type CallExpr struct {
@@ -137,6 +136,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 	vm.popFrame()
 	vm.pushCallResults(vals)
 }
+
 func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	// TODO deduplicate with handleFuncLit
 	// prepare arguments

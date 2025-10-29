@@ -101,11 +101,11 @@ func (r RangeStmt) Eval(vm *VM) {
 func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)
 	switcher := &rangeIteratorSwitchStep{
-		step: newStep(nil),
+		step: g.newStep(nil),
 	}
 	g.nextStep(switcher)
 	// all flows converge to this done step
-	rangeDone := newStep(nil)
+	rangeDone := g.newStep(nil)
 
 	// determine the type of X
 	goType := g.goPkg.TypesInfo.TypeOf(r.RangeStmt.X)
@@ -113,19 +113,19 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	switch goType.Underlying().(type) {
 	case *types.Map:
 		// start the map flow, detached from the current
-		g.current = newStep(nil)
+		g.current = g.newStep(nil)
 		switcher.mapFlow = r.MapFlow(g)
 		g.nextStep(rangeDone)
 
 	case *types.Slice, *types.Array:
 		// start the list flow, detached from the current
-		g.current = newStep(nil)
+		g.current = g.newStep(nil)
 		switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
 		g.nextStep(rangeDone)
 
 	case *types.Basic:
 		// start the int flow, detached from the current
-		g.current = newStep(nil)
+		g.current = g.newStep(nil)
 		switcher.intFlow = r.IntFlow(g)
 		g.nextStep(rangeDone)
 	}
@@ -144,7 +144,7 @@ func (r *rangeMapIteratorInitStep) Take(vm *VM) Step {
 	return r.next
 }
 
-func (r *rangeMapIteratorInitStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (r *rangeMapIteratorInitStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
 	return r.step.traverse(g, r.step.StringWith("map-iterator-init"), "next", visited)
 }
 
@@ -174,7 +174,7 @@ func (r *rangeMapIteratorNextStep) Take(vm *VM) Step {
 	return r.next
 }
 
-func (r *rangeMapIteratorNextStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (r *rangeMapIteratorNextStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
 	me := r.step.traverse(g, r.step.StringWith("map-iterator-next"), "next", visited)
 	if r.bodyFlow != nil {
 		// no edge if visited before
@@ -194,16 +194,16 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g) // again on the stack
 
 	// create the iterator
-	localVarName := fmt.Sprintf("_mapIter_%d", idgen)
+	localVarName := fmt.Sprintf("_mapIter_%d", g.idgen)
 	init := &rangeMapIteratorInitStep{
-		step:         newStep(nil),
+		step:         g.newStep(nil),
 		localVarName: localVarName,
 	}
 	g.nextStep(init)
 
 	// iterator next step
 	iter := &rangeMapIteratorNextStep{
-		step:         newStep(nil),
+		step:         g.newStep(nil),
 		localVarName: localVarName,
 		yieldKey:     r.Key != nil,
 		yieldValue:   r.Value != nil,
@@ -211,7 +211,7 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	g.nextStep(iter)
 
 	// start the body flow, detached from the current
-	g.current = newStep(nil)
+	g.current = g.newStep(nil)
 	if iter.yieldKey || iter.yieldValue {
 		// key = key
 		// value = x[value]
@@ -254,7 +254,7 @@ func (NoExpr) String() string { return "NoExpr" }
 func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
-	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", idgen)}} // must be unique in env
+	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", g.idgen)}} // must be unique in env
 	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
 	initIndex := AssignStmt{
 		AssignStmt: &ast.AssignStmt{
@@ -319,7 +319,7 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
-	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", idgen)}} // must be unique in env
+	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", g.idgen)}} // must be unique in env
 	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
 	initIndex := AssignStmt{
 		AssignStmt: &ast.AssignStmt{
@@ -439,7 +439,7 @@ func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
 		panic(fmt.Sprintf("cannot range over type %v", rangeable.Type()))
 	}
 }
-func (i *rangeIteratorSwitchStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (i *rangeIteratorSwitchStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
 	me := i.step.traverse(g, i.step.StringWith("switch-iterator"), "next", visited)
 	if i.mapFlow != nil {
 		// no edge if visited before

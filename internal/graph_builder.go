@@ -10,6 +10,7 @@ import (
 
 // graphBuilder helps building a control flow graph by keeping track of the current step.
 type graphBuilder struct {
+	idgen     int32
 	goPkg     *packages.Package // for type information
 	head      Step              // the entry point to the flow graph
 	current   Step              // the current step to attach the next step to
@@ -23,7 +24,16 @@ func newGraphBuilder(goPkg *packages.Package) *graphBuilder {
 
 // next adds a new step after the current one and makes it the current step.
 func (g *graphBuilder) next(e Evaluable) {
-	g.nextStep(newStep(e))
+	g.nextStep(g.newStep(e))
+}
+
+func (g *graphBuilder) newStep(e Evaluable) *step {
+	g.idgen++
+	return &step{id: g.idgen, Evaluable: e}
+}
+
+func (g *graphBuilder) newLabeledStep(label string) Step {
+	return &labeledStep{step: g.newStep(nil), label: label}
 }
 
 // nextStep adds the given step after the current one and makes it the current step.
@@ -46,7 +56,7 @@ func (g *graphBuilder) beginIf(cond Expr) *conditionalStep {
 	head := cond.Flow(g)
 	c := &conditionalStep{
 		conditionFlow: head,
-		step:          newStep(nil),
+		step:          g.newStep(nil),
 	}
 	g.nextStep(c)
 	return c
@@ -61,12 +71,12 @@ func (g *graphBuilder) endIf(begin *conditionalStep) {
 
 // newPushStackFrameStep creates a step that pushes a new stack frame.
 func (g *graphBuilder) newPushStackFrame() *pushStackFrameStep {
-	return &pushStackFrameStep{step: newStep(nil)}
+	return &pushStackFrameStep{step: g.newStep(nil)}
 }
 
 // newPopStackFrameStep creates a step that pops the current stack frame.
 func (g *graphBuilder) newPopStackFrame() *popStackFrameStep {
-	return &popStackFrameStep{step: newStep(nil)}
+	return &popStackFrameStep{step: g.newStep(nil)}
 }
 
 func (g *graphBuilder) dotFilename() string {
@@ -77,12 +87,9 @@ func (g *graphBuilder) dotFilename() string {
 }
 
 // dotify writes the current graph to a file.
-func (g *graphBuilder) dotify() {
-	if g.current == nil {
-		return
-	}
+func (g *graphBuilder) dotify(start Step) {
 	d := dot.NewGraph(dot.Directed)
-	visited := map[int]dot.Node{}
-	g.head.Traverse(d, visited)
+	visited := map[int32]dot.Node{}
+	start.Traverse(d, visited)
 	os.WriteFile(g.dotFilename(), []byte(d.String()), 0644)
 }

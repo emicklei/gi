@@ -10,16 +10,16 @@ type activeFuncDecl struct {
 	bodyListIndex int
 }
 
-func (af *activeFuncDecl) hasNext() bool {
+func (af *activeFuncDecl) hasNextStmt() bool {
 	return af.bodyListIndex+1 < len(af.FuncDecl.Body.List)
 }
 
-func (af *activeFuncDecl) next() Stmt {
+func (af *activeFuncDecl) nextStmt() Stmt {
 	af.bodyListIndex++
 	return af.FuncDecl.Body.List[af.bodyListIndex]
 }
 
-func (af *activeFuncDecl) setNextIndex(index int) {
+func (af *activeFuncDecl) setNextStmtIndex(index int) {
 	af.bodyListIndex = index - 1
 }
 
@@ -30,11 +30,6 @@ func (af *activeFuncDecl) setDone() {
 type statementReference struct {
 	step  Step
 	index int
-}
-
-func (r statementReference) withStep(s Step) statementReference {
-	r.step = s
-	return r
 }
 
 type FuncDecl struct {
@@ -51,8 +46,8 @@ func (f FuncDecl) Eval(vm *VM) {
 	if f.Body != nil {
 		af := &activeFuncDecl{FuncDecl: f, bodyListIndex: -1}
 		vm.activeFuncStack.push(af)
-		for af.hasNext() {
-			stmt := af.next()
+		for af.hasNextStmt() {
+			stmt := af.nextStmt()
 			if trace {
 				vm.traceEval(stmt.stmtStep())
 			} else {

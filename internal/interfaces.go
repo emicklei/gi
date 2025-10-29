@@ -68,7 +68,7 @@ type Step interface {
 	Traverseable
 	SetNext(s Step)
 	Next() Step
-	ID() int
+	ID() int32
 	String() string
 }
 
@@ -77,5 +77,5 @@ type StepTaker interface {
 }
 
 type Traverseable interface {
-	Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node
+	Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node
 }

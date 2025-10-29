@@ -60,7 +60,6 @@ func collectPrintOutput(vm *VM) {
 
 func parseAndWalk(t *testing.T, dotFilename, source string) string {
 	t.Helper()
-	idgen = 0
 	pkg := buildPackage(t, dotFilename, source)
 	vm := newVM(pkg.Env)
 	collectPrintOutput(vm)
@@ -79,6 +78,27 @@ func parseAndRun(t *testing.T, source string) string {
 		t.Fatal(err)
 	}
 	return vm.output.String()
+}
+
+func testProgramIn(t *testing.T, running bool, stepping bool, dir string, wantFuncOrString any) {
+	// cannot be parallel because of os.Chdir
+	t.Helper()
+	cwd, _ := os.Getwd()
+	loc := path.Join(cwd, dir)
+	gopkg, err := LoadPackage(loc, nil)
+	if err != nil {
+		t.Fatalf("failed to load package in %s: %v", loc, err)
+	}
+	os.Chdir(loc)
+	defer os.Chdir(cwd)
+	pkg, err := BuildPackage(gopkg, fmt.Sprintf("testgraphs/%s.src", t.Name()), false)
+	if err != nil {
+		t.Fatalf("failed to build package in %s: %v", loc, err)
+	}
+	_, err = RunPackageFunction(pkg, "main", nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run package in %s: %v", loc, err)
+	}
 }
 
 func testProgram(t *testing.T, running bool, stepping bool, source string, wantFuncOrString any) {

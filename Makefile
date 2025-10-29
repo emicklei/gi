@@ -16,3 +16,11 @@ install:
 
 unused:
 	go run honnef.co/go/tools/cmd/staticcheck@latest -checks U1000 ./...
+
+.PHONY: test clean todo bench install unused examples
+examples: install
+	cd examples/api_call && go run .
+	# cd examples/externalpkg && gi run .
+	cd examples/nestedloop && gi run .
+	# cd examples/subpkg && GI_TRACE=1 gi run .
+	
