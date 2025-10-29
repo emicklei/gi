@@ -154,12 +154,12 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	frame := vm.callStack.top()
 	// take all parameters and put them in the env of the new frame
 	p := 0
-	for _, field := range fd.Type.Params.List {
-		for _, name := range field.Names {
+	for _, fields := range fd.Type.Params.List {
+		for _, name := range fields.Names {
 			val := args[p]
 			if val.Interface() == untypedNil {
 				// create a zero value of the expected type
-				val = reflect.Zero(vm.returnsType(field.Type))
+				val = reflect.Zero(vm.returnsType(fields.Type))
 			}
 			frame.env.set(name.Name, val)
 			p++

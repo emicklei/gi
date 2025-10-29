@@ -8,6 +8,7 @@ import (
 type activeFuncDecl struct {
 	FuncDecl      FuncDecl
 	bodyListIndex int
+	deferList     []Expr
 }
 
 func (af *activeFuncDecl) hasNextStmt() bool {
@@ -25,6 +26,10 @@ func (af *activeFuncDecl) setNextStmtIndex(index int) {
 
 func (af *activeFuncDecl) setDone() {
 	af.bodyListIndex = len(af.FuncDecl.Body.List)
+}
+
+func (af *activeFuncDecl) addDefer(call Expr) {
+	af.deferList = append(af.deferList, call)
 }
 
 type statementReference struct {

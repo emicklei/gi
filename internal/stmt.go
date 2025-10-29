@@ -251,11 +251,7 @@ func (d DeferStmt) String() string {
 func (d DeferStmt) stmtStep() Evaluable { return d }
 
 func (d DeferStmt) Eval(vm *VM) {
-	if d.Call == nil {
-		return
-	}
-	// TODO: keep defer stack in the current frame?
-	defer d.Call.Eval(vm)
+	vm.activeFuncStack.top().addDefer(d.Call)
 }
 
 func (d DeferStmt) Flow(g *graphBuilder) (head Step) {

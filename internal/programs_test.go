@@ -677,12 +677,36 @@ func main() {
 }
 
 func TestDefer(t *testing.T) {
-	testProgram(t, true, false, `package main
+	testProgram(t, false, false, `package main
 
 func main() {
 	defer print(1)
 	defer print(2)
 }`, "12")
+}
+
+func TestNamedReturn(t *testing.T) {
+	testProgram(t, false, false, `package main
+func f() (result int) {
+	return 1 
+}
+func main(){
+	print(f())
+}`, "1")
+}
+
+func TestDeferReturn(t *testing.T) {
+	testProgram(t, false, false, `package main
+func f() (result int) {
+	defer func() {
+		// result is accessed after it was set to 6 by the return statement
+		result *= 7
+	}()
+	return 6
+}
+func main(){
+	print(f())
+}`, "42")
 }
 
 func TestMinMax(t *testing.T) {
