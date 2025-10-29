@@ -88,6 +88,9 @@ func (g *graphBuilder) dotFilename() string {
 
 // dotify writes the current graph to a file.
 func (g *graphBuilder) dotify(start Step) {
+	if start == nil {
+		return
+	}
 	d := dot.NewGraph(dot.Directed)
 	visited := map[int32]dot.Node{}
 	start.Traverse(d, visited)
