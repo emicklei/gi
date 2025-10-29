@@ -484,7 +484,17 @@ func main() {
 }`, "0hello1world")
 }
 
-func TestRangeOfInt(t *testing.T) {
+func TestRangeOfStringsNoValue(t *testing.T) {
+	testProgram(t, true, true, `package main
+
+func main() { 
+	for i := range [2]string{} {
+		print(i)
+	}
+}`, "01")
+}
+
+func TestRangeOfIntNoKey(t *testing.T) {
 	testProgram(t, true, true, `package main
 
 func main() {
@@ -492,6 +502,16 @@ func main() {
 		print("a")
 	}
 }`, "aa")
+}
+
+func TestRangeOfIntWithKey(t *testing.T) {
+	testProgram(t, true, true, `package main
+
+func main() {
+	for i := range 2 {
+		print(i)
+	}
+}`, "01")
 }
 
 func TestRangeOfMap(t *testing.T) {
@@ -508,7 +528,7 @@ func main() {
 }
 
 func TestRangeNested(t *testing.T) {
-	testProgram(t, true, false, `package main
+	testProgram(t, true, true, `package main
 
 func main() {
 	m := map[string]int{"a": 1, "b": 2}
@@ -524,9 +544,10 @@ func main() {
 		}
 	}
 }`, func(out string) bool {
+		// because map iteration is random we need to match all possibilities
 		ok, _ := regexp.MatchString("^(?:0a10b2|0b20a1)(?:1a11b2|1b21a1)$", out)
 		return ok
-	}) // TODO better check
+	})
 }
 
 func TestInit(t *testing.T) {
@@ -683,7 +704,7 @@ func main() {
 }
 
 func TestFunctionLiteral(t *testing.T) {
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 
 func main() {
 	f := func(a int) int { return a }
@@ -736,9 +757,7 @@ func main() {
 }
 
 func TestFuncAsPackageVar(t *testing.T) {
-	// trace = true
-	// defer func() { trace = false }()
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 
 const h = "1"
 var f = func() string { return h }

@@ -263,11 +263,8 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 		Lhs: []Expr{indexVar},
 		Rhs: []Expr{zeroInt},
 	}
-	init := BlockStmt{
-		List: []Stmt{
-			initIndex,
-		},
-	}
+	init := BlockStmt{List: []Stmt{initIndex}}
+
 	// key := 0 // only one var permitted
 	if r.Key != nil {
 		initKey := AssignStmt{
@@ -331,17 +328,27 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 		Lhs: []Expr{indexVar},
 		Rhs: []Expr{zeroInt},
 	}
+	// key and value are optionally defined
+	lhs, rhs := []Expr{}, []Expr{}
+	if r.Key != nil {
+		lhs = append(lhs, r.Key)
+		rhs = append(rhs, indexVar)
+	}
+	if r.Value != nil {
+		lhs = append(lhs, r.Value)
+		rhs = append(rhs, IndexExpr{
+			X:     r.X,
+			Index: indexVar,
+		})
+	}
 	// key := x[0]
 	// value := x[0]
 	initKeyValue := AssignStmt{
 		AssignStmt: &ast.AssignStmt{
 			Tok: token.DEFINE,
 		},
-		Lhs: []Expr{r.Key, r.Value},
-		Rhs: []Expr{indexVar, IndexExpr{
-			X:     r.X,
-			Index: indexVar,
-		}},
+		Lhs: lhs,
+		Rhs: rhs,
 	}
 	init := BlockStmt{
 		List: []Stmt{
@@ -370,11 +377,8 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 		AssignStmt: &ast.AssignStmt{
 			Tok: token.ASSIGN,
 		},
-		Lhs: []Expr{r.Key, r.Value},
-		Rhs: []Expr{indexVar, IndexExpr{
-			X:     r.X,
-			Index: indexVar,
-		}},
+		Lhs: lhs,
+		Rhs: rhs,
 	}
 	// body with updated key/value assignment at the top
 	body := &BlockStmt{

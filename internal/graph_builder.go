@@ -10,20 +10,15 @@ import (
 
 // graphBuilder helps building a control flow graph by keeping track of the current step.
 type graphBuilder struct {
-	goPkg     *packages.Package
-	head      Step   // the entry point to the flow graph
-	current   Step   // the current step to attach the next step to
-	dotFile   string // for overriding the default graph.dot file (only used when calling dotify)
-	funcStack stack[FuncDecl]
+	goPkg     *packages.Package // for type information
+	head      Step              // the entry point to the flow graph
+	current   Step              // the current step to attach the next step to
+	dotFile   string            // for overriding the default graph.dot file (only used when calling dotify)
+	funcStack stack[FuncDecl]   // to keep track of current function for branch statements
 }
 
 func newGraphBuilder(goPkg *packages.Package) *graphBuilder {
-	return &graphBuilder{
-		goPkg:   goPkg,
-		head:    nil,
-		current: nil,
-		dotFile: "",
-	}
+	return &graphBuilder{goPkg: goPkg}
 }
 
 // next adds a new step after the current one and makes it the current step.

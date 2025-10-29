@@ -101,7 +101,11 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			e := b.pop().(FuncType)
 			s.Type = &e
 		}
-		//
+		if n.Body != nil {
+			b.Visit(n.Body)
+			e := b.pop().(BlockStmt)
+			s.Body = &e
+		}
 		if b.opts.callGraph {
 			// store call graph in the FuncLit
 			g := newGraphBuilder(b.goPkg)
