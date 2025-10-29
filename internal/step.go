@@ -75,14 +75,14 @@ func (s *step) String() string {
 	if s == nil {
 		return "nil"
 	}
-	return fmt.Sprintf("%2d:step(%v)", s.id, s.Evaluable)
+	return fmt.Sprintf("%2d: %v", s.id, s.Evaluable)
 }
 
 func (s *step) StringWith(label string) string {
 	if s == nil {
 		return "nil"
 	}
-	return fmt.Sprintf("%2d:step(%s)", s.id, label)
+	return fmt.Sprintf("%2d: %s", s.id, label)
 }
 
 func (s *step) Next() Step {
@@ -104,7 +104,7 @@ type pushStackFrameStep struct {
 	*step
 }
 
-func (p *pushStackFrameStep) String() string { return fmt.Sprintf("%2d:step(push stackframe)", p.ID()) }
+func (p *pushStackFrameStep) String() string { return fmt.Sprintf("%2d: ~push stackframe", p.ID()) }
 
 func (p *pushStackFrameStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	return p.step.traverse(g, p.String(), "next", visited)
@@ -124,8 +124,21 @@ func (p *popStackFrameStep) Take(vm *VM) Step {
 	return p.next
 }
 
-func (p *popStackFrameStep) String() string { return fmt.Sprintf("%2d:step(pop stackframe)", p.ID()) }
+func (p *popStackFrameStep) String() string { return fmt.Sprintf("%2d: ~pop stackframe", p.ID()) }
 
 func (p *popStackFrameStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	return p.step.traverse(g, p.String(), "next", visited)
+}
+
+type returnStep struct {
+	*step
+}
+
+func (r *returnStep) SetNext(n Step) {
+	if trace {
+		fmt.Println("ignore", n)
+	}
+}
+func (r *returnStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return g.Node(strconv.Itoa(r.ID())).Label(r.String())
 }

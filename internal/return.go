@@ -23,8 +23,8 @@ func (r ReturnStmt) Eval(vm *VM) {
 	// abort function body iteration
 	// TEMPORARY use funcStack
 	if !vm.isStepping {
-		if len(vm.funcStack) != 0 {
-			vm.funcStack.top().setDone()
+		if len(vm.activeFuncStack) != 0 {
+			vm.activeFuncStack.top().setDone()
 		}
 	}
 
@@ -57,9 +57,12 @@ func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {
 		}
 		each.Flow(g)
 	}
-	g.next(r)
+	g.nextStep(&returnStep{step: newStep(r)})
+	// if nothing to return then returnStep is the head
 	if head == nil {
 		head = g.current
 	}
+	// no next step after return
+	g.current = nil
 	return
 }

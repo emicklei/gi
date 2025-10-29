@@ -98,7 +98,7 @@ type BranchStmt struct {
 func (s BranchStmt) Eval(vm *VM) {
 	switch s.Tok {
 	case token.GOTO:
-		af := vm.funcStack.top()
+		af := vm.activeFuncStack.top()
 		ref := af.FuncDecl.labelToStmt[s.Label.Name]
 		af.setNextIndex(ref.index)
 	default:
@@ -115,7 +115,7 @@ func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
 	default:
 		// TODO handle break, continue, fallthrough
 	}
-	return
+	return g.current
 }
 
 func (s BranchStmt) String() string {

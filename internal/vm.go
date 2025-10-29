@@ -43,10 +43,10 @@ func (f *stackFrame) String() string {
 }
 
 type VM struct {
-	callStack  stack[*stackFrame]
-	isStepping bool
-	output     *bytes.Buffer
-	funcStack  stack[*activeFuncDecl] // active function declarations, TODO store in stackFrame?
+	callStack       stack[*stackFrame]
+	isStepping      bool
+	output          *bytes.Buffer
+	activeFuncStack stack[*activeFuncDecl] // active function declarations, TODO store in stackFrame?
 }
 
 func newVM(env Env) *VM {
@@ -140,7 +140,6 @@ func (vm *VM) traceEval(e Evaluable) {
 }
 
 func (vm *VM) takeAll(head Step) {
-	vm.isStepping = true
 	here := head
 	for here != nil {
 		if trace {

@@ -115,14 +115,8 @@ func (s FuncLit) Eval(vm *VM) {
 }
 
 func (s FuncLit) Flow(g *graphBuilder) (head Step) {
-	if s.Body != nil {
-		head = s.Body.Flow(g)
-	}
 	g.next(s)
-	if head == nil {
-		head = g.current
-	}
-	return
+	return g.current
 }
 
 func (s FuncLit) String() string {

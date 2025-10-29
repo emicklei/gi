@@ -239,6 +239,7 @@ func WalkPackageFunction(pkg *Package, functionName string, optionalVM *VM) erro
 	decl := fun.Interface().(FuncDecl)
 
 	// run it step by step
+	vm.isStepping = true
 	vm.takeAll(decl.callGraph)
 	return nil
 }

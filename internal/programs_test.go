@@ -183,6 +183,19 @@ func main() {
 }`, "23")
 }
 
+func TestEarlyReturn(t *testing.T) {
+	testProgram(t, true, true, `package main
+
+func main() {
+	if true {
+		print("2")
+		return
+	}
+	print("0")
+	return
+}`, "2")
+}
+
 func TestFor(t *testing.T) {
 	testProgram(t, true, true, `package main
 func main() {
@@ -539,7 +552,7 @@ func main() {
 }
 
 func TestGoto(t *testing.T) {
-	testProgram(t, true, false, `
+	testProgram(t, false, false, `
 package main
 
 func main() {
@@ -670,7 +683,7 @@ func main() {
 }
 
 func TestFunctionLiteral(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testProgram(t, false, false, `package main
 
 func main() {
 	f := func(a int) int { return a }
@@ -725,7 +738,7 @@ func main() {
 func TestFuncAsPackageVar(t *testing.T) {
 	// trace = true
 	// defer func() { trace = false }()
-	testProgram(t, true, true, `package main
+	testProgram(t, false, false, `package main
 
 const h = "1"
 var f = func() string { return h }

@@ -50,7 +50,7 @@ type FuncDecl struct {
 func (f FuncDecl) Eval(vm *VM) {
 	if f.Body != nil {
 		af := &activeFuncDecl{FuncDecl: f, bodyListIndex: -1}
-		vm.funcStack.push(af)
+		vm.activeFuncStack.push(af)
 		for af.hasNext() {
 			stmt := af.next()
 			if trace {
@@ -59,7 +59,7 @@ func (f FuncDecl) Eval(vm *VM) {
 				stmt.stmtStep().Eval(vm)
 			}
 		}
-		vm.funcStack.pop()
+		vm.activeFuncStack.pop()
 	}
 }
 

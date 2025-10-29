@@ -35,7 +35,7 @@ func (b BlockStmt) Flow(g *graphBuilder) (head Step) {
 			head = stmt.Flow(g)
 			continue
 		}
-		stmt.Flow(g)
+		_ = stmt.Flow(g)
 	}
 	return head
 }
