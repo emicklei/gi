@@ -686,7 +686,7 @@ func main() {
 }
 
 func TestNamedReturn(t *testing.T) {
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 func f() (result int) {
 	return 1 
 }
@@ -695,6 +695,7 @@ func main(){
 }`, "1")
 }
 
+// https://go.dev/ref/spec#Defer_statements
 func TestDeferReturn(t *testing.T) {
 	testProgram(t, false, false, `package main
 func f() (result int) {
@@ -707,6 +708,31 @@ func f() (result int) {
 func main(){
 	print(f())
 }`, "42")
+}
+
+func TestDeferInLoop(t *testing.T) {
+	// i must be captured by value in the defer
+	testProgram(t, false, false, `package main
+import "fmt"
+func main(){
+	for i := 0; i <= 3; i++ {
+		defer fmt.Print(i)
+	}
+}`, "3210")
+}
+
+func TestDeferInLoopInLiteral(t *testing.T) {
+	// i must be captured by value in the defer
+	testProgram(t, false, false, `package main
+import "fmt"
+func main(){
+	f := func() {
+		for i := 0; i <= 3; i++ {
+			defer fmt.Print(i)
+		}
+	}
+	f()
+}`, "3210")
 }
 
 func TestMinMax(t *testing.T) {

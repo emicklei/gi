@@ -37,5 +37,6 @@ internal/testgraphs/*.png
 internal/testgraphs/*.src
 PERF.md
 vm-panic.html
+gi-vm-panic.html
 *.prof
 .DS_Store

@@ -138,7 +138,7 @@ type rangeMapIteratorInitStep struct {
 }
 
 func (r *rangeMapIteratorInitStep) Take(vm *VM) Step {
-	rangeable := vm.callStack.top().pop()
+	rangeable := vm.frameStack.top().pop()
 	iter := rangeable.MapRange()
 	vm.localEnv().set(r.localVarName, reflect.ValueOf(iter))
 	return r.next
@@ -406,8 +406,8 @@ type ReflectLenExpr struct {
 }
 
 func (r ReflectLenExpr) Eval(vm *VM) {
-	val := vm.callStack.top().pop()
-	vm.callStack.top().push(reflect.ValueOf(val.Len()))
+	val := vm.frameStack.top().pop()
+	vm.frameStack.top().push(reflect.ValueOf(val.Len()))
 }
 func (r ReflectLenExpr) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)
@@ -427,7 +427,7 @@ type rangeIteratorSwitchStep struct {
 }
 
 func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
-	rangeable := vm.callStack.top().pop()
+	rangeable := vm.frameStack.top().pop()
 	switch rangeable.Kind() {
 	case reflect.Map:
 		return i.mapFlow.Take(vm)

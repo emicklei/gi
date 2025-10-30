@@ -69,7 +69,7 @@ func (s CompositeLit) Eval(vm *VM) {
 		var val reflect.Value
 		if vm.isStepping {
 			// see Flow for the order of pushing
-			val = vm.callStack.top().pop()
+			val = vm.frameStack.top().pop()
 		} else {
 			val = vm.returnsEval(elt)
 		}

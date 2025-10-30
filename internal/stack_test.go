@@ -6,13 +6,7 @@ import (
 
 func TestStack(t *testing.T) {
 	var s stack[string]
-	if !s.isEmpty() {
-		t.Error("new stack should be empty")
-	}
 	s.push("a")
-	if s.isEmpty() {
-		t.Error("stack should not be empty after push")
-	}
 	if got, want := s.top(), "a"; got != want {
 		t.Errorf("got [%v] want [%v]", got, want)
 	}
@@ -29,9 +23,6 @@ func TestStack(t *testing.T) {
 	}
 	if got, want := s.pop(), "a"; got != want {
 		t.Errorf("got [%v] want [%v]", got, want)
-	}
-	if !s.isEmpty() {
-		t.Error("stack should be empty after popping all elements")
 	}
 }
 

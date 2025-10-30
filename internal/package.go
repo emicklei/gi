@@ -180,29 +180,32 @@ func RunPackageFunction(pkg *Package, functionName string, args []any, optionalV
 	if !fun.IsValid() {
 		return nil, fmt.Errorf("%s function definition not found", functionName)
 	}
-	// TODO
 
+	// collect parameter values
+	params := make([]reflect.Value, len(args))
+	for i, arg := range args {
+		params[i] = reflect.ValueOf(arg)
+	}
+
+	// create stack frame with parameters values
 	fundecl := fun.Interface().(FuncDecl)
 	vm.pushNewFrame(fundecl)
+	frame := vm.frameStack.top()
+	setParametersToFrame(fundecl.Type, params, vm, frame)
 
-	// COPIED FROM FUNCDECL. TODO refactor to avoid code duplication
-
-	frame := vm.callStack.top()
-	// take all parameters and put them in the env of the new frame
-	p := 0
-	for _, field := range fundecl.Type.Params.List {
-		for _, name := range field.Names {
-			val := reflect.ValueOf(args[p])
-			frame.env.set(name.Name, val)
-			p++
-		}
+	// compose a CallExpr to leverage existing call handling
+	call := CallExpr{
+		Fun:  Ident{Ident: &ast.Ident{Name: functionName}},
+		Args: []Expr{}, // TODO for now, main only
 	}
-	// END COPIED FROM FUNCDECL
+	if trace {
+		vm.traceEval(call)
+	} else {
+		call.Eval(vm)
+	}
 
-	fundecl.Eval(vm)
-	top := vm.callStack.top()
-	vm.popFrame()
 	// collect non-reflection return values
+	top := vm.frameStack.top()
 	results := make([]any, len(top.returnValues))
 	for i, rv := range top.returnValues {
 		if rv.CanInterface() {
@@ -211,6 +214,7 @@ func RunPackageFunction(pkg *Package, functionName string, args []any, optionalV
 			results[i] = nil
 		}
 	}
+	vm.popFrame()
 	return results, nil
 }
 

@@ -51,12 +51,22 @@ func (f FuncDecl) Eval(vm *VM) {
 	if f.Body != nil {
 		af := &activeFuncDecl{FuncDecl: f, bodyListIndex: -1}
 		vm.activeFuncStack.push(af)
+		// execute statements
 		for af.hasNextStmt() {
 			stmt := af.nextStmt()
 			if trace {
 				vm.traceEval(stmt.stmtStep())
 			} else {
 				stmt.stmtStep().Eval(vm)
+			}
+		}
+		// run defer statements
+		for i := len(af.deferList) - 1; i >= 0; i-- {
+			deferCall := af.deferList[i]
+			if trace {
+				vm.traceEval(deferCall)
+			} else {
+				deferCall.Eval(vm)
 			}
 		}
 		vm.activeFuncStack.pop()

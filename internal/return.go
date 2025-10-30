@@ -35,7 +35,7 @@ func (r ReturnStmt) Eval(vm *VM) {
 	for i, each := range r.Results {
 		var val reflect.Value
 		if vm.isStepping {
-			val = vm.callStack.top().pop()
+			val = vm.frameStack.top().pop()
 		} else {
 			val = vm.returnsEval(each)
 		}
@@ -53,9 +53,9 @@ func (r ReturnStmt) Eval(vm *VM) {
 	// 	}
 	// }
 	// set return values for the top frame
-	top := vm.callStack.top()
+	top := vm.frameStack.top()
 	top.returnValues = results
-	vm.callStack.replaceTop(top)
+	vm.frameStack.replaceTop(top)
 }
 
 func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {

@@ -203,10 +203,10 @@ func (c CaseClause) Eval(vm *VM) {
 		}
 		return
 	}
-	f := vm.callStack.top()
+	f := vm.frameStack.top()
 	var left reflect.Value
 	if len(f.operandStack) != 0 {
-		left = vm.callStack.top().pop()
+		left = vm.frameStack.top().pop()
 	}
 	for _, expr := range c.List {
 		right := vm.returnsEval(expr)

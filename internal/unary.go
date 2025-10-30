@@ -21,7 +21,7 @@ func (u UnaryExpr) String() string {
 func (u UnaryExpr) Eval(vm *VM) {
 	var v reflect.Value
 	if vm.isStepping {
-		v = vm.callStack.top().pop()
+		v = vm.frameStack.top().pop()
 	} else {
 		v = vm.returnsEval(u.X)
 	}

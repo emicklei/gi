@@ -16,7 +16,7 @@ type SelectorExpr struct {
 func (s SelectorExpr) Eval(vm *VM) {
 	var recv reflect.Value
 	if vm.isStepping {
-		recv = vm.callStack.top().pop()
+		recv = vm.frameStack.top().pop()
 	} else {
 		recv = vm.returnsEval(s.X)
 	}

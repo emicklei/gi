@@ -30,7 +30,7 @@ func (c CallExpr) evalAppend(vm *VM) {
 func (c CallExpr) evalClear(vm *VM) reflect.Value {
 	var mapOrSlice reflect.Value
 	if vm.isStepping {
-		mapOrSlice = vm.callStack.top().pop()
+		mapOrSlice = vm.frameStack.top().pop()
 	} else {
 		mapOrSlice = vm.returnsEval(c.Args[0])
 	}
@@ -41,8 +41,8 @@ func (c CallExpr) evalClear(vm *VM) reflect.Value {
 func (c CallExpr) evalMin(vm *VM) {
 	var left, right reflect.Value
 	if vm.isStepping {
-		right = vm.callStack.top().pop() // first to last, see Flow
-		left = vm.callStack.top().pop()
+		right = vm.frameStack.top().pop() // first to last, see Flow
+		left = vm.frameStack.top().pop()
 	} else {
 		left = vm.returnsEval(c.Args[0])
 		right = vm.returnsEval(c.Args[1])
@@ -59,8 +59,8 @@ func (c CallExpr) evalMin(vm *VM) {
 func (c CallExpr) evalMax(vm *VM) {
 	var left, right reflect.Value
 	if vm.isStepping {
-		right = vm.callStack.top().pop() // first to last, see Flow
-		left = vm.callStack.top().pop()
+		right = vm.frameStack.top().pop() // first to last, see Flow
+		left = vm.frameStack.top().pop()
 	} else {
 		left = vm.returnsEval(c.Args[0])
 		right = vm.returnsEval(c.Args[1])

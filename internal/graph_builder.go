@@ -51,7 +51,6 @@ func (g *graphBuilder) nextStep(next Step) {
 
 // beginIf creates a conditional step with the given condition
 // and makes it the current step. It returns the created conditional step to set the else branch later.
-// TODO maybe inline this
 func (g *graphBuilder) beginIf(cond Expr) *conditionalStep {
 	head := cond.Flow(g)
 	c := &conditionalStep{
@@ -60,13 +59,6 @@ func (g *graphBuilder) beginIf(cond Expr) *conditionalStep {
 	}
 	g.nextStep(c)
 	return c
-}
-
-// TODO maybe inline this
-func (g *graphBuilder) endIf(begin *conditionalStep) {
-	pop := g.newPopStackFrame()
-	begin.elseFlow = pop
-	g.current = pop
 }
 
 // newPushStackFrameStep creates a step that pushes a new stack frame.

@@ -26,7 +26,7 @@ func (v ConstOrVar) Declare(vm *VM) bool {
 	if v.Value != nil {
 		var val reflect.Value
 		if vm.isStepping {
-			val = vm.callStack.top().pop()
+			val = vm.frameStack.top().pop()
 		} else {
 			val = vm.returnsEval(v.Value)
 		}

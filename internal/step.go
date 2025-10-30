@@ -40,7 +40,7 @@ func (c *conditionalStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot
 }
 
 func (c *conditionalStep) Take(vm *VM) Step {
-	cond := vm.callStack.top().pop()
+	cond := vm.frameStack.top().pop()
 	if cond.Bool() {
 		return c.next
 	}

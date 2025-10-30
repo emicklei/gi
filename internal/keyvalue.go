@@ -21,7 +21,7 @@ func (e KeyValueExpr) String() string {
 func (e KeyValueExpr) Eval(vm *VM) {
 	var key reflect.Value
 	if vm.isStepping {
-		key = vm.callStack.top().pop()
+		key = vm.frameStack.top().pop()
 	} else {
 		switch k := e.Key.(type) {
 		case Ident:
@@ -34,7 +34,7 @@ func (e KeyValueExpr) Eval(vm *VM) {
 	}
 	var val reflect.Value
 	if vm.isStepping {
-		val = vm.callStack.top().pop()
+		val = vm.frameStack.top().pop()
 	} else {
 		val = vm.returnsEval(e.Value)
 	}

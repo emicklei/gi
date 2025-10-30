@@ -29,8 +29,8 @@ func (s BinaryExpr) Eval(vm *VM) {
 	var left, right reflect.Value
 	if vm.isStepping {
 		// see Flow for the order
-		right = vm.callStack.top().pop()
-		left = vm.callStack.top().pop()
+		right = vm.frameStack.top().pop()
+		left = vm.frameStack.top().pop()
 	} else {
 		left = vm.returnsEval(s.X)
 		// propagate invalid value. this happens when the expression is
@@ -70,10 +70,6 @@ type BinaryExprValue struct {
 	left  reflect.Value
 	op    token.Token
 	right reflect.Value
-}
-
-func (b BinaryExprValue) IsValid() bool {
-	return b.left.IsValid() && b.right.IsValid()
 }
 
 func (b BinaryExprValue) Eval() reflect.Value {

@@ -71,3 +71,5 @@ The first step is the head of the chain.
 if a program imports external packages then a new `gi` is created using
 additional generated sources that will setup all exported functions,consts and vars to the environment.
 this technique is also applied in `varvoy`.
+
+- About types: https://github.com/golang/example/tree/master/gotypes

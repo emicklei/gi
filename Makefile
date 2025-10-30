@@ -14,8 +14,9 @@ bench:
 install:
 	cd cmd/gi && go install
 
-unused:
-	go run honnef.co/go/tools/cmd/staticcheck@latest -checks U1000 ./...
+# go install golang.org/x/tools/cmd/deadcode@latest
+unused:	
+	cd cmd/gi && deadcode .
 
 .PHONY: test clean todo bench install unused examples
 examples: install
