@@ -83,3 +83,26 @@ func (c CallExpr) evalMake(vm *VM) {
 	}
 	vm.fatal(fmt.Sprintf("make: expected a CanInstantiate value:%v", typ))
 }
+
+func (c CallExpr) evalNew(vm *VM) {
+	var valWithType reflect.Value
+	if vm.isStepping {
+		valWithType = vm.frameStack.top().pop()
+	} else {
+		valWithType = vm.returnsEval(c.Args[0])
+	}
+	typ := valWithType.Interface()
+	if ci, ok := typ.(CanInstantiate); ok {
+		instance := ci.Instantiate(vm)
+		vm.pushOperand(instance)
+		return
+	}
+	if valWithType.Kind() == reflect.Struct {
+		// typ is an instance of a standard or imported external type
+		rtype := reflect.TypeOf(typ)
+		rval := reflect.New(rtype)
+		vm.pushOperand(rval)
+		return
+	}
+	vm.fatal(fmt.Sprintf("new: expected a CanInstantiate value:%v", typ))
+}

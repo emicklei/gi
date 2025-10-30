@@ -1,3 +1,6 @@
+gen:
+	cd cmd/genstdlib && go run .
+
 test:
 	go test -cover ./internal
 

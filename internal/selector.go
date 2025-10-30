@@ -28,6 +28,9 @@ func (s SelectorExpr) Eval(vm *VM) {
 	rec, ok := recv.Interface().(FieldSelectable)
 	if ok {
 		sel := rec.Select(s.Sel.Name)
+		if !sel.IsValid() {
+			vm.fatal(fmt.Sprintf("field %s not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
+		}
 		vm.pushOperand(sel)
 		return
 	}

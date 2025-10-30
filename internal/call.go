@@ -88,6 +88,8 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		c.evalMax(vm)
 	case "make":
 		c.evalMake(vm)
+	case "new":
+		c.evalNew(vm)
 	default:
 		vm.fatal("unknown builtin function: " + bf.name)
 	}

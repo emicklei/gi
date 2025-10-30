@@ -986,3 +986,14 @@ func main() {
 	print(err2Msg)
 }`, "an error")
 }
+
+func TestNewStandardType(t *testing.T) {
+	testProgram(t, true, true, `package main
+import "sync"
+func main() {
+	var wg *sync.WaitGroup = new(sync.WaitGroup)
+	wg.Add(1)
+	wg.Done()
+	print("done")
+}`, "done")
+}

@@ -45,7 +45,7 @@ func main() {
 	}
 
 	// Create the output file.
-	outFile, err := os.Create("internal/stdlib_generated.go")
+	outFile, err := os.Create("../../internal/stdlib_generated.go")
 	if err != nil {
 		log.Fatalf("failed to create output file: %v", err)
 	}
@@ -56,6 +56,7 @@ func main() {
 	usedPkgFuncs := make(map[string]struct {
 		PkgName string
 		Funcs   []string
+		Types   []string
 	})
 
 	for _, pkg := range stdPkgs {
@@ -69,9 +70,13 @@ func main() {
 		if isExcluded {
 			continue
 		}
-		pkgName, funcs, err := getExportedFunctions(pkg)
+		pkgName, funcs, types, err := getExportedFunctionsAndTypes(pkg)
 		if err != nil {
 			log.Printf("failed to get exported functions for package %s: %v", pkg, err)
+			continue
+		}
+		if err != nil {
+			log.Printf("failed to get exported types for package %s: %v", pkg, err)
 			continue
 		}
 		if len(funcs) > 0 {
@@ -79,7 +84,8 @@ func main() {
 			usedPkgFuncs[pkg] = struct {
 				PkgName string
 				Funcs   []string
-			}{pkgName, funcs}
+				Types   []string
+			}{pkgName, funcs, types}
 		}
 	}
 
@@ -288,7 +294,7 @@ func getStdPkgs() ([]string, error) {
 	}, nil
 }
 
-func getExportedFunctions(pkgImportPath string) (string, []string, error) {
+func getExportedFunctionsAndTypes(pkgImportPath string) (string, []string, []string, error) {
 	// This example assumes the package is in the standard library.
 	// Use build to get the package details, which respects build tags.
 	ctxt := build.Default
@@ -297,16 +303,17 @@ func getExportedFunctions(pkgImportPath string) (string, []string, error) {
 	ctxt.GOARCH = runtime.GOARCH
 	pkg, err := ctxt.Import(pkgImportPath, "", 0)
 	if err != nil {
-		return "", nil, fmt.Errorf("could not import package %s: %v", pkgImportPath, err)
+		return "", nil, nil, fmt.Errorf("could not import package %s: %v", pkgImportPath, err)
 	}
 
 	fset := token.NewFileSet()
 	funcSet := make(map[string]struct{})
+	typeSet := make(map[string]struct{})
 	var pkgName string
 	for _, file := range pkg.GoFiles {
 		f, err := parser.ParseFile(fset, filepath.Join(pkg.Dir, file), nil, 0)
 		if err != nil {
-			return "", nil, fmt.Errorf("could not parse file %s: %v", file, err)
+			return "", nil, nil, fmt.Errorf("could not parse file %s: %v", file, err)
 		}
 		if pkgName == "" {
 			pkgName = f.Name.Name
@@ -360,5 +367,10 @@ func getExportedFunctions(pkgImportPath string) (string, []string, error) {
 		funcs = append(funcs, f)
 	}
 	sort.Strings(funcs)
-	return pkgName, funcs, nil
+	var types []string
+	for t := range typeSet {
+		types = append(types, t)
+	}
+	sort.Strings(types)
+	return pkgName, funcs, types, nil
 }

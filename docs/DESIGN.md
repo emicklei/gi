@@ -73,3 +73,4 @@ additional generated sources that will setup all exported functions,consts and v
 this technique is also applied in `varvoy`.
 
 - About types: https://github.com/golang/example/tree/master/gotypes
+- maybe each block should only get a child Env ; not a complete stackFrame
