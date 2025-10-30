@@ -150,6 +150,11 @@ func init() {
 		"TypeSymlink": reflect.ValueOf(i1.TypeSymlink),
 		"TypeXGlobalHeader": reflect.ValueOf(i1.TypeXGlobalHeader),
 		"TypeXHeader": reflect.ValueOf(i1.TypeXHeader),
+		"FileInfoNames": reflect.ValueOf(i1.FileInfoNames{}),
+		"Format": reflect.ValueOf(i1.Format{}),
+		"Header": reflect.ValueOf(i1.Header{}),
+		"Reader": reflect.ValueOf(i1.Reader{}),
+		"Writer": reflect.ValueOf(i1.Writer{}),
 	}
 	stdpkg["archive/zip"] = map[string]reflect.Value{
 		"Deflate": reflect.ValueOf(i2.Deflate),
@@ -164,6 +169,13 @@ func init() {
 		"RegisterCompressor": reflect.ValueOf(i2.RegisterCompressor),
 		"RegisterDecompressor": reflect.ValueOf(i2.RegisterDecompressor),
 		"Store": reflect.ValueOf(i2.Store),
+		"Compressor": reflect.ValueOf(i2.Compressor{}),
+		"Decompressor": reflect.ValueOf(i2.Decompressor{}),
+		"File": reflect.ValueOf(i2.File{}),
+		"FileHeader": reflect.ValueOf(i2.FileHeader{}),
+		"ReadCloser": reflect.ValueOf(i2.ReadCloser{}),
+		"Reader": reflect.ValueOf(i2.Reader{}),
+		"Writer": reflect.ValueOf(i2.Writer{}),
 	}
 	stdpkg["bufio"] = map[string]reflect.Value{
 		"ErrAdvanceTooFar": reflect.ValueOf(i3.ErrAdvanceTooFar),
@@ -186,6 +198,11 @@ func init() {
 		"ScanLines": reflect.ValueOf(i3.ScanLines),
 		"ScanRunes": reflect.ValueOf(i3.ScanRunes),
 		"ScanWords": reflect.ValueOf(i3.ScanWords),
+		"ReadWriter": reflect.ValueOf(i3.ReadWriter{}),
+		"Reader": reflect.ValueOf(i3.Reader{}),
+		"Scanner": reflect.ValueOf(i3.Scanner{}),
+		"SplitFunc": reflect.ValueOf(i3.SplitFunc{}),
+		"Writer": reflect.ValueOf(i3.Writer{}),
 	}
 	stdpkg["bytes"] = map[string]reflect.Value{
 		"Clone": reflect.ValueOf(i4.Clone),
@@ -250,9 +267,12 @@ func init() {
 		"TrimRightFunc": reflect.ValueOf(i4.TrimRightFunc),
 		"TrimSpace": reflect.ValueOf(i4.TrimSpace),
 		"TrimSuffix": reflect.ValueOf(i4.TrimSuffix),
+		"Buffer": reflect.ValueOf(i4.Buffer{}),
+		"Reader": reflect.ValueOf(i4.Reader{}),
 	}
 	stdpkg["compress/bzip2"] = map[string]reflect.Value{
 		"NewReader": reflect.ValueOf(i5.NewReader),
+		"StructuralError": reflect.ValueOf(i5.StructuralError{}),
 	}
 	stdpkg["compress/flate"] = map[string]reflect.Value{
 		"BestCompression": reflect.ValueOf(i6.BestCompression),
@@ -264,6 +284,13 @@ func init() {
 		"NewWriter": reflect.ValueOf(i6.NewWriter),
 		"NewWriterDict": reflect.ValueOf(i6.NewWriterDict),
 		"NoCompression": reflect.ValueOf(i6.NoCompression),
+		"CorruptInputError": reflect.ValueOf(i6.CorruptInputError{}),
+		"InternalError": reflect.ValueOf(i6.InternalError{}),
+		"ReadError": reflect.ValueOf(i6.ReadError{}),
+		"Reader": reflect.ValueOf(i6.Reader{}),
+		"Resetter": reflect.ValueOf(i6.Resetter{}),
+		"WriteError": reflect.ValueOf(i6.WriteError{}),
+		"Writer": reflect.ValueOf(i6.Writer{}),
 	}
 	stdpkg["compress/gzip"] = map[string]reflect.Value{
 		"BestCompression": reflect.ValueOf(i7.BestCompression),
@@ -276,12 +303,18 @@ func init() {
 		"NewWriter": reflect.ValueOf(i7.NewWriter),
 		"NewWriterLevel": reflect.ValueOf(i7.NewWriterLevel),
 		"NoCompression": reflect.ValueOf(i7.NoCompression),
+		"Header": reflect.ValueOf(i7.Header{}),
+		"Reader": reflect.ValueOf(i7.Reader{}),
+		"Writer": reflect.ValueOf(i7.Writer{}),
 	}
 	stdpkg["compress/lzw"] = map[string]reflect.Value{
 		"LSB": reflect.ValueOf(i8.LSB),
 		"MSB": reflect.ValueOf(i8.MSB),
 		"NewReader": reflect.ValueOf(i8.NewReader),
 		"NewWriter": reflect.ValueOf(i8.NewWriter),
+		"Order": reflect.ValueOf(i8.Order{}),
+		"Reader": reflect.ValueOf(i8.Reader{}),
+		"Writer": reflect.ValueOf(i8.Writer{}),
 	}
 	stdpkg["compress/zlib"] = map[string]reflect.Value{
 		"BestCompression": reflect.ValueOf(i9.BestCompression),
@@ -297,6 +330,8 @@ func init() {
 		"NewWriterLevel": reflect.ValueOf(i9.NewWriterLevel),
 		"NewWriterLevelDict": reflect.ValueOf(i9.NewWriterLevelDict),
 		"NoCompression": reflect.ValueOf(i9.NoCompression),
+		"Resetter": reflect.ValueOf(i9.Resetter{}),
+		"Writer": reflect.ValueOf(i9.Writer{}),
 	}
 	stdpkg["container/heap"] = map[string]reflect.Value{
 		"Fix": reflect.ValueOf(i10.Fix),
@@ -304,12 +339,16 @@ func init() {
 		"Pop": reflect.ValueOf(i10.Pop),
 		"Push": reflect.ValueOf(i10.Push),
 		"Remove": reflect.ValueOf(i10.Remove),
+		"Interface": reflect.ValueOf(i10.Interface{}),
 	}
 	stdpkg["container/list"] = map[string]reflect.Value{
 		"New": reflect.ValueOf(i11.New),
+		"Element": reflect.ValueOf(i11.Element{}),
+		"List": reflect.ValueOf(i11.List{}),
 	}
 	stdpkg["container/ring"] = map[string]reflect.Value{
 		"New": reflect.ValueOf(i12.New),
+		"Ring": reflect.ValueOf(i12.Ring{}),
 	}
 	stdpkg["context"] = map[string]reflect.Value{
 		"AfterFunc": reflect.ValueOf(i13.AfterFunc),
@@ -326,6 +365,9 @@ func init() {
 		"WithTimeoutCause": reflect.ValueOf(i13.WithTimeoutCause),
 		"WithValue": reflect.ValueOf(i13.WithValue),
 		"WithoutCancel": reflect.ValueOf(i13.WithoutCancel),
+		"CancelCauseFunc": reflect.ValueOf(i13.CancelCauseFunc{}),
+		"CancelFunc": reflect.ValueOf(i13.CancelFunc{}),
+		"Context": reflect.ValueOf(i13.Context{}),
 	}
 	stdpkg["crypto"] = map[string]reflect.Value{
 		"BLAKE2b_256": reflect.ValueOf(i14.BLAKE2b_256),
@@ -349,10 +391,19 @@ func init() {
 		"SHA512_224": reflect.ValueOf(i14.SHA512_224),
 		"SHA512_256": reflect.ValueOf(i14.SHA512_256),
 		"SignMessage": reflect.ValueOf(i14.SignMessage),
+		"Decrypter": reflect.ValueOf(i14.Decrypter{}),
+		"DecrypterOpts": reflect.ValueOf(i14.DecrypterOpts{}),
+		"Hash": reflect.ValueOf(i14.Hash{}),
+		"MessageSigner": reflect.ValueOf(i14.MessageSigner{}),
+		"PrivateKey": reflect.ValueOf(i14.PrivateKey{}),
+		"PublicKey": reflect.ValueOf(i14.PublicKey{}),
+		"Signer": reflect.ValueOf(i14.Signer{}),
+		"SignerOpts": reflect.ValueOf(i14.SignerOpts{}),
 	}
 	stdpkg["crypto/aes"] = map[string]reflect.Value{
 		"BlockSize": reflect.ValueOf(i15.BlockSize),
 		"NewCipher": reflect.ValueOf(i15.NewCipher),
+		"KeySizeError": reflect.ValueOf(i15.KeySizeError{}),
 	}
 	stdpkg["crypto/cipher"] = map[string]reflect.Value{
 		"NewCBCDecrypter": reflect.ValueOf(i16.NewCBCDecrypter),
@@ -365,11 +416,18 @@ func init() {
 		"NewGCMWithRandomNonce": reflect.ValueOf(i16.NewGCMWithRandomNonce),
 		"NewGCMWithTagSize": reflect.ValueOf(i16.NewGCMWithTagSize),
 		"NewOFB": reflect.ValueOf(i16.NewOFB),
+		"AEAD": reflect.ValueOf(i16.AEAD{}),
+		"Block": reflect.ValueOf(i16.Block{}),
+		"BlockMode": reflect.ValueOf(i16.BlockMode{}),
+		"Stream": reflect.ValueOf(i16.Stream{}),
+		"StreamReader": reflect.ValueOf(i16.StreamReader{}),
+		"StreamWriter": reflect.ValueOf(i16.StreamWriter{}),
 	}
 	stdpkg["crypto/des"] = map[string]reflect.Value{
 		"BlockSize": reflect.ValueOf(i17.BlockSize),
 		"NewCipher": reflect.ValueOf(i17.NewCipher),
 		"NewTripleDESCipher": reflect.ValueOf(i17.NewTripleDESCipher),
+		"KeySizeError": reflect.ValueOf(i17.KeySizeError{}),
 	}
 	stdpkg["crypto/dsa"] = map[string]reflect.Value{
 		"ErrInvalidPublicKey": reflect.ValueOf(i18.ErrInvalidPublicKey),
@@ -381,6 +439,10 @@ func init() {
 		"L3072N256": reflect.ValueOf(i18.L3072N256),
 		"Sign": reflect.ValueOf(i18.Sign),
 		"Verify": reflect.ValueOf(i18.Verify),
+		"ParameterSizes": reflect.ValueOf(i18.ParameterSizes{}),
+		"Parameters": reflect.ValueOf(i18.Parameters{}),
+		"PrivateKey": reflect.ValueOf(i18.PrivateKey{}),
+		"PublicKey": reflect.ValueOf(i18.PublicKey{}),
 	}
 	stdpkg["crypto/ecdsa"] = map[string]reflect.Value{
 		"GenerateKey": reflect.ValueOf(i19.GenerateKey),
@@ -390,6 +452,8 @@ func init() {
 		"SignASN1": reflect.ValueOf(i19.SignASN1),
 		"Verify": reflect.ValueOf(i19.Verify),
 		"VerifyASN1": reflect.ValueOf(i19.VerifyASN1),
+		"PrivateKey": reflect.ValueOf(i19.PrivateKey{}),
+		"PublicKey": reflect.ValueOf(i19.PublicKey{}),
 	}
 	stdpkg["crypto/ed25519"] = map[string]reflect.Value{
 		"GenerateKey": reflect.ValueOf(i20.GenerateKey),
@@ -401,6 +465,9 @@ func init() {
 		"SignatureSize": reflect.ValueOf(i20.SignatureSize),
 		"Verify": reflect.ValueOf(i20.Verify),
 		"VerifyWithOptions": reflect.ValueOf(i20.VerifyWithOptions),
+		"Options": reflect.ValueOf(i20.Options{}),
+		"PrivateKey": reflect.ValueOf(i20.PrivateKey{}),
+		"PublicKey": reflect.ValueOf(i20.PublicKey{}),
 	}
 	stdpkg["crypto/elliptic"] = map[string]reflect.Value{
 		"GenerateKey": reflect.ValueOf(i21.GenerateKey),
@@ -412,6 +479,8 @@ func init() {
 		"P521": reflect.ValueOf(i21.P521),
 		"Unmarshal": reflect.ValueOf(i21.Unmarshal),
 		"UnmarshalCompressed": reflect.ValueOf(i21.UnmarshalCompressed),
+		"Curve": reflect.ValueOf(i21.Curve{}),
+		"CurveParams": reflect.ValueOf(i21.CurveParams{}),
 	}
 	stdpkg["crypto/hmac"] = map[string]reflect.Value{
 		"Equal": reflect.ValueOf(i22.Equal),
@@ -432,6 +501,8 @@ func init() {
 	}
 	stdpkg["crypto/rc4"] = map[string]reflect.Value{
 		"NewCipher": reflect.ValueOf(i25.NewCipher),
+		"Cipher": reflect.ValueOf(i25.Cipher{}),
+		"KeySizeError": reflect.ValueOf(i25.KeySizeError{}),
 	}
 	stdpkg["crypto/rsa"] = map[string]reflect.Value{
 		"DecryptOAEP": reflect.ValueOf(i26.DecryptOAEP),
@@ -450,6 +521,13 @@ func init() {
 		"SignPSS": reflect.ValueOf(i26.SignPSS),
 		"VerifyPKCS1v15": reflect.ValueOf(i26.VerifyPKCS1v15),
 		"VerifyPSS": reflect.ValueOf(i26.VerifyPSS),
+		"CRTValue": reflect.ValueOf(i26.CRTValue{}),
+		"OAEPOptions": reflect.ValueOf(i26.OAEPOptions{}),
+		"PKCS1v15DecryptOptions": reflect.ValueOf(i26.PKCS1v15DecryptOptions{}),
+		"PSSOptions": reflect.ValueOf(i26.PSSOptions{}),
+		"PrecomputedValues": reflect.ValueOf(i26.PrecomputedValues{}),
+		"PrivateKey": reflect.ValueOf(i26.PrivateKey{}),
+		"PublicKey": reflect.ValueOf(i26.PublicKey{}),
 	}
 	stdpkg["crypto/sha1"] = map[string]reflect.Value{
 		"BlockSize": reflect.ValueOf(i27.BlockSize),
@@ -581,6 +659,32 @@ func init() {
 		"X25519": reflect.ValueOf(i31.X25519),
 		"X25519MLKEM768": reflect.ValueOf(i31.X25519MLKEM768),
 		"X509KeyPair": reflect.ValueOf(i31.X509KeyPair),
+		"AlertError": reflect.ValueOf(i31.AlertError{}),
+		"Certificate": reflect.ValueOf(i31.Certificate{}),
+		"CertificateRequestInfo": reflect.ValueOf(i31.CertificateRequestInfo{}),
+		"CertificateVerificationError": reflect.ValueOf(i31.CertificateVerificationError{}),
+		"CipherSuite": reflect.ValueOf(i31.CipherSuite{}),
+		"ClientAuthType": reflect.ValueOf(i31.ClientAuthType{}),
+		"ClientHelloInfo": reflect.ValueOf(i31.ClientHelloInfo{}),
+		"ClientSessionCache": reflect.ValueOf(i31.ClientSessionCache{}),
+		"ClientSessionState": reflect.ValueOf(i31.ClientSessionState{}),
+		"Config": reflect.ValueOf(i31.Config{}),
+		"Conn": reflect.ValueOf(i31.Conn{}),
+		"ConnectionState": reflect.ValueOf(i31.ConnectionState{}),
+		"CurveID": reflect.ValueOf(i31.CurveID{}),
+		"Dialer": reflect.ValueOf(i31.Dialer{}),
+		"ECHRejectionError": reflect.ValueOf(i31.ECHRejectionError{}),
+		"EncryptedClientHelloKey": reflect.ValueOf(i31.EncryptedClientHelloKey{}),
+		"QUICConfig": reflect.ValueOf(i31.QUICConfig{}),
+		"QUICConn": reflect.ValueOf(i31.QUICConn{}),
+		"QUICEncryptionLevel": reflect.ValueOf(i31.QUICEncryptionLevel{}),
+		"QUICEvent": reflect.ValueOf(i31.QUICEvent{}),
+		"QUICEventKind": reflect.ValueOf(i31.QUICEventKind{}),
+		"QUICSessionTicketOptions": reflect.ValueOf(i31.QUICSessionTicketOptions{}),
+		"RecordHeaderError": reflect.ValueOf(i31.RecordHeaderError{}),
+		"RenegotiationSupport": reflect.ValueOf(i31.RenegotiationSupport{}),
+		"SessionState": reflect.ValueOf(i31.SessionState{}),
+		"SignatureScheme": reflect.ValueOf(i31.SignatureScheme{}),
 	}
 	stdpkg["crypto/x509"] = map[string]reflect.Value{
 		"CANotAuthorizedForExtKeyUsage": reflect.ValueOf(i32.CANotAuthorizedForExtKeyUsage),
@@ -673,6 +777,27 @@ func init() {
 		"UnconstrainedName": reflect.ValueOf(i32.UnconstrainedName),
 		"UnknownPublicKeyAlgorithm": reflect.ValueOf(i32.UnknownPublicKeyAlgorithm),
 		"UnknownSignatureAlgorithm": reflect.ValueOf(i32.UnknownSignatureAlgorithm),
+		"CertPool": reflect.ValueOf(i32.CertPool{}),
+		"Certificate": reflect.ValueOf(i32.Certificate{}),
+		"CertificateInvalidError": reflect.ValueOf(i32.CertificateInvalidError{}),
+		"CertificateRequest": reflect.ValueOf(i32.CertificateRequest{}),
+		"ConstraintViolationError": reflect.ValueOf(i32.ConstraintViolationError{}),
+		"ExtKeyUsage": reflect.ValueOf(i32.ExtKeyUsage{}),
+		"HostnameError": reflect.ValueOf(i32.HostnameError{}),
+		"InsecureAlgorithmError": reflect.ValueOf(i32.InsecureAlgorithmError{}),
+		"InvalidReason": reflect.ValueOf(i32.InvalidReason{}),
+		"KeyUsage": reflect.ValueOf(i32.KeyUsage{}),
+		"OID": reflect.ValueOf(i32.OID{}),
+		"PEMCipher": reflect.ValueOf(i32.PEMCipher{}),
+		"PolicyMapping": reflect.ValueOf(i32.PolicyMapping{}),
+		"PublicKeyAlgorithm": reflect.ValueOf(i32.PublicKeyAlgorithm{}),
+		"RevocationList": reflect.ValueOf(i32.RevocationList{}),
+		"RevocationListEntry": reflect.ValueOf(i32.RevocationListEntry{}),
+		"SignatureAlgorithm": reflect.ValueOf(i32.SignatureAlgorithm{}),
+		"SystemRootsError": reflect.ValueOf(i32.SystemRootsError{}),
+		"UnhandledCriticalExtension": reflect.ValueOf(i32.UnhandledCriticalExtension{}),
+		"UnknownAuthorityError": reflect.ValueOf(i32.UnknownAuthorityError{}),
+		"VerifyOptions": reflect.ValueOf(i32.VerifyOptions{}),
 	}
 	stdpkg["database/sql"] = map[string]reflect.Value{
 		"Drivers": reflect.ValueOf(i33.Drivers),
@@ -691,6 +816,30 @@ func init() {
 		"Open": reflect.ValueOf(i33.Open),
 		"OpenDB": reflect.ValueOf(i33.OpenDB),
 		"Register": reflect.ValueOf(i33.Register),
+		"ColumnType": reflect.ValueOf(i33.ColumnType{}),
+		"Conn": reflect.ValueOf(i33.Conn{}),
+		"DB": reflect.ValueOf(i33.DB{}),
+		"DBStats": reflect.ValueOf(i33.DBStats{}),
+		"IsolationLevel": reflect.ValueOf(i33.IsolationLevel{}),
+		"NamedArg": reflect.ValueOf(i33.NamedArg{}),
+		"Null": reflect.ValueOf(i33.Null{}),
+		"NullBool": reflect.ValueOf(i33.NullBool{}),
+		"NullByte": reflect.ValueOf(i33.NullByte{}),
+		"NullFloat64": reflect.ValueOf(i33.NullFloat64{}),
+		"NullInt16": reflect.ValueOf(i33.NullInt16{}),
+		"NullInt32": reflect.ValueOf(i33.NullInt32{}),
+		"NullInt64": reflect.ValueOf(i33.NullInt64{}),
+		"NullString": reflect.ValueOf(i33.NullString{}),
+		"NullTime": reflect.ValueOf(i33.NullTime{}),
+		"Out": reflect.ValueOf(i33.Out{}),
+		"RawBytes": reflect.ValueOf(i33.RawBytes{}),
+		"Result": reflect.ValueOf(i33.Result{}),
+		"Row": reflect.ValueOf(i33.Row{}),
+		"Rows": reflect.ValueOf(i33.Rows{}),
+		"Scanner": reflect.ValueOf(i33.Scanner{}),
+		"Stmt": reflect.ValueOf(i33.Stmt{}),
+		"Tx": reflect.ValueOf(i33.Tx{}),
+		"TxOptions": reflect.ValueOf(i33.TxOptions{}),
 	}
 	stdpkg["database/sql/driver"] = map[string]reflect.Value{
 		"Bool": reflect.ValueOf(i34.Bool),
@@ -703,6 +852,42 @@ func init() {
 		"IsValue": reflect.ValueOf(i34.IsValue),
 		"ResultNoRows": reflect.ValueOf(i34.ResultNoRows),
 		"String": reflect.ValueOf(i34.String),
+		"ColumnConverter": reflect.ValueOf(i34.ColumnConverter{}),
+		"Conn": reflect.ValueOf(i34.Conn{}),
+		"ConnBeginTx": reflect.ValueOf(i34.ConnBeginTx{}),
+		"ConnPrepareContext": reflect.ValueOf(i34.ConnPrepareContext{}),
+		"Connector": reflect.ValueOf(i34.Connector{}),
+		"Driver": reflect.ValueOf(i34.Driver{}),
+		"DriverContext": reflect.ValueOf(i34.DriverContext{}),
+		"Execer": reflect.ValueOf(i34.Execer{}),
+		"ExecerContext": reflect.ValueOf(i34.ExecerContext{}),
+		"IsolationLevel": reflect.ValueOf(i34.IsolationLevel{}),
+		"NamedValue": reflect.ValueOf(i34.NamedValue{}),
+		"NamedValueChecker": reflect.ValueOf(i34.NamedValueChecker{}),
+		"NotNull": reflect.ValueOf(i34.NotNull{}),
+		"Null": reflect.ValueOf(i34.Null{}),
+		"Pinger": reflect.ValueOf(i34.Pinger{}),
+		"Queryer": reflect.ValueOf(i34.Queryer{}),
+		"QueryerContext": reflect.ValueOf(i34.QueryerContext{}),
+		"Result": reflect.ValueOf(i34.Result{}),
+		"Rows": reflect.ValueOf(i34.Rows{}),
+		"RowsAffected": reflect.ValueOf(i34.RowsAffected{}),
+		"RowsColumnTypeDatabaseTypeName": reflect.ValueOf(i34.RowsColumnTypeDatabaseTypeName{}),
+		"RowsColumnTypeLength": reflect.ValueOf(i34.RowsColumnTypeLength{}),
+		"RowsColumnTypeNullable": reflect.ValueOf(i34.RowsColumnTypeNullable{}),
+		"RowsColumnTypePrecisionScale": reflect.ValueOf(i34.RowsColumnTypePrecisionScale{}),
+		"RowsColumnTypeScanType": reflect.ValueOf(i34.RowsColumnTypeScanType{}),
+		"RowsNextResultSet": reflect.ValueOf(i34.RowsNextResultSet{}),
+		"SessionResetter": reflect.ValueOf(i34.SessionResetter{}),
+		"Stmt": reflect.ValueOf(i34.Stmt{}),
+		"StmtExecContext": reflect.ValueOf(i34.StmtExecContext{}),
+		"StmtQueryContext": reflect.ValueOf(i34.StmtQueryContext{}),
+		"Tx": reflect.ValueOf(i34.Tx{}),
+		"TxOptions": reflect.ValueOf(i34.TxOptions{}),
+		"Validator": reflect.ValueOf(i34.Validator{}),
+		"Value": reflect.ValueOf(i34.Value{}),
+		"ValueConverter": reflect.ValueOf(i34.ValueConverter{}),
+		"Valuer": reflect.ValueOf(i34.Valuer{}),
 	}
 	stdpkg["encoding/ascii85"] = map[string]reflect.Value{
 		"Decode": reflect.ValueOf(i35.Decode),
@@ -710,6 +895,7 @@ func init() {
 		"MaxEncodedLen": reflect.ValueOf(i35.MaxEncodedLen),
 		"NewDecoder": reflect.ValueOf(i35.NewDecoder),
 		"NewEncoder": reflect.ValueOf(i35.NewEncoder),
+		"CorruptInputError": reflect.ValueOf(i35.CorruptInputError{}),
 	}
 	stdpkg["encoding/asn1"] = map[string]reflect.Value{
 		"ClassApplication": reflect.ValueOf(i36.ClassApplication),
@@ -740,6 +926,14 @@ func init() {
 		"TagUTF8String": reflect.ValueOf(i36.TagUTF8String),
 		"Unmarshal": reflect.ValueOf(i36.Unmarshal),
 		"UnmarshalWithParams": reflect.ValueOf(i36.UnmarshalWithParams),
+		"BitString": reflect.ValueOf(i36.BitString{}),
+		"Enumerated": reflect.ValueOf(i36.Enumerated{}),
+		"Flag": reflect.ValueOf(i36.Flag{}),
+		"ObjectIdentifier": reflect.ValueOf(i36.ObjectIdentifier{}),
+		"RawContent": reflect.ValueOf(i36.RawContent{}),
+		"RawValue": reflect.ValueOf(i36.RawValue{}),
+		"StructuralError": reflect.ValueOf(i36.StructuralError{}),
+		"SyntaxError": reflect.ValueOf(i36.SyntaxError{}),
 	}
 	stdpkg["encoding/base32"] = map[string]reflect.Value{
 		"HexEncoding": reflect.ValueOf(i37.HexEncoding),
@@ -749,6 +943,8 @@ func init() {
 		"NoPadding": reflect.ValueOf(i37.NoPadding),
 		"StdEncoding": reflect.ValueOf(i37.StdEncoding),
 		"StdPadding": reflect.ValueOf(i37.StdPadding),
+		"CorruptInputError": reflect.ValueOf(i37.CorruptInputError{}),
+		"Encoding": reflect.ValueOf(i37.Encoding{}),
 	}
 	stdpkg["encoding/base64"] = map[string]reflect.Value{
 		"NewDecoder": reflect.ValueOf(i38.NewDecoder),
@@ -760,6 +956,8 @@ func init() {
 		"StdEncoding": reflect.ValueOf(i38.StdEncoding),
 		"StdPadding": reflect.ValueOf(i38.StdPadding),
 		"URLEncoding": reflect.ValueOf(i38.URLEncoding),
+		"CorruptInputError": reflect.ValueOf(i38.CorruptInputError{}),
+		"Encoding": reflect.ValueOf(i38.Encoding{}),
 	}
 	stdpkg["encoding/binary"] = map[string]reflect.Value{
 		"Append": reflect.ValueOf(i39.Append),
@@ -782,6 +980,8 @@ func init() {
 		"Uvarint": reflect.ValueOf(i39.Uvarint),
 		"Varint": reflect.ValueOf(i39.Varint),
 		"Write": reflect.ValueOf(i39.Write),
+		"AppendByteOrder": reflect.ValueOf(i39.AppendByteOrder{}),
+		"ByteOrder": reflect.ValueOf(i39.ByteOrder{}),
 	}
 	stdpkg["encoding/csv"] = map[string]reflect.Value{
 		"ErrBareQuote": reflect.ValueOf(i40.ErrBareQuote),
@@ -790,12 +990,20 @@ func init() {
 		"ErrTrailingComma": reflect.ValueOf(i40.ErrTrailingComma),
 		"NewReader": reflect.ValueOf(i40.NewReader),
 		"NewWriter": reflect.ValueOf(i40.NewWriter),
+		"ParseError": reflect.ValueOf(i40.ParseError{}),
+		"Reader": reflect.ValueOf(i40.Reader{}),
+		"Writer": reflect.ValueOf(i40.Writer{}),
 	}
 	stdpkg["encoding/gob"] = map[string]reflect.Value{
 		"NewDecoder": reflect.ValueOf(i41.NewDecoder),
 		"NewEncoder": reflect.ValueOf(i41.NewEncoder),
 		"Register": reflect.ValueOf(i41.Register),
 		"RegisterName": reflect.ValueOf(i41.RegisterName),
+		"CommonType": reflect.ValueOf(i41.CommonType{}),
+		"Decoder": reflect.ValueOf(i41.Decoder{}),
+		"Encoder": reflect.ValueOf(i41.Encoder{}),
+		"GobDecoder": reflect.ValueOf(i41.GobDecoder{}),
+		"GobEncoder": reflect.ValueOf(i41.GobEncoder{}),
 	}
 	stdpkg["encoding/hex"] = map[string]reflect.Value{
 		"AppendDecode": reflect.ValueOf(i42.AppendDecode),
@@ -811,6 +1019,7 @@ func init() {
 		"ErrLength": reflect.ValueOf(i42.ErrLength),
 		"NewDecoder": reflect.ValueOf(i42.NewDecoder),
 		"NewEncoder": reflect.ValueOf(i42.NewEncoder),
+		"InvalidByteError": reflect.ValueOf(i42.InvalidByteError{}),
 	}
 	stdpkg["encoding/json"] = map[string]reflect.Value{
 		"Compact": reflect.ValueOf(i43.Compact),
@@ -822,11 +1031,28 @@ func init() {
 		"NewEncoder": reflect.ValueOf(i43.NewEncoder),
 		"Unmarshal": reflect.ValueOf(i43.Unmarshal),
 		"Valid": reflect.ValueOf(i43.Valid),
+		"Decoder": reflect.ValueOf(i43.Decoder{}),
+		"Delim": reflect.ValueOf(i43.Delim{}),
+		"Encoder": reflect.ValueOf(i43.Encoder{}),
+		"InvalidUTF8Error": reflect.ValueOf(i43.InvalidUTF8Error{}),
+		"InvalidUnmarshalError": reflect.ValueOf(i43.InvalidUnmarshalError{}),
+		"Marshaler": reflect.ValueOf(i43.Marshaler{}),
+		"MarshalerError": reflect.ValueOf(i43.MarshalerError{}),
+		"Number": reflect.ValueOf(i43.Number{}),
+		"RawMessage": reflect.ValueOf(i43.RawMessage{}),
+		"SyntaxError": reflect.ValueOf(i43.SyntaxError{}),
+		"Token": reflect.ValueOf(i43.Token{}),
+		"UnmarshalFieldError": reflect.ValueOf(i43.UnmarshalFieldError{}),
+		"UnmarshalTypeError": reflect.ValueOf(i43.UnmarshalTypeError{}),
+		"Unmarshaler": reflect.ValueOf(i43.Unmarshaler{}),
+		"UnsupportedTypeError": reflect.ValueOf(i43.UnsupportedTypeError{}),
+		"UnsupportedValueError": reflect.ValueOf(i43.UnsupportedValueError{}),
 	}
 	stdpkg["encoding/pem"] = map[string]reflect.Value{
 		"Decode": reflect.ValueOf(i44.Decode),
 		"Encode": reflect.ValueOf(i44.Encode),
 		"EncodeToMemory": reflect.ValueOf(i44.EncodeToMemory),
+		"Block": reflect.ValueOf(i44.Block{}),
 	}
 	stdpkg["encoding/xml"] = map[string]reflect.Value{
 		"CopyToken": reflect.ValueOf(i45.CopyToken),
@@ -841,6 +1067,26 @@ func init() {
 		"NewEncoder": reflect.ValueOf(i45.NewEncoder),
 		"NewTokenDecoder": reflect.ValueOf(i45.NewTokenDecoder),
 		"Unmarshal": reflect.ValueOf(i45.Unmarshal),
+		"Attr": reflect.ValueOf(i45.Attr{}),
+		"CharData": reflect.ValueOf(i45.CharData{}),
+		"Comment": reflect.ValueOf(i45.Comment{}),
+		"Decoder": reflect.ValueOf(i45.Decoder{}),
+		"Directive": reflect.ValueOf(i45.Directive{}),
+		"Encoder": reflect.ValueOf(i45.Encoder{}),
+		"EndElement": reflect.ValueOf(i45.EndElement{}),
+		"Marshaler": reflect.ValueOf(i45.Marshaler{}),
+		"MarshalerAttr": reflect.ValueOf(i45.MarshalerAttr{}),
+		"Name": reflect.ValueOf(i45.Name{}),
+		"ProcInst": reflect.ValueOf(i45.ProcInst{}),
+		"StartElement": reflect.ValueOf(i45.StartElement{}),
+		"SyntaxError": reflect.ValueOf(i45.SyntaxError{}),
+		"TagPathError": reflect.ValueOf(i45.TagPathError{}),
+		"Token": reflect.ValueOf(i45.Token{}),
+		"TokenReader": reflect.ValueOf(i45.TokenReader{}),
+		"UnmarshalError": reflect.ValueOf(i45.UnmarshalError{}),
+		"Unmarshaler": reflect.ValueOf(i45.Unmarshaler{}),
+		"UnmarshalerAttr": reflect.ValueOf(i45.UnmarshalerAttr{}),
+		"UnsupportedTypeError": reflect.ValueOf(i45.UnsupportedTypeError{}),
 	}
 	stdpkg["errors"] = map[string]reflect.Value{
 		"As": reflect.ValueOf(i46.As),
@@ -859,6 +1105,13 @@ func init() {
 		"NewMap": reflect.ValueOf(i47.NewMap),
 		"NewString": reflect.ValueOf(i47.NewString),
 		"Publish": reflect.ValueOf(i47.Publish),
+		"Float": reflect.ValueOf(i47.Float{}),
+		"Func": reflect.ValueOf(i47.Func{}),
+		"Int": reflect.ValueOf(i47.Int{}),
+		"KeyValue": reflect.ValueOf(i47.KeyValue{}),
+		"Map": reflect.ValueOf(i47.Map{}),
+		"String": reflect.ValueOf(i47.String{}),
+		"Var": reflect.ValueOf(i47.Var{}),
 	}
 	stdpkg["flag"] = map[string]reflect.Value{
 		"Arg": reflect.ValueOf(i48.Arg),
@@ -900,6 +1153,11 @@ func init() {
 		"Var": reflect.ValueOf(i48.Var),
 		"Visit": reflect.ValueOf(i48.Visit),
 		"VisitAll": reflect.ValueOf(i48.VisitAll),
+		"ErrorHandling": reflect.ValueOf(i48.ErrorHandling{}),
+		"Flag": reflect.ValueOf(i48.Flag{}),
+		"FlagSet": reflect.ValueOf(i48.FlagSet{}),
+		"Getter": reflect.ValueOf(i48.Getter{}),
+		"Value": reflect.ValueOf(i48.Value{}),
 	}
 	stdpkg["fmt"] = map[string]reflect.Value{
 		"Append": reflect.ValueOf(i49.Append),
@@ -925,6 +1183,12 @@ func init() {
 		"Sscan": reflect.ValueOf(i49.Sscan),
 		"Sscanf": reflect.ValueOf(i49.Sscanf),
 		"Sscanln": reflect.ValueOf(i49.Sscanln),
+		"Formatter": reflect.ValueOf(i49.Formatter{}),
+		"GoStringer": reflect.ValueOf(i49.GoStringer{}),
+		"ScanState": reflect.ValueOf(i49.ScanState{}),
+		"Scanner": reflect.ValueOf(i49.Scanner{}),
+		"State": reflect.ValueOf(i49.State{}),
+		"Stringer": reflect.ValueOf(i49.Stringer{}),
 	}
 	stdpkg["hash/adler32"] = map[string]reflect.Value{
 		"Checksum": reflect.ValueOf(i50.Checksum),
@@ -943,6 +1207,7 @@ func init() {
 		"NewIEEE": reflect.ValueOf(i51.NewIEEE),
 		"Size": reflect.ValueOf(i51.Size),
 		"Update": reflect.ValueOf(i51.Update),
+		"Table": reflect.ValueOf(i51.Table{}),
 	}
 	stdpkg["hash/crc64"] = map[string]reflect.Value{
 		"Checksum": reflect.ValueOf(i52.Checksum),
@@ -950,6 +1215,7 @@ func init() {
 		"New": reflect.ValueOf(i52.New),
 		"Size": reflect.ValueOf(i52.Size),
 		"Update": reflect.ValueOf(i52.Update),
+		"Table": reflect.ValueOf(i52.Table{}),
 	}
 	stdpkg["hash/fnv"] = map[string]reflect.Value{
 		"New128": reflect.ValueOf(i53.New128),
@@ -963,6 +1229,8 @@ func init() {
 		"Bytes": reflect.ValueOf(i54.Bytes),
 		"MakeSeed": reflect.ValueOf(i54.MakeSeed),
 		"String": reflect.ValueOf(i54.String),
+		"Hash": reflect.ValueOf(i54.Hash{}),
+		"Seed": reflect.ValueOf(i54.Seed{}),
 	}
 	stdpkg["html"] = map[string]reflect.Value{
 		"EscapeString": reflect.ValueOf(i55.EscapeString),
@@ -995,6 +1263,17 @@ func init() {
 		"ParseFiles": reflect.ValueOf(i56.ParseFiles),
 		"ParseGlob": reflect.ValueOf(i56.ParseGlob),
 		"URLQueryEscaper": reflect.ValueOf(i56.URLQueryEscaper),
+		"CSS": reflect.ValueOf(i56.CSS{}),
+		"Error": reflect.ValueOf(i56.Error{}),
+		"ErrorCode": reflect.ValueOf(i56.ErrorCode{}),
+		"FuncMap": reflect.ValueOf(i56.FuncMap{}),
+		"HTML": reflect.ValueOf(i56.HTML{}),
+		"HTMLAttr": reflect.ValueOf(i56.HTMLAttr{}),
+		"JS": reflect.ValueOf(i56.JS{}),
+		"JSStr": reflect.ValueOf(i56.JSStr{}),
+		"Srcset": reflect.ValueOf(i56.Srcset{}),
+		"Template": reflect.ValueOf(i56.Template{}),
+		"URL": reflect.ValueOf(i56.URL{}),
 	}
 	stdpkg["image"] = map[string]reflect.Value{
 		"Black": reflect.ValueOf(i57.Black),
@@ -1028,6 +1307,26 @@ func init() {
 		"YCbCrSubsampleRatio444": reflect.ValueOf(i57.YCbCrSubsampleRatio444),
 		"ZP": reflect.ValueOf(i57.ZP),
 		"ZR": reflect.ValueOf(i57.ZR),
+		"Alpha": reflect.ValueOf(i57.Alpha{}),
+		"Alpha16": reflect.ValueOf(i57.Alpha16{}),
+		"CMYK": reflect.ValueOf(i57.CMYK{}),
+		"Config": reflect.ValueOf(i57.Config{}),
+		"Gray": reflect.ValueOf(i57.Gray{}),
+		"Gray16": reflect.ValueOf(i57.Gray16{}),
+		"Image": reflect.ValueOf(i57.Image{}),
+		"NRGBA": reflect.ValueOf(i57.NRGBA{}),
+		"NRGBA64": reflect.ValueOf(i57.NRGBA64{}),
+		"NYCbCrA": reflect.ValueOf(i57.NYCbCrA{}),
+		"Paletted": reflect.ValueOf(i57.Paletted{}),
+		"PalettedImage": reflect.ValueOf(i57.PalettedImage{}),
+		"Point": reflect.ValueOf(i57.Point{}),
+		"RGBA": reflect.ValueOf(i57.RGBA{}),
+		"RGBA64": reflect.ValueOf(i57.RGBA64{}),
+		"RGBA64Image": reflect.ValueOf(i57.RGBA64Image{}),
+		"Rectangle": reflect.ValueOf(i57.Rectangle{}),
+		"Uniform": reflect.ValueOf(i57.Uniform{}),
+		"YCbCr": reflect.ValueOf(i57.YCbCr{}),
+		"YCbCrSubsampleRatio": reflect.ValueOf(i57.YCbCrSubsampleRatio{}),
 	}
 	stdpkg["image/color"] = map[string]reflect.Value{
 		"Alpha16Model": reflect.ValueOf(i58.Alpha16Model),
@@ -1050,6 +1349,20 @@ func init() {
 		"White": reflect.ValueOf(i58.White),
 		"YCbCrModel": reflect.ValueOf(i58.YCbCrModel),
 		"YCbCrToRGB": reflect.ValueOf(i58.YCbCrToRGB),
+		"Alpha": reflect.ValueOf(i58.Alpha{}),
+		"Alpha16": reflect.ValueOf(i58.Alpha16{}),
+		"CMYK": reflect.ValueOf(i58.CMYK{}),
+		"Color": reflect.ValueOf(i58.Color{}),
+		"Gray": reflect.ValueOf(i58.Gray{}),
+		"Gray16": reflect.ValueOf(i58.Gray16{}),
+		"Model": reflect.ValueOf(i58.Model{}),
+		"NRGBA": reflect.ValueOf(i58.NRGBA{}),
+		"NRGBA64": reflect.ValueOf(i58.NRGBA64{}),
+		"NYCbCrA": reflect.ValueOf(i58.NYCbCrA{}),
+		"Palette": reflect.ValueOf(i58.Palette{}),
+		"RGBA": reflect.ValueOf(i58.RGBA{}),
+		"RGBA64": reflect.ValueOf(i58.RGBA64{}),
+		"YCbCr": reflect.ValueOf(i58.YCbCr{}),
 	}
 	stdpkg["image/color/palette"] = map[string]reflect.Value{
 		"Plan9": reflect.ValueOf(i59.Plan9),
@@ -1061,6 +1374,11 @@ func init() {
 		"FloydSteinberg": reflect.ValueOf(i60.FloydSteinberg),
 		"Over": reflect.ValueOf(i60.Over),
 		"Src": reflect.ValueOf(i60.Src),
+		"Drawer": reflect.ValueOf(i60.Drawer{}),
+		"Image": reflect.ValueOf(i60.Image{}),
+		"Op": reflect.ValueOf(i60.Op{}),
+		"Quantizer": reflect.ValueOf(i60.Quantizer{}),
+		"RGBA64Image": reflect.ValueOf(i60.RGBA64Image{}),
 	}
 	stdpkg["image/gif"] = map[string]reflect.Value{
 		"Decode": reflect.ValueOf(i61.Decode),
@@ -1071,12 +1389,18 @@ func init() {
 		"DisposalPrevious": reflect.ValueOf(i61.DisposalPrevious),
 		"Encode": reflect.ValueOf(i61.Encode),
 		"EncodeAll": reflect.ValueOf(i61.EncodeAll),
+		"GIF": reflect.ValueOf(i61.GIF{}),
+		"Options": reflect.ValueOf(i61.Options{}),
 	}
 	stdpkg["image/jpeg"] = map[string]reflect.Value{
 		"Decode": reflect.ValueOf(i62.Decode),
 		"DecodeConfig": reflect.ValueOf(i62.DecodeConfig),
 		"DefaultQuality": reflect.ValueOf(i62.DefaultQuality),
 		"Encode": reflect.ValueOf(i62.Encode),
+		"FormatError": reflect.ValueOf(i62.FormatError{}),
+		"Options": reflect.ValueOf(i62.Options{}),
+		"Reader": reflect.ValueOf(i62.Reader{}),
+		"UnsupportedError": reflect.ValueOf(i62.UnsupportedError{}),
 	}
 	stdpkg["image/png"] = map[string]reflect.Value{
 		"BestCompression": reflect.ValueOf(i63.BestCompression),
@@ -1086,9 +1410,16 @@ func init() {
 		"DefaultCompression": reflect.ValueOf(i63.DefaultCompression),
 		"Encode": reflect.ValueOf(i63.Encode),
 		"NoCompression": reflect.ValueOf(i63.NoCompression),
+		"CompressionLevel": reflect.ValueOf(i63.CompressionLevel{}),
+		"Encoder": reflect.ValueOf(i63.Encoder{}),
+		"EncoderBuffer": reflect.ValueOf(i63.EncoderBuffer{}),
+		"EncoderBufferPool": reflect.ValueOf(i63.EncoderBufferPool{}),
+		"FormatError": reflect.ValueOf(i63.FormatError{}),
+		"UnsupportedError": reflect.ValueOf(i63.UnsupportedError{}),
 	}
 	stdpkg["index/suffixarray"] = map[string]reflect.Value{
 		"New": reflect.ValueOf(i64.New),
+		"Index": reflect.ValueOf(i64.Index{}),
 	}
 	stdpkg["io"] = map[string]reflect.Value{
 		"Copy": reflect.ValueOf(i65.Copy),
@@ -1116,6 +1447,33 @@ func init() {
 		"SeekStart": reflect.ValueOf(i65.SeekStart),
 		"TeeReader": reflect.ValueOf(i65.TeeReader),
 		"WriteString": reflect.ValueOf(i65.WriteString),
+		"ByteReader": reflect.ValueOf(i65.ByteReader{}),
+		"ByteScanner": reflect.ValueOf(i65.ByteScanner{}),
+		"ByteWriter": reflect.ValueOf(i65.ByteWriter{}),
+		"Closer": reflect.ValueOf(i65.Closer{}),
+		"LimitedReader": reflect.ValueOf(i65.LimitedReader{}),
+		"OffsetWriter": reflect.ValueOf(i65.OffsetWriter{}),
+		"PipeReader": reflect.ValueOf(i65.PipeReader{}),
+		"PipeWriter": reflect.ValueOf(i65.PipeWriter{}),
+		"ReadCloser": reflect.ValueOf(i65.ReadCloser{}),
+		"ReadSeekCloser": reflect.ValueOf(i65.ReadSeekCloser{}),
+		"ReadSeeker": reflect.ValueOf(i65.ReadSeeker{}),
+		"ReadWriteCloser": reflect.ValueOf(i65.ReadWriteCloser{}),
+		"ReadWriteSeeker": reflect.ValueOf(i65.ReadWriteSeeker{}),
+		"ReadWriter": reflect.ValueOf(i65.ReadWriter{}),
+		"Reader": reflect.ValueOf(i65.Reader{}),
+		"ReaderAt": reflect.ValueOf(i65.ReaderAt{}),
+		"ReaderFrom": reflect.ValueOf(i65.ReaderFrom{}),
+		"RuneReader": reflect.ValueOf(i65.RuneReader{}),
+		"RuneScanner": reflect.ValueOf(i65.RuneScanner{}),
+		"SectionReader": reflect.ValueOf(i65.SectionReader{}),
+		"Seeker": reflect.ValueOf(i65.Seeker{}),
+		"StringWriter": reflect.ValueOf(i65.StringWriter{}),
+		"WriteCloser": reflect.ValueOf(i65.WriteCloser{}),
+		"WriteSeeker": reflect.ValueOf(i65.WriteSeeker{}),
+		"Writer": reflect.ValueOf(i65.Writer{}),
+		"WriterAt": reflect.ValueOf(i65.WriterAt{}),
+		"WriterTo": reflect.ValueOf(i65.WriterTo{}),
 	}
 	stdpkg["io/fs"] = map[string]reflect.Value{
 		"ErrClosed": reflect.ValueOf(i66.ErrClosed),
@@ -1152,6 +1510,20 @@ func init() {
 		"Sub": reflect.ValueOf(i66.Sub),
 		"ValidPath": reflect.ValueOf(i66.ValidPath),
 		"WalkDir": reflect.ValueOf(i66.WalkDir),
+		"DirEntry": reflect.ValueOf(i66.DirEntry{}),
+		"FS": reflect.ValueOf(i66.FS{}),
+		"File": reflect.ValueOf(i66.File{}),
+		"FileInfo": reflect.ValueOf(i66.FileInfo{}),
+		"FileMode": reflect.ValueOf(i66.FileMode{}),
+		"GlobFS": reflect.ValueOf(i66.GlobFS{}),
+		"PathError": reflect.ValueOf(i66.PathError{}),
+		"ReadDirFS": reflect.ValueOf(i66.ReadDirFS{}),
+		"ReadDirFile": reflect.ValueOf(i66.ReadDirFile{}),
+		"ReadFileFS": reflect.ValueOf(i66.ReadFileFS{}),
+		"ReadLinkFS": reflect.ValueOf(i66.ReadLinkFS{}),
+		"StatFS": reflect.ValueOf(i66.StatFS{}),
+		"SubFS": reflect.ValueOf(i66.SubFS{}),
+		"WalkDirFunc": reflect.ValueOf(i66.WalkDirFunc{}),
 	}
 	stdpkg["io/ioutil"] = map[string]reflect.Value{
 		"Discard": reflect.ValueOf(i67.Discard),
@@ -1190,6 +1562,7 @@ func init() {
 		"SetOutput": reflect.ValueOf(i68.SetOutput),
 		"SetPrefix": reflect.ValueOf(i68.SetPrefix),
 		"Writer": reflect.ValueOf(i68.Writer),
+		"Logger": reflect.ValueOf(i68.Logger{}),
 	}
 	stdpkg["log/slog"] = map[string]reflect.Value{
 		"Any": reflect.ValueOf(i69.Any),
@@ -1251,6 +1624,20 @@ func init() {
 		"Warn": reflect.ValueOf(i69.Warn),
 		"WarnContext": reflect.ValueOf(i69.WarnContext),
 		"With": reflect.ValueOf(i69.With),
+		"Attr": reflect.ValueOf(i69.Attr{}),
+		"Handler": reflect.ValueOf(i69.Handler{}),
+		"HandlerOptions": reflect.ValueOf(i69.HandlerOptions{}),
+		"JSONHandler": reflect.ValueOf(i69.JSONHandler{}),
+		"Kind": reflect.ValueOf(i69.Kind{}),
+		"Level": reflect.ValueOf(i69.Level{}),
+		"LevelVar": reflect.ValueOf(i69.LevelVar{}),
+		"Leveler": reflect.ValueOf(i69.Leveler{}),
+		"LogValuer": reflect.ValueOf(i69.LogValuer{}),
+		"Logger": reflect.ValueOf(i69.Logger{}),
+		"Record": reflect.ValueOf(i69.Record{}),
+		"Source": reflect.ValueOf(i69.Source{}),
+		"TextHandler": reflect.ValueOf(i69.TextHandler{}),
+		"Value": reflect.ValueOf(i69.Value{}),
 	}
 	stdpkg["log/syslog"] = map[string]reflect.Value{
 		"Dial": reflect.ValueOf(i70.Dial),
@@ -1284,6 +1671,8 @@ func init() {
 		"LOG_WARNING": reflect.ValueOf(i70.LOG_WARNING),
 		"New": reflect.ValueOf(i70.New),
 		"NewLogger": reflect.ValueOf(i70.NewLogger),
+		"Priority": reflect.ValueOf(i70.Priority{}),
+		"Writer": reflect.ValueOf(i70.Writer{}),
 	}
 	stdpkg["math"] = map[string]reflect.Value{
 		"Abs": reflect.ValueOf(i71.Abs),
@@ -1401,6 +1790,13 @@ func init() {
 		"ToNegativeInf": reflect.ValueOf(i72.ToNegativeInf),
 		"ToPositiveInf": reflect.ValueOf(i72.ToPositiveInf),
 		"ToZero": reflect.ValueOf(i72.ToZero),
+		"Accuracy": reflect.ValueOf(i72.Accuracy{}),
+		"ErrNaN": reflect.ValueOf(i72.ErrNaN{}),
+		"Float": reflect.ValueOf(i72.Float{}),
+		"Int": reflect.ValueOf(i72.Int{}),
+		"Rat": reflect.ValueOf(i72.Rat{}),
+		"RoundingMode": reflect.ValueOf(i72.RoundingMode{}),
+		"Word": reflect.ValueOf(i72.Word{}),
 	}
 	stdpkg["math/bits"] = map[string]reflect.Value{
 		"Add": reflect.ValueOf(i73.Add),
@@ -1503,6 +1899,10 @@ func init() {
 		"Shuffle": reflect.ValueOf(i75.Shuffle),
 		"Uint32": reflect.ValueOf(i75.Uint32),
 		"Uint64": reflect.ValueOf(i75.Uint64),
+		"Rand": reflect.ValueOf(i75.Rand{}),
+		"Source": reflect.ValueOf(i75.Source{}),
+		"Source64": reflect.ValueOf(i75.Source64{}),
+		"Zipf": reflect.ValueOf(i75.Zipf{}),
 	}
 	stdpkg["mime"] = map[string]reflect.Value{
 		"AddExtensionType": reflect.ValueOf(i76.AddExtensionType),
@@ -1513,16 +1913,26 @@ func init() {
 		"ParseMediaType": reflect.ValueOf(i76.ParseMediaType),
 		"QEncoding": reflect.ValueOf(i76.QEncoding),
 		"TypeByExtension": reflect.ValueOf(i76.TypeByExtension),
+		"WordDecoder": reflect.ValueOf(i76.WordDecoder{}),
+		"WordEncoder": reflect.ValueOf(i76.WordEncoder{}),
 	}
 	stdpkg["mime/multipart"] = map[string]reflect.Value{
 		"ErrMessageTooLarge": reflect.ValueOf(i77.ErrMessageTooLarge),
 		"FileContentDisposition": reflect.ValueOf(i77.FileContentDisposition),
 		"NewReader": reflect.ValueOf(i77.NewReader),
 		"NewWriter": reflect.ValueOf(i77.NewWriter),
+		"File": reflect.ValueOf(i77.File{}),
+		"FileHeader": reflect.ValueOf(i77.FileHeader{}),
+		"Form": reflect.ValueOf(i77.Form{}),
+		"Part": reflect.ValueOf(i77.Part{}),
+		"Reader": reflect.ValueOf(i77.Reader{}),
+		"Writer": reflect.ValueOf(i77.Writer{}),
 	}
 	stdpkg["mime/quotedprintable"] = map[string]reflect.Value{
 		"NewReader": reflect.ValueOf(i78.NewReader),
 		"NewWriter": reflect.ValueOf(i78.NewWriter),
+		"Reader": reflect.ValueOf(i78.Reader{}),
+		"Writer": reflect.ValueOf(i78.Writer{}),
 	}
 	stdpkg["net"] = map[string]reflect.Value{
 		"CIDRMask": reflect.ValueOf(i79.CIDRMask),
@@ -1591,6 +2001,42 @@ func init() {
 		"SplitHostPort": reflect.ValueOf(i79.SplitHostPort),
 		"TCPAddrFromAddrPort": reflect.ValueOf(i79.TCPAddrFromAddrPort),
 		"UDPAddrFromAddrPort": reflect.ValueOf(i79.UDPAddrFromAddrPort),
+		"Addr": reflect.ValueOf(i79.Addr{}),
+		"AddrError": reflect.ValueOf(i79.AddrError{}),
+		"Buffers": reflect.ValueOf(i79.Buffers{}),
+		"Conn": reflect.ValueOf(i79.Conn{}),
+		"DNSConfigError": reflect.ValueOf(i79.DNSConfigError{}),
+		"DNSError": reflect.ValueOf(i79.DNSError{}),
+		"Dialer": reflect.ValueOf(i79.Dialer{}),
+		"Error": reflect.ValueOf(i79.Error{}),
+		"Flags": reflect.ValueOf(i79.Flags{}),
+		"HardwareAddr": reflect.ValueOf(i79.HardwareAddr{}),
+		"IP": reflect.ValueOf(i79.IP{}),
+		"IPAddr": reflect.ValueOf(i79.IPAddr{}),
+		"IPConn": reflect.ValueOf(i79.IPConn{}),
+		"IPMask": reflect.ValueOf(i79.IPMask{}),
+		"IPNet": reflect.ValueOf(i79.IPNet{}),
+		"Interface": reflect.ValueOf(i79.Interface{}),
+		"InvalidAddrError": reflect.ValueOf(i79.InvalidAddrError{}),
+		"KeepAliveConfig": reflect.ValueOf(i79.KeepAliveConfig{}),
+		"ListenConfig": reflect.ValueOf(i79.ListenConfig{}),
+		"Listener": reflect.ValueOf(i79.Listener{}),
+		"MX": reflect.ValueOf(i79.MX{}),
+		"NS": reflect.ValueOf(i79.NS{}),
+		"OpError": reflect.ValueOf(i79.OpError{}),
+		"PacketConn": reflect.ValueOf(i79.PacketConn{}),
+		"ParseError": reflect.ValueOf(i79.ParseError{}),
+		"Resolver": reflect.ValueOf(i79.Resolver{}),
+		"SRV": reflect.ValueOf(i79.SRV{}),
+		"TCPAddr": reflect.ValueOf(i79.TCPAddr{}),
+		"TCPConn": reflect.ValueOf(i79.TCPConn{}),
+		"TCPListener": reflect.ValueOf(i79.TCPListener{}),
+		"UDPAddr": reflect.ValueOf(i79.UDPAddr{}),
+		"UDPConn": reflect.ValueOf(i79.UDPConn{}),
+		"UnixAddr": reflect.ValueOf(i79.UnixAddr{}),
+		"UnixConn": reflect.ValueOf(i79.UnixConn{}),
+		"UnixListener": reflect.ValueOf(i79.UnixListener{}),
+		"UnknownNetworkError": reflect.ValueOf(i79.UnknownNetworkError{}),
 	}
 	stdpkg["net/http"] = map[string]reflect.Value{
 		"AllowQuerySemicolons": reflect.ValueOf(i80.AllowQuerySemicolons),
@@ -1750,14 +2196,47 @@ func init() {
 		"TimeFormat": reflect.ValueOf(i80.TimeFormat),
 		"TimeoutHandler": reflect.ValueOf(i80.TimeoutHandler),
 		"TrailerPrefix": reflect.ValueOf(i80.TrailerPrefix),
+		"Client": reflect.ValueOf(i80.Client{}),
+		"CloseNotifier": reflect.ValueOf(i80.CloseNotifier{}),
+		"ConnState": reflect.ValueOf(i80.ConnState{}),
+		"Cookie": reflect.ValueOf(i80.Cookie{}),
+		"CookieJar": reflect.ValueOf(i80.CookieJar{}),
+		"CrossOriginProtection": reflect.ValueOf(i80.CrossOriginProtection{}),
+		"Dir": reflect.ValueOf(i80.Dir{}),
+		"File": reflect.ValueOf(i80.File{}),
+		"FileSystem": reflect.ValueOf(i80.FileSystem{}),
+		"Flusher": reflect.ValueOf(i80.Flusher{}),
+		"HTTP2Config": reflect.ValueOf(i80.HTTP2Config{}),
+		"Handler": reflect.ValueOf(i80.Handler{}),
+		"HandlerFunc": reflect.ValueOf(i80.HandlerFunc{}),
+		"Header": reflect.ValueOf(i80.Header{}),
+		"Hijacker": reflect.ValueOf(i80.Hijacker{}),
+		"MaxBytesError": reflect.ValueOf(i80.MaxBytesError{}),
+		"ProtocolError": reflect.ValueOf(i80.ProtocolError{}),
+		"Protocols": reflect.ValueOf(i80.Protocols{}),
+		"PushOptions": reflect.ValueOf(i80.PushOptions{}),
+		"Pusher": reflect.ValueOf(i80.Pusher{}),
+		"Request": reflect.ValueOf(i80.Request{}),
+		"Response": reflect.ValueOf(i80.Response{}),
+		"ResponseController": reflect.ValueOf(i80.ResponseController{}),
+		"ResponseWriter": reflect.ValueOf(i80.ResponseWriter{}),
+		"RoundTripper": reflect.ValueOf(i80.RoundTripper{}),
+		"SameSite": reflect.ValueOf(i80.SameSite{}),
+		"ServeMux": reflect.ValueOf(i80.ServeMux{}),
+		"Server": reflect.ValueOf(i80.Server{}),
+		"Transport": reflect.ValueOf(i80.Transport{}),
 	}
 	stdpkg["net/http/cgi"] = map[string]reflect.Value{
 		"Request": reflect.ValueOf(i81.Request),
 		"RequestFromMap": reflect.ValueOf(i81.RequestFromMap),
 		"Serve": reflect.ValueOf(i81.Serve),
+		"Handler": reflect.ValueOf(i81.Handler{}),
 	}
 	stdpkg["net/http/cookiejar"] = map[string]reflect.Value{
 		"New": reflect.ValueOf(i82.New),
+		"Jar": reflect.ValueOf(i82.Jar{}),
+		"Options": reflect.ValueOf(i82.Options{}),
+		"PublicSuffixList": reflect.ValueOf(i82.PublicSuffixList{}),
 	}
 	stdpkg["net/http/fcgi"] = map[string]reflect.Value{
 		"ErrConnClosed": reflect.ValueOf(i83.ErrConnClosed),
@@ -1773,10 +2252,17 @@ func init() {
 		"NewServer": reflect.ValueOf(i84.NewServer),
 		"NewTLSServer": reflect.ValueOf(i84.NewTLSServer),
 		"NewUnstartedServer": reflect.ValueOf(i84.NewUnstartedServer),
+		"ResponseRecorder": reflect.ValueOf(i84.ResponseRecorder{}),
+		"Server": reflect.ValueOf(i84.Server{}),
 	}
 	stdpkg["net/http/httptrace"] = map[string]reflect.Value{
 		"ContextClientTrace": reflect.ValueOf(i85.ContextClientTrace),
 		"WithClientTrace": reflect.ValueOf(i85.WithClientTrace),
+		"ClientTrace": reflect.ValueOf(i85.ClientTrace{}),
+		"DNSDoneInfo": reflect.ValueOf(i85.DNSDoneInfo{}),
+		"DNSStartInfo": reflect.ValueOf(i85.DNSStartInfo{}),
+		"GotConnInfo": reflect.ValueOf(i85.GotConnInfo{}),
+		"WroteRequestInfo": reflect.ValueOf(i85.WroteRequestInfo{}),
 	}
 	stdpkg["net/http/httputil"] = map[string]reflect.Value{
 		"DumpRequest": reflect.ValueOf(i86.DumpRequest),
@@ -1792,6 +2278,11 @@ func init() {
 		"NewProxyClientConn": reflect.ValueOf(i86.NewProxyClientConn),
 		"NewServerConn": reflect.ValueOf(i86.NewServerConn),
 		"NewSingleHostReverseProxy": reflect.ValueOf(i86.NewSingleHostReverseProxy),
+		"BufferPool": reflect.ValueOf(i86.BufferPool{}),
+		"ClientConn": reflect.ValueOf(i86.ClientConn{}),
+		"ProxyRequest": reflect.ValueOf(i86.ProxyRequest{}),
+		"ReverseProxy": reflect.ValueOf(i86.ReverseProxy{}),
+		"ServerConn": reflect.ValueOf(i86.ServerConn{}),
 	}
 	stdpkg["net/http/pprof"] = map[string]reflect.Value{
 		"Cmdline": reflect.ValueOf(i87.Cmdline),
@@ -1807,6 +2298,10 @@ func init() {
 		"ParseAddressList": reflect.ValueOf(i88.ParseAddressList),
 		"ParseDate": reflect.ValueOf(i88.ParseDate),
 		"ReadMessage": reflect.ValueOf(i88.ReadMessage),
+		"Address": reflect.ValueOf(i88.Address{}),
+		"AddressParser": reflect.ValueOf(i88.AddressParser{}),
+		"Header": reflect.ValueOf(i88.Header{}),
+		"Message": reflect.ValueOf(i88.Message{}),
 	}
 	stdpkg["net/rpc"] = map[string]reflect.Value{
 		"Accept": reflect.ValueOf(i89.Accept),
@@ -1826,6 +2321,14 @@ func init() {
 		"ServeCodec": reflect.ValueOf(i89.ServeCodec),
 		"ServeConn": reflect.ValueOf(i89.ServeConn),
 		"ServeRequest": reflect.ValueOf(i89.ServeRequest),
+		"Call": reflect.ValueOf(i89.Call{}),
+		"Client": reflect.ValueOf(i89.Client{}),
+		"ClientCodec": reflect.ValueOf(i89.ClientCodec{}),
+		"Request": reflect.ValueOf(i89.Request{}),
+		"Response": reflect.ValueOf(i89.Response{}),
+		"Server": reflect.ValueOf(i89.Server{}),
+		"ServerCodec": reflect.ValueOf(i89.ServerCodec{}),
+		"ServerError": reflect.ValueOf(i89.ServerError{}),
 	}
 	stdpkg["net/rpc/jsonrpc"] = map[string]reflect.Value{
 		"Dial": reflect.ValueOf(i90.Dial),
@@ -1840,6 +2343,9 @@ func init() {
 		"NewClient": reflect.ValueOf(i91.NewClient),
 		"PlainAuth": reflect.ValueOf(i91.PlainAuth),
 		"SendMail": reflect.ValueOf(i91.SendMail),
+		"Auth": reflect.ValueOf(i91.Auth{}),
+		"Client": reflect.ValueOf(i91.Client{}),
+		"ServerInfo": reflect.ValueOf(i91.ServerInfo{}),
 	}
 	stdpkg["net/textproto"] = map[string]reflect.Value{
 		"CanonicalMIMEHeaderKey": reflect.ValueOf(i92.CanonicalMIMEHeaderKey),
@@ -1849,6 +2355,13 @@ func init() {
 		"NewWriter": reflect.ValueOf(i92.NewWriter),
 		"TrimBytes": reflect.ValueOf(i92.TrimBytes),
 		"TrimString": reflect.ValueOf(i92.TrimString),
+		"Conn": reflect.ValueOf(i92.Conn{}),
+		"Error": reflect.ValueOf(i92.Error{}),
+		"MIMEHeader": reflect.ValueOf(i92.MIMEHeader{}),
+		"Pipeline": reflect.ValueOf(i92.Pipeline{}),
+		"ProtocolError": reflect.ValueOf(i92.ProtocolError{}),
+		"Reader": reflect.ValueOf(i92.Reader{}),
+		"Writer": reflect.ValueOf(i92.Writer{}),
 	}
 	stdpkg["net/url"] = map[string]reflect.Value{
 		"JoinPath": reflect.ValueOf(i93.JoinPath),
@@ -1861,6 +2374,12 @@ func init() {
 		"QueryUnescape": reflect.ValueOf(i93.QueryUnescape),
 		"User": reflect.ValueOf(i93.User),
 		"UserPassword": reflect.ValueOf(i93.UserPassword),
+		"Error": reflect.ValueOf(i93.Error{}),
+		"EscapeError": reflect.ValueOf(i93.EscapeError{}),
+		"InvalidHostError": reflect.ValueOf(i93.InvalidHostError{}),
+		"URL": reflect.ValueOf(i93.URL{}),
+		"Userinfo": reflect.ValueOf(i93.Userinfo{}),
+		"Values": reflect.ValueOf(i93.Values{}),
 	}
 	stdpkg["os"] = map[string]reflect.Value{
 		"Args": reflect.ValueOf(i94.Args),
@@ -1969,6 +2488,18 @@ func init() {
 		"UserConfigDir": reflect.ValueOf(i94.UserConfigDir),
 		"UserHomeDir": reflect.ValueOf(i94.UserHomeDir),
 		"WriteFile": reflect.ValueOf(i94.WriteFile),
+		"DirEntry": reflect.ValueOf(i94.DirEntry{}),
+		"File": reflect.ValueOf(i94.File{}),
+		"FileInfo": reflect.ValueOf(i94.FileInfo{}),
+		"FileMode": reflect.ValueOf(i94.FileMode{}),
+		"LinkError": reflect.ValueOf(i94.LinkError{}),
+		"PathError": reflect.ValueOf(i94.PathError{}),
+		"ProcAttr": reflect.ValueOf(i94.ProcAttr{}),
+		"Process": reflect.ValueOf(i94.Process{}),
+		"ProcessState": reflect.ValueOf(i94.ProcessState{}),
+		"Root": reflect.ValueOf(i94.Root{}),
+		"Signal": reflect.ValueOf(i94.Signal{}),
+		"SyscallError": reflect.ValueOf(i94.SyscallError{}),
 	}
 	stdpkg["os/exec"] = map[string]reflect.Value{
 		"Command": reflect.ValueOf(i95.Command),
@@ -1977,6 +2508,9 @@ func init() {
 		"ErrNotFound": reflect.ValueOf(i95.ErrNotFound),
 		"ErrWaitDelay": reflect.ValueOf(i95.ErrWaitDelay),
 		"LookPath": reflect.ValueOf(i95.LookPath),
+		"Cmd": reflect.ValueOf(i95.Cmd{}),
+		"Error": reflect.ValueOf(i95.Error{}),
+		"ExitError": reflect.ValueOf(i95.ExitError{}),
 	}
 	stdpkg["os/signal"] = map[string]reflect.Value{
 		"Ignore": reflect.ValueOf(i96.Ignore),
@@ -1992,6 +2526,12 @@ func init() {
 		"LookupGroup": reflect.ValueOf(i97.LookupGroup),
 		"LookupGroupId": reflect.ValueOf(i97.LookupGroupId),
 		"LookupId": reflect.ValueOf(i97.LookupId),
+		"Group": reflect.ValueOf(i97.Group{}),
+		"UnknownGroupError": reflect.ValueOf(i97.UnknownGroupError{}),
+		"UnknownGroupIdError": reflect.ValueOf(i97.UnknownGroupIdError{}),
+		"UnknownUserError": reflect.ValueOf(i97.UnknownUserError{}),
+		"UnknownUserIdError": reflect.ValueOf(i97.UnknownUserIdError{}),
+		"User": reflect.ValueOf(i97.User{}),
 	}
 	stdpkg["path"] = map[string]reflect.Value{
 		"Base": reflect.ValueOf(i98.Base),
@@ -2031,9 +2571,12 @@ func init() {
 		"VolumeName": reflect.ValueOf(i99.VolumeName),
 		"Walk": reflect.ValueOf(i99.Walk),
 		"WalkDir": reflect.ValueOf(i99.WalkDir),
+		"WalkFunc": reflect.ValueOf(i99.WalkFunc{}),
 	}
 	stdpkg["plugin"] = map[string]reflect.Value{
 		"Open": reflect.ValueOf(i100.Open),
+		"Plugin": reflect.ValueOf(i100.Plugin{}),
+		"Symbol": reflect.ValueOf(i100.Symbol{}),
 	}
 	stdpkg["regexp"] = map[string]reflect.Value{
 		"Compile": reflect.ValueOf(i101.Compile),
@@ -2044,6 +2587,7 @@ func init() {
 		"MustCompile": reflect.ValueOf(i101.MustCompile),
 		"MustCompilePOSIX": reflect.ValueOf(i101.MustCompilePOSIX),
 		"QuoteMeta": reflect.ValueOf(i101.QuoteMeta),
+		"Regexp": reflect.ValueOf(i101.Regexp{}),
 	}
 	stdpkg["regexp/syntax"] = map[string]reflect.Value{
 		"ClassNL": reflect.ValueOf(i102.ClassNL),
@@ -2115,6 +2659,15 @@ func init() {
 		"Simple": reflect.ValueOf(i102.Simple),
 		"UnicodeGroups": reflect.ValueOf(i102.UnicodeGroups),
 		"WasDollar": reflect.ValueOf(i102.WasDollar),
+		"EmptyOp": reflect.ValueOf(i102.EmptyOp{}),
+		"Error": reflect.ValueOf(i102.Error{}),
+		"ErrorCode": reflect.ValueOf(i102.ErrorCode{}),
+		"Flags": reflect.ValueOf(i102.Flags{}),
+		"Inst": reflect.ValueOf(i102.Inst{}),
+		"InstOp": reflect.ValueOf(i102.InstOp{}),
+		"Op": reflect.ValueOf(i102.Op{}),
+		"Prog": reflect.ValueOf(i102.Prog{}),
+		"Regexp": reflect.ValueOf(i102.Regexp{}),
 	}
 	stdpkg["sort"] = map[string]reflect.Value{
 		"Find": reflect.ValueOf(i103.Find),
@@ -2135,6 +2688,10 @@ func init() {
 		"Stable": reflect.ValueOf(i103.Stable),
 		"Strings": reflect.ValueOf(i103.Strings),
 		"StringsAreSorted": reflect.ValueOf(i103.StringsAreSorted),
+		"Float64Slice": reflect.ValueOf(i103.Float64Slice{}),
+		"IntSlice": reflect.ValueOf(i103.IntSlice{}),
+		"Interface": reflect.ValueOf(i103.Interface{}),
+		"StringSlice": reflect.ValueOf(i103.StringSlice{}),
 	}
 	stdpkg["strconv"] = map[string]reflect.Value{
 		"AppendBool": reflect.ValueOf(i104.AppendBool),
@@ -2174,6 +2731,7 @@ func init() {
 		"QuotedPrefix": reflect.ValueOf(i104.QuotedPrefix),
 		"Unquote": reflect.ValueOf(i104.Unquote),
 		"UnquoteChar": reflect.ValueOf(i104.UnquoteChar),
+		"NumError": reflect.ValueOf(i104.NumError{}),
 	}
 	stdpkg["strings"] = map[string]reflect.Value{
 		"Clone": reflect.ValueOf(i105.Clone),
@@ -2233,10 +2791,21 @@ func init() {
 		"TrimRightFunc": reflect.ValueOf(i105.TrimRightFunc),
 		"TrimSpace": reflect.ValueOf(i105.TrimSpace),
 		"TrimSuffix": reflect.ValueOf(i105.TrimSuffix),
+		"Builder": reflect.ValueOf(i105.Builder{}),
+		"Reader": reflect.ValueOf(i105.Reader{}),
+		"Replacer": reflect.ValueOf(i105.Replacer{}),
 	}
 	stdpkg["sync"] = map[string]reflect.Value{
 		"NewCond": reflect.ValueOf(i106.NewCond),
 		"OnceFunc": reflect.ValueOf(i106.OnceFunc),
+		"Cond": reflect.ValueOf(i106.Cond{}),
+		"Locker": reflect.ValueOf(i106.Locker{}),
+		"Map": reflect.ValueOf(i106.Map{}),
+		"Mutex": reflect.ValueOf(i106.Mutex{}),
+		"Once": reflect.ValueOf(i106.Once{}),
+		"Pool": reflect.ValueOf(i106.Pool{}),
+		"RWMutex": reflect.ValueOf(i106.RWMutex{}),
+		"WaitGroup": reflect.ValueOf(i106.WaitGroup{}),
 	}
 	stdpkg["sync/atomic"] = map[string]reflect.Value{
 		"AddInt32": reflect.ValueOf(i107.AddInt32),
@@ -2278,6 +2847,14 @@ func init() {
 		"SwapUint32": reflect.ValueOf(i107.SwapUint32),
 		"SwapUint64": reflect.ValueOf(i107.SwapUint64),
 		"SwapUintptr": reflect.ValueOf(i107.SwapUintptr),
+		"Bool": reflect.ValueOf(i107.Bool{}),
+		"Int32": reflect.ValueOf(i107.Int32{}),
+		"Int64": reflect.ValueOf(i107.Int64{}),
+		"Pointer": reflect.ValueOf(i107.Pointer{}),
+		"Uint32": reflect.ValueOf(i107.Uint32{}),
+		"Uint64": reflect.ValueOf(i107.Uint64{}),
+		"Uintptr": reflect.ValueOf(i107.Uintptr{}),
+		"Value": reflect.ValueOf(i107.Value{}),
 	}
 	stdpkg["text/scanner"] = map[string]reflect.Value{
 		"Char": reflect.ValueOf(i108.Char),
@@ -2299,6 +2876,8 @@ func init() {
 		"SkipComments": reflect.ValueOf(i108.SkipComments),
 		"String": reflect.ValueOf(i108.String),
 		"TokenString": reflect.ValueOf(i108.TokenString),
+		"Position": reflect.ValueOf(i108.Position{}),
+		"Scanner": reflect.ValueOf(i108.Scanner{}),
 	}
 	stdpkg["text/tabwriter"] = map[string]reflect.Value{
 		"AlignRight": reflect.ValueOf(i109.AlignRight),
@@ -2309,6 +2888,7 @@ func init() {
 		"NewWriter": reflect.ValueOf(i109.NewWriter),
 		"StripEscape": reflect.ValueOf(i109.StripEscape),
 		"TabIndent": reflect.ValueOf(i109.TabIndent),
+		"Writer": reflect.ValueOf(i109.Writer{}),
 	}
 	stdpkg["text/template"] = map[string]reflect.Value{
 		"HTMLEscape": reflect.ValueOf(i110.HTMLEscape),
@@ -2324,6 +2904,9 @@ func init() {
 		"ParseFiles": reflect.ValueOf(i110.ParseFiles),
 		"ParseGlob": reflect.ValueOf(i110.ParseGlob),
 		"URLQueryEscaper": reflect.ValueOf(i110.URLQueryEscaper),
+		"ExecError": reflect.ValueOf(i110.ExecError{}),
+		"FuncMap": reflect.ValueOf(i110.FuncMap{}),
+		"Template": reflect.ValueOf(i110.Template{}),
 	}
 	stdpkg["text/template/parse"] = map[string]reflect.Value{
 		"IsEmptyTree": reflect.ValueOf(i111.IsEmptyTree),
@@ -2353,6 +2936,33 @@ func init() {
 		"Parse": reflect.ValueOf(i111.Parse),
 		"ParseComments": reflect.ValueOf(i111.ParseComments),
 		"SkipFuncCheck": reflect.ValueOf(i111.SkipFuncCheck),
+		"ActionNode": reflect.ValueOf(i111.ActionNode{}),
+		"BoolNode": reflect.ValueOf(i111.BoolNode{}),
+		"BranchNode": reflect.ValueOf(i111.BranchNode{}),
+		"BreakNode": reflect.ValueOf(i111.BreakNode{}),
+		"ChainNode": reflect.ValueOf(i111.ChainNode{}),
+		"CommandNode": reflect.ValueOf(i111.CommandNode{}),
+		"CommentNode": reflect.ValueOf(i111.CommentNode{}),
+		"ContinueNode": reflect.ValueOf(i111.ContinueNode{}),
+		"DotNode": reflect.ValueOf(i111.DotNode{}),
+		"FieldNode": reflect.ValueOf(i111.FieldNode{}),
+		"IdentifierNode": reflect.ValueOf(i111.IdentifierNode{}),
+		"IfNode": reflect.ValueOf(i111.IfNode{}),
+		"ListNode": reflect.ValueOf(i111.ListNode{}),
+		"Mode": reflect.ValueOf(i111.Mode{}),
+		"NilNode": reflect.ValueOf(i111.NilNode{}),
+		"Node": reflect.ValueOf(i111.Node{}),
+		"NodeType": reflect.ValueOf(i111.NodeType{}),
+		"NumberNode": reflect.ValueOf(i111.NumberNode{}),
+		"PipeNode": reflect.ValueOf(i111.PipeNode{}),
+		"Pos": reflect.ValueOf(i111.Pos{}),
+		"RangeNode": reflect.ValueOf(i111.RangeNode{}),
+		"StringNode": reflect.ValueOf(i111.StringNode{}),
+		"TemplateNode": reflect.ValueOf(i111.TemplateNode{}),
+		"TextNode": reflect.ValueOf(i111.TextNode{}),
+		"Tree": reflect.ValueOf(i111.Tree{}),
+		"VariableNode": reflect.ValueOf(i111.VariableNode{}),
+		"WithNode": reflect.ValueOf(i111.WithNode{}),
 	}
 	stdpkg["time"] = map[string]reflect.Value{
 		"ANSIC": reflect.ValueOf(i112.ANSIC),
@@ -2420,6 +3030,14 @@ func init() {
 		"UnixMilli": reflect.ValueOf(i112.UnixMilli),
 		"Until": reflect.ValueOf(i112.Until),
 		"Wednesday": reflect.ValueOf(i112.Wednesday),
+		"Duration": reflect.ValueOf(i112.Duration{}),
+		"Location": reflect.ValueOf(i112.Location{}),
+		"Month": reflect.ValueOf(i112.Month{}),
+		"ParseError": reflect.ValueOf(i112.ParseError{}),
+		"Ticker": reflect.ValueOf(i112.Ticker{}),
+		"Time": reflect.ValueOf(i112.Time{}),
+		"Timer": reflect.ValueOf(i112.Timer{}),
+		"Weekday": reflect.ValueOf(i112.Weekday{}),
 	}
 	stdpkg["unicode"] = map[string]reflect.Value{
 		"ASCII_Hex_Digit": reflect.ValueOf(i113.ASCII_Hex_Digit),
@@ -2711,6 +3329,11 @@ func init() {
 		"Zl": reflect.ValueOf(i113.Zl),
 		"Zp": reflect.ValueOf(i113.Zp),
 		"Zs": reflect.ValueOf(i113.Zs),
+		"CaseRange": reflect.ValueOf(i113.CaseRange{}),
+		"Range16": reflect.ValueOf(i113.Range16{}),
+		"Range32": reflect.ValueOf(i113.Range32{}),
+		"RangeTable": reflect.ValueOf(i113.RangeTable{}),
+		"SpecialCase": reflect.ValueOf(i113.SpecialCase{}),
 	}
 	stdpkg["unicode/utf16"] = map[string]reflect.Value{
 		"AppendRune": reflect.ValueOf(i114.AppendRune),

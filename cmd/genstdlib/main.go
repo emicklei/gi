@@ -128,6 +128,9 @@ func main() {
 			}
 			fmt.Fprintf(outFile, "\t\t\"%s\": reflect.ValueOf(%s.%s),\n", fun, alias, fun)
 		}
+		for _, typ := range pkgInfo.Types {
+			fmt.Fprintf(outFile, "\t\t\"%s\": reflect.ValueOf(%s.%s{}),\n", typ, alias, typ)
+		}
 		fmt.Fprintln(outFile, "\t}")
 	}
 
@@ -331,6 +334,15 @@ func getExportedFunctionsAndTypes(pkgImportPath string) (string, []string, []str
 				}
 			}
 			if gd, ok := decl.(*ast.GenDecl); ok {
+				if gd.Tok == token.TYPE {
+					for _, spec := range gd.Specs {
+						if ts, ok := spec.(*ast.TypeSpec); ok {
+							if ts.Name.IsExported() {
+								typeSet[ts.Name.Name] = struct{}{}
+							}
+						}
+					}
+				}
 				if gd.Tok == token.VAR || gd.Tok == token.CONST {
 					for _, spec := range gd.Specs {
 						if vs, ok := spec.(*ast.ValueSpec); ok {
