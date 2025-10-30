@@ -338,7 +338,10 @@ func getExportedFunctionsAndTypes(pkgImportPath string) (string, []string, []str
 					for _, spec := range gd.Specs {
 						if ts, ok := spec.(*ast.TypeSpec); ok {
 							if ts.Name.IsExported() {
-								typeSet[ts.Name.Name] = struct{}{}
+								isGeneric := ts.TypeParams != nil && ts.TypeParams.NumFields() > 0
+								if _, ok := ts.Type.(*ast.StructType); ok && !isGeneric {
+									typeSet[ts.Name.Name] = struct{}{}
+								}
 							}
 						}
 					}
