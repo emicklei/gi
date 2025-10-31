@@ -402,7 +402,6 @@ func (r RangeStmt) String() string {
 func (r RangeStmt) stmtStep() Evaluable { return r }
 
 type ReflectLenExpr struct {
-	// TODO position info
 	X Expr
 }
 

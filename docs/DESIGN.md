@@ -74,3 +74,4 @@ this technique is also applied in `varvoy`.
 
 - About types: https://github.com/golang/example/tree/master/gotypes
 - maybe each block should only get a child Env ; not a complete stackFrame
+- maybe drop the dual behavior and only support stepping

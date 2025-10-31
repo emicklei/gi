@@ -156,18 +156,20 @@ func (vm *VM) takeAll(head Step) {
 	for here != nil {
 		if trace {
 			fmt.Println(here)
+			/**
 			// try to print file and line number
 			if len(vm.activeFuncStack) > 0 {
 				fs := vm.activeFuncStack.top().FuncDecl.fileSet
 				if fs != nil {
 					f := fs.File(here.Pos())
-					fmt.Println(f.Name(), f.Line(here.Pos()))
+					fmt.Println("\t", f.Name(), f.Line(here.Pos()))
 				} else {
 					fmt.Println("no file set???", here)
 				}
 			} else {
 				fmt.Println("no active function???", here)
 			}
+			**/
 		}
 		here = here.Take(vm)
 	}

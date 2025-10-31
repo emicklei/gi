@@ -23,6 +23,10 @@ func (u UnaryExpr) Eval(vm *VM) {
 	// to enable proper pointer semantics
 	if u.Op == token.AND {
 		if ident, ok := u.X.(Ident); ok {
+			// Pop the value pushed by Ident.Eval although we won't use it
+			if vm.isStepping {
+				_ = vm.frameStack.top().pop()
+			}
 			vp := &VarPointer{
 				env:  vm.localEnv(),
 				name: ident.Name,

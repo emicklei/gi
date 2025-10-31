@@ -988,7 +988,7 @@ func main() {
 }
 
 func TestPointerBasic(t *testing.T) {
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 func main() {
 	x := 42
 	p := &x
@@ -997,7 +997,7 @@ func main() {
 }
 
 func TestPointerAssignment(t *testing.T) {
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 func main() {
 	x := 10
 	p := &x
@@ -1007,7 +1007,7 @@ func main() {
 }
 
 func TestPointerMultipleAssignments(t *testing.T) {
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 func main() {
 	x := 1
 	y := 2
@@ -1020,7 +1020,7 @@ func main() {
 }
 
 func TestPointerToString(t *testing.T) {
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 func main() {
 	s := "hello"
 	p := &s
@@ -1030,7 +1030,7 @@ func main() {
 }
 
 func TestPointerSwap(t *testing.T) {
-	testProgram(t, false, false, `package main
+	testProgram(t, false, true, `package main
 func swap(a, b *int) {
 	temp := *a
 	*a = *b
@@ -1042,7 +1042,8 @@ func main() {
 	swap(&x, &y)
 	print(x, y)
 }`, "105")
-  
+}
+
 func TestNewStandardType(t *testing.T) {
 	testProgram(t, true, true, `package main
 import "sync"

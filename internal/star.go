@@ -15,9 +15,14 @@ type StarExpr struct {
 }
 
 func (s StarExpr) Eval(vm *VM) {
-	v := vm.returnsEval(s.X)
+	var v reflect.Value
+	if vm.isStepping {
+		v = vm.frameStack.top().pop()
+	} else {
+		v = vm.returnsEval(s.X)
+	}
 	// Handle VarPointer specially
-	if v.Kind() == reflect.Ptr && v.Type().String() == "*internal.VarPointer" {
+	if v.Kind() == reflect.Pointer && v.Type().String() == "*internal.VarPointer" {
 		if vp, ok := v.Interface().(*VarPointer); ok {
 			vm.pushOperand(vp.Deref())
 			return
@@ -34,13 +39,13 @@ func (s StarExpr) Flow(g *graphBuilder) (head Step) {
 func (s StarExpr) Assign(vm *VM, value reflect.Value) {
 	v := vm.returnsEval(s.X)
 	// Handle VarPointer specially
-	if v.Kind() == reflect.Ptr && v.Type().String() == "*internal.VarPointer" {
+	if v.Kind() == reflect.Pointer && v.Type().String() == "*internal.VarPointer" {
 		if vp, ok := v.Interface().(*VarPointer); ok {
 			vp.Assign(value)
 			return
 		}
 	}
-	if v.Kind() != reflect.Ptr {
+	if v.Kind() != reflect.Pointer {
 		vm.fatal(fmt.Sprintf("cannot dereference non-pointer type: %v", v.Kind()))
 	}
 	if v.IsNil() {
