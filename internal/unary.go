@@ -19,6 +19,19 @@ func (u UnaryExpr) String() string {
 }
 
 func (u UnaryExpr) Eval(vm *VM) {
+	// Special handling for address-of operator on identifiers
+	// to enable proper pointer semantics
+	if u.Op == token.AND {
+		if ident, ok := u.X.(Ident); ok {
+			vp := &VarPointer{
+				env:  vm.localEnv(),
+				name: ident.Name,
+			}
+			vm.pushOperand(reflect.ValueOf(vp))
+			return
+		}
+	}
+
 	var v reflect.Value
 	if vm.isStepping {
 		v = vm.frameStack.top().pop()

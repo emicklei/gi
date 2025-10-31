@@ -21,9 +21,9 @@
 | Composite type `struct` | ✅ |
 | Composite type `map` | ✅ |
 | Unsigned integer arithmetic | ✅ |
-| `switch` statement | ⬜ |
+| `switch` statement | ✅ |
 | `min` , `max` builtins | ✅ |
-| Pointers | ⬜ |
+| Pointers | ✅ |
 | Interfaces | ⬜ |
 | Methods | ⬜ |
 | Goroutines `go` | ⬜ |
