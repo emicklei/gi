@@ -108,13 +108,14 @@ func (f FuncDecl) Eval(vm *VM) {
 func (f FuncDecl) Flow(g *graphBuilder) (head Step) {
 	head = g.current
 	if f.Body != nil {
+		g.funcStack.push(f)
 		head = activeFuncStackPushStep{FuncDecl: f, step: g.newStep(nil)}
 		g.nextStep(head)
-		g.funcStack.push(f)
 		f.Body.Flow(g)
-		g.funcStack.pop()
-		g.nextStep(activeFuncStackPopStep{FuncDecl: f, step: g.newStep(nil)})
+		pop := activeFuncStackPopStep{FuncDecl: f, step: g.newStep(nil)}
+		g.nextStep(pop)
 		// TODO handle defers?
+		g.funcStack.pop()
 	}
 	return
 }

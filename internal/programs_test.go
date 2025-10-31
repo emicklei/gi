@@ -574,7 +574,7 @@ func main() {
 }
 
 func TestGoto(t *testing.T) {
-	testProgram(t, true, true, `
+	testProgram(t, !true, !true, `
 package main
 
 func main() {
