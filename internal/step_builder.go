@@ -5,29 +5,33 @@ import (
 	"go/ast"
 	"go/token"
 	"os"
-	"os/exec"
 	"path"
+	"path/filepath"
 	"reflect"
+	"slices"
 	"strconv"
+
+	"golang.org/x/tools/go/packages"
 )
 
 var _ ast.Visitor = (*stepBuilder)(nil)
 
 type buildOptions struct {
-	callGraph   bool
-	dotFilename string
+	callGraph bool
 }
 
 type stepBuilder struct {
-	stack []*step
-	env   Env
-	opts  buildOptions
+	stack     []*step
+	env       Env
+	opts      buildOptions
+	goPkg     *packages.Package
+	funcStack stack[FuncDecl]
 }
 
-func newStepBuilder() stepBuilder {
+func newStepBuilder(goPkg *packages.Package) stepBuilder {
 	builtins := newBuiltinsEnvironment(nil)
 	pkgenv := newPkgEnvironment(builtins)
-	return stepBuilder{env: pkgenv, opts: buildOptions{callGraph: true}}
+	return stepBuilder{goPkg: goPkg, env: pkgenv, opts: buildOptions{callGraph: true}}
 }
 
 func (b *stepBuilder) pushEnv() {
@@ -59,6 +63,13 @@ func (b *stepBuilder) pop() Evaluable {
 
 func (b *stepBuilder) envSet(name string, value reflect.Value) {
 	b.env.set(name, value)
+}
+
+func (b *stepBuilder) pushFuncDecl(f FuncDecl) {
+	b.funcStack.push(f)
+}
+func (b *stepBuilder) popFuncDecl() {
+	b.funcStack.pop()
 }
 
 // Visit implements the ast.Visitor interface
@@ -94,11 +105,10 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			e := b.pop().(BlockStmt)
 			s.Body = &e
 		}
-		//
 		if b.opts.callGraph {
 			// store call graph in the FuncLit
-			g := new(graphBuilder)
-			s.callGraph = s.Flow(g)
+			g := newGraphBuilder(b.goPkg)
+			s.callGraph = s.Body.Flow(g)
 		}
 
 		b.push(s)
@@ -230,11 +240,16 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			pkgName = n.Name.Name
 		}
 		// check for standard package
-		if symbolTable := stdpkg[unq]; symbolTable != nil {
+		if symbolTable := stdfuncs[unq]; symbolTable != nil {
 			p := StandardPackage{
 				Name:        pkgName,
 				PkgPath:     unq,
 				symbolTable: symbolTable,
+			}
+			// check for types
+			typesTable, ok := stdtypes[unq]
+			if ok {
+				p.typesTable = typesTable
 			}
 			b.envSet(pkgName, reflect.ValueOf(p))
 			break
@@ -250,28 +265,28 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			break
 		}
 
-		// load and build the package
+		// handle local file system package
 		root := b.env.rootPackageEnv()
 		ffpkg := root.packageTable[unq]
 		if ffpkg == nil {
-			// TODO handle local file system packages
-			loc := ""
-			if unq == "github.com/emicklei/gi/examples/subpkg/pkg" {
-				loc = "/Users/ernestmicklei/Projects/gi/examples/subpkg/pkg"
+			// strip module prefix
+			loc, err := filepath.Abs(filepath.Join("..", unq))
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to locate imported package %s: %v\n", unq, err)
+				break
 			}
-
 			gopkg, err := LoadPackage(loc, nil)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to load imported package %s: %v\n", unq, err)
 				break
 			}
-			p, err := BuildPackage(gopkg, b.opts.dotFilename, b.opts.callGraph)
+			pkg, err := BuildPackage(gopkg, b.opts.callGraph)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to build imported package %s: %v\n", unq, err)
 				break
 			}
-			root.packageTable[unq] = p
-			ffpkg = p
+			root.packageTable[unq] = pkg
+			ffpkg = pkg
 		}
 		b.envSet(ffpkg.Name, reflect.ValueOf(ffpkg))
 	case *ast.BasicLit:
@@ -339,7 +354,12 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.FuncDecl:
 		// any declarations inside the function scope
 		b.pushEnv()
-		s := FuncDecl{FuncDecl: n}
+		s := FuncDecl{
+			FuncDecl:    n,
+			labelToStmt: make(map[string]statementReference),
+			fileSet:     b.goPkg.Fset}
+		b.pushFuncDecl(s)
+		defer b.popFuncDecl()
 		if n.Recv != nil {
 			b.Visit(n.Recv)
 			e := b.pop()
@@ -364,16 +384,8 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 
 		if b.opts.callGraph {
 			// store call graph in the FuncDecl
-			g := new(graphBuilder)
+			g := newGraphBuilder(b.goPkg)
 			s.callGraph = s.Flow(g)
-
-			// for debugging
-			if fileName := b.opts.dotFilename; fileName != "" {
-				g.dotFile = fileName
-				g.dotify()
-				// will fail in pipeline without graphviz installed
-				exec.Command("dot", "-Tpng", "-o", g.dotFilename()+".png", g.dotFilename()).Run()
-			}
 		}
 
 		// leave the function scope
@@ -382,7 +394,6 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 		if pe, ok := b.env.(*PkgEnvironment); ok {
 			if n.Name.Name == "init" {
 				pe.addInit(s)
-				break
 			}
 		}
 
@@ -560,6 +571,12 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 		e := b.pop()
 		s.Stmt = e.(Stmt)
 		b.push(s)
+
+		// add label -> statement by index mapping in current function
+		index := slices.Index(b.funcStack.top().FuncDecl.Body.List, ast.Stmt(n))
+		ref := statementReference{index: index, step: &labeledStep{step: new(step), label: s.Label.Name}} // has no ID
+		b.funcStack.top().labelToStmt[s.Label.Name] = ref
+
 	case *ast.BranchStmt:
 		s := BranchStmt{BranchStmt: n}
 		if n.Label != nil {

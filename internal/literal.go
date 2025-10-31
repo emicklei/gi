@@ -15,24 +15,6 @@ type BasicLit struct {
 	*ast.BasicLit
 }
 
-// EvalKind returns the reflect.Kind of the value that it represents.
-func (s BasicLit) EvalKind() reflect.Kind {
-	switch s.Kind {
-	case token.INT:
-		return reflect.Int
-	case token.STRING:
-		return reflect.String
-	case token.FLOAT:
-		return reflect.Float64
-	case token.CHAR:
-		return reflect.Int32 // a character literal is a rune, which is an alias for int32
-	case token.IMAG:
-		return reflect.Complex128
-	default:
-		panic("not implemented: BasicList.EvalKind:" + s.Kind.String())
-	}
-}
-
 func (s BasicLit) Eval(vm *VM) {
 	switch s.Kind {
 	case token.INT:
@@ -87,7 +69,7 @@ func (s CompositeLit) Eval(vm *VM) {
 		var val reflect.Value
 		if vm.isStepping {
 			// see Flow for the order of pushing
-			val = vm.callStack.top().pop()
+			val = vm.frameStack.top().pop()
 		} else {
 			val = vm.returnsEval(elt)
 		}
@@ -133,14 +115,8 @@ func (s FuncLit) Eval(vm *VM) {
 }
 
 func (s FuncLit) Flow(g *graphBuilder) (head Step) {
-	if s.Body != nil {
-		head = s.Body.Flow(g)
-	}
 	g.next(s)
-	if head == nil {
-		head = g.current
-	}
-	return
+	return g.current
 }
 
 func (s FuncLit) String() string {

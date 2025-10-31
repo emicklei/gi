@@ -5,7 +5,6 @@ import (
 )
 
 func TestGrapherFor(t *testing.T) {
-	t.Skip()
 	source := `
 package main
 
@@ -19,7 +18,7 @@ func main() {
 }`
 
 	//trace = true)
-	out := parseAndWalk(t, "testgraphs/TestGrapherFor.dot", source)
+	out := parseAndWalk(t, source)
 	expected := `0122`
 	if out != expected {
 		t.Fatalf("expected %q got %q", expected, out)

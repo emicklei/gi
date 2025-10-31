@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"go/types"
 	"reflect"
 
 	"github.com/emicklei/dot"
@@ -24,7 +25,6 @@ type RangeStmt struct {
 func (r RangeStmt) Eval(vm *VM) {
 	rangeable := vm.returnsEval(r.X)
 	switch rangeable.Kind() {
-	//switch r.X.EvalKind() {
 	case reflect.Map:
 		iter := rangeable.MapRange()
 		for iter.Next() {
@@ -101,26 +101,34 @@ func (r RangeStmt) Eval(vm *VM) {
 func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)
 	switcher := &rangeIteratorSwitchStep{
-		step: newStep(nil),
+		step: g.newStep(nil),
 	}
 	g.nextStep(switcher)
 	// all flows converge to this done step
-	rangeDone := newStep(nil)
+	rangeDone := g.newStep(nil)
 
-	// start the map flow, detached from the current
-	g.current = newStep(nil)
-	switcher.mapFlow = r.MapFlow(g)
-	g.nextStep(rangeDone)
+	// determine the type of X
+	goType := g.goPkg.TypesInfo.TypeOf(r.RangeStmt.X)
 
-	// start the list flow, detached from the current
-	g.current = newStep(nil)
-	switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
-	g.nextStep(rangeDone)
+	switch goType.Underlying().(type) {
+	case *types.Map:
+		// start the map flow, detached from the current
+		g.current = g.newStep(nil)
+		switcher.mapFlow = r.MapFlow(g)
+		g.nextStep(rangeDone)
 
-	// start the int flow, detached from the current
-	g.current = newStep(nil)
-	switcher.intFlow = r.IntFlow(g)
-	g.nextStep(rangeDone)
+	case *types.Slice, *types.Array:
+		// start the list flow, detached from the current
+		g.current = g.newStep(nil)
+		switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
+		g.nextStep(rangeDone)
+
+	case *types.Basic:
+		// start the int flow, detached from the current
+		g.current = g.newStep(nil)
+		switcher.intFlow = r.IntFlow(g)
+		g.nextStep(rangeDone)
+	}
 	return
 }
 
@@ -130,13 +138,13 @@ type rangeMapIteratorInitStep struct {
 }
 
 func (r *rangeMapIteratorInitStep) Take(vm *VM) Step {
-	rangeable := vm.callStack.top().pop()
+	rangeable := vm.frameStack.top().pop()
 	iter := rangeable.MapRange()
 	vm.localEnv().set(r.localVarName, reflect.ValueOf(iter))
 	return r.next
 }
 
-func (r *rangeMapIteratorInitStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (r *rangeMapIteratorInitStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
 	return r.step.traverse(g, r.step.StringWith("map-iterator-init"), "next", visited)
 }
 
@@ -146,22 +154,27 @@ func (r *rangeMapIteratorInitStep) String() string {
 
 type rangeMapIteratorNextStep struct {
 	*step
-	localVarName string
-	bodyFlow     Step
+	localVarName         string
+	bodyFlow             Step
+	yieldKey, yieldValue bool
 }
 
 func (r *rangeMapIteratorNextStep) Take(vm *VM) Step {
 	iterator := vm.localEnv().valueLookUp(r.localVarName).Interface().(*reflect.MapIter)
 	if iterator.Next() {
 		// first value then key to match assignment order
-		vm.pushOperand(iterator.Value())
-		vm.pushOperand(iterator.Key())
+		if r.yieldValue {
+			vm.pushOperand(iterator.Value())
+		}
+		if r.yieldKey {
+			vm.pushOperand(iterator.Key())
+		}
 		return r.bodyFlow
 	}
 	return r.next
 }
 
-func (r *rangeMapIteratorNextStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (r *rangeMapIteratorNextStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
 	me := r.step.traverse(g, r.step.StringWith("map-iterator-next"), "next", visited)
 	if r.bodyFlow != nil {
 		// no edge if visited before
@@ -181,44 +194,59 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g) // again on the stack
 
 	// create the iterator
-	localVarName := fmt.Sprintf("_mapIter_%d", idgen)
+	localVarName := fmt.Sprintf("_mapIter_%d", g.idgen)
 	init := &rangeMapIteratorInitStep{
-		step:         newStep(nil),
+		step:         g.newStep(nil),
 		localVarName: localVarName,
 	}
 	g.nextStep(init)
 
 	// iterator next step
 	iter := &rangeMapIteratorNextStep{
-		step:         newStep(nil),
+		step:         g.newStep(nil),
 		localVarName: localVarName,
+		yieldKey:     r.Key != nil,
+		yieldValue:   r.Value != nil,
 	}
 	g.nextStep(iter)
 
 	// start the body flow, detached from the current
-	g.current = newStep(nil)
-	// key = key
-	// value = x[value]
-	// value and key are on the operand stack by the iterator step
-	updateKeyValue := AssignStmt{
-		AssignStmt: &ast.AssignStmt{
-			Tok: token.DEFINE,
-		},
-		Lhs: []Expr{r.Key, r.Value},
-		Rhs: []Expr{NoExpr{}, NoExpr{}}, // TODO feels hacky, could the step to do this directly?
+	g.current = g.newStep(nil)
+	if iter.yieldKey || iter.yieldValue {
+		// key = key
+		// value = x[value]
+		// value and key are on the operand stack by the iterator step
+		lhs, rhs := []Expr{}, []Expr{}
+		if iter.yieldKey {
+			lhs = append(lhs, r.Key)
+			rhs = append(rhs, NoExpr{}) // feels hacky
+		}
+		if iter.yieldValue {
+			lhs = append(lhs, r.Value)
+			rhs = append(rhs, NoExpr{}) // feels hacky
+		}
+		updateKeyValue := AssignStmt{
+			AssignStmt: &ast.AssignStmt{
+				Tok: token.DEFINE,
+			},
+			Lhs: lhs,
+			Rhs: rhs,
+		}
+		bodyFlow := updateKeyValue.Flow(g)
+		iter.bodyFlow = bodyFlow
+		r.Body.Flow(g)
+	} else {
+		iter.bodyFlow = r.Body.Flow(g)
 	}
-	bodyFlow := updateKeyValue.Flow(g)
-	r.Body.Flow(g)
 	g.nextStep(iter) // back to iterator
-	iter.bodyFlow = bodyFlow
-
 	g.current = iter
 	return
 }
 
 type NoExpr struct{}
 
-func (NoExpr) Eval(vm *VM) {} // used?
+func (NoExpr) Pos() token.Pos { return token.NoPos }
+func (NoExpr) Eval(vm *VM)    {} // used?
 func (n NoExpr) Flow(g *graphBuilder) (head Step) {
 	return g.current
 }
@@ -227,7 +255,7 @@ func (NoExpr) String() string { return "NoExpr" }
 func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
-	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", idgen)}} // must be unique in env
+	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", g.idgen)}} // must be unique in env
 	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
 	initIndex := AssignStmt{
 		AssignStmt: &ast.AssignStmt{
@@ -236,11 +264,8 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 		Lhs: []Expr{indexVar},
 		Rhs: []Expr{zeroInt},
 	}
-	init := BlockStmt{
-		List: []Stmt{
-			initIndex,
-		},
-	}
+	init := BlockStmt{List: []Stmt{initIndex}}
+
 	// key := 0 // only one var permitted
 	if r.Key != nil {
 		initKey := AssignStmt{
@@ -295,7 +320,7 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
-	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", idgen)}} // must be unique in env
+	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", g.idgen)}} // must be unique in env
 	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
 	initIndex := AssignStmt{
 		AssignStmt: &ast.AssignStmt{
@@ -304,17 +329,27 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 		Lhs: []Expr{indexVar},
 		Rhs: []Expr{zeroInt},
 	}
+	// key and value are optionally defined
+	lhs, rhs := []Expr{}, []Expr{}
+	if r.Key != nil {
+		lhs = append(lhs, r.Key)
+		rhs = append(rhs, indexVar)
+	}
+	if r.Value != nil {
+		lhs = append(lhs, r.Value)
+		rhs = append(rhs, IndexExpr{
+			X:     r.X,
+			Index: indexVar,
+		})
+	}
 	// key := x[0]
 	// value := x[0]
 	initKeyValue := AssignStmt{
 		AssignStmt: &ast.AssignStmt{
 			Tok: token.DEFINE,
 		},
-		Lhs: []Expr{r.Key, r.Value},
-		Rhs: []Expr{indexVar, IndexExpr{
-			X:     r.X,
-			Index: indexVar,
-		}},
+		Lhs: lhs,
+		Rhs: rhs,
 	}
 	init := BlockStmt{
 		List: []Stmt{
@@ -343,11 +378,8 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 		AssignStmt: &ast.AssignStmt{
 			Tok: token.ASSIGN,
 		},
-		Lhs: []Expr{r.Key, r.Value},
-		Rhs: []Expr{indexVar, IndexExpr{
-			X:     r.X,
-			Index: indexVar,
-		}},
+		Lhs: lhs,
+		Rhs: rhs,
 	}
 	// body with updated key/value assignment at the top
 	body := &BlockStmt{
@@ -374,9 +406,10 @@ type ReflectLenExpr struct {
 	X Expr
 }
 
+func (r ReflectLenExpr) Pos() token.Pos { return r.X.Pos() }
 func (r ReflectLenExpr) Eval(vm *VM) {
-	val := vm.callStack.top().pop()
-	vm.callStack.top().push(reflect.ValueOf(val.Len()))
+	val := vm.frameStack.top().pop()
+	vm.frameStack.top().push(reflect.ValueOf(val.Len()))
 }
 func (r ReflectLenExpr) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)
@@ -396,7 +429,7 @@ type rangeIteratorSwitchStep struct {
 }
 
 func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
-	rangeable := vm.callStack.top().pop()
+	rangeable := vm.frameStack.top().pop()
 	switch rangeable.Kind() {
 	case reflect.Map:
 		return i.mapFlow.Take(vm)
@@ -408,7 +441,7 @@ func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
 		panic(fmt.Sprintf("cannot range over type %v", rangeable.Type()))
 	}
 }
-func (i *rangeIteratorSwitchStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (i *rangeIteratorSwitchStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
 	me := i.step.traverse(g, i.step.StringWith("switch-iterator"), "next", visited)
 	if i.mapFlow != nil {
 		// no edge if visited before

@@ -1,12 +1,14 @@
 package internal
 
 import (
+	"go/token"
 	"reflect"
 
 	"github.com/emicklei/dot"
 )
 
 type Evaluable interface {
+	Pos() token.Pos
 	Eval(vm *VM)
 }
 
@@ -24,7 +26,6 @@ type CanDeclare interface {
 }
 
 type Expr interface {
-	// EvalKind() reflect.Kind
 	Flowable
 	Evaluable
 }
@@ -69,7 +70,7 @@ type Step interface {
 	Traverseable
 	SetNext(s Step)
 	Next() Step
-	ID() int
+	ID() int32
 	String() string
 }
 
@@ -78,5 +79,5 @@ type StepTaker interface {
 }
 
 type Traverseable interface {
-	Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node
+	Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node
 }

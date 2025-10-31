@@ -27,5 +27,5 @@ func TestStepByStep(t *testing.T) {
 		here.Eval(vm)
 		here = here.Next()
 	}
-	t.Log("result:", vm.callStack.top().pop().Interface())
+	t.Log("result:", vm.frameStack.top().pop().Interface())
 }

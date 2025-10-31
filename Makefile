@@ -1,3 +1,6 @@
+gen:
+	cd cmd/genstdlib && go run .
+
 test:
 	go test -cover ./internal
 
@@ -14,5 +17,14 @@ bench:
 install:
 	cd cmd/gi && go install
 
-unused:
-	go run honnef.co/go/tools/cmd/staticcheck@latest -checks U1000 ./...
+# go install golang.org/x/tools/cmd/deadcode@latest
+unused:	
+	cd cmd/gi && deadcode .
+
+.PHONY: test clean todo bench install unused examples
+examples: install
+	cd examples/api_call && go run .
+	# cd examples/externalpkg && gi run .
+	cd examples/nestedloop && gi run .
+	# cd examples/subpkg && GI_TRACE=1 gi run .
+	

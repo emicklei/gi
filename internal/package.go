@@ -5,21 +5,29 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"os"
 	"reflect"
 	"time"
 
+	"github.com/emicklei/dot"
 	"golang.org/x/tools/go/packages"
 )
 
 type StandardPackage struct {
-	Name        string
-	PkgPath     string
-	symbolTable map[string]reflect.Value
+	Name    string
+	PkgPath string
+	// TODO currently separate tables for types and other symbols
+	symbolTable map[string]reflect.Value // const,var,func, not types
+	typesTable  map[string]reflect.Value // not reflect.Type to make Select work uniformly
 }
 
 func (p StandardPackage) Select(name string) reflect.Value {
 	v, ok := p.symbolTable[name]
 	if !ok {
+		t, ok := p.typesTable[name]
+		if ok {
+			return t
+		}
 		return reflect.Value{}
 	}
 	return v
@@ -80,11 +88,31 @@ func (p *Package) Initialize(vm *VM) error {
 	return nil
 }
 
+func (p *Package) writeDotGraph(fileName string) {
+	g := dot.NewGraph(dot.Directed)
+	// for each function in the package create a subgraph
+	values := p.Env.Env.(*Environment).valueTable
+	for k, v := range values {
+		if funDecl, ok := v.Interface().(FuncDecl); ok {
+			if funDecl.callGraph == nil {
+				continue
+			}
+			sub := g.Subgraph(k, dot.ClusterOption{})
+			visited := map[int32]dot.Node{}
+			funDecl.callGraph.Traverse(sub, visited)
+		}
+	}
+	os.WriteFile(fileName, []byte(g.String()), 0644)
+}
+
 func (p *Package) String() string {
 	return fmt.Sprintf("Package(%s,%s)", p.Name, p.PkgPath)
 }
 
 func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package, error) {
+	if dir == "" {
+		return nil, fmt.Errorf("directory must be specified")
+	}
 	if trace {
 		now := time.Now()
 		defer func() {
@@ -96,9 +124,13 @@ func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package
 		cfg = optionalConfig
 	} else {
 		cfg = &packages.Config{
-			Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles,
+			Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles | packages.NeedTypesInfo,
 			Fset: token.NewFileSet(),
 			Dir:  dir,
+			// set the [parser.SkipObjectResolution] parser flag to disable syntactic object resolution
+			ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+				return parser.ParseFile(fset, filename, src, parser.SkipObjectResolution)
+			},
 		}
 	}
 	pkgs, err := packages.Load(cfg, ".")
@@ -121,7 +153,10 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 			fmt.Printf("pkg.buildFromAST(%s) took %v\n", ast.Name.Name, time.Since(now))
 		}()
 	}
-	b := newStepBuilder()
+	goPkg := &packages.Package{
+		ID: "main", Name: ast.Name.Name, PkgPath: "main",
+	}
+	b := newStepBuilder(goPkg)
 	b.opts = buildOptions{callGraph: isStepping}
 	for _, imp := range ast.Imports {
 		b.Visit(imp)
@@ -129,30 +164,32 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 	for _, decl := range ast.Decls {
 		b.Visit(decl)
 	}
-	return &Package{Package: &packages.Package{
-		ID: "main", Name: ast.Name.Name, PkgPath: "main",
-	}, Env: b.env.(*PkgEnvironment)}, nil
+	return &Package{Package: goPkg, Env: b.env.(*PkgEnvironment)}, nil
 }
 
 // TODO build options
-func BuildPackage(pkg *packages.Package, dotFilename string, isStepping bool) (*Package, error) {
+func BuildPackage(goPkg *packages.Package, isStepping bool) (*Package, error) {
 	if trace {
 		now := time.Now()
 		defer func() {
-			fmt.Printf("pkg.build(%s) took %v\n", pkg.PkgPath, time.Since(now))
+			fmt.Printf("pkg.build(%s) took %v\n", goPkg.PkgPath, time.Since(now))
 		}()
 	}
-	b := newStepBuilder()
-	b.opts = buildOptions{callGraph: isStepping, dotFilename: dotFilename}
-	for _, stx := range pkg.Syntax {
+	b := newStepBuilder(goPkg)
+	b.opts = buildOptions{callGraph: isStepping}
+	for _, stx := range goPkg.Syntax {
 		for _, decl := range stx.Decls {
 			b.Visit(decl)
 		}
 	}
-	return &Package{Package: pkg, Env: b.env.(*PkgEnvironment)}, nil
+	pkg := &Package{Package: goPkg, Env: b.env.(*PkgEnvironment)}
+	if dotFilename := os.Getenv("GI_DOT"); dotFilename != "" {
+		pkg.writeDotGraph(dotFilename)
+	}
+	return pkg, nil
 }
 
-func RunPackageFunction(pkg *Package, functionName string, optionalVM *VM) error {
+func RunPackageFunction(pkg *Package, functionName string, args []any, optionalVM *VM) ([]any, error) {
 	var vm *VM
 	if optionalVM != nil {
 		vm = optionalVM
@@ -162,23 +199,52 @@ func RunPackageFunction(pkg *Package, functionName string, optionalVM *VM) error
 	for _, subpkg := range pkg.Env.packageTable {
 		subvm := newVM(subpkg.Env)
 		if err := subpkg.Initialize(subvm); err != nil {
-			return fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
+			return nil, fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
 		}
 	}
 	if err := pkg.Initialize(vm); err != nil {
-		return fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
+		return nil, fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
 	}
 	fun := pkg.Env.valueLookUp(functionName)
 	if !fun.IsValid() {
-		return fmt.Errorf("%s function definition not found", functionName)
+		return nil, fmt.Errorf("%s function definition not found", functionName)
 	}
-	// TODO
 
+	// collect parameter values
+	params := make([]reflect.Value, len(args))
+	for i, arg := range args {
+		params[i] = reflect.ValueOf(arg)
+	}
+
+	// create stack frame with parameters values
 	fundecl := fun.Interface().(FuncDecl)
 	vm.pushNewFrame(fundecl)
-	fundecl.Eval(vm)
+	frame := vm.frameStack.top()
+	setParametersToFrame(fundecl.Type, params, vm, frame)
+
+	// compose a CallExpr to leverage existing call handling
+	call := CallExpr{
+		Fun:  Ident{Ident: &ast.Ident{Name: functionName}},
+		Args: []Expr{}, // TODO for now, main only
+	}
+	if trace {
+		vm.traceEval(call)
+	} else {
+		call.Eval(vm)
+	}
+
+	// collect non-reflection return values
+	top := vm.frameStack.top()
+	results := make([]any, len(top.returnValues))
+	for i, rv := range top.returnValues {
+		if rv.CanInterface() {
+			results[i] = rv.Interface()
+		} else {
+			results[i] = nil
+		}
+	}
 	vm.popFrame()
-	return nil
+	return results, nil
 }
 
 func WalkPackageFunction(pkg *Package, functionName string, optionalVM *VM) error {
@@ -206,6 +272,7 @@ func WalkPackageFunction(pkg *Package, functionName string, optionalVM *VM) erro
 	decl := fun.Interface().(FuncDecl)
 
 	// run it step by step
+	vm.isStepping = true
 	vm.takeAll(decl.callGraph)
 	return nil
 }

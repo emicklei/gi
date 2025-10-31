@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"reflect"
 )
 
@@ -62,10 +63,6 @@ type LabeledStmt struct {
 	Stmt  Stmt
 }
 
-func (s LabeledStmt) String() string {
-	return fmt.Sprintf("LabeledStmt(%v,%v)", s.Label, s.Stmt)
-}
-
 func (s LabeledStmt) Eval(vm *VM) {
 	if trace {
 		vm.traceEval(s.Stmt.stmtStep())
@@ -73,6 +70,21 @@ func (s LabeledStmt) Eval(vm *VM) {
 		s.Stmt.stmtStep().Eval(vm)
 	}
 }
+
+func (s LabeledStmt) Flow(g *graphBuilder) (head Step) {
+	head = s.Stmt.Flow(g)
+	// get statement reference and update its step
+	fd := g.funcStack.top()
+	ref := fd.labelToStmt[s.Label.Name]
+	ref.step.SetNext(head)
+	return
+}
+
+func (s LabeledStmt) String() string {
+	return fmt.Sprintf("LabeledStmt(%v,%v)", s.Label, s.Stmt)
+}
+
+func (s LabeledStmt) stmtStep() Evaluable { return s }
 
 var _ Stmt = BranchStmt{}
 
@@ -82,17 +94,37 @@ type BranchStmt struct {
 	Label *Ident
 }
 
-func (s BranchStmt) Eval(vm *VM) {}
+func (s BranchStmt) Eval(vm *VM) {
+	switch s.Tok {
+	case token.GOTO:
+		af := vm.activeFuncStack.top()
+		ref := af.FuncDecl.labelToStmt[s.Label.Name]
+		af.setNextStmtIndex(ref.index)
+	default:
+		// TODO handle break, continue, fallthrough
+	}
+}
+
+func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
+	switch s.Tok {
+	case token.GOTO:
+		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.Label.Name))
+		g.nextStep(head)
+		fd := g.funcStack.top()
+		ref := fd.labelToStmt[s.Label.Name]
+		g.nextStep(ref.step)
+		return
+	default:
+		// TODO handle break, continue, fallthrough
+	}
+	return g.current
+}
 
 func (s BranchStmt) String() string {
 	return fmt.Sprintf("BranchStmt(%v)", s.Label)
 }
 
 func (s BranchStmt) stmtStep() Evaluable { return s }
-
-func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
-	return head // TODO
-}
 
 var _ Stmt = SwitchStmt{}
 
@@ -171,10 +203,10 @@ func (c CaseClause) Eval(vm *VM) {
 		}
 		return
 	}
-	f := vm.callStack.top()
+	f := vm.frameStack.top()
 	var left reflect.Value
 	if len(f.operandStack) != 0 {
-		left = vm.callStack.top().pop()
+		left = vm.frameStack.top().pop()
 	}
 	for _, expr := range c.List {
 		right := vm.returnsEval(expr)
@@ -219,11 +251,7 @@ func (d DeferStmt) String() string {
 func (d DeferStmt) stmtStep() Evaluable { return d }
 
 func (d DeferStmt) Eval(vm *VM) {
-	if d.Call == nil {
-		return
-	}
-	// TODO: keep defer stack in the current frame?
-	defer d.Call.Eval(vm)
+	vm.activeFuncStack.top().addDefer(d.Call)
 }
 
 func (d DeferStmt) Flow(g *graphBuilder) (head Step) {

@@ -9,17 +9,10 @@ import (
 
 var _ Step = (*step)(nil)
 
-var idgen int = 0
-
 type step struct {
-	id   int
-	next Step
-	Evaluable
-}
-
-func newStep(e Evaluable) *step {
-	idgen++
-	return &step{id: idgen, Evaluable: e}
+	id        int32 // set by graphBuilder
+	next      Step
+	Evaluable // can be nil for structural steps
 }
 
 type conditionalStep struct {
@@ -28,9 +21,13 @@ type conditionalStep struct {
 	elseFlow      Step
 }
 
-func (c *conditionalStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (c *conditionalStep) String() string {
+	return fmt.Sprintf("%2d: if", c.ID())
+}
+
+func (c *conditionalStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
 	c.conditionFlow.Traverse(g, visited)
-	me := c.step.traverse(g, c.step.String(), "true", visited)
+	me := c.step.traverse(g, c.String(), "true", visited)
 	if c.elseFlow != nil {
 		// no edge if visited before
 		if _, ok := visited[c.elseFlow.ID()]; ok {
@@ -43,22 +40,22 @@ func (c *conditionalStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.N
 }
 
 func (c *conditionalStep) Take(vm *VM) Step {
-	cond := vm.callStack.top().pop()
+	cond := vm.frameStack.top().pop()
 	if cond.Bool() {
 		return c.next
 	}
 	return c.elseFlow
 }
 
-func (s *step) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (s *step) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
 	return s.traverse(g, s.String(), "next", visited)
 }
 
-func (s *step) traverse(g *dot.Graph, label, edge string, visited map[int]dot.Node) dot.Node {
+func (s *step) traverse(g *dot.Graph, label, edge string, visited map[int32]dot.Node) dot.Node {
 	if n, ok := visited[s.id]; ok {
 		return n
 	}
-	n := g.Node(strconv.Itoa(s.ID())).Label(label)
+	n := g.Node(strconv.FormatInt(int64(s.ID()), 10)).Label(label)
 	visited[s.id] = n
 	if s.next != nil {
 		nextN := s.next.Traverse(g, visited)
@@ -67,7 +64,7 @@ func (s *step) traverse(g *dot.Graph, label, edge string, visited map[int]dot.No
 	return n
 }
 
-func (s *step) ID() int {
+func (s *step) ID() int32 {
 	return s.id
 }
 
@@ -75,14 +72,14 @@ func (s *step) String() string {
 	if s == nil {
 		return "nil"
 	}
-	return fmt.Sprintf("%2d:step(%v)", s.id, s.Evaluable)
+	return fmt.Sprintf("%2d: %v", s.id, s.Evaluable)
 }
 
 func (s *step) StringWith(label string) string {
 	if s == nil {
 		return "nil"
 	}
-	return fmt.Sprintf("%2d:step(%s)", s.id, label)
+	return fmt.Sprintf("%2d: %s", s.id, label)
 }
 
 func (s *step) Next() Step {
@@ -104,9 +101,9 @@ type pushStackFrameStep struct {
 	*step
 }
 
-func (p *pushStackFrameStep) String() string { return fmt.Sprintf("%2d:step(push stackframe)", p.ID()) }
+func (p *pushStackFrameStep) String() string { return fmt.Sprintf("%2d: ~push stackframe", p.ID()) }
 
-func (p *pushStackFrameStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (p *pushStackFrameStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
 	return p.step.traverse(g, p.String(), "next", visited)
 }
 
@@ -124,8 +121,31 @@ func (p *popStackFrameStep) Take(vm *VM) Step {
 	return p.next
 }
 
-func (p *popStackFrameStep) String() string { return fmt.Sprintf("%2d:step(pop stackframe)", p.ID()) }
+func (p *popStackFrameStep) String() string { return fmt.Sprintf("%2d: ~pop stackframe", p.ID()) }
 
-func (p *popStackFrameStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (p *popStackFrameStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
 	return p.step.traverse(g, p.String(), "next", visited)
+}
+
+type returnStep struct {
+	*step
+}
+
+func (r *returnStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
+	return g.Node(strconv.FormatInt(int64(r.ID()), 10)).Label(r.String())
+}
+
+type labeledStep struct {
+	*step
+	label string
+}
+
+func (s *labeledStep) String() string {
+	return fmt.Sprintf("%2d: %v", s.id, s.label)
+}
+func (s *labeledStep) Take(vm *VM) Step {
+	return s.next
+}
+func (s *labeledStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
+	return s.step.traverse(g, s.String(), "next", visited)
 }

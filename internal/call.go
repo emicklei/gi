@@ -6,7 +6,6 @@ import (
 	"reflect"
 )
 
-var _ Flowable = CallExpr{}
 var _ Expr = CallExpr{}
 
 type CallExpr struct {
@@ -19,7 +18,7 @@ func (c CallExpr) Eval(vm *VM) {
 	// function fn is either an external or an interpreted one
 	var fn reflect.Value
 	if vm.isStepping {
-		fn = vm.callStack.top().pop() // see Flow
+		fn = vm.frameStack.top().pop() // see Flow
 	} else {
 		fn = vm.returnsEval(c.Fun)
 	}
@@ -35,12 +34,12 @@ func (c CallExpr) Eval(vm *VM) {
 		for i, arg := range c.Args {
 			var val reflect.Value
 			if vm.isStepping {
-				val = vm.callStack.top().pop() // first to last, see Flow
+				val = vm.frameStack.top().pop() // first to last, see Flow
 			} else {
 				val = vm.returnsEval(arg)
 			}
 			if !val.IsValid() {
-				vm.fatal("call to function with invalid argument:" + fmt.Sprintf("%d=%v", i, arg))
+				vm.fatal(fmt.Sprintf("call to function: %v with invalid argument %d: %v", c.Fun, i, arg))
 			}
 			args[i] = val
 		}
@@ -79,7 +78,7 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		cleared := c.evalClear(vm)
 		// the argument of clear needs to be replaced
 		if identArg, ok := c.Args[0].(Ident); ok {
-			vm.callStack.top().env.set(identArg.Name, cleared)
+			vm.frameStack.top().env.set(identArg.Name, cleared)
 		} else {
 			vm.fatal("clear argument must be an identifier")
 		}
@@ -89,6 +88,8 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		c.evalMax(vm)
 	case "make":
 		c.evalMake(vm)
+	case "new":
+		c.evalNew(vm)
 	default:
 		vm.fatal("unknown builtin function: " + bf.name)
 	}
@@ -101,27 +102,18 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 	for i, arg := range c.Args {
 		var val reflect.Value
 		if vm.isStepping {
-			val = vm.callStack.top().pop() // first to last, see Flow
+			val = vm.frameStack.top().pop() // first to last, see Flow
 		} else {
 			val = vm.returnsEval(arg)
 		}
 		args[i] = val
 	}
 	vm.pushNewFrame(c)
-	frame := vm.callStack.top()
-	// take all parameters and put them in the env of the new frame
-	p := 0
-	for _, field := range fl.Type.Params.List {
-		for _, name := range field.Names {
-			val := args[p]
-			if val.Interface() == untypedNil {
-				// create a zero value of the expected type
-				val = reflect.Zero(vm.returnsType(field.Type))
-			}
-			frame.env.set(name.Name, val)
-			p++
-		}
-	}
+	frame := vm.frameStack.top()
+
+	setParametersToFrame(fl.Type, args, vm, frame)
+	setZeroReturnsToFrame(fl.Type, vm, frame)
+
 	if vm.isStepping {
 		// when stepping we already have the call graph in FuncLit
 		vm.takeAll(fl.callGraph)
@@ -133,10 +125,44 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 		}
 	}
 	// take values before popping frame
-	vals := vm.callStack.top().returnValues
+	vals := vm.frameStack.top().returnValues
 	vm.popFrame()
 	vm.pushCallResults(vals)
 }
+
+func setZeroReturnsToFrame(ft *FuncType, vm *VM, frame *stackFrame) {
+	if ft.Returns == nil {
+		return
+	}
+	r := 0
+	for _, field := range ft.Returns.List {
+		for _, name := range field.Names {
+			val := reflect.Zero(vm.returnsType(field.Type)) // TODO use gopkg?
+			frame.env.set(name.Name, val)
+			r++
+		}
+	}
+}
+
+// setParametersToFrame takes all parameters and put them in the env of the new frame
+func setParametersToFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *stackFrame) {
+	if ft.Params == nil {
+		return
+	}
+	p := 0
+	for _, field := range ft.Params.List {
+		for _, name := range field.Names {
+			val := args[p]
+			if val.Interface() == untypedNil {
+				// create a zero value of the expected type
+				val = reflect.Zero(vm.returnsType(field.Type)) // TODO use gopkg?
+			}
+			frame.env.set(name.Name, val)
+			p++
+		}
+	}
+}
+
 func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	// TODO deduplicate with handleFuncLit
 	// prepare arguments
@@ -144,27 +170,17 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	for i, arg := range c.Args {
 		var val reflect.Value
 		if vm.isStepping {
-			val = vm.callStack.top().pop() // first to last, see Flow
+			val = vm.frameStack.top().pop() // first to last, see Flow
 		} else {
 			val = vm.returnsEval(arg)
 		}
 		args[i] = val
 	}
 	vm.pushNewFrame(c)
-	frame := vm.callStack.top()
-	// take all parameters and put them in the env of the new frame
-	p := 0
-	for _, field := range fd.Type.Params.List {
-		for _, name := range field.Names {
-			val := args[p]
-			if val.Interface() == untypedNil {
-				// create a zero value of the expected type
-				val = reflect.Zero(vm.returnsType(field.Type))
-			}
-			frame.env.set(name.Name, val)
-			p++
-		}
-	}
+	frame := vm.frameStack.top()
+	setParametersToFrame(fd.Type, args, vm, frame)
+	setZeroReturnsToFrame(fd.Type, vm, frame)
+
 	if vm.isStepping {
 		// when stepping we already have the call graph in FuncDecl
 		vm.takeAll(fd.callGraph)
@@ -172,12 +188,13 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 		if trace {
 			vm.traceEval(fd.Body)
 		} else {
-			fd.Body.Eval(vm)
+			fd.Eval(vm)
 		}
 	}
+
 	// top == frame? TODO
 	// take values before popping frame
-	vals := vm.callStack.top().returnValues
+	vals := vm.frameStack.top().returnValues
 	vm.popFrame()
 	vm.pushCallResults(vals)
 }

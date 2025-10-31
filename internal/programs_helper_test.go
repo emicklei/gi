@@ -2,9 +2,12 @@ package internal
 
 import (
 	"fmt"
+	"go/ast"
+	"go/parser"
 	"go/token"
 	"io"
 	"os"
+	"os/exec"
 	"path"
 	"reflect"
 	"testing"
@@ -12,13 +15,18 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func buildPackage(t *testing.T, dotFilename, source string) *Package {
+func buildPackage(t *testing.T, source string) *Package {
 	t.Helper()
 	cwd, _ := os.Getwd()
 	cfg := &packages.Config{
-		Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles,
+		// copied from Package.go
+		Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles | packages.NeedTypesInfo,
 		Fset: token.NewFileSet(),
 		Dir:  path.Join(cwd, "../examples"),
+		// copied from Package.go
+		ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+			return parser.ParseFile(fset, filename, src, parser.SkipObjectResolution)
+		},
 		Overlay: map[string][]byte{
 			path.Join(cwd, "../examples/main.go"): []byte(source),
 		},
@@ -27,7 +35,7 @@ func buildPackage(t *testing.T, dotFilename, source string) *Package {
 	if err != nil {
 		t.Fatalf("failed to load packages: %v", err)
 	}
-	ffpkg, err := BuildPackage(gopkg, dotFilename, true)
+	ffpkg, err := BuildPackage(gopkg, true)
 	if err != nil {
 		t.Fatalf("failed to build package: %v", err)
 	}
@@ -51,12 +59,19 @@ func collectPrintOutput(vm *VM) {
 	}))
 }
 
-func parseAndWalk(t *testing.T, dotFilename, source string) string {
+func parseAndWalk(t *testing.T, source string) string {
 	t.Helper()
-	idgen = 0
-	pkg := buildPackage(t, dotFilename, source)
+	pkg := buildPackage(t, source)
 	vm := newVM(pkg.Env)
 	collectPrintOutput(vm)
+
+	// create dot graph for debugging
+	os.WriteFile(fmt.Sprintf("testgraphs/%s.src", t.Name()), []byte(source), 0644)
+	gidot := fmt.Sprintf("testgraphs/%s.dot", t.Name())
+	pkg.writeDotGraph(gidot)
+	// will fail in pipeline without graphviz installed
+	exec.Command("dot", "-Tpng", "-o", gidot+".png", gidot).Run()
+
 	if err := WalkPackageFunction(pkg, "main", vm); err != nil {
 		panic(err)
 	}
@@ -65,13 +80,34 @@ func parseAndWalk(t *testing.T, dotFilename, source string) string {
 
 func parseAndRun(t *testing.T, source string) string {
 	t.Helper()
-	pkg := buildPackage(t, "", source)
+	pkg := buildPackage(t, source)
 	vm := newVM(pkg.Env)
 	collectPrintOutput(vm)
-	if err := RunPackageFunction(pkg, "main", vm); err != nil {
+	if _, err := RunPackageFunction(pkg, "main", nil, vm); err != nil {
 		t.Fatal(err)
 	}
 	return vm.output.String()
+}
+
+func testProgramIn(t *testing.T, running bool, stepping bool, dir string, wantFuncOrString any) {
+	// cannot be parallel because of os.Chdir
+	t.Helper()
+	cwd, _ := os.Getwd()
+	loc := path.Join(cwd, dir)
+	gopkg, err := LoadPackage(loc, nil)
+	if err != nil {
+		t.Fatalf("failed to load package in %s: %v", loc, err)
+	}
+	os.Chdir(loc)
+	defer os.Chdir(cwd)
+	pkg, err := BuildPackage(gopkg, false)
+	if err != nil {
+		t.Fatalf("failed to build package in %s: %v", loc, err)
+	}
+	_, err = RunPackageFunction(pkg, "main", nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run package in %s: %v", loc, err)
+	}
 }
 
 func testProgram(t *testing.T, running bool, stepping bool, source string, wantFuncOrString any) {
@@ -93,9 +129,7 @@ func testProgram(t *testing.T, running bool, stepping bool, source string, wantF
 		t.Log("TODO skipped run: ", t.Name())
 	}
 	if stepping {
-		os.WriteFile(fmt.Sprintf("testgraphs/%s.src", t.Name()), []byte(source), 0644)
-		gidot := fmt.Sprintf("testgraphs/%s.dot", t.Name())
-		out := parseAndWalk(t, gidot, source)
+		out := parseAndWalk(t, source)
 		if fn, ok := wantFuncOrString.(func(string) bool); ok {
 			if !fn(out) {
 				t.Errorf("got [%v] which does not match predicate", out)

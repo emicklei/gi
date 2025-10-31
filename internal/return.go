@@ -20,6 +20,14 @@ func (r ReturnStmt) String() string {
 }
 
 func (r ReturnStmt) Eval(vm *VM) {
+	// abort function body iteration
+	// TEMPORARY use funcStack
+	if !vm.isStepping {
+		if len(vm.activeFuncStack) != 0 {
+			vm.activeFuncStack.top().setDone()
+		}
+	}
+
 	if len(r.Results) == 0 {
 		return
 	}
@@ -27,16 +35,27 @@ func (r ReturnStmt) Eval(vm *VM) {
 	for i, each := range r.Results {
 		var val reflect.Value
 		if vm.isStepping {
-			val = vm.callStack.top().pop()
+			val = vm.frameStack.top().pop()
 		} else {
 			val = vm.returnsEval(each)
 		}
 		results[i] = val
 	}
+	// bind result valutes to named results of the function if any
+	// fd := vm.activeFuncStack.top().FuncDecl
+	// ri := 0
+	// for _, fields := range fd.Type.Results.List {
+	// 	for _, name := range fields.Names {
+	// 		if name != nil && name.Name == "_" {
+	// 			vm.localEnv().set(name.Name, results[ri])
+	// 		}
+	// 		ri++
+	// 	}
+	// }
 	// set return values for the top frame
-	top := vm.callStack.top()
+	top := vm.frameStack.top()
 	top.returnValues = results
-	vm.callStack.replaceTop(top)
+	vm.frameStack.replaceTop(top)
 }
 
 func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {
@@ -49,9 +68,12 @@ func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {
 		}
 		each.Flow(g)
 	}
-	g.next(r)
+	g.nextStep(&returnStep{step: g.newStep(r)})
+	// if nothing to return then returnStep is the head
 	if head == nil {
 		head = g.current
 	}
+	// no next step after return
+	g.current = nil
 	return
 }

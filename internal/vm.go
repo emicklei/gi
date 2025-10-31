@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 	"sync"
 
 	"github.com/emicklei/structexplorer"
@@ -36,28 +37,37 @@ func (f *stackFrame) pop() reflect.Value {
 }
 
 func (f *stackFrame) String() string {
+	buf := strings.Builder{}
 	if f.creator != nil {
-		return fmt.Sprintf("%v", f.creator)
+		fmt.Fprintf(&buf, "%v ", f.creator)
+	} else {
+		fmt.Fprintf(&buf, "? ")
 	}
-	return "unknown frame creator"
+	fmt.Fprintf(&buf, "%v ", f.env)
+	fmt.Fprintf(&buf, "ops=%v ", f.operandStack)
+	fmt.Fprintf(&buf, "rets=%v", f.returnValues)
+	return buf.String()
 }
 
+// VM represents a virtual machine that can execute Go code.
 type VM struct {
-	callStack  stack[*stackFrame]
-	isStepping bool
-	output     *bytes.Buffer
+	frameStack      stack[*stackFrame]
+	isStepping      bool                   // for debugging use
+	activeFuncStack stack[*activeFuncDecl] // active function declarations, TODO store in stackFrame?
+	output          *bytes.Buffer          // for testing only
 }
 
 func newVM(env Env) *VM {
 	vm := &VM{output: new(bytes.Buffer)}
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
-	vm.callStack.push(frame)
+	vm.frameStack.push(frame)
 	return vm
 }
 
+// localEnv returns the current environment from the top stack frame.
 func (vm *VM) localEnv() Env {
-	return vm.callStack.top().env
+	return vm.frameStack.top().env
 }
 
 // returnsEval evaluates the argument and returns the popped value that was pushed onto the operand stack.
@@ -67,7 +77,7 @@ func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 	} else {
 		e.Eval(vm)
 	}
-	return vm.callStack.top().pop()
+	return vm.frameStack.top().pop()
 }
 
 func (vm *VM) returnsType(e Evaluable) reflect.Type {
@@ -89,21 +99,23 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 func (vm *VM) pushOperand(v reflect.Value) {
 	if trace {
 		if v.IsValid() && v.CanInterface() {
-			fmt.Printf("vm.pushOperand: %v (%T)\n", v.Interface(), v.Interface())
+			fmt.Printf("vm.push: %v (%T)\n", v.Interface(), v.Interface())
 		} else {
-			fmt.Printf("vm.pushOperand: %v\n", v)
+			fmt.Printf("vm.push: %v\n", v)
 		}
 	}
-	vm.callStack.top().push(v)
+	vm.frameStack.top().push(v)
 }
+
 func (vm *VM) pushNewFrame(e Evaluable) {
 	frame := framePool.Get().(*stackFrame)
 	frame.creator = e
 	frame.env = vm.localEnv().newChild()
-	vm.callStack.push(frame)
+	vm.frameStack.push(frame)
 }
+
 func (vm *VM) popFrame() {
-	frame := vm.callStack.pop()
+	frame := vm.frameStack.pop()
 	// reset references
 	frame.operandStack = frame.operandStack[:0]
 	frame.returnValues = frame.returnValues[:0]
@@ -111,22 +123,23 @@ func (vm *VM) popFrame() {
 	frame.creator = nil
 	framePool.Put(frame)
 }
+
 func (vm *VM) fatal(err any) {
 	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)
 	fmt.Fprintln(os.Stderr, "")
 	// dump the callstack
-	for i := len(vm.callStack) - 1; i >= 0; i-- {
-		frame := vm.callStack[i]
+	for i := len(vm.frameStack) - 1; i >= 0; i-- {
+		frame := vm.frameStack[i]
 		fmt.Fprintln(os.Stderr, "[gi]", frame)
 	}
 	s := structexplorer.NewService("vm", vm)
-	for i, each := range vm.callStack {
+	for i, each := range vm.frameStack {
 		s.Explore(fmt.Sprintf("vm.callStack.%d", i), each, structexplorer.Column(0))
 		s.Explore(fmt.Sprintf("vm.callStack.%d.env", i), each.env, structexplorer.Column(1))
 		s.Explore(fmt.Sprintf("vm.callStack.%d.operandStack", i), each.operandStack, structexplorer.Column(1))
 		s.Explore(fmt.Sprintf("vm.callStack.%d.returnValues", i), each.returnValues, structexplorer.Column(1))
 	}
-	s.Dump("vm-panic.html")
+	s.Dump("gi-vm-panic.html")
 	if trace {
 		panic(err)
 	}
@@ -134,16 +147,27 @@ func (vm *VM) fatal(err any) {
 }
 
 func (vm *VM) traceEval(e Evaluable) {
-	fmt.Println("vm.eval:", e)
+	fmt.Fprintln(os.Stderr, "vm.eval:", e)
 	e.Eval(vm)
 }
 
 func (vm *VM) takeAll(head Step) {
-	vm.isStepping = true
 	here := head
 	for here != nil {
 		if trace {
 			fmt.Println(here)
+			// try to print file and line number
+			if len(vm.activeFuncStack) > 0 {
+				fs := vm.activeFuncStack.top().FuncDecl.fileSet
+				if fs != nil {
+					f := fs.File(here.Pos())
+					fmt.Println(f.Name(), f.Line(here.Pos()))
+				} else {
+					fmt.Println("no file set???", here)
+				}
+			} else {
+				fmt.Println("no active function???", here)
+			}
 		}
 		here = here.Take(vm)
 	}

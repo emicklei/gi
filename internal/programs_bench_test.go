@@ -59,7 +59,7 @@ func main() {
 		})
 	}
 	{
-		prog, err := BuildPackage(pkg, "", false)
+		prog, err := BuildPackage(pkg, false)
 		if err != nil {
 			b.Fatalf("failed to build program: %v", err)
 		}
@@ -67,14 +67,14 @@ func main() {
 			for i := 0; i < b.N; i++ {
 				vm := newVM(prog.Env)
 				collectPrintOutput(vm)
-				if err := RunPackageFunction(prog, "main", vm); err != nil {
+				if _, err := RunPackageFunction(prog, "main", nil, vm); err != nil {
 					b.Fatal(err)
 				}
 			}
 		})
 	}
 	{
-		prog, err := BuildPackage(pkg, "", true)
+		prog, err := BuildPackage(pkg, true)
 		if err != nil {
 			b.Fatalf("failed to build program: %v", err)
 		}

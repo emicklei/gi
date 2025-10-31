@@ -22,8 +22,8 @@ type IndexExpr struct {
 func (i IndexExpr) Eval(vm *VM) {
 	var index, target reflect.Value
 	if vm.isStepping {
-		index = vm.callStack.top().pop()
-		target = vm.callStack.top().pop()
+		index = vm.frameStack.top().pop()
+		target = vm.frameStack.top().pop()
 	} else {
 		index = vm.returnsEval(i.Index)
 		target = vm.returnsEval(i.X)

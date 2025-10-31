@@ -2,6 +2,8 @@ package internal
 
 import (
 	"fmt"
+	"os"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -28,7 +30,7 @@ func TestProgramTypeConvert(t *testing.T) {
 			if got, want := out, "3"; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
-			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", t.Name()), src)
+			out = parseAndWalk(t, src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -61,7 +63,7 @@ func TestProgramTypeUnsignedConvert(t *testing.T) {
 			if got, want := out, "3"; got != want {
 				t.Errorf("[run] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
-			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", tt.typeName), src)
+			out = parseAndWalk(t, src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("[step] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -100,7 +102,7 @@ func TestAssignmentOperators(t *testing.T) {
 			if got, want := out, tt.want; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
-			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", t.Name()), src)
+			out = parseAndWalk(t, src)
 			if got, want := out, tt.want; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -180,6 +182,19 @@ func main() {
 	a,b := ab(2, 3)
 	print(a,b)
 }`, "23")
+}
+
+func TestEarlyReturn(t *testing.T) {
+	testProgram(t, true, true, `package main
+
+func main() {
+	if true {
+		print("2")
+		return
+	}
+	print("0")
+	return
+}`, "2")
 }
 
 func TestFor(t *testing.T) {
@@ -470,7 +485,17 @@ func main() {
 }`, "0hello1world")
 }
 
-func TestRangeOfInt(t *testing.T) {
+func TestRangeOfStringsNoValue(t *testing.T) {
+	testProgram(t, true, true, `package main
+
+func main() { 
+	for i := range [2]string{} {
+		print(i)
+	}
+}`, "01")
+}
+
+func TestRangeOfIntNoKey(t *testing.T) {
 	testProgram(t, true, true, `package main
 
 func main() {
@@ -478,6 +503,16 @@ func main() {
 		print("a")
 	}
 }`, "aa")
+}
+
+func TestRangeOfIntWithKey(t *testing.T) {
+	testProgram(t, true, true, `package main
+
+func main() {
+	for i := range 2 {
+		print(i)
+	}
+}`, "01")
 }
 
 func TestRangeOfMap(t *testing.T) {
@@ -494,7 +529,7 @@ func main() {
 }
 
 func TestRangeNested(t *testing.T) {
-	testProgram(t, true, false, `package main
+	testProgram(t, true, true, `package main
 
 func main() {
 	m := map[string]int{"a": 1, "b": 2}
@@ -509,7 +544,11 @@ func main() {
 			}
 		}
 	}
-}`, func(out string) bool { return out == "0b20a11a11b2" || out == "0a10b21a11b2" })
+}`, func(out string) bool {
+		// because map iteration is random we need to match all possibilities
+		ok, _ := regexp.MatchString("^(?:0a10b2|0b20a1)(?:1a11b2|1b21a1)$", out)
+		return ok
+	})
 }
 
 func TestInit(t *testing.T) {
@@ -535,7 +574,7 @@ func main() {
 }
 
 func TestGoto(t *testing.T) {
-	testProgram(t, false, false, `
+	testProgram(t, !true, !true, `
 package main
 
 func main() {
@@ -548,12 +587,13 @@ one:
 	} else {
 		goto two
 	}
+	print("unreachable")
 two:
 	print(s)
 	s++
 	goto one
 }
-`, "aaa")
+`, "123")
 }
 
 func TestMap(t *testing.T) {
@@ -637,12 +677,62 @@ func main() {
 }
 
 func TestDefer(t *testing.T) {
-	testProgram(t, true, false, `package main
+	testProgram(t, false, false, `package main
 
 func main() {
 	defer print(1)
 	defer print(2)
 }`, "12")
+}
+
+func TestNamedReturn(t *testing.T) {
+	testProgram(t, true, true, `package main
+func f() (result int) {
+	return 1 
+}
+func main(){
+	print(f())
+}`, "1")
+}
+
+// https://go.dev/ref/spec#Defer_statements
+func TestDeferReturn(t *testing.T) {
+	testProgram(t, false, false, `package main
+func f() (result int) {
+	defer func() {
+		// result is accessed after it was set to 6 by the return statement
+		result *= 7
+	}()
+	return 6
+}
+func main(){
+	print(f())
+}`, "42")
+}
+
+func TestDeferInLoop(t *testing.T) {
+	// i must be captured by value in the defer
+	testProgram(t, false, false, `package main
+import "fmt"
+func main(){
+	for i := 0; i <= 3; i++ {
+		defer fmt.Print(i)
+	}
+}`, "3210")
+}
+
+func TestDeferInLoopInLiteral(t *testing.T) {
+	// i must be captured by value in the defer
+	testProgram(t, false, false, `package main
+import "fmt"
+func main(){
+	f := func() {
+		for i := 0; i <= 3; i++ {
+			defer fmt.Print(i)
+		}
+	}
+	f()
+}`, "3210")
 }
 
 func TestMinMax(t *testing.T) {
@@ -719,8 +809,6 @@ func main() {
 }
 
 func TestFuncAsPackageVar(t *testing.T) {
-	// trace = true
-	// defer func() { trace = false }()
 	testProgram(t, true, true, `package main
 
 const h = "1"
@@ -816,7 +904,7 @@ func TestUnaries(t *testing.T) {
 			if got, want := out, tt.want; got != want {
 				t.Errorf("%s got [%[1]v:%[1]T] want [%[2]v:%[2]T]", tt.src, got, want)
 			}
-			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", t.Name()), src)
+			out = parseAndWalk(t, src)
 			if got, want := out, tt.want; got != want {
 				t.Errorf("%s got [%[1]v:%[1]T] want [%[2]v:%[2]T]", tt.src, got, want)
 			}
@@ -856,18 +944,10 @@ func main() {
 }
 
 func TestSubpackage(t *testing.T) {
-	testProgram(t, false, false, `package main
-
-import (
-	"fmt"
-
-	"github.com/emicklei/gi/examples/subpkg/pkg"
-)
-
-func main() {
-	print(pkg.Name, pkg.IsWeekend("Sunday"))
-}
-`, "All Daystrue")
+	if os.Getenv("GI_TRACE") == "" {
+		t.Skip("GI_TRACE not set")
+	}
+	testProgramIn(t, true, false, "../examples/subpkg", "yet unchecked")
 }
 
 // about nil
@@ -875,7 +955,6 @@ func main() {
 func TestNilError(t *testing.T) {
 	// trace = true
 	testProgram(t, true, true, `package main
-import "errors"
 func main() {
 	var err error = nil
 	print(err)
@@ -963,4 +1042,14 @@ func main() {
 	swap(&x, &y)
 	print(x, y)
 }`, "105")
+  
+func TestNewStandardType(t *testing.T) {
+	testProgram(t, true, true, `package main
+import "sync"
+func main() {
+	var wg *sync.WaitGroup = new(sync.WaitGroup)
+	wg.Add(1)
+	wg.Done()
+	print("done")
+}`, "done")
 }

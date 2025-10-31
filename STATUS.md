@@ -35,7 +35,10 @@
 | defer | ✅ |
 | variadic function | ⬜ |
 | blank identifier | ⬜ |
-| goto, continue, break, fallthrough | ⬜ |
+| goto | ✅ |
+| continue | ⬜ |
+| fallthrough | ⬜ |
+| break | ⬜ |
 | `real` `imag` | ✅ |
 | `error` | ✅ |
 | `nil` | ⬜ |
