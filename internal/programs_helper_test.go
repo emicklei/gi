@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"io"
 	"os"
+	"os/exec"
 	"path"
 	"reflect"
 	"testing"
@@ -14,7 +15,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func buildPackage(t *testing.T, dotFilename, source string) *Package {
+func buildPackage(t *testing.T, source string) *Package {
 	t.Helper()
 	cwd, _ := os.Getwd()
 	cfg := &packages.Config{
@@ -34,7 +35,7 @@ func buildPackage(t *testing.T, dotFilename, source string) *Package {
 	if err != nil {
 		t.Fatalf("failed to load packages: %v", err)
 	}
-	ffpkg, err := BuildPackage(gopkg, dotFilename, true)
+	ffpkg, err := BuildPackage(gopkg, true)
 	if err != nil {
 		t.Fatalf("failed to build package: %v", err)
 	}
@@ -58,11 +59,19 @@ func collectPrintOutput(vm *VM) {
 	}))
 }
 
-func parseAndWalk(t *testing.T, dotFilename, source string) string {
+func parseAndWalk(t *testing.T, source string) string {
 	t.Helper()
-	pkg := buildPackage(t, dotFilename, source)
+	pkg := buildPackage(t, source)
 	vm := newVM(pkg.Env)
 	collectPrintOutput(vm)
+
+	// create dot graph for debugging
+	os.WriteFile(fmt.Sprintf("testgraphs/%s.src", t.Name()), []byte(source), 0644)
+	gidot := fmt.Sprintf("testgraphs/%s.dot", t.Name())
+	pkg.writeDotGraph(gidot)
+	// will fail in pipeline without graphviz installed
+	exec.Command("dot", "-Tpng", "-o", gidot+".png", gidot).Run()
+
 	if err := WalkPackageFunction(pkg, "main", vm); err != nil {
 		panic(err)
 	}
@@ -71,7 +80,7 @@ func parseAndWalk(t *testing.T, dotFilename, source string) string {
 
 func parseAndRun(t *testing.T, source string) string {
 	t.Helper()
-	pkg := buildPackage(t, "", source)
+	pkg := buildPackage(t, source)
 	vm := newVM(pkg.Env)
 	collectPrintOutput(vm)
 	if _, err := RunPackageFunction(pkg, "main", nil, vm); err != nil {
@@ -91,7 +100,7 @@ func testProgramIn(t *testing.T, running bool, stepping bool, dir string, wantFu
 	}
 	os.Chdir(loc)
 	defer os.Chdir(cwd)
-	pkg, err := BuildPackage(gopkg, fmt.Sprintf("testgraphs/%s.src", t.Name()), false)
+	pkg, err := BuildPackage(gopkg, false)
 	if err != nil {
 		t.Fatalf("failed to build package in %s: %v", loc, err)
 	}
@@ -120,9 +129,7 @@ func testProgram(t *testing.T, running bool, stepping bool, source string, wantF
 		t.Log("TODO skipped run: ", t.Name())
 	}
 	if stepping {
-		os.WriteFile(fmt.Sprintf("testgraphs/%s.src", t.Name()), []byte(source), 0644)
-		gidot := fmt.Sprintf("testgraphs/%s.dot", t.Name())
-		out := parseAndWalk(t, gidot, source)
+		out := parseAndWalk(t, source)
 		if fn, ok := wantFuncOrString.(func(string) bool); ok {
 			if !fn(out) {
 				t.Errorf("got [%v] which does not match predicate", out)

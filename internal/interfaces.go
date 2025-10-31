@@ -1,12 +1,14 @@
 package internal
 
 import (
+	"go/token"
 	"reflect"
 
 	"github.com/emicklei/dot"
 )
 
 type Evaluable interface {
+	Pos() token.Pos
 	Eval(vm *VM)
 }
 

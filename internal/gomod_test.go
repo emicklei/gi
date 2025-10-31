@@ -9,5 +9,7 @@ func TestLoadGomod(t *testing.T) {
 	}
 	for _, each := range modFile.Require {
 		t.Logf("require: %s %s", each.Mod.Path, each.Mod.Version)
+		path, err := GetModulePath(each.Mod.Path, each.Mod.Version)
+		t.Logf("module path: %s %v", path, err)
 	}
 }

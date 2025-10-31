@@ -30,7 +30,7 @@ func TestProgramTypeConvert(t *testing.T) {
 			if got, want := out, "3"; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
-			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", t.Name()), src)
+			out = parseAndWalk(t, src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -63,7 +63,7 @@ func TestProgramTypeUnsignedConvert(t *testing.T) {
 			if got, want := out, "3"; got != want {
 				t.Errorf("[run] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
-			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", tt.typeName), src)
+			out = parseAndWalk(t, src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("[step] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -102,7 +102,7 @@ func TestAssignmentOperators(t *testing.T) {
 			if got, want := out, tt.want; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
-			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", t.Name()), src)
+			out = parseAndWalk(t, src)
 			if got, want := out, tt.want; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -904,7 +904,7 @@ func TestUnaries(t *testing.T) {
 			if got, want := out, tt.want; got != want {
 				t.Errorf("%s got [%[1]v:%[1]T] want [%[2]v:%[2]T]", tt.src, got, want)
 			}
-			out = parseAndWalk(t, fmt.Sprintf("testgraphs/unsigned_convert-%s.dot", t.Name()), src)
+			out = parseAndWalk(t, src)
 			if got, want := out, tt.want; got != want {
 				t.Errorf("%s got [%[1]v:%[1]T] want [%[2]v:%[2]T]", tt.src, got, want)
 			}

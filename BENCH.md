@@ -35,3 +35,14 @@ BenchmarkIfElseIfElse/native-12                 1000000000               0.00005
 BenchmarkIfElseIfElse/run-12                         259           4570317 ns/op         2572322 B/op      75582 allocs/op
 BenchmarkIfElseIfElse/walk-12                        256           4553730 ns/op         2069659 B/op      70125 allocs/op
 ```
+
+31-10-2025
+```
+goos: darwin
+goarch: arm64
+pkg: github.com/emicklei/gi/internal
+cpu: Apple M3 Pro
+BenchmarkIfElseIfElse/native-12                 1000000000               0.0000466 ns/op               0 B/op          0 allocs/op
+BenchmarkIfElseIfElse/run-12                         258           4618984 ns/op         2572510 B/op      75587 allocs/op
+BenchmarkIfElseIfElse/walk-12                        256           4632972 ns/op         2070043 B/op      70127 allocs/op
+```

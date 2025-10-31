@@ -245,7 +245,8 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 
 type NoExpr struct{}
 
-func (NoExpr) Eval(vm *VM) {} // used?
+func (NoExpr) Pos() token.Pos { return token.NoPos }
+func (NoExpr) Eval(vm *VM)    {} // used?
 func (n NoExpr) Flow(g *graphBuilder) (head Step) {
 	return g.current
 }
@@ -405,6 +406,7 @@ type ReflectLenExpr struct {
 	X Expr
 }
 
+func (r ReflectLenExpr) Pos() token.Pos { return r.X.Pos() }
 func (r ReflectLenExpr) Eval(vm *VM) {
 	val := vm.frameStack.top().pop()
 	vm.frameStack.top().push(reflect.ValueOf(val.Len()))

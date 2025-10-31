@@ -5,9 +5,11 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"os"
 	"reflect"
 	"time"
 
+	"github.com/emicklei/dot"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -86,6 +88,23 @@ func (p *Package) Initialize(vm *VM) error {
 	return nil
 }
 
+func (p *Package) writeDotGraph(fileName string) {
+	g := dot.NewGraph(dot.Directed)
+	// for each function in the package create a subgraph
+	values := p.Env.Env.(*Environment).valueTable
+	for k, v := range values {
+		if funDecl, ok := v.Interface().(FuncDecl); ok {
+			if funDecl.callGraph == nil {
+				continue
+			}
+			sub := g.Subgraph(k, dot.ClusterOption{})
+			visited := map[int32]dot.Node{}
+			funDecl.callGraph.Traverse(sub, visited)
+		}
+	}
+	os.WriteFile(fileName, []byte(g.String()), 0644)
+}
+
 func (p *Package) String() string {
 	return fmt.Sprintf("Package(%s,%s)", p.Name, p.PkgPath)
 }
@@ -149,21 +168,25 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 }
 
 // TODO build options
-func BuildPackage(pkg *packages.Package, dotFilename string, isStepping bool) (*Package, error) {
+func BuildPackage(goPkg *packages.Package, isStepping bool) (*Package, error) {
 	if trace {
 		now := time.Now()
 		defer func() {
-			fmt.Printf("pkg.build(%s) took %v\n", pkg.PkgPath, time.Since(now))
+			fmt.Printf("pkg.build(%s) took %v\n", goPkg.PkgPath, time.Since(now))
 		}()
 	}
-	b := newStepBuilder(pkg)
-	b.opts = buildOptions{callGraph: isStepping, dotFilename: dotFilename}
-	for _, stx := range pkg.Syntax {
+	b := newStepBuilder(goPkg)
+	b.opts = buildOptions{callGraph: isStepping}
+	for _, stx := range goPkg.Syntax {
 		for _, decl := range stx.Decls {
 			b.Visit(decl)
 		}
 	}
-	return &Package{Package: pkg, Env: b.env.(*PkgEnvironment)}, nil
+	pkg := &Package{Package: goPkg, Env: b.env.(*PkgEnvironment)}
+	if dotFilename := os.Getenv("GI_DOT"); dotFilename != "" {
+		pkg.writeDotGraph(dotFilename)
+	}
+	return pkg, nil
 }
 
 func RunPackageFunction(pkg *Package, functionName string, args []any, optionalVM *VM) ([]any, error) {

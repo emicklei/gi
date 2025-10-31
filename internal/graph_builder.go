@@ -2,9 +2,7 @@ package internal
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/emicklei/dot"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -14,7 +12,6 @@ type graphBuilder struct {
 	goPkg     *packages.Package // for type information
 	head      Step              // the entry point to the flow graph
 	current   Step              // the current step to attach the next step to
-	dotFile   string            // for overriding the default graph.dot file (only used when calling dotify)
 	funcStack stack[FuncDecl]   // to keep track of current function for branch statements
 }
 
@@ -69,22 +66,4 @@ func (g *graphBuilder) newPushStackFrame() *pushStackFrameStep {
 // newPopStackFrameStep creates a step that pops the current stack frame.
 func (g *graphBuilder) newPopStackFrame() *popStackFrameStep {
 	return &popStackFrameStep{step: g.newStep(nil)}
-}
-
-func (g *graphBuilder) dotFilename() string {
-	if g.dotFile != "" {
-		return g.dotFile
-	}
-	return "graph.dot"
-}
-
-// dotify writes the current graph to a file.
-func (g *graphBuilder) dotify(start Step) {
-	if start == nil {
-		return
-	}
-	d := dot.NewGraph(dot.Directed)
-	visited := map[int32]dot.Node{}
-	start.Traverse(d, visited)
-	os.WriteFile(g.dotFilename(), []byte(d.String()), 0644)
 }

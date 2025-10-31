@@ -5,7 +5,6 @@ import (
 	"go/ast"
 	"go/token"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -18,8 +17,7 @@ import (
 var _ ast.Visitor = (*stepBuilder)(nil)
 
 type buildOptions struct {
-	callGraph   bool
-	dotFilename string
+	callGraph bool
 }
 
 type stepBuilder struct {
@@ -282,7 +280,7 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 				fmt.Fprintf(os.Stderr, "failed to load imported package %s: %v\n", unq, err)
 				break
 			}
-			pkg, err := BuildPackage(gopkg, b.opts.dotFilename, b.opts.callGraph)
+			pkg, err := BuildPackage(gopkg, b.opts.callGraph)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to build imported package %s: %v\n", unq, err)
 				break
@@ -356,7 +354,10 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.FuncDecl:
 		// any declarations inside the function scope
 		b.pushEnv()
-		s := FuncDecl{FuncDecl: n, labelToStmt: make(map[string]statementReference)}
+		s := FuncDecl{
+			FuncDecl:    n,
+			labelToStmt: make(map[string]statementReference),
+			fileSet:     b.goPkg.Fset}
 		b.pushFuncDecl(s)
 		defer b.popFuncDecl()
 		if n.Recv != nil {
@@ -385,14 +386,6 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			// store call graph in the FuncDecl
 			g := newGraphBuilder(b.goPkg)
 			s.callGraph = s.Flow(g)
-
-			// for debugging
-			if fileName := b.opts.dotFilename; fileName != "" {
-				g.dotFile = fileName
-				g.dotify(s.callGraph)
-				// will fail in pipeline without graphviz installed
-				exec.Command("dot", "-Tpng", "-o", g.dotFilename()+".png", g.dotFilename()).Run()
-			}
 		}
 
 		// leave the function scope
