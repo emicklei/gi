@@ -12,14 +12,20 @@ import (
 )
 
 type StandardPackage struct {
-	Name        string
-	PkgPath     string
-	symbolTable map[string]reflect.Value
+	Name    string
+	PkgPath string
+	// TODO currently separate tables for types and other symbols
+	symbolTable map[string]reflect.Value // const,var,func, not types
+	typesTable  map[string]reflect.Value // not reflect.Type to make Select work uniformly
 }
 
 func (p StandardPackage) Select(name string) reflect.Value {
 	v, ok := p.symbolTable[name]
 	if !ok {
+		t, ok := p.typesTable[name]
+		if ok {
+			return t
+		}
 		return reflect.Value{}
 	}
 	return v

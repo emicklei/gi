@@ -242,11 +242,16 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 			pkgName = n.Name.Name
 		}
 		// check for standard package
-		if symbolTable := stdpkg[unq]; symbolTable != nil {
+		if symbolTable := stdfuncs[unq]; symbolTable != nil {
 			p := StandardPackage{
 				Name:        pkgName,
 				PkgPath:     unq,
 				symbolTable: symbolTable,
+			}
+			// check for types
+			typesTable, ok := stdtypes[unq]
+			if ok {
+				p.typesTable = typesTable
 			}
 			b.envSet(pkgName, reflect.ValueOf(p))
 			break
