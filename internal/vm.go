@@ -13,7 +13,10 @@ import (
 
 var framePool = sync.Pool{
 	New: func() any {
-		return &stackFrame{}
+		return &stackFrame{
+			operandStack: make([]reflect.Value, 0, 8),
+			returnValues: make([]reflect.Value, 0, 2),
+		}
 	},
 }
 
@@ -34,6 +37,26 @@ func (f *stackFrame) pop() reflect.Value {
 	v := f.operandStack[len(f.operandStack)-1]
 	f.operandStack = f.operandStack[:len(f.operandStack)-1]
 	return v
+}
+
+// peek returns the value at the given offset from the top of the operand stack without removing it.
+func (f *stackFrame) peek(offsetFromTop int) reflect.Value {
+	i := len(f.operandStack) - 1 - offsetFromTop
+	if i < 0 || i >= len(f.operandStack) {
+		var zero reflect.Value
+		return zero
+	}
+	return f.operandStack[i]
+}
+
+// pushEnv creates and activates a new child environment for the stack frame.
+func (f *stackFrame) pushEnv() {
+	f.env = f.env.newChild()
+}
+
+// popEnv reverts to the parent environment for the stack frame.
+func (f *stackFrame) popEnv() {
+	f.env = f.env.getParent()
 }
 
 func (f *stackFrame) String() string {
@@ -134,10 +157,10 @@ func (vm *VM) fatal(err any) {
 	}
 	s := structexplorer.NewService("vm", vm)
 	for i, each := range vm.frameStack {
-		s.Explore(fmt.Sprintf("vm.callStack.%d", i), each, structexplorer.Column(0))
-		s.Explore(fmt.Sprintf("vm.callStack.%d.env", i), each.env, structexplorer.Column(1))
-		s.Explore(fmt.Sprintf("vm.callStack.%d.operandStack", i), each.operandStack, structexplorer.Column(1))
-		s.Explore(fmt.Sprintf("vm.callStack.%d.returnValues", i), each.returnValues, structexplorer.Column(1))
+		s.Explore(fmt.Sprintf("vm.frameStack.%d", i), each, structexplorer.Column(0))
+		s.Explore(fmt.Sprintf("vm.frameStack.%d.env", i), each.env, structexplorer.Column(1))
+		s.Explore(fmt.Sprintf("vm.frameStack.%d.operandStack", i), each.operandStack, structexplorer.Column(1))
+		s.Explore(fmt.Sprintf("vm.frameStack.%d.returnValues", i), each.returnValues, structexplorer.Column(1))
 	}
 	s.Dump("gi-vm-panic.html")
 	if trace {

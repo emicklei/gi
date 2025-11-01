@@ -762,7 +762,7 @@ func main() {
 }
 
 func TestSwitchOnBool(t *testing.T) {
-	testProgram(t, true, false, `package main
+	testProgram(t, true, !true, `package main
 
 func main() {
 	var a int = 1
@@ -774,7 +774,7 @@ func main() {
 }
 
 func TestSwitch(t *testing.T) {
-	testProgram(t, true, false, `package main
+	testProgram(t, !true, !true, `package main
 
 func main() {
 	var a int
@@ -788,6 +788,35 @@ func main() {
 		print(2)
 	}
 }`, "12")
+}
+
+/**
+a = 1
+if a == 1 {
+	print(a)
+}
+if a == 2 {
+	print(a)
+} else {
+	print(2)
+}
+**/
+
+func TestSwitchType(t *testing.T) {
+	testProgram(t, !true, !true, `package main
+
+func main() {
+	var v any
+	v = "gi"
+	switch v := v.(type) {
+	case int:
+		print("int:", v)
+	case string:
+		print("string:", v)
+	default:
+		print("unknown:", v)
+	}
+}`, "string:gi")
 }
 
 func TestPanic(t *testing.T) {

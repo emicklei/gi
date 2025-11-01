@@ -40,3 +40,4 @@ vm-panic.html
 gi-vm-panic.html
 *.prof
 .DS_Store
+mem.pprof

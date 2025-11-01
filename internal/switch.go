@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"go/ast"
 	"reflect"
+
+	"github.com/emicklei/dot"
 )
 
 var _ Stmt = SwitchStmt{}
@@ -19,8 +21,8 @@ type SwitchStmt struct {
 func (s SwitchStmt) stmtStep() Evaluable { return s }
 
 func (s SwitchStmt) Eval(vm *VM) {
-	vm.pushNewFrame(s)
-	defer vm.popFrame() // to handle break statements
+	vm.frameStack.top().pushEnv()
+	defer vm.frameStack.top().popEnv()
 	if trace {
 		if s.Init != nil {
 			vm.traceEval(s.Init.stmtStep())
@@ -44,16 +46,19 @@ func (s SwitchStmt) String() string {
 }
 
 func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
-	head = new(pushStackFrameStep)
-	g.nextStep(head)
 	if s.Init != nil {
-		s.Init.Flow(g)
+		head = s.Init.Flow(g)
 	}
 	if s.Tag != nil {
 		s.Tag.Flow(g)
+		if head == nil {
+			head = g.current
+		}
 	}
 	s.Body.Flow(g)
-	g.nextStep(new(popStackFrameStep))
+	if head == nil {
+		head = g.current
+	}
 	return head
 }
 
@@ -99,8 +104,8 @@ func (c CaseClause) Eval(vm *VM) {
 			cond = right.Bool()
 		}
 		if cond {
-			vm.pushNewFrame(c)
-			defer vm.popFrame()
+			vm.frameStack.top().pushEnv()
+			defer vm.frameStack.top().popEnv()
 			for _, stmt := range c.Body {
 				if trace {
 					vm.traceEval(stmt.stmtStep())
@@ -114,5 +119,72 @@ func (c CaseClause) Eval(vm *VM) {
 }
 
 func (c CaseClause) Flow(g *graphBuilder) (head Step) {
-	return g.current // TODO
+	if c.List != nil {
+		for i, expr := range c.List {
+			expr.Flow(g)
+			if i == 0 {
+				head = g.current
+			}
+			cs := new(caseStep)
+			// create detached body flow
+			bg := newGraphBuilder(g.goPkg)
+			for _, stmt := range c.Body {
+				stmt.Flow(bg)
+			}
+			cs.bodyFlow = bg.head
+			g.nextStep(cs)
+		}
+	} else {
+		// default case has no expressions
+		for _, stmt := range c.Body {
+			stmt.Flow(g)
+		}
+	}
+	if head == nil {
+		head = g.current
+	}
+	// each case clause ends the switch
+	g.current = nil
+	return
+}
+
+type caseStep struct {
+	step
+	exprFlow Step
+	bodyFlow Step
+}
+
+func (s *caseStep) Take(vm *VM) Step {
+	f := vm.frameStack.top()
+	var left reflect.Value
+	// is there a tag value on the operand stack?
+	if len(f.operandStack) != 0 {
+		left = vm.frameStack.top().pop()
+	}
+	if left.IsValid() {
+		if left.Kind() == reflect.Bool {
+			if left.Bool() {
+				return s.bodyFlow
+			}
+		} else {
+			right := vm.frameStack.top().pop()
+			if left.Equal(right) {
+				return s.bodyFlow
+			}
+		}
+	}
+	return s.next
+}
+
+func (s *caseStep) String() string {
+	return fmt.Sprintf("%2d: case", s.id)
+}
+
+func (s *caseStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	me := s.step.traverse(g, s.String(), "case", visited)
+	expr := s.exprFlow.Traverse(g, visited)
+	me.Edge(expr, "expr")
+	body := s.bodyFlow.Traverse(g, visited)
+	me.Edge(body, "body")
+	return me
 }
