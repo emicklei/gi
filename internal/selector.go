@@ -20,6 +20,10 @@ func (s SelectorExpr) Eval(vm *VM) {
 	} else {
 		recv = vm.returnsEval(s.X)
 	}
+	// TODO value sementics for address-of
+	if addrOf, ok := recv.Interface().(AddressOf); ok {
+		recv = addrOf.Value
+	}
 	if !recv.IsValid() {
 		// propagate invalid value
 		vm.pushOperand(recv)

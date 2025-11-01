@@ -233,14 +233,13 @@ func main() {
 }
 
 func TestGeneric(t *testing.T) {
-	testProgram(t, !true, false, `
+	testProgram(t, true, true, `
 package main
 
-import "fmt"
 func Generic[T any](arg T) (*T, error) { return &arg, nil }
 func main() {
 	h, _ := Generic("hello")
-	fmt.Println(*h)
+	print(*h)
 }`, "hello")
 }
 func TestDeclare(t *testing.T) {
@@ -442,8 +441,7 @@ func main() {
 }
 
 func TestNewType(t *testing.T) {
-	t.Skip()
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 type Airplane struct {
 	Model string
 }
@@ -454,7 +452,7 @@ func main() {
 }
 
 func TestAddressOfType(t *testing.T) {
-	testProgram(t, false, false, `package main
+	testProgram(t, true, true, `package main
 type Airplane struct {
 	Model string
 }
@@ -465,7 +463,7 @@ func main() {
 }
 
 func TestAddressOfInt(t *testing.T) {
-	testProgram(t, true, false, `package main
+	testProgram(t, true, true, `package main
 
 func main() {
 	i := 42
@@ -495,7 +493,7 @@ func main() {
 }
 
 func TestRangeOfIntNoKey(t *testing.T) {
-	testProgram(t, !true, true, `package main
+	testProgram(t, true, true, `package main
 
 func main() {
 	for range 2 {
@@ -573,7 +571,7 @@ func main() {
 }
 
 func TestGoto(t *testing.T) {
-	testProgram(t, !true, !true, `
+	testProgram(t, true, true, `
 package main
 
 func main() {

@@ -11,10 +11,10 @@ func expected(value any, expectation string) reflect.Value {
 
 func mustString(v reflect.Value) string {
 	if !v.IsValid() {
-		panic("value not valid")
+		panic("value not valid as string")
 	}
 	if !v.CanInterface() {
-		panic("cannot get interface")
+		panic("cannot get interface for string")
 	}
 	s, ok := v.Interface().(string)
 	if !ok {

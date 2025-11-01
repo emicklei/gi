@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"reflect"
 )
 
@@ -44,7 +45,18 @@ func (e KeyValueExpr) Eval(vm *VM) {
 func (e KeyValueExpr) Flow(g *graphBuilder) (head Step) {
 	// Value first so that it ends up on top of the stack
 	head = e.Value.Flow(g)
-	e.Key.Flow(g)
+
+	switch k := e.Key.(type) {
+	case Ident:
+		// use as string selector
+		key := BasicLit{BasicLit: &ast.BasicLit{Kind: token.STRING, Value: fmt.Sprintf("%q", k.Name)}}
+		key.Flow(g)
+	case BasicLit:
+		e.Key.Flow(g)
+	default:
+		panic("unhandled key type:" + fmt.Sprintf("%T", e.Key))
+	}
+
 	g.next(e)
 	return head
 }

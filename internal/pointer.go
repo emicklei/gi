@@ -38,3 +38,7 @@ func (vp *VarPointer) String() string {
 	// This creates a consistent address representation
 	return fmt.Sprintf("%p", vp)
 }
+
+type AddressOf struct {
+	Value reflect.Value
+}

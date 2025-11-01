@@ -34,6 +34,16 @@ func (u UnaryExpr) Eval(vm *VM) {
 			vm.pushOperand(reflect.ValueOf(vp))
 			return
 		}
+		if _, ok := u.X.(CompositeLit); ok {
+			var v reflect.Value
+			if vm.isStepping {
+				v = vm.frameStack.top().pop()
+			} else {
+				v = vm.returnsEval(u.X)
+			}
+			vm.pushOperand(reflect.ValueOf(AddressOf{Value: v}))
+			return
+		}
 	}
 
 	var v reflect.Value

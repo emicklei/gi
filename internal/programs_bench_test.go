@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"bytes"
 	"go/token"
 	"os"
 	"path"
@@ -42,22 +41,19 @@ func main() {
 	if err != nil {
 		b.Fatalf("failed to load packages: %v", err)
 	}
+
 	{
-		b.Run("native", func(b *testing.B) {
-			buf := new(bytes.Buffer)
-			for i := 0; i < 100; i++ {
-				for j := 0; j < 100; j++ {
-					if i == j {
-						buf.WriteString("a")
-					} else if i < j {
-						buf.WriteString("b")
-					} else {
-						buf.WriteString("c")
-					}
-				}
-			}
+		b.Run("build-run", func(b *testing.B) {
+			BuildPackage(pkg, false)
 		})
 	}
+
+	{
+		b.Run("build-walk", func(b *testing.B) {
+			BuildPackage(pkg, true)
+		})
+	}
+
 	{
 		prog, err := BuildPackage(pkg, false)
 		if err != nil {
