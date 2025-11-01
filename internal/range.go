@@ -100,12 +100,10 @@ func (r RangeStmt) Eval(vm *VM) {
 // TODO fix position info
 func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)
-	switcher := &rangeIteratorSwitchStep{
-		step: g.newStep(nil),
-	}
+	switcher := new(rangeIteratorSwitchStep)
 	g.nextStep(switcher)
 	// all flows converge to this done step
-	rangeDone := g.newStep(nil)
+	rangeDone := g.newLabeledStep("range-done")
 
 	// determine the type of X
 	goType := g.goPkg.TypesInfo.TypeOf(r.RangeStmt.X)
@@ -113,19 +111,19 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	switch goType.Underlying().(type) {
 	case *types.Map:
 		// start the map flow, detached from the current
-		g.current = g.newStep(nil)
+		g.current = g.newLabeledStep("range-map")
 		switcher.mapFlow = r.MapFlow(g)
 		g.nextStep(rangeDone)
 
 	case *types.Slice, *types.Array:
 		// start the list flow, detached from the current
-		g.current = g.newStep(nil)
+		g.current = g.newLabeledStep("range-slice-or-array")
 		switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
 		g.nextStep(rangeDone)
 
 	case *types.Basic:
 		// start the int flow, detached from the current
-		g.current = g.newStep(nil)
+		g.current = g.newLabeledStep("range-int")
 		switcher.intFlow = r.IntFlow(g)
 		g.nextStep(rangeDone)
 	}
@@ -133,7 +131,7 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 }
 
 type rangeMapIteratorInitStep struct {
-	*step
+	step
 	localVarName string
 }
 
@@ -144,7 +142,7 @@ func (r *rangeMapIteratorInitStep) Take(vm *VM) Step {
 	return r.next
 }
 
-func (r *rangeMapIteratorInitStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
+func (r *rangeMapIteratorInitStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	return r.step.traverse(g, r.step.StringWith("map-iterator-init"), "next", visited)
 }
 
@@ -153,7 +151,7 @@ func (r *rangeMapIteratorInitStep) String() string {
 }
 
 type rangeMapIteratorNextStep struct {
-	*step
+	step
 	localVarName         string
 	bodyFlow             Step
 	yieldKey, yieldValue bool
@@ -174,7 +172,7 @@ func (r *rangeMapIteratorNextStep) Take(vm *VM) Step {
 	return r.next
 }
 
-func (r *rangeMapIteratorNextStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
+func (r *rangeMapIteratorNextStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	me := r.step.traverse(g, r.step.StringWith("map-iterator-next"), "next", visited)
 	if r.bodyFlow != nil {
 		// no edge if visited before
@@ -195,23 +193,19 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 
 	// create the iterator
 	localVarName := fmt.Sprintf("_mapIter_%d", g.idgen)
-	init := &rangeMapIteratorInitStep{
-		step:         g.newStep(nil),
-		localVarName: localVarName,
-	}
+	init := new(rangeMapIteratorInitStep)
+	init.localVarName = localVarName
 	g.nextStep(init)
 
 	// iterator next step
-	iter := &rangeMapIteratorNextStep{
-		step:         g.newStep(nil),
-		localVarName: localVarName,
-		yieldKey:     r.Key != nil,
-		yieldValue:   r.Value != nil,
-	}
+	iter := new(rangeMapIteratorNextStep)
+	iter.localVarName = localVarName
+	iter.yieldKey = r.Key != nil
+	iter.yieldValue = r.Value != nil
 	g.nextStep(iter)
 
 	// start the body flow, detached from the current
-	g.current = g.newStep(nil)
+	g.current = g.newLabeledStep("range-map-body")
 	if iter.yieldKey || iter.yieldValue {
 		// key = key
 		// value = x[value]
@@ -421,7 +415,7 @@ func (r ReflectLenExpr) String() string {
 
 // rangeIteratorSwitchStep looks at the Kind of the value of X to determine which flow to use.
 type rangeIteratorSwitchStep struct {
-	*step
+	step
 	mapFlow          Step
 	sliceOrArrayFlow Step
 	intFlow          Step
@@ -440,7 +434,7 @@ func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
 		panic(fmt.Sprintf("cannot range over type %v", rangeable.Type()))
 	}
 }
-func (i *rangeIteratorSwitchStep) Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node {
+func (i *rangeIteratorSwitchStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	me := i.step.traverse(g, i.step.StringWith("switch-iterator"), "next", visited)
 	if i.mapFlow != nil {
 		// no edge if visited before

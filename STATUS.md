@@ -25,20 +25,19 @@
 | `min` , `max` builtins | ✅ |
 | Pointers | ✅ |
 | Interfaces | ⬜ |
-| Methods | ⬜ |
+| Methods | ✅ |
 | Goroutines `go` | ⬜ |
 | Channels `chan` | ⬜ |
 | `select` statement | ⬜ |
-| Anonymous `func` | ⬜ |
 | Function literal | ✅ |
 | Type alias | ✅ |
 | defer | ✅ |
 | variadic function | ⬜ |
-| blank identifier | ⬜ |
+| blank identifier | ✅ |
 | goto | ✅ |
 | continue | ⬜ |
 | fallthrough | ⬜ |
 | break | ⬜ |
 | `real` `imag` | ✅ |
 | `error` | ✅ |
-| `nil` | ⬜ |
+| `nil` | ✅ |

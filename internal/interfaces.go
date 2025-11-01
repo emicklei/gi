@@ -68,9 +68,13 @@ type Step interface {
 	Evaluable
 	StepTaker
 	Traverseable
-	SetNext(s Step)
+
+	// implemented by step
 	Next() Step
-	ID() int32
+	SetNext(s Step)
+	ID() int
+	SetID(id int)
+
 	String() string
 }
 
@@ -79,5 +83,5 @@ type StepTaker interface {
 }
 
 type Traverseable interface {
-	Traverse(g *dot.Graph, visited map[int32]dot.Node) dot.Node
+	Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node
 }

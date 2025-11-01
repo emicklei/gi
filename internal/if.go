@@ -61,9 +61,9 @@ func (i IfStmt) Flow(g *graphBuilder) (head Step) {
 	}
 
 	// both true and false branch need a new and different stack frame
-	truePush := g.newPushStackFrame()
+	truePush := new(pushStackFrameStep)
 	// both branches will pop and can use the same step
-	pop := g.newPopStackFrame()
+	pop := new(popStackFrameStep)
 
 	g.nextStep(truePush)
 	i.Body.Flow(g)
@@ -72,7 +72,7 @@ func (i IfStmt) Flow(g *graphBuilder) (head Step) {
 
 	// now handle false branch
 	if i.Else != nil {
-		elsePush := g.newPushStackFrame()
+		elsePush := new(pushStackFrameStep)
 		begin.elseFlow = elsePush
 		g.current = elsePush
 		i.Else.Flow(g)

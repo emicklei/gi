@@ -14,10 +14,10 @@ func TestStepByStep(t *testing.T) {
 		Y:          right,
 		BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
 	}
-	leftStep := &step{Evaluable: left}
-	rightStep := &step{Evaluable: right}
+	leftStep := &evaluableStep{Evaluable: left}
+	rightStep := &evaluableStep{Evaluable: right}
 	leftStep.SetNext(rightStep)
-	binExprStep := &step{Evaluable: expr}
+	binExprStep := &evaluableStep{Evaluable: expr}
 	rightStep.SetNext(binExprStep)
 
 	vm := newVM(newEnvironment(nil))
@@ -28,4 +28,17 @@ func TestStepByStep(t *testing.T) {
 		here = here.Next()
 	}
 	t.Log("result:", vm.frameStack.top().pop().Interface())
+}
+
+func TestEvaluableStep(t *testing.T) {
+	lit := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "42"}}
+	step1 := &evaluableStep{Evaluable: lit}
+	step2 := &evaluableStep{Evaluable: lit}
+	set := func(s, n Step) {
+		s.SetNext(n)
+	}
+	set(step1, step2)
+	if step1.Next() != step2 {
+		t.Errorf("expected step1.Next() to be step2")
+	}
 }

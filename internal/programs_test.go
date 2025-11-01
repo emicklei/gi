@@ -233,8 +233,7 @@ func main() {
 }
 
 func TestGeneric(t *testing.T) {
-	t.Skip()
-	testProgram(t, true, false, `
+	testProgram(t, !true, false, `
 package main
 
 import "fmt"
@@ -496,7 +495,7 @@ func main() {
 }
 
 func TestRangeOfIntNoKey(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testProgram(t, !true, true, `package main
 
 func main() {
 	for range 2 {
@@ -1053,4 +1052,13 @@ func main() {
 	wg.Done()
 	print("done")
 }`, "done")
+}
+
+func TestBlankIdentifier(t *testing.T) {
+	testProgram(t, true, true, `package main
+
+func main() {
+	_, h, _ := "gi", "flow", "!"
+	print(h)
+}`, "flow")
 }

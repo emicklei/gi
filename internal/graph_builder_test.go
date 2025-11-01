@@ -4,23 +4,19 @@ import (
 	"testing"
 )
 
-func TestGrapherFor(t *testing.T) {
-	source := `
-package main
+func TestGrapherNext(t *testing.T) {
+	g := newGraphBuilder(nil)
+	e1 := Ident{}
+	g.next(e1)
+	s1 := g.current
+	e2 := Ident{}
+	g.next(e2)
+	s2 := g.current
 
-func main() {
-	j := 1
-	for i := 0; i < 3; i++ {
-		j = i
-		print(i)
+	if s1.Next() != s2 {
+		t.Errorf("expected s1.Next() to be s2")
 	}
-	print(j)
-}`
-
-	//trace = true)
-	out := parseAndWalk(t, source)
-	expected := `0122`
-	if out != expected {
-		t.Fatalf("expected %q got %q", expected, out)
+	if g.head != s1 {
+		t.Errorf("expected head to be s1")
 	}
 }

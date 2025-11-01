@@ -21,7 +21,7 @@ type buildOptions struct {
 }
 
 type stepBuilder struct {
-	stack     []*step
+	stack     []Evaluable
 	env       Env
 	opts      buildOptions
 	goPkg     *packages.Package
@@ -43,13 +43,7 @@ func (b *stepBuilder) popEnv() {
 }
 
 func (b *stepBuilder) push(s Evaluable) {
-	step := new(step)
-	step.Evaluable = s
-	if len(b.stack) > 0 {
-		top := b.stack[len(b.stack)-1]
-		top.SetNext(step)
-	}
-	b.stack = append(b.stack, step)
+	b.stack = append(b.stack, s)
 }
 
 func (b *stepBuilder) pop() Evaluable {
@@ -58,7 +52,7 @@ func (b *stepBuilder) pop() Evaluable {
 	}
 	top := b.stack[len(b.stack)-1]
 	b.stack = b.stack[0 : len(b.stack)-1]
-	return top.Evaluable
+	return top
 }
 
 func (b *stepBuilder) envSet(name string, value reflect.Value) {
@@ -404,8 +398,8 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 		s := FuncType{FuncType: n}
 		if n.TypeParams != nil {
 			b.Visit(n.TypeParams)
-			e := b.pop()
-			s.TypeParams = e.(*FieldList)
+			e := b.pop().(FieldList)
+			s.TypeParams = &e
 		}
 		if n.Params != nil {
 			b.Visit(n.Params)
@@ -572,9 +566,17 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Stmt = e.(Stmt)
 		b.push(s)
 
+		// TODO
+		// here we are created a step that actually should happen
+		// when building the flow. So perhaps we need to store the statementReference
+		// elsewhere and not set a labeledStep now.
+
 		// add label -> statement by index mapping in current function
 		index := slices.Index(b.funcStack.top().FuncDecl.Body.List, ast.Stmt(n))
-		ref := statementReference{index: index, step: &labeledStep{step: new(step), label: s.Label.Name}} // has no ID
+		refStep := new(labeledStep)
+		refStep.label = s.Label.Name
+		refStep.pos = s.Pos()
+		ref := statementReference{index: index, step: refStep} // has no ID
 		b.funcStack.top().labelToStmt[s.Label.Name] = ref
 
 	case *ast.BranchStmt:

@@ -90,6 +90,11 @@ func (p *Package) Initialize(vm *VM) error {
 
 func (p *Package) writeDotGraph(fileName string) {
 	g := dot.NewGraph(dot.Directed)
+	g.NodeInitializer(func(n dot.Node) {
+		n.Box()
+		n.Attr("fillcolor", "#EBFAFF") // https://htmlcolorcodes.com/
+		n.Attr("style", "filled")
+	})
 	// for each function in the package create a subgraph
 	values := p.Env.Env.(*Environment).valueTable
 	for k, v := range values {
@@ -98,7 +103,7 @@ func (p *Package) writeDotGraph(fileName string) {
 				continue
 			}
 			sub := g.Subgraph(k, dot.ClusterOption{})
-			visited := map[int32]dot.Node{}
+			visited := map[int]dot.Node{}
 			funDecl.callGraph.Traverse(sub, visited)
 		}
 	}
@@ -265,15 +270,17 @@ func WalkPackageFunction(pkg *Package, functionName string, optionalVM *VM) erro
 	if err := pkg.Initialize(vm); err != nil {
 		return fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
 	}
-	fun := pkg.Env.valueLookUp(functionName)
-	if !fun.IsValid() {
-		return fmt.Errorf("%s function definition not found", functionName)
-	}
-	decl := fun.Interface().(FuncDecl)
-
 	// run it step by step
 	vm.isStepping = true
-	vm.takeAll(decl.callGraph)
+
+	// compose a CallExpr to leverage existing call handling
+	call := CallExpr{
+		Fun:  Ident{Ident: &ast.Ident{Name: functionName}},
+		Args: []Expr{}, // TODO for now, main only
+	}
+	g := newGraphBuilder(pkg.Package)
+	vm.takeAll(call.Flow(g))
+
 	return nil
 }
 

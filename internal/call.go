@@ -182,8 +182,14 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	setZeroReturnsToFrame(fd.Type, vm, frame)
 
 	if vm.isStepping {
-		// when stepping we already have the call graph in FuncDecl
+
+		af := &activeFuncDecl{FuncDecl: fd, bodyListIndex: -1}
+		vm.activeFuncStack.push(af)
+
+		// when stepping we the call graph in FuncDecl
 		vm.takeAll(fd.callGraph)
+
+		vm.activeFuncStack.pop()
 	} else {
 		if trace {
 			vm.traceEval(fd.Body)

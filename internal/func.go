@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+
+	"github.com/emicklei/dot"
 )
 
 type activeFuncDecl struct {
@@ -34,7 +36,7 @@ func (af *activeFuncDecl) addDefer(call Expr) {
 }
 
 type activeFuncStackPushStep struct {
-	*step
+	step
 	FuncDecl FuncDecl
 }
 
@@ -48,7 +50,7 @@ func (s activeFuncStackPushStep) Pos() token.Pos {
 }
 
 type activeFuncStackPopStep struct {
-	*step
+	step
 	FuncDecl FuncDecl
 }
 
@@ -109,15 +111,51 @@ func (f FuncDecl) Flow(g *graphBuilder) (head Step) {
 	head = g.current
 	if f.Body != nil {
 		g.funcStack.push(f)
-		head = activeFuncStackPushStep{FuncDecl: f, step: g.newStep(nil)}
+		head = f.Body.Flow(g)
+
+		/**
+		// this funcdecl is now active
+		as := new(activeFuncStackPushStep)
+		as.FuncDecl = f
+		head = as
 		g.nextStep(head)
+
 		f.Body.Flow(g)
-		pop := activeFuncStackPopStep{FuncDecl: f, step: g.newStep(nil)}
+
+		// this funcdecl is no longer active
+		pop := new(activeFuncStackPopStep)
+		pop.FuncDecl = f
 		g.nextStep(pop)
+		**/
+
+		/**
+		fs := new(funcDeclStep)
+		fs.Evaluable = f
+		fs.bodyFlow = f.Body.Flow(g)
+		head = fs
+		g.nextStep(fs)
+		**/
+
 		// TODO handle defers?
 		g.funcStack.pop()
 	}
 	return
+}
+
+type funcDeclStep struct {
+	evaluableStep
+	bodyFlow Step
+}
+
+func (f funcDeclStep) Take(vm *VM) Step {
+	af := &activeFuncDecl{FuncDecl: f.Evaluable.(FuncDecl), bodyListIndex: -1}
+	vm.activeFuncStack.push(af)
+	f.bodyFlow.Take(vm)
+	vm.activeFuncStack.pop()
+	return f.next
+}
+func (f funcDeclStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return f.bodyFlow.Traverse(g, visited)
 }
 
 func (f FuncDecl) String() string {

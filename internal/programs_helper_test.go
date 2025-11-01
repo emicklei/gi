@@ -22,13 +22,13 @@ func buildPackage(t *testing.T, source string) *Package {
 		// copied from Package.go
 		Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles | packages.NeedTypesInfo,
 		Fset: token.NewFileSet(),
-		Dir:  path.Join(cwd, "../examples"),
+		Dir:  path.Join(cwd, "./testprogram"),
 		// copied from Package.go
 		ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
 			return parser.ParseFile(fset, filename, src, parser.SkipObjectResolution)
 		},
 		Overlay: map[string][]byte{
-			path.Join(cwd, "../examples/main.go"): []byte(source),
+			path.Join(cwd, "./testprogram/main.go"): []byte(source),
 		},
 	}
 	gopkg, err := LoadPackage(cfg.Dir, cfg)

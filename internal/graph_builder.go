@@ -8,7 +8,7 @@ import (
 
 // graphBuilder helps building a control flow graph by keeping track of the current step.
 type graphBuilder struct {
-	idgen     int32
+	idgen     int
 	goPkg     *packages.Package // for type information
 	head      Step              // the entry point to the flow graph
 	current   Step              // the current step to attach the next step to
@@ -24,17 +24,27 @@ func (g *graphBuilder) next(e Evaluable) {
 	g.nextStep(g.newStep(e))
 }
 
-func (g *graphBuilder) newStep(e Evaluable) *step {
+func (g *graphBuilder) newStep(e Evaluable) *evaluableStep {
+	if e == nil {
+		panic("call to newStep without Evaluable")
+	}
 	g.idgen++
-	return &step{id: g.idgen, Evaluable: e}
+	es := new(evaluableStep)
+	es.id = g.idgen
+	es.Evaluable = e
+	return es
 }
 
 func (g *graphBuilder) newLabeledStep(label string) Step {
-	return &labeledStep{step: g.newStep(nil), label: label}
+	return &labeledStep{label: label}
 }
 
 // nextStep adds the given step after the current one and makes it the current step.
 func (g *graphBuilder) nextStep(next Step) {
+	if next.ID() == 0 {
+		g.idgen++
+		next.SetID(g.idgen)
+	}
 	if g.current != nil {
 		if g.current.Next() != nil {
 			panic(fmt.Sprintf("current %s already has a next %s, wanted %s\n", g.current, g.current.Next(), next))
@@ -48,22 +58,11 @@ func (g *graphBuilder) nextStep(next Step) {
 
 // beginIf creates a conditional step with the given condition
 // and makes it the current step. It returns the created conditional step to set the else branch later.
+// TODO inline
 func (g *graphBuilder) beginIf(cond Expr) *conditionalStep {
 	head := cond.Flow(g)
-	c := &conditionalStep{
-		conditionFlow: head,
-		step:          g.newStep(nil),
-	}
-	g.nextStep(c)
-	return c
-}
-
-// newPushStackFrameStep creates a step that pushes a new stack frame.
-func (g *graphBuilder) newPushStackFrame() *pushStackFrameStep {
-	return &pushStackFrameStep{step: g.newStep(nil)}
-}
-
-// newPopStackFrameStep creates a step that pops the current stack frame.
-func (g *graphBuilder) newPopStackFrame() *popStackFrameStep {
-	return &popStackFrameStep{step: g.newStep(nil)}
+	cs := new(conditionalStep)
+	cs.conditionFlow = head
+	g.nextStep(cs)
+	return cs
 }

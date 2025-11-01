@@ -128,6 +128,9 @@ func (e *Environment) valueOwnerOf(name string) Env {
 }
 
 func (e *Environment) set(name string, value reflect.Value) {
+	if name == "_" {
+		return
+	}
 	if trace {
 		fmt.Println(e, name, "=", value.Interface())
 	}

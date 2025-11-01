@@ -43,7 +43,7 @@ func (f ForStmt) Eval(vm *VM) {
 }
 
 func (f ForStmt) Flow(g *graphBuilder) (head Step) {
-	head = g.newPushStackFrame()
+	head = new(pushStackFrameStep)
 	g.nextStep(head)
 	if f.Init != nil {
 		f.Init.Flow(g)
@@ -52,7 +52,7 @@ func (f ForStmt) Flow(g *graphBuilder) (head Step) {
 	f.Body.Flow(g)
 	f.Post.Flow(g)
 	g.nextStep(begin.conditionFlow)
-	pop := g.newPopStackFrame()
+	pop := new(popStackFrameStep)
 	begin.elseFlow = pop
 	g.current = pop
 	return
