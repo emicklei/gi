@@ -762,7 +762,7 @@ func main() {
 }
 
 func TestSwitchOnBool(t *testing.T) {
-	testProgram(t, true, !true, `package main
+	testProgram(t, true, true, `package main
 
 func main() {
 	var a int = 1
@@ -774,7 +774,7 @@ func main() {
 }
 
 func TestSwitch(t *testing.T) {
-	testProgram(t, !true, !true, `package main
+	testProgram(t, !true, true, `package main
 
 func main() {
 	var a int
@@ -794,12 +794,14 @@ func main() {
 a = 1
 if a == 1 {
 	print(a)
+	goto end
 }
 if a == 2 {
 	print(a)
-} else {
-	print(2)
+	goto end
 }
+print(2)
+end:
 **/
 
 func TestSwitchType(t *testing.T) {
