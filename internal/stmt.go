@@ -45,6 +45,9 @@ func (s DeclStmt) Eval(vm *VM) {
 func (s DeclStmt) Flow(g *graphBuilder) (head Step) {
 	head = s.Decl.Flow(g)
 	g.next(s)
+	if head == nil {
+		head = g.current
+	}
 	return
 }
 func (s DeclStmt) stmtStep() Evaluable { return s }
@@ -110,8 +113,13 @@ func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
 		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.Label.Name))
 		g.nextStep(head)
 		fd := g.funcStack.top()
-		ref := fd.labelToStmt[s.Label.Name]
-		g.nextStep(ref.step)
+		ref, ok := fd.labelToStmt[s.Label.Name]
+		if !ok {
+			panic(fmt.Sprintf("undefined label: %s", s.Label.Name))
+		}
+		head.SetNext(ref.step)
+		// branch ends the current flow
+		g.current = nil
 		return
 	default:
 		// TODO handle break, continue, fallthrough

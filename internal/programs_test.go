@@ -639,11 +639,24 @@ func TestIfElseIfElse(t *testing.T) {
 
 func main() {
 	if 1 == 2 {
-		print("unreachable")
+		print("unreachable 1")
 	} else if 2 == 2 {
 		print("gi")
 	} else {
+		print("unreachable 2")
+	}
+}`, "gi")
+}
+
+func TestIfIf(t *testing.T) {
+	testProgram(t, true, true, `package main
+
+func main() {
+	if 1 == 2 {
 		print("unreachable")
+	} 
+	if 2 == 2 {
+		print("gi")
 	}
 }`, "gi")
 }
@@ -773,8 +786,34 @@ func main() {
 }`, "1")
 }
 
+func TestSwitchOnLiteral(t *testing.T) {
+	testProgram(t, true, true, `package main
+
+func main() {
+	var a int
+	switch a = 1; a {
+	case 1:
+		print(a)
+	}
+}`, "1")
+}
+
+func TestSwitchDefault(t *testing.T) {
+	testProgram(t, true, true, `package main
+
+func main() {
+	var a int
+	switch a {
+	case 2:
+	default:
+		print(3)
+	}
+}`, "3")
+}
+
 func TestSwitch(t *testing.T) {
-	testProgram(t, !true, true, `package main
+	trace = true
+	testProgram(t, true, true, `package main
 
 func main() {
 	var a int
@@ -785,9 +824,9 @@ func main() {
 	switch a {
 	case 2:
 	default:
-		print(2)
+		print(3)
 	}
-}`, "12")
+}`, "13")
 }
 
 /**

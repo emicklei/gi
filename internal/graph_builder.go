@@ -24,6 +24,7 @@ func (g *graphBuilder) next(e Evaluable) {
 	g.nextStep(g.newStep(e))
 }
 
+// newStep creates a new step for the given Evaluable but does not add it to the current flow.
 func (g *graphBuilder) newStep(e Evaluable) *evaluableStep {
 	if e == nil {
 		panic("call to newStep without Evaluable")
@@ -35,6 +36,7 @@ func (g *graphBuilder) newStep(e Evaluable) *evaluableStep {
 	return es
 }
 
+// newLabeledStep creates a labeled step but does not add it to the current flow.
 func (g *graphBuilder) newLabeledStep(label string) Step {
 	return &labeledStep{label: label}
 }
@@ -45,12 +47,19 @@ func (g *graphBuilder) nextStep(next Step) {
 		g.idgen++
 		next.SetID(g.idgen)
 	}
+
 	if g.current != nil {
 		if g.current.Next() != nil {
 			panic(fmt.Sprintf("current %s already has a next %s, wanted %s\n", g.current, g.current.Next(), next))
 		}
+		if trace {
+			fmt.Printf("fw.next: %d → %v\n", g.current.ID(), next)
+		}
 		g.current.SetNext(next)
 	} else {
+		if trace {
+			fmt.Printf("fw.next: %v\n", next)
+		}
 		g.head = next
 	}
 	g.current = next

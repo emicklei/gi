@@ -55,29 +55,30 @@ func (i IfStmt) Flow(g *graphBuilder) (head Step) {
 	if i.Init != nil {
 		head = i.Init.Flow(g)
 	}
-	begin := g.beginIf(i.Cond)
+	// condition can have its own assigments
+	g.nextStep(new(pushEnvironmentStep))
 	if head == nil {
-		head = begin.conditionFlow
+		head = g.current
 	}
+	begin := new(conditionalStep)
+	begin.conditionFlow = i.Cond.Flow(g)
+	g.nextStep(begin)
 
-	// both true and false branch need a new and different stack frame
-	truePush := new(pushStackFrameStep)
-	// both branches will pop and can use the same step
-	pop := new(popStackFrameStep)
-
-	g.nextStep(truePush)
+	// true branch
 	i.Body.Flow(g)
-	// after true branch
+	pop := new(popEnvironmentStep)
 	g.nextStep(pop)
 
-	// now handle false branch
+	// false branch
 	if i.Else != nil {
-		elsePush := new(pushStackFrameStep)
-		begin.elseFlow = elsePush
-		g.current = elsePush
-		i.Else.Flow(g)
-		// after false branch
+		g.current = nil
+		elseFlow := i.Else.Flow(g)
+		// TODO if the body ends with a branch then pop should should be done before.
+		// fmt.Println(g.current)
+		begin.elseFlow = elseFlow
 		g.nextStep(pop)
+	} else {
+		begin.elseFlow = pop
 	}
 	return head
 }

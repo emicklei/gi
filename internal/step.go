@@ -155,6 +155,39 @@ func (p *popStackFrameStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot
 	return p.step.traverse(g, p.String(), "next", visited)
 }
 
+type pushEnvironmentStep struct {
+	step
+}
+
+func (p *pushEnvironmentStep) Take(vm *VM) Step {
+	vm.frameStack.top().pushEnv()
+	return p.next
+}
+
+func (p *pushEnvironmentStep) String() string {
+	return fmt.Sprintf("%2d: ~push env", p.ID())
+}
+func (p *pushEnvironmentStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return p.step.traverse(g, p.String(), "next", visited)
+}
+
+type popEnvironmentStep struct {
+	step
+}
+
+func (p *popEnvironmentStep) Take(vm *VM) Step {
+	vm.frameStack.top().popEnv()
+	return p.next
+}
+
+func (p *popEnvironmentStep) String() string {
+	return fmt.Sprintf("%2d: ~pop env", p.ID())
+}
+
+func (p *popEnvironmentStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return p.step.traverse(g, p.String(), "next", visited)
+}
+
 type returnStep struct {
 	evaluableStep
 }

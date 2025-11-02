@@ -3,9 +3,8 @@ package internal
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"reflect"
-
-	"github.com/emicklei/dot"
 )
 
 var _ Stmt = SwitchStmt{}
@@ -50,12 +49,90 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 		head = s.Init.Flow(g)
 	}
 	if s.Tag != nil {
-		s.Tag.Flow(g)
 		if head == nil {
-			head = g.current
+			head = s.Tag.Flow(g)
+		} else {
+			_ = s.Tag.Flow(g)
 		}
 	}
-	s.Body.Flow(g)
+	gotoLabel := fmt.Sprintf("switch-end-%d", g.idgen)
+	gotoStep := g.newLabeledStep(gotoLabel)
+	ref := statementReference{step: gotoStep} // has no ID
+	g.funcStack.top().labelToStmt[gotoLabel] = ref
+
+	for _, stmt := range s.Body.List {
+		clause := stmt.(CaseClause)
+
+		// check for default case
+		if clause.List == nil {
+			// compose goto to end of switch
+			gotoEnd := BranchStmt{
+				BranchStmt: &ast.BranchStmt{Tok: token.GOTO, TokPos: clause.Pos()},
+				Label:      &Ident{Ident: &ast.Ident{Name: gotoLabel}},
+			}
+			list := append(clause.Body, gotoEnd)
+			for i, stmt := range list {
+				if i == 0 {
+					first := stmt.Flow(g)
+					if head == nil {
+						head = first
+					}
+					continue
+				}
+				_ = stmt.Flow(g)
+			}
+			// switch clause ends here
+			g.current = nil
+			continue
+		}
+
+		// non-default case
+		for _, expr := range clause.List {
+			if len(clause.Body) == 0 {
+				continue
+			}
+			// compose condition
+			var cond BinaryExpr
+			if _, ok := expr.(BasicLit); ok {
+				cond = BinaryExpr{
+					BinaryExpr: &ast.BinaryExpr{Op: token.EQL, OpPos: clause.Pos()},
+					X:          s.Tag,
+					Y:          expr,
+				}
+			}
+			if _, ok := expr.(Ident); ok {
+				cond = BinaryExpr{
+					BinaryExpr: &ast.BinaryExpr{Op: token.EQL, OpPos: clause.Pos()},
+					X:          s.Tag,
+					Y:          expr,
+				}
+			}
+			if bin, ok := expr.(BinaryExpr); ok {
+				cond = bin
+			}
+
+			// compose goto to end of switch
+			gotoEnd := BranchStmt{
+				BranchStmt: &ast.BranchStmt{Tok: token.GOTO, TokPos: clause.Pos()},
+				Label:      &Ident{Ident: &ast.Ident{Name: gotoLabel}},
+			}
+			list := append(clause.Body, gotoEnd)
+
+			// compose if statement for this case
+			when := IfStmt{
+				IfStmt: &ast.IfStmt{If: clause.Pos()},
+				Cond:   cond,
+				Body:   &BlockStmt{List: list},
+			}
+			whenFlow := when.Flow(g)
+			if head == nil {
+				head = whenFlow
+			}
+			// switch clause ends here
+			g.current = nil
+		}
+	}
+	g.nextStep(gotoStep)
 	if head == nil {
 		head = g.current
 	}
@@ -117,74 +194,7 @@ func (c CaseClause) Eval(vm *VM) {
 		}
 	}
 }
-
 func (c CaseClause) Flow(g *graphBuilder) (head Step) {
-	if c.List != nil {
-		for i, expr := range c.List {
-			expr.Flow(g)
-			if i == 0 {
-				head = g.current
-			}
-			cs := new(caseStep)
-			// create detached body flow
-			bg := newGraphBuilder(g.goPkg)
-			for _, stmt := range c.Body {
-				stmt.Flow(bg)
-			}
-			cs.bodyFlow = bg.head
-			g.nextStep(cs)
-		}
-	} else {
-		// default case has no expressions
-		for _, stmt := range c.Body {
-			stmt.Flow(g)
-		}
-	}
-	if head == nil {
-		head = g.current
-	}
-	// each case clause ends the switch
-	g.current = nil
-	return
-}
-
-type caseStep struct {
-	step
-	exprFlow Step
-	bodyFlow Step
-}
-
-func (s *caseStep) Take(vm *VM) Step {
-	f := vm.frameStack.top()
-	var left reflect.Value
-	// is there a tag value on the operand stack?
-	if len(f.operandStack) != 0 {
-		left = vm.frameStack.top().pop()
-	}
-	if left.IsValid() {
-		if left.Kind() == reflect.Bool {
-			if left.Bool() {
-				return s.bodyFlow
-			}
-		} else {
-			right := vm.frameStack.top().pop()
-			if left.Equal(right) {
-				return s.bodyFlow
-			}
-		}
-	}
-	return s.next
-}
-
-func (s *caseStep) String() string {
-	return fmt.Sprintf("%2d: case", s.id)
-}
-
-func (s *caseStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	me := s.step.traverse(g, s.String(), "case", visited)
-	expr := s.exprFlow.Traverse(g, visited)
-	me.Edge(expr, "expr")
-	body := s.bodyFlow.Traverse(g, visited)
-	me.Edge(body, "body")
-	return me
+	// no flow for case clause itself
+	return g.current
 }
