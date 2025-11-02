@@ -16,12 +16,7 @@ type CallExpr struct {
 
 func (c CallExpr) Eval(vm *VM) {
 	// function fn is either an external or an interpreted one
-	var fn reflect.Value
-	if vm.isStepping {
-		fn = vm.frameStack.top().pop() // see Flow
-	} else {
-		fn = vm.returnsEval(c.Fun)
-	}
+	fn := vm.frameStack.top().pop() // see Flow
 
 	// TODO
 	if !fn.IsValid() {
@@ -32,12 +27,7 @@ func (c CallExpr) Eval(vm *VM) {
 	case reflect.Func:
 		args := make([]reflect.Value, len(c.Args))
 		for i, arg := range c.Args {
-			var val reflect.Value
-			if vm.isStepping {
-				val = vm.frameStack.top().pop() // first to last, see Flow
-			} else {
-				val = vm.returnsEval(arg)
-			}
+			val := vm.frameStack.top().pop() // first to last, see Flow
 			if !val.IsValid() {
 				vm.fatal(fmt.Sprintf("call to function: %v with invalid argument %d: %v", c.Fun, i, arg))
 			}
@@ -99,13 +89,8 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 	// TODO deduplicate with handleFuncDecl
 	// prepare arguments
 	args := make([]reflect.Value, len(c.Args))
-	for i, arg := range c.Args {
-		var val reflect.Value
-		if vm.isStepping {
-			val = vm.frameStack.top().pop() // first to last, see Flow
-		} else {
-			val = vm.returnsEval(arg)
-		}
+	for i := range c.Args {
+		val := vm.frameStack.top().pop() // first to last, see Flow
 		args[i] = val
 	}
 	vm.pushNewFrame(c)
@@ -114,16 +99,9 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 	setParametersToFrame(fl.Type, args, vm, frame)
 	setZeroReturnsToFrame(fl.Type, vm, frame)
 
-	if vm.isStepping {
-		// when stepping we already have the call graph in FuncLit
-		vm.takeAll(fl.callGraph)
-	} else {
-		if trace {
-			vm.traceEval(fl.Body)
-		} else {
-			fl.Body.Eval(vm)
-		}
-	}
+	// we already have the call graph in FuncLit
+	vm.takeAll(fl.callGraph)
+
 	// take values before popping frame
 	vals := vm.frameStack.top().returnValues
 	vm.popFrame()
@@ -167,13 +145,8 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	// TODO deduplicate with handleFuncLit
 	// prepare arguments
 	args := make([]reflect.Value, len(c.Args))
-	for i, arg := range c.Args {
-		var val reflect.Value
-		if vm.isStepping {
-			val = vm.frameStack.top().pop() // first to last, see Flow
-		} else {
-			val = vm.returnsEval(arg)
-		}
+	for i := range c.Args {
+		val := vm.frameStack.top().pop() // first to last, see Flow
 		args[i] = val
 	}
 	vm.pushNewFrame(c)
@@ -181,22 +154,13 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	setParametersToFrame(fd.Type, args, vm, frame)
 	setZeroReturnsToFrame(fd.Type, vm, frame)
 
-	if vm.isStepping {
+	af := &activeFuncDecl{FuncDecl: fd, bodyListIndex: -1}
+	vm.activeFuncStack.push(af)
 
-		af := &activeFuncDecl{FuncDecl: fd, bodyListIndex: -1}
-		vm.activeFuncStack.push(af)
+	// when stepping we the call graph in FuncDecl
+	vm.takeAll(fd.callGraph)
 
-		// when stepping we the call graph in FuncDecl
-		vm.takeAll(fd.callGraph)
-
-		vm.activeFuncStack.pop()
-	} else {
-		if trace {
-			vm.traceEval(fd.Body)
-		} else {
-			fd.Eval(vm)
-		}
-	}
+	vm.activeFuncStack.pop()
 
 	// top == frame? TODO
 	// take values before popping frame

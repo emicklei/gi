@@ -3,7 +3,6 @@ package internal
 import (
 	"fmt"
 	"go/ast"
-	"reflect"
 )
 
 var _ Expr = SelectorExpr{}
@@ -14,12 +13,7 @@ type SelectorExpr struct {
 }
 
 func (s SelectorExpr) Eval(vm *VM) {
-	var recv reflect.Value
-	if vm.isStepping {
-		recv = vm.frameStack.top().pop()
-	} else {
-		recv = vm.returnsEval(s.X)
-	}
+	recv := vm.frameStack.top().pop()
 	// TODO value sementics for address-of
 	if addrOf, ok := recv.Interface().(AddressOf); ok {
 		recv = addrOf.Value

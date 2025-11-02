@@ -17,7 +17,6 @@ import (
 var _ ast.Visitor = (*ASTBuilder)(nil)
 
 type buildOptions struct {
-	callGraph bool
 }
 
 type ASTBuilder struct {
@@ -31,7 +30,7 @@ type ASTBuilder struct {
 func newASTBuilder(goPkg *packages.Package) ASTBuilder {
 	builtins := newBuiltinsEnvironment(nil)
 	pkgenv := newPkgEnvironment(builtins)
-	return ASTBuilder{goPkg: goPkg, env: pkgenv, opts: buildOptions{callGraph: true}}
+	return ASTBuilder{goPkg: goPkg, env: pkgenv, opts: buildOptions{}}
 }
 
 func (b *ASTBuilder) pushEnv() {
@@ -118,11 +117,9 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			e := b.pop().(BlockStmt)
 			s.Body = &e
 		}
-		if b.opts.callGraph {
-			// store call graph in the FuncLit
-			g := newGraphBuilder(b.goPkg)
-			s.callGraph = s.Body.Flow(g)
-		}
+		// store call graph in the FuncLit
+		g := newGraphBuilder(b.goPkg)
+		s.callGraph = s.Body.Flow(g)
 
 		b.push(s)
 	case *ast.SwitchStmt:
@@ -293,7 +290,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 				fmt.Fprintf(os.Stderr, "failed to load imported package %s: %v\n", unq, err)
 				break
 			}
-			pkg, err := BuildPackage(gopkg, b.opts.callGraph)
+			pkg, err := BuildPackage(gopkg)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to build imported package %s: %v\n", unq, err)
 				break
@@ -393,13 +390,11 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		e = b.pop()
 		blk := e.(BlockStmt)
 		s.Body = &blk
-		b.push(s) // ??
+		b.push(s) // TODO ??
 
-		if b.opts.callGraph {
-			// store call graph in the FuncDecl
-			g := newGraphBuilder(b.goPkg)
-			s.callGraph = s.Flow(g)
-		}
+		// store call graph in the FuncDecl
+		g := newGraphBuilder(b.goPkg)
+		s.callGraph = s.Flow(g)
 
 		// leave the function scope
 		b.popEnv()

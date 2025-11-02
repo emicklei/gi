@@ -65,14 +65,8 @@ func (s CompositeLit) Eval(vm *VM) {
 	}
 	instance := i.Instantiate(vm)
 	values := make([]reflect.Value, len(s.Elts))
-	for i, elt := range s.Elts {
-		var val reflect.Value
-		if vm.isStepping {
-			// see Flow for the order of pushing
-			val = vm.frameStack.top().pop()
-		} else {
-			val = vm.returnsEval(elt)
-		}
+	for i := range s.Elts {
+		val := vm.frameStack.top().pop()
 		values[i] = val
 	}
 	result := i.LiteralCompose(instance, values)

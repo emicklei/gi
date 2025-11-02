@@ -24,9 +24,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 	if u.Op == token.AND {
 		if ident, ok := u.X.(Ident); ok {
 			// Pop the value pushed by Ident.Eval although we won't use it
-			if vm.isStepping {
-				_ = vm.frameStack.top().pop()
-			}
+			vm.frameStack.top().pop()
 			vp := &VarPointer{
 				env:  vm.localEnv(),
 				name: ident.Name,
@@ -35,23 +33,13 @@ func (u UnaryExpr) Eval(vm *VM) {
 			return
 		}
 		if _, ok := u.X.(CompositeLit); ok {
-			var v reflect.Value
-			if vm.isStepping {
-				v = vm.frameStack.top().pop()
-			} else {
-				v = vm.returnsEval(u.X)
-			}
+			v := vm.frameStack.top().pop()
 			vm.pushOperand(reflect.ValueOf(AddressOf{Value: v}))
 			return
 		}
 	}
 
-	var v reflect.Value
-	if vm.isStepping {
-		v = vm.frameStack.top().pop()
-	} else {
-		v = vm.returnsEval(u.X)
-	}
+	v := vm.frameStack.top().pop()
 	// propagate invalid value. this happens when the expression is
 	// used in a package variable or constant declaration
 	if !v.IsValid() {

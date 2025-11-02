@@ -22,12 +22,7 @@ func (i IncDecStmt) Flow(g *graphBuilder) (head Step) {
 }
 
 func (i IncDecStmt) Eval(vm *VM) {
-	var val reflect.Value
-	if vm.isStepping {
-		val = vm.frameStack.top().pop()
-	} else {
-		val = vm.returnsEval(i.X)
-	}
+	val := vm.frameStack.top().pop()
 	if !val.IsValid() {
 		// TODO
 		return

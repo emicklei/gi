@@ -75,13 +75,12 @@ func (f *stackFrame) String() string {
 // VM represents a virtual machine that can execute Go code.
 type VM struct {
 	frameStack      stack[*stackFrame]
-	isStepping      bool                   // for debugging use
 	activeFuncStack stack[*activeFuncDecl] // active function declarations, TODO store in stackFrame?
 	output          *bytes.Buffer          // for testing only
 }
 
 func newVM(env Env) *VM {
-	vm := &VM{output: new(bytes.Buffer), isStepping: true}
+	vm := &VM{output: new(bytes.Buffer)}
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
 	vm.frameStack.push(frame)

@@ -165,7 +165,7 @@ func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package
 	return pkgs[0], nil
 }
 
-func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
+func BuildPackageFromAST(ast *ast.File) (*Package, error) {
 	if trace {
 		now := time.Now()
 		defer func() {
@@ -176,7 +176,7 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 		ID: "main", Name: ast.Name.Name, PkgPath: "main",
 	}
 	b := newASTBuilder(goPkg)
-	b.opts = buildOptions{callGraph: isStepping}
+	b.opts = buildOptions{}
 	for _, imp := range ast.Imports {
 		b.Visit(imp)
 	}
@@ -187,7 +187,7 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 }
 
 // TODO build options
-func BuildPackage(goPkg *packages.Package, isStepping bool) (*Package, error) {
+func BuildPackage(goPkg *packages.Package) (*Package, error) {
 	if trace {
 		now := time.Now()
 		defer func() {
@@ -195,7 +195,7 @@ func BuildPackage(goPkg *packages.Package, isStepping bool) (*Package, error) {
 		}()
 	}
 	b := newASTBuilder(goPkg)
-	b.opts = buildOptions{callGraph: isStepping}
+	b.opts = buildOptions{}
 	for _, stx := range goPkg.Syntax {
 		for _, decl := range stx.Decls {
 			b.Visit(decl)
@@ -306,7 +306,7 @@ func ParseSource(source string) (*Package, error) {
 	if err != nil {
 		return nil, err
 	}
-	ffpkg, err := BuildPackageFromAST(ast, true)
+	ffpkg, err := BuildPackageFromAST(ast)
 	if err != nil {
 		return nil, err
 	}

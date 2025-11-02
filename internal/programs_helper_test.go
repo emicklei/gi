@@ -35,7 +35,7 @@ func buildPackage(t *testing.T, source string) *Package {
 	if err != nil {
 		t.Fatalf("failed to load packages: %v", err)
 	}
-	ffpkg, err := BuildPackage(gopkg, true)
+	ffpkg, err := BuildPackage(gopkg)
 	if err != nil {
 		t.Fatalf("failed to build package: %v", err)
 	}
@@ -81,18 +81,6 @@ func parseAndWalk(t *testing.T, source string) string {
 	return vm.output.String()
 }
 
-// deprecated
-func parseAndRun(t *testing.T, source string) string {
-	t.Helper()
-	pkg := buildPackage(t, source)
-	vm := newVM(pkg.Env)
-	collectPrintOutput(vm)
-	if _, err := RunPackageFunction(pkg, "main", nil, vm); err != nil {
-		t.Fatal(err)
-	}
-	return vm.output.String()
-}
-
 func testProgramIn(t *testing.T, dir string, wantFuncOrString any) {
 	// cannot be parallel because of os.Chdir
 	t.Helper()
@@ -104,49 +92,13 @@ func testProgramIn(t *testing.T, dir string, wantFuncOrString any) {
 	}
 	os.Chdir(loc)
 	defer os.Chdir(cwd)
-	pkg, err := BuildPackage(gopkg, false)
+	pkg, err := BuildPackage(gopkg)
 	if err != nil {
 		t.Fatalf("failed to build package in %s: %v", loc, err)
 	}
 	_, err = RunPackageFunction(pkg, "main", nil, nil)
 	if err != nil {
 		t.Fatalf("failed to run package in %s: %v", loc, err)
-	}
-}
-
-// deprecated
-func testProgram(t *testing.T, running bool, stepping bool, source string, wantFuncOrString any) {
-	t.Parallel()
-	t.Helper()
-	if running {
-		out := parseAndRun(t, source)
-		if fn, ok := wantFuncOrString.(func(string) bool); ok {
-			if !fn(out) {
-				t.Errorf("got [%v] which does not match predicate", out)
-			}
-		} else {
-			want := wantFuncOrString.(string)
-			if got, want := out, want; got != want {
-				t.Errorf("[run] got [%v] want [%v]", got, want)
-			}
-		}
-	} else {
-		t.Log("TODO skipped run: ", t.Name())
-	}
-	if stepping {
-		out := parseAndWalk(t, source)
-		if fn, ok := wantFuncOrString.(func(string) bool); ok {
-			if !fn(out) {
-				t.Errorf("got [%v] which does not match predicate", out)
-			}
-			return
-		}
-		want := wantFuncOrString.(string)
-		if got, want := out, want; got != want {
-			t.Errorf("[step] got [%v] want [%v]", got, want)
-		}
-	} else {
-		t.Log("TODO skipped step:", t.Name())
 	}
 }
 

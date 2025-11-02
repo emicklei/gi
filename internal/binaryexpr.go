@@ -16,49 +16,21 @@ type BinaryExpr struct {
 	Y Expr // right
 }
 
-// func (s BinaryExpr) CanEval(vm *VM) bool {
-// 	if vm.isStepping {
-// 		right := vm.callStack.top().peek(0)
-// 		left := vm.callStack.top().peek(1)
-// 		return left.IsValid() && right.IsValid()
-// 	}
-// 	return s.X.CanEval(vm) && s.Y.CanEval(vm)
-// }
-
 func (s BinaryExpr) Eval(vm *VM) {
-	var left, right reflect.Value
-	if vm.isStepping {
-		// see Flow for the order
-		right = vm.frameStack.top().pop()
-		// propagate invalid value. this happens when the expression is
-		// used in a package variable or constant declaration
-		if !right.IsValid() {
-			vm.pushOperand(right)
-			return
-		}
-		left = vm.frameStack.top().pop()
-		// propagate invalid value. this happens when the expression is
-		// used in a package variable or constant declaration
-		if !left.IsValid() {
-			vm.pushOperand(left)
-			return
-		}
-	} else {
-		panic("should not happen")
-		left = vm.returnsEval(s.X)
-		// propagate invalid value. this happens when the expression is
-		// used in a package variable or constant declaration
-		if !left.IsValid() {
-			vm.pushOperand(left)
-			return
-		}
-		right = vm.returnsEval(s.Y)
-		// propagate invalid value. this happens when the expression is
-		// used in a package variable or constant declaration
-		if !right.IsValid() {
-			vm.pushOperand(right)
-			return
-		}
+	// see Flow for the order
+	right := vm.frameStack.top().pop()
+	// propagate invalid value. this happens when the expression is
+	// used in a package variable or constant declaration
+	if !right.IsValid() {
+		vm.pushOperand(right)
+		return
+	}
+	left := vm.frameStack.top().pop()
+	// propagate invalid value. this happens when the expression is
+	// used in a package variable or constant declaration
+	if !left.IsValid() {
+		vm.pushOperand(left)
+		return
 	}
 	v := BinaryExprValue{
 		left:  left,

@@ -15,19 +15,9 @@ type IndexExpr struct {
 	Index Expr
 }
 
-// func (i IndexExpr) EvalKind() reflect.Kind {
-// 	return i.X.EvalKind()
-// }
-
 func (i IndexExpr) Eval(vm *VM) {
-	var index, target reflect.Value
-	if vm.isStepping {
-		index = vm.frameStack.top().pop()
-		target = vm.frameStack.top().pop()
-	} else {
-		index = vm.returnsEval(i.Index)
-		target = vm.returnsEval(i.X)
-	}
+	index := vm.frameStack.top().pop()
+	target := vm.frameStack.top().pop()
 	if target.Kind() == reflect.Map {
 		v := target.MapIndex(index)
 		vm.pushOperand(v)

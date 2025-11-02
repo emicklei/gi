@@ -44,12 +44,12 @@ func main() {
 
 	{
 		b.Run("build", func(b *testing.B) {
-			BuildPackage(pkg, true)
+			BuildPackage(pkg)
 		})
 	}
 
 	{
-		prog, err := BuildPackage(pkg, true)
+		prog, err := BuildPackage(pkg)
 		if err != nil {
 			b.Fatalf("failed to build program: %v", err)
 		}

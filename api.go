@@ -1,7 +1,6 @@
 package gi
 
 import (
-	"os"
 	"reflect"
 
 	"github.com/emicklei/gi/internal"
@@ -15,7 +14,7 @@ func Run(filePath string) error {
 	if err != nil {
 		return err
 	}
-	ffpkg, err := internal.BuildPackage(gopkg, os.Getenv("GI_STEP") != "")
+	ffpkg, err := internal.BuildPackage(gopkg)
 	if err != nil {
 		return err
 	}

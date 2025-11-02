@@ -28,25 +28,14 @@ func (c CallExpr) evalAppend(vm *VM) {
 // https://pkg.go.dev/builtin#clear
 // It returns the cleared map or slice.
 func (c CallExpr) evalClear(vm *VM) reflect.Value {
-	var mapOrSlice reflect.Value
-	if vm.isStepping {
-		mapOrSlice = vm.frameStack.top().pop()
-	} else {
-		mapOrSlice = vm.returnsEval(c.Args[0])
-	}
+	mapOrSlice := vm.frameStack.top().pop()
 	mapOrSlice.Clear()
 	return mapOrSlice
 }
 
 func (c CallExpr) evalMin(vm *VM) {
-	var left, right reflect.Value
-	if vm.isStepping {
-		right = vm.frameStack.top().pop() // first to last, see Flow
-		left = vm.frameStack.top().pop()
-	} else {
-		left = vm.returnsEval(c.Args[0])
-		right = vm.returnsEval(c.Args[1])
-	}
+	right := vm.frameStack.top().pop() // first to last, see Flow
+	left := vm.frameStack.top().pop()
 	result := BinaryExprValue{op: token.LSS, left: left, right: right}.Eval()
 	if result.Bool() {
 		result = left
@@ -57,14 +46,8 @@ func (c CallExpr) evalMin(vm *VM) {
 }
 
 func (c CallExpr) evalMax(vm *VM) {
-	var left, right reflect.Value
-	if vm.isStepping {
-		right = vm.frameStack.top().pop() // first to last, see Flow
-		left = vm.frameStack.top().pop()
-	} else {
-		left = vm.returnsEval(c.Args[0])
-		right = vm.returnsEval(c.Args[1])
-	}
+	right := vm.frameStack.top().pop() // first to last, see Flow
+	left := vm.frameStack.top().pop()
 	result := BinaryExprValue{op: token.LSS, left: left, right: right}.Eval()
 	if result.Bool() {
 		result = right
@@ -85,12 +68,7 @@ func (c CallExpr) evalMake(vm *VM) {
 }
 
 func (c CallExpr) evalNew(vm *VM) {
-	var valWithType reflect.Value
-	if vm.isStepping {
-		valWithType = vm.frameStack.top().pop()
-	} else {
-		valWithType = vm.returnsEval(c.Args[0])
-	}
+	valWithType := vm.frameStack.top().pop()
 	typ := valWithType.Interface()
 	if ci, ok := typ.(CanInstantiate); ok {
 		instance := ci.Instantiate(vm)

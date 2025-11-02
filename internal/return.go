@@ -20,25 +20,12 @@ func (r ReturnStmt) String() string {
 }
 
 func (r ReturnStmt) Eval(vm *VM) {
-	// abort function body iteration
-	// TEMPORARY use funcStack
-	if !vm.isStepping {
-		if len(vm.activeFuncStack) != 0 {
-			vm.activeFuncStack.top().setDone()
-		}
-	}
-
 	if len(r.Results) == 0 {
 		return
 	}
 	results := make([]reflect.Value, len(r.Results))
-	for i, each := range r.Results {
-		var val reflect.Value
-		if vm.isStepping {
-			val = vm.frameStack.top().pop()
-		} else {
-			val = vm.returnsEval(each)
-		}
+	for i := range r.Results {
+		val := vm.frameStack.top().pop()
 		results[i] = val
 	}
 	// bind result valutes to named results of the function if any

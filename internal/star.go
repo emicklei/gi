@@ -15,12 +15,7 @@ type StarExpr struct {
 }
 
 func (s StarExpr) Eval(vm *VM) {
-	var v reflect.Value
-	if vm.isStepping {
-		v = vm.frameStack.top().pop()
-	} else {
-		v = vm.returnsEval(s.X)
-	}
+	v := vm.frameStack.top().pop()
 	// Handle VarPointer specially
 	if v.Kind() == reflect.Pointer && v.Type().String() == "*internal.VarPointer" {
 		if vp, ok := v.Interface().(*VarPointer); ok {

@@ -30,12 +30,7 @@ func (v ConstOrVar) Define(vm *VM, value reflect.Value) {
 }
 func (v ConstOrVar) Declare(vm *VM) bool {
 	if v.Value != nil {
-		var val reflect.Value
-		if vm.isStepping {
-			val = vm.frameStack.top().pop()
-		} else {
-			val = vm.returnsEval(v.Value)
-		}
+		val := vm.frameStack.top().pop()
 		if !val.IsValid() {
 			return false
 		}
