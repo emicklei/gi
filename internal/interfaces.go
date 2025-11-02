@@ -23,6 +23,7 @@ type CanDeclare interface {
 	// Declare declares the variable in the current environment.
 	// It returns true if the declaration set a valid reflect Value.
 	Declare(vm *VM) bool
+	ValueFlow() Step
 }
 
 type Expr interface {

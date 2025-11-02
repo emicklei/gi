@@ -21,6 +21,7 @@ func TestStepByStep(t *testing.T) {
 	rightStep.SetNext(binExprStep)
 
 	vm := newVM(newEnvironment(nil))
+	vm.isStepping = true
 	var here Step = leftStep
 	for here != nil {
 		t.Log(here)

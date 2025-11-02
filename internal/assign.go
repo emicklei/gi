@@ -18,19 +18,6 @@ type AssignStmt struct {
 func (a AssignStmt) stmtStep() Evaluable { return a }
 
 func (a AssignStmt) Eval(vm *VM) {
-	if !vm.isStepping {
-		// when stepping, the rhs are already evaluated
-		// so here we need to eval each rhs to push values onto the operand stack
-		// right to left
-		for i := len(a.Rhs) - 1; i >= 0; i-- {
-			each := a.Rhs[i]
-			if trace {
-				vm.traceEval(each)
-			} else {
-				each.Eval(vm)
-			}
-		}
-	}
 	var lastVal reflect.Value
 	for i := 0; i < len(a.Lhs); i++ {
 		each := a.Lhs[i]

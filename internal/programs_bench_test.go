@@ -43,32 +43,11 @@ func main() {
 	}
 
 	{
-		b.Run("build-run", func(b *testing.B) {
-			BuildPackage(pkg, false)
-		})
-	}
-
-	{
-		b.Run("build-walk", func(b *testing.B) {
+		b.Run("build", func(b *testing.B) {
 			BuildPackage(pkg, true)
 		})
 	}
 
-	{
-		prog, err := BuildPackage(pkg, false)
-		if err != nil {
-			b.Fatalf("failed to build program: %v", err)
-		}
-		b.Run("run", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				vm := newVM(prog.Env)
-				collectPrintOutput(vm)
-				if _, err := RunPackageFunction(prog, "main", nil, vm); err != nil {
-					b.Fatal(err)
-				}
-			}
-		})
-	}
 	{
 		prog, err := BuildPackage(pkg, true)
 		if err != nil {

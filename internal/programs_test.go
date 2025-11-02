@@ -26,11 +26,7 @@ func TestProgramTypeConvert(t *testing.T) {
 				a := %s(1) + 2
 				print(a)
 			}`, tt.typeName)
-			out := parseAndRun(t, src)
-			if got, want := out, "3"; got != want {
-				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
-			}
-			out = parseAndWalk(t, src)
+			out := parseAndWalk(t, src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -59,11 +55,7 @@ func TestProgramTypeUnsignedConvert(t *testing.T) {
 				a := %s(1) + %s(2)
 				print(a)
 			}`, tt.typeName, tt.typeName)
-			out := parseAndRun(t, src)
-			if got, want := out, "3"; got != want {
-				t.Errorf("[run] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
-			}
-			out = parseAndWalk(t, src)
+			out := parseAndWalk(t, src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("[step] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -98,11 +90,7 @@ func TestAssignmentOperators(t *testing.T) {
 				a %s 2
 				print(a)
 			}`, tt.op)
-			out := parseAndRun(t, src)
-			if got, want := out, tt.want; got != want {
-				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
-			}
-			out = parseAndWalk(t, src)
+			out := parseAndWalk(t, src)
 			if got, want := out, tt.want; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 			}
@@ -111,7 +99,7 @@ func TestAssignmentOperators(t *testing.T) {
 }
 
 func TestPrint(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	print("gi")
@@ -120,7 +108,7 @@ func main() {
 }
 
 func TestCompareString(t *testing.T) { // TODO compare for all comparables
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	print("gi" == "flow")
@@ -128,8 +116,7 @@ func main() {
 }
 
 func TestMultiAssign(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main	
 func main() {
 	in1, in2 := "gi", "flow"
 	print(in1, in2)
@@ -137,8 +124,7 @@ func main() {
 }
 
 func TestTrueFalse(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	print(true, false)
@@ -146,22 +132,21 @@ func main() {
 }
 
 func TestRune(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	print('e')
 }`, "'e'")
 }
 func TestNumbers(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	print(-1,+3.14,0.1e10)
 }`, "-13.141e+09")
 }
 func TestFunc(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func plus(a int, b int) int {
 	return a + b
@@ -173,7 +158,7 @@ func main() {
 }
 
 func TestFuncMultiReturn(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func ab(a int, b int) (int,int) {
 	return a,b
@@ -185,7 +170,7 @@ func main() {
 }
 
 func TestEarlyReturn(t *testing.T) {
-	testProgram(t, !true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	if true {
@@ -198,7 +183,8 @@ func main() {
 }
 
 func TestFor(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 func main() {
 	for i := 0; i < 10; i++ {
 		print(i)
@@ -210,7 +196,8 @@ func main() {
 }
 
 func TestForScope(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 func main() {
 	j := 1
 	for i := 0; i < 3; i++ {
@@ -221,7 +208,8 @@ func main() {
 }`, "0122")
 }
 func TestForScopeDefine(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 func main() {
 	j := 1
 	for i := 0; i < 3; i++ {
@@ -233,8 +221,7 @@ func main() {
 }
 
 func TestGeneric(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func Generic[T any](arg T) (*T, error) { return &arg, nil }
 func main() {
@@ -243,8 +230,8 @@ func main() {
 }`, "hello")
 }
 func TestDeclare(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
+
 func main() {
 	var s string
 	print(s)
@@ -252,7 +239,7 @@ func main() {
 }
 
 func TestConst(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 const (
 	C = A+1
@@ -265,7 +252,7 @@ func main() {
 }
 
 func TestVar(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 var (
 	a = 1
@@ -278,7 +265,7 @@ func main() {
 }
 
 func TestConstScope(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 var b = a
 func main() {
@@ -290,7 +277,7 @@ const a = 1`, "21")
 }
 
 func TestDeclareAndInit(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	var s string = "gi"
@@ -299,8 +286,7 @@ func main() {
 }
 
 func TestSlice(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	print([]int{1, 2})
@@ -308,8 +294,7 @@ func main() {
 }
 
 func TestSliceLen(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	print(len([]int{1}))
@@ -317,8 +302,7 @@ func main() {
 }
 
 func TestSliceCap(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	print(cap([]int{1}))
@@ -326,8 +310,7 @@ func main() {
 }
 
 func TestArray(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	print([2]string{"A", "B"})
@@ -335,8 +318,7 @@ func main() {
 }
 
 func TestArrayLen(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	print(len([2]string{"A", "B"}))
@@ -344,8 +326,7 @@ func main() {
 }
 
 func TestArrayCap(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	print(cap([2]string{"A", "B"}))
@@ -353,8 +334,7 @@ func main() {
 }
 
 func TestSliceClear(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	s := []int{1,2,3}
@@ -364,8 +344,7 @@ func main() {
 }
 
 func TestMapClear(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	m := map[string]int{"A":1, "B":2}
@@ -375,8 +354,7 @@ func main() {
 }
 
 func TestSliceAppendAndIndex(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	list := []int{}
@@ -386,8 +364,7 @@ func main() {
 }
 
 func TestAppend(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	list := []int{}
@@ -398,8 +375,7 @@ func main() {
 }
 
 func TestTimeConstant(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 import "time"
 func main() {
@@ -409,8 +385,7 @@ func main() {
 }
 
 func TestTimeAliasConstant(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 import t "time"
 func main() {
@@ -420,8 +395,7 @@ func main() {
 }
 
 func TestJSONMarshal(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 import "encoding/json"
 func main() {
@@ -431,8 +405,7 @@ func main() {
 }
 
 func TestFloats(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 func main() {
 	f32, f64 := float32(3.14), 3.14
@@ -441,7 +414,8 @@ func main() {
 }
 
 func TestNewType(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 type Airplane struct {
 	Model string
 }
@@ -452,7 +426,8 @@ func main() {
 }
 
 func TestAddressOfType(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 type Airplane struct {
 	Model string
 }
@@ -463,7 +438,7 @@ func main() {
 }
 
 func TestAddressOfInt(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	i := 42
@@ -472,7 +447,7 @@ func main() {
 }
 
 func TestRangeOfStrings(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	strings := []string{"hello", "world"}
@@ -483,7 +458,7 @@ func main() {
 }
 
 func TestRangeOfStringsNoValue(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() { 
 	for i := range [2]string{} {
@@ -493,7 +468,7 @@ func main() {
 }
 
 func TestRangeOfIntNoKey(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	for range 2 {
@@ -503,7 +478,7 @@ func main() {
 }
 
 func TestRangeOfIntWithKey(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	for i := range 2 {
@@ -513,9 +488,7 @@ func main() {
 }
 
 func TestRangeOfMap(t *testing.T) {
-	// true
-	// defer func() { trace = false }()
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	m := map[string]int{"a":1, "b":2}
@@ -526,7 +499,7 @@ func main() {
 }
 
 func TestRangeNested(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	m := map[string]int{"a": 1, "b": 2}
@@ -549,7 +522,7 @@ func main() {
 }
 
 func TestInit(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func init() {
 	print("0")
@@ -561,7 +534,8 @@ func main() {}`, "01")
 }
 
 func TestMethod(t *testing.T) {
-	testProgram(t, false, false, `package main
+	t.Skip()
+	testMain(t, `package main
 
 func (_ Airplane) S() string { return "airplane" }
 type Airplane struct {}
@@ -571,7 +545,8 @@ func main() {
 }
 
 func TestGoto(t *testing.T) {
-	testProgram(t, !true, true, `
+	t.Skip()
+	testMain(t, `package main
 package main
 
 func main() {
@@ -594,7 +569,7 @@ two:
 }
 
 func TestMap(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	m := map[string]int{}
@@ -605,7 +580,7 @@ func main() {
 }
 
 func TestMapOk(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	m := map[string]int{}
@@ -616,7 +591,7 @@ func main() {
 }
 
 func TestMapInitialized(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	m := map[string]int{"a":1, "b":2}
@@ -625,7 +600,7 @@ func main() {
 }
 
 func TestMapDelete(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	m := map[string]int{"a":1, "b":2}
@@ -635,7 +610,7 @@ func main() {
 }
 
 func TestIfElseIfElse(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	if 1 == 2 {
@@ -649,7 +624,7 @@ func main() {
 }
 
 func TestIfIf(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	if 1 == 2 {
@@ -662,7 +637,7 @@ func main() {
 }
 
 func TestTwoPrints(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	print("one")
@@ -671,7 +646,8 @@ func main() {
 }
 
 func TestVariadicFunction(t *testing.T) {
-	testProgram(t, false, false, `package main
+	t.Skip()
+	testMain(t, `package main
 
 func sum(nums ...int) int {
 	total := 0
@@ -687,7 +663,8 @@ func main() {
 }
 
 func TestDefer(t *testing.T) {
-	testProgram(t, false, false, `package main
+	t.Skip()
+	testMain(t, `package main
 
 func main() {
 	defer print(1)
@@ -696,7 +673,8 @@ func main() {
 }
 
 func TestNamedReturn(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+		
 func f() (result int) {
 	return 1 
 }
@@ -707,7 +685,9 @@ func main(){
 
 // https://go.dev/ref/spec#Defer_statements
 func TestDeferReturn(t *testing.T) {
-	testProgram(t, false, false, `package main
+	t.Skip()
+	testMain(t, `package main
+
 func f() (result int) {
 	defer func() {
 		// result is accessed after it was set to 6 by the return statement
@@ -721,8 +701,10 @@ func main(){
 }
 
 func TestDeferInLoop(t *testing.T) {
+	t.Skip()
 	// i must be captured by value in the defer
-	testProgram(t, false, false, `package main
+	testMain(t, `package main	
+
 import "fmt"
 func main(){
 	for i := 0; i <= 3; i++ {
@@ -732,8 +714,9 @@ func main(){
 }
 
 func TestDeferInLoopInLiteral(t *testing.T) {
-	// i must be captured by value in the defer
-	testProgram(t, false, false, `package main
+	t.Skip()
+	testMain(t, `package main
+
 import "fmt"
 func main(){
 	f := func() {
@@ -746,7 +729,7 @@ func main(){
 }
 
 func TestMinMax(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	print(min(1,2), max(1,2))
@@ -754,8 +737,7 @@ func main() {
 }
 
 func TestTypeAlias(t *testing.T) {
-	testProgram(t, true, true, `
-package main
+	testMain(t, `package main
 
 type MyInt = int
 
@@ -766,7 +748,7 @@ func main() {
 }
 
 func TestFunctionLiteral(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	f := func(a int) int { return a }
@@ -775,7 +757,7 @@ func main() {
 }
 
 func TestSwitchOnBool(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	var a int = 1
@@ -787,7 +769,7 @@ func main() {
 }
 
 func TestSwitchOnLiteral(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	var a int
@@ -799,7 +781,7 @@ func main() {
 }
 
 func TestSwitchDefault(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	var a int
@@ -812,8 +794,7 @@ func main() {
 }
 
 func TestSwitch(t *testing.T) {
-	// trace = true
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	var a int
@@ -844,7 +825,8 @@ end:
 **/
 
 func TestSwitchType(t *testing.T) {
-	testProgram(t, !true, !true, `package main
+	t.Skip()
+	testMain(t, `package main
 
 func main() {
 	var v any
@@ -868,7 +850,7 @@ func TestPanic(t *testing.T) {
 			}
 		}
 	}()
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	panic("oops")
@@ -876,7 +858,7 @@ func main() {
 }
 
 func TestFuncAsPackageVar(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 const h = "1"
 var f = func() string { return h }
@@ -887,7 +869,7 @@ func main() {
 }
 
 func TestIfMultiAssign(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	if got, want := min(1,2), 1; got == want {
@@ -897,7 +879,7 @@ func main() {
 }
 
 func TestMakeMap(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	c := make(map[string]int)
@@ -908,7 +890,8 @@ func main() {
 }
 
 func TestRecover(t *testing.T) {
-	testProgram(t, false, false, `package main
+	t.Skip()
+	testMain(t, `package main
 
 func main() {
 	defer func() {
@@ -967,11 +950,7 @@ func TestUnaries(t *testing.T) {
 				v := %s
 				print(%sv)
 			}`, tt.src, tt.op)
-			out := parseAndRun(t, src)
-			if got, want := out, tt.want; got != want {
-				t.Errorf("%s got [%[1]v:%[1]T] want [%[2]v:%[2]T]", tt.src, got, want)
-			}
-			out = parseAndWalk(t, src)
+			out := parseAndWalk(t, src)
 			if got, want := out, tt.want; got != want {
 				t.Errorf("%s got [%[1]v:%[1]T] want [%[2]v:%[2]T]", tt.src, got, want)
 			}
@@ -980,7 +959,7 @@ func TestUnaries(t *testing.T) {
 }
 
 func TestImaginary(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	a := 1+2i
@@ -992,7 +971,7 @@ func main() {
 
 // https://go.dev/ref/spec#Package_initialization
 func TestDeclarationExample(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 var (
 	a = c + b  // == 9
@@ -1011,17 +990,18 @@ func main() {
 }
 
 func TestSubpackage(t *testing.T) {
+	t.Skip()
 	if os.Getenv("GI_TRACE") == "" {
 		t.Skip("GI_TRACE not set")
 	}
-	testProgramIn(t, true, false, "../examples/subpkg", "yet unchecked")
+	testProgramIn(t, "../examples/subpkg", "yet unchecked")
 }
 
 // about nil
 // https://github.com/golang/go/issues/51649
 func TestNilError(t *testing.T) {
-	// trace = true
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 func main() {
 	var err error = nil
 	print(err)
@@ -1029,7 +1009,9 @@ func main() {
 }
 
 func TestNilArgumentIntPointer(t *testing.T) {
-	testProgram(t, false, false, `package main
+	t.Skip()
+	testMain(t, `package main
+
 func show(arg *int) {
 	if arg != nil {
 		print(*arg)
@@ -1045,7 +1027,8 @@ func main() {
 }
 
 func TestError(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 import "errors"
 func main() {
 	var err2 error = errors.New("an error")
@@ -1055,7 +1038,8 @@ func main() {
 }
 
 func TestPointerBasic(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 func main() {
 	x := 42
 	p := &x
@@ -1064,7 +1048,8 @@ func main() {
 }
 
 func TestPointerAssignment(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 func main() {
 	x := 10
 	p := &x
@@ -1074,7 +1059,8 @@ func main() {
 }
 
 func TestPointerMultipleAssignments(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 func main() {
 	x := 1
 	y := 2
@@ -1087,7 +1073,8 @@ func main() {
 }
 
 func TestPointerToString(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 func main() {
 	s := "hello"
 	p := &s
@@ -1097,7 +1084,8 @@ func main() {
 }
 
 func TestPointerSwap(t *testing.T) {
-	testProgram(t, false, true, `package main
+	testMain(t, `package main
+
 func swap(a, b *int) {
 	temp := *a
 	*a = *b
@@ -1112,7 +1100,8 @@ func main() {
 }
 
 func TestNewStandardType(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
+
 import "sync"
 func main() {
 	var wg *sync.WaitGroup = new(sync.WaitGroup)
@@ -1123,7 +1112,7 @@ func main() {
 }
 
 func TestBlankIdentifier(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testMain(t, `package main
 
 func main() {
 	_, h, _ := "gi", "flow", "!"

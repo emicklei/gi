@@ -107,7 +107,7 @@ type FuncLit struct {
 	*ast.FuncLit
 	Type      *FuncType
 	Body      *BlockStmt // TODO not sure what to do when Body and/or Type is nil
-	callGraph Step       // TODO used?
+	callGraph Step
 }
 
 func (s FuncLit) Eval(vm *VM) {

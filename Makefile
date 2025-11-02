@@ -9,7 +9,7 @@ clean:
 	cd internal && rm -f *.dot *.png *.src
 
 todo:
-	cd internal && go test -v | grep TODO
+	cd internal && go test -v | grep SKIP
 
 bench:
 	go test -benchmem -bench=. ./internal

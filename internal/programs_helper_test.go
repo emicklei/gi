@@ -81,6 +81,7 @@ func parseAndWalk(t *testing.T, source string) string {
 	return vm.output.String()
 }
 
+// deprecated
 func parseAndRun(t *testing.T, source string) string {
 	t.Helper()
 	pkg := buildPackage(t, source)
@@ -92,7 +93,7 @@ func parseAndRun(t *testing.T, source string) string {
 	return vm.output.String()
 }
 
-func testProgramIn(t *testing.T, running bool, stepping bool, dir string, wantFuncOrString any) {
+func testProgramIn(t *testing.T, dir string, wantFuncOrString any) {
 	// cannot be parallel because of os.Chdir
 	t.Helper()
 	cwd, _ := os.Getwd()
@@ -113,6 +114,7 @@ func testProgramIn(t *testing.T, running bool, stepping bool, dir string, wantFu
 	}
 }
 
+// deprecated
 func testProgram(t *testing.T, running bool, stepping bool, source string, wantFuncOrString any) {
 	t.Parallel()
 	t.Helper()
@@ -145,5 +147,21 @@ func testProgram(t *testing.T, running bool, stepping bool, source string, wantF
 		}
 	} else {
 		t.Log("TODO skipped step:", t.Name())
+	}
+}
+
+func testMain(t *testing.T, source string, wantFuncOrString any) {
+	t.Parallel()
+	t.Helper()
+	out := parseAndWalk(t, source)
+	if fn, ok := wantFuncOrString.(func(string) bool); ok {
+		if !fn(out) {
+			t.Errorf("got [%v] which does not match predicate", out)
+		}
+		return
+	}
+	want := wantFuncOrString.(string)
+	if got, want := out, want; got != want {
+		t.Errorf("[step] got [%v] want [%v]", got, want)
 	}
 }

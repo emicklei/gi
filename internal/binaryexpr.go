@@ -30,7 +30,19 @@ func (s BinaryExpr) Eval(vm *VM) {
 	if vm.isStepping {
 		// see Flow for the order
 		right = vm.frameStack.top().pop()
+		// propagate invalid value. this happens when the expression is
+		// used in a package variable or constant declaration
+		if !right.IsValid() {
+			vm.pushOperand(right)
+			return
+		}
 		left = vm.frameStack.top().pop()
+		// propagate invalid value. this happens when the expression is
+		// used in a package variable or constant declaration
+		if !left.IsValid() {
+			vm.pushOperand(left)
+			return
+		}
 	} else {
 		left = vm.returnsEval(s.X)
 		// propagate invalid value. this happens when the expression is

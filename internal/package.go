@@ -66,9 +66,25 @@ func (p *Package) Initialize(vm *VM) error {
 	done := false
 	for !done {
 		done = true
-		for i, each := range p.Env.declarations {
-			if each != nil {
-				if each.Declare(vm) {
+		vm.isStepping = true
+		// for i, each := range p.Env.declarations {
+		// 	if each != nil {
+		// 		if each.Declare(vm) {
+		// 			p.Env.declarations[i] = nil
+		// 			done = false
+		// 		}
+		// 	}
+		// }
+		for i, decl := range p.Env.declarations {
+			if decl != nil {
+				vm.takeAll(decl.ValueFlow())
+				// val := vm.frameStack.top().peek(0)
+				// if val.IsValid() {
+				// 	p.Env.declarations[i].(ConstOrVar).Declare(vm) // TODO CanDeclare -> CanDefine?
+				// 	p.Env.declarationFlows[i] = nil
+				// 	done = false
+				// }
+				if p.Env.declarations[i].Declare(vm) {
 					p.Env.declarations[i] = nil
 					done = false
 				}
@@ -77,13 +93,12 @@ func (p *Package) Initialize(vm *VM) error {
 	}
 	// then run all inits
 	for _, each := range p.Env.inits {
-		vm.pushNewFrame(each)
-		if trace {
-			vm.traceEval(each)
-		} else {
-			each.Eval(vm)
+		// TODO clean up
+		call := CallExpr{
+			Fun:  Ident{Ident: &ast.Ident{Name: "init"}},
+			Args: []Expr{}, // TODO for now, main only
 		}
-		vm.popFrame()
+		call.handleFuncDecl(vm, each)
 	}
 	return nil
 }
@@ -161,7 +176,7 @@ func BuildPackageFromAST(ast *ast.File, isStepping bool) (*Package, error) {
 	goPkg := &packages.Package{
 		ID: "main", Name: ast.Name.Name, PkgPath: "main",
 	}
-	b := newStepBuilder(goPkg)
+	b := newASTBuilder(goPkg)
 	b.opts = buildOptions{callGraph: isStepping}
 	for _, imp := range ast.Imports {
 		b.Visit(imp)
@@ -180,7 +195,7 @@ func BuildPackage(goPkg *packages.Package, isStepping bool) (*Package, error) {
 			fmt.Printf("pkg.build(%s) took %v\n", goPkg.PkgPath, time.Since(now))
 		}()
 	}
-	b := newStepBuilder(goPkg)
+	b := newASTBuilder(goPkg)
 	b.opts = buildOptions{callGraph: isStepping}
 	for _, stx := range goPkg.Syntax {
 		for _, decl := range stx.Decls {
@@ -274,14 +289,19 @@ func WalkPackageFunction(pkg *Package, functionName string, optionalVM *VM) erro
 	vm.isStepping = true
 
 	// compose a CallExpr to leverage existing call handling
+	newFunction(pkg, functionName, nil, vm)
+
+	return nil
+}
+
+// TODO collect return values
+func newFunction(pkg *Package, functionName string, args []any, vm *VM) {
 	call := CallExpr{
 		Fun:  Ident{Ident: &ast.Ident{Name: functionName}},
 		Args: []Expr{}, // TODO for now, main only
 	}
 	g := newGraphBuilder(pkg.Package)
 	vm.takeAll(call.Flow(g))
-
-	return nil
 }
 
 func ParseSource(source string) (*Package, error) {

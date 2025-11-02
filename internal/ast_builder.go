@@ -14,13 +14,13 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-var _ ast.Visitor = (*stepBuilder)(nil)
+var _ ast.Visitor = (*ASTBuilder)(nil)
 
 type buildOptions struct {
 	callGraph bool
 }
 
-type stepBuilder struct {
+type ASTBuilder struct {
 	stack     []Evaluable
 	env       Env
 	opts      buildOptions
@@ -28,25 +28,25 @@ type stepBuilder struct {
 	funcStack stack[FuncDecl]
 }
 
-func newStepBuilder(goPkg *packages.Package) stepBuilder {
+func newASTBuilder(goPkg *packages.Package) ASTBuilder {
 	builtins := newBuiltinsEnvironment(nil)
 	pkgenv := newPkgEnvironment(builtins)
-	return stepBuilder{goPkg: goPkg, env: pkgenv, opts: buildOptions{callGraph: true}}
+	return ASTBuilder{goPkg: goPkg, env: pkgenv, opts: buildOptions{callGraph: true}}
 }
 
-func (b *stepBuilder) pushEnv() {
+func (b *ASTBuilder) pushEnv() {
 	b.env = b.env.newChild()
 }
 
-func (b *stepBuilder) popEnv() {
+func (b *ASTBuilder) popEnv() {
 	b.env = b.env.getParent()
 }
 
-func (b *stepBuilder) push(s Evaluable) {
+func (b *ASTBuilder) push(s Evaluable) {
 	b.stack = append(b.stack, s)
 }
 
-func (b *stepBuilder) pop() Evaluable {
+func (b *ASTBuilder) pop() Evaluable {
 	if len(b.stack) == 0 {
 		panic("builder.stack is empty")
 	}
@@ -55,19 +55,19 @@ func (b *stepBuilder) pop() Evaluable {
 	return top
 }
 
-func (b *stepBuilder) envSet(name string, value reflect.Value) {
+func (b *ASTBuilder) envSet(name string, value reflect.Value) {
 	b.env.set(name, value)
 }
 
-func (b *stepBuilder) pushFuncDecl(f FuncDecl) {
+func (b *ASTBuilder) pushFuncDecl(f FuncDecl) {
 	b.funcStack.push(f)
 }
-func (b *stepBuilder) popFuncDecl() {
+func (b *ASTBuilder) popFuncDecl() {
 	b.funcStack.pop()
 }
 
 // Visit implements the ast.Visitor interface
-func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
+func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 
 	case *ast.TypeSwitchStmt:
@@ -464,6 +464,10 @@ func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 				// let the environment know before evaluation
 				e := b.pop()
 				c := e.(ConstOrVar)
+
+				g := newGraphBuilder(b.goPkg)
+				c.callGraph = c.Flow(g)
+
 				b.env.addConstOrVar(c)
 				// add to stack as normal
 				b.push(e)

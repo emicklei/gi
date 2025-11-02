@@ -22,9 +22,10 @@ type Env interface {
 
 type PkgEnvironment struct {
 	Env
-	declarations []CanDeclare
-	inits        []FuncDecl
-	packageTable map[string]*Package // path -> *Package
+	declarations     []CanDeclare
+	declarationFlows []Step
+	inits            []FuncDecl
+	packageTable     map[string]*Package // path -> *Package
 }
 
 func newBuiltinsEnvironment(parent Env) Env {
@@ -46,6 +47,9 @@ func (p *PkgEnvironment) addInit(f FuncDecl) {
 
 func (p *PkgEnvironment) addConstOrVar(cv ConstOrVar) {
 	p.declarations = append(p.declarations, CanDeclare(cv))
+	g := newGraphBuilder(nil) // TODO goPkg?
+	head := cv.Flow(g)
+	p.declarationFlows = append(p.declarationFlows, head)
 }
 
 // rootPackageEnv returns the top-level package environment.

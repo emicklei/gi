@@ -14,13 +14,19 @@ type ConstOrVar struct {
 	Name  *Ident
 	Type  Expr
 	Value Expr
+	// value flow
+	callGraph Step
+}
+
+func (v ConstOrVar) ValueFlow() Step {
+	return v.callGraph
 }
 
 func (v ConstOrVar) Assign(vm *VM, value reflect.Value) {
 	vm.localEnv().valueOwnerOf(v.Name.Name).set(v.Name.Name, value)
 }
 func (v ConstOrVar) Define(vm *VM, value reflect.Value) {
-	vm.localEnv().set(v.Names[0].Name, value)
+	vm.localEnv().set(v.Name.Name, value)
 }
 func (v ConstOrVar) Declare(vm *VM) bool {
 	if v.Value != nil {
