@@ -61,6 +61,9 @@ func collectPrintOutput(vm *VM) {
 
 func parseAndWalk(t *testing.T, source string) string {
 	t.Helper()
+	if trace {
+		fmt.Println("running parseAndWalk for test:", t.Name())
+	}
 	pkg := buildPackage(t, source)
 	vm := newVM(pkg.Env)
 	collectPrintOutput(vm)

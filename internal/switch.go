@@ -198,3 +198,33 @@ func (c CaseClause) Flow(g *graphBuilder) (head Step) {
 	// no flow for case clause itself
 	return g.current
 }
+
+type TypeSwitchStmt struct {
+	*ast.TypeSwitchStmt
+	Init   Stmt // initialization statement; or nil
+	Assign Stmt // assignment statement; or nil
+	Body   *BlockStmt
+}
+
+func (s TypeSwitchStmt) stmtStep() Evaluable { return s }
+
+func (s TypeSwitchStmt) Eval(vm *VM) {}
+
+func (s TypeSwitchStmt) String() string {
+	return fmt.Sprintf("TypeSwitchStmt(%v,%v,%v)", s.Init, s.Assign, s.Body)
+}
+
+func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
+	if s.Init != nil {
+		head = s.Init.Flow(g)
+	}
+	if s.Assign != nil {
+		if head == nil {
+			head = s.Assign.Flow(g)
+		} else {
+			_ = s.Assign.Flow(g)
+		}
+	}
+	// body has CaseClauses, see SwitchStmt.Flow
+	return head
+}

@@ -185,7 +185,7 @@ func main() {
 }
 
 func TestEarlyReturn(t *testing.T) {
-	testProgram(t, true, true, `package main
+	testProgram(t, !true, true, `package main
 
 func main() {
 	if true {
@@ -513,7 +513,7 @@ func main() {
 }
 
 func TestRangeOfMap(t *testing.T) {
-	// trace = true
+	// true
 	// defer func() { trace = false }()
 	testProgram(t, true, true, `package main
 
@@ -571,7 +571,7 @@ func main() {
 }
 
 func TestGoto(t *testing.T) {
-	testProgram(t, true, true, `
+	testProgram(t, !true, true, `
 package main
 
 func main() {
@@ -812,7 +812,7 @@ func main() {
 }
 
 func TestSwitch(t *testing.T) {
-	trace = true
+	// trace = true
 	testProgram(t, true, true, `package main
 
 func main() {

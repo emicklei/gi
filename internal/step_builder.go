@@ -69,6 +69,25 @@ func (b *stepBuilder) popFuncDecl() {
 // Visit implements the ast.Visitor interface
 func (b *stepBuilder) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
+
+	case *ast.TypeSwitchStmt:
+		s := TypeSwitchStmt{TypeSwitchStmt: n}
+		if n.Init != nil {
+			b.Visit(n.Init)
+			e := b.pop()
+			s.Init = e.(Stmt)
+		}
+		if n.Assign != nil {
+			b.Visit(n.Assign)
+			e := b.pop()
+			s.Assign = e.(Stmt)
+		}
+		if n.Body != nil {
+			b.Visit(n.Body)
+			blk := b.pop().(BlockStmt)
+			s.Body = &blk
+		}
+		b.push(s)
 	case *ast.Ellipsis:
 		s := Ellipsis{Ellipsis: n}
 		if n.Elt != nil {
