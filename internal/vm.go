@@ -81,7 +81,7 @@ type VM struct {
 }
 
 func newVM(env Env) *VM {
-	vm := &VM{output: new(bytes.Buffer)}
+	vm := &VM{output: new(bytes.Buffer), isStepping: true}
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
 	vm.frameStack.push(frame)

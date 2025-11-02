@@ -9,8 +9,15 @@ import (
 	"testing"
 )
 
+func evalExpr(expr Expr) reflect.Value {
+	g := newGraphBuilder(nil)
+	head := expr.Flow(g)
+	vm := newVM(newEnvironment(nil))
+	vm.takeAll(head)
+	result := vm.frameStack.top().pop()
+	return result
+}
 func TestBinaryExprValue_Eval(t *testing.T) {
-	t.Skip("TODO fix me")
 	t.Parallel()
 	t.Run("int op int", func(t *testing.T) {
 		cases := []struct {
@@ -48,9 +55,8 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 					Y:          right,
 					BinaryExpr: &ast.BinaryExpr{Op: tt.op},
 				}
-				vm := newVM(newEnvironment(nil))
-				vm.isStepping = true
-				result := vm.returnsEval(expr)
+				result := evalExpr(expr)
+
 				switch expected := tt.expected.(type) {
 				case int64:
 					if result.Int() != expected {
@@ -61,7 +67,6 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 						t.Errorf("expected %v, got %v", expected, result.Bool())
 					}
 				}
-				vm.popFrame()
 			})
 		}
 	})
@@ -87,18 +92,10 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 					Y:          right,
 					BinaryExpr: &ast.BinaryExpr{Op: tt.op},
 				}
-				vm := newVM(newEnvironment(nil))
-				vm.isStepping = true
-				if trace {
-					vm.traceEval(expr)
-				} else {
-					expr.Eval(vm)
-				}
-				result := vm.returnsEval(expr)
+				result := evalExpr(expr)
 				if math.Abs(result.Float()-tt.expected) > 1e-9 {
 					t.Errorf("expected %f, got %f", tt.expected, result.Float())
 				}
-				vm.popFrame()
 			})
 		}
 	})
@@ -111,21 +108,13 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 			Y:          right,
 			BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
 		}
-		vm := newVM(newEnvironment(nil))
-		vm.isStepping = true
-		if trace {
-			vm.traceEval(expr)
-		} else {
-			expr.Eval(vm)
-		}
-		result := vm.returnsEval(expr)
+		result := evalExpr(expr)
 		if result.Kind() != reflect.Float64 {
 			t.Fatalf("expected float64 result, got %v", result.Kind())
 		}
 		if result.Float() != 45.14 {
 			t.Fatalf("expected 45.14, got %f", result.Float())
 		}
-		vm.popFrame()
 	})
 
 	t.Run("float op int", func(t *testing.T) {
@@ -136,21 +125,13 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 			Y:          right,
 			BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
 		}
-		vm := newVM(newEnvironment(nil))
-		vm.isStepping = true
-		if trace {
-			vm.traceEval(expr)
-		} else {
-			expr.Eval(vm)
-		}
-		result := vm.returnsEval(expr)
+		result := evalExpr(expr)
 		if result.Kind() != reflect.Float64 {
 			t.Fatalf("expected float64 result, got %v", result.Kind())
 		}
 		if result.Float() != 45.14 {
 			t.Fatalf("expected 45.14, got %f", result.Float())
 		}
-		vm.popFrame()
 	})
 
 	t.Run("string op string", func(t *testing.T) {
@@ -161,17 +142,13 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 			Y:          right,
 			BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
 		}
-		vm := newVM(newEnvironment(nil))
-		vm.isStepping = true
-		expr.Eval(vm)
-		result := vm.returnsEval(expr)
+		result := evalExpr(expr)
 		if result.Kind() != reflect.String {
 			t.Fatalf("expected string result, got %v", result.Kind())
 		}
 		if result.String() != "Hello, World!" {
 			t.Fatalf(`expected "Hello, World!", got %s`, result.String())
 		}
-		vm.popFrame()
 	})
 }
 

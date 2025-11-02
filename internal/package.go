@@ -66,7 +66,6 @@ func (p *Package) Initialize(vm *VM) error {
 	done := false
 	for !done {
 		done = true
-		vm.isStepping = true
 		// for i, each := range p.Env.declarations {
 		// 	if each != nil {
 		// 		if each.Declare(vm) {
@@ -285,8 +284,6 @@ func WalkPackageFunction(pkg *Package, functionName string, optionalVM *VM) erro
 	if err := pkg.Initialize(vm); err != nil {
 		return fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
 	}
-	// run it step by step
-	vm.isStepping = true
 
 	// compose a CallExpr to leverage existing call handling
 	newFunction(pkg, functionName, nil, vm)

@@ -32,11 +32,10 @@ func TestIncDec(t *testing.T) {
 				IncDecStmt: &ast.IncDecStmt{Tok: tc.tok},
 				X:          Ident{Ident: &ast.Ident{Name: "x"}},
 			}
-			if trace {
-				vm.traceEval(n)
-			} else {
-				n.Eval(vm)
-			}
+			g := newGraphBuilder(nil)
+			head := n.Flow(g)
+			vm.takeAll(head)
+
 			v := vm.localEnv().valueLookUp("x")
 			if got, want := v.Interface(), tc.end.Interface(); got != want {
 				t.Errorf("got %v want %v", got, want)

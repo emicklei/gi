@@ -21,14 +21,14 @@ func TestStepByStep(t *testing.T) {
 	rightStep.SetNext(binExprStep)
 
 	vm := newVM(newEnvironment(nil))
-	vm.isStepping = true
 	var here Step = leftStep
 	for here != nil {
-		t.Log(here)
-		here.Eval(vm)
+		here.Take(vm)
 		here = here.Next()
 	}
-	t.Log("result:", vm.frameStack.top().pop().Interface())
+	if got, want := vm.frameStack.top().pop().Interface(), "Hello, World!"; got != want {
+		t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
+	}
 }
 
 func TestEvaluableStep(t *testing.T) {

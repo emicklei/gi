@@ -43,7 +43,6 @@ func TestBasicLit_Eval(t *testing.T) {
 
 func TestCompositeArrayLit_Eval(t *testing.T) {
 	t.Run("array literal", func(t *testing.T) {
-		vm := newVM(newEnvironment(nil))
 		// mock array type
 		at := ArrayType{
 			ArrayType: &ast.ArrayType{
@@ -61,7 +60,7 @@ func TestCompositeArrayLit_Eval(t *testing.T) {
 				BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "2"}},
 			},
 		}
-		result := vm.returnsEval(cl)
+		result := evalExpr(cl)
 		if result.Kind() != reflect.Array {
 			t.Fatalf("expected array, got %v", result.Kind())
 		}
@@ -78,8 +77,7 @@ func TestCompositeArrayLit_Eval(t *testing.T) {
 }
 
 func TestCompositeSliceLit_Eval(t *testing.T) {
-	t.Run("array literal", func(t *testing.T) {
-		vm := newVM(newEnvironment(nil))
+	t.Run("slice literal", func(t *testing.T) {
 		// mock array type
 		at := ArrayType{
 			ArrayType: &ast.ArrayType{
@@ -96,7 +94,7 @@ func TestCompositeSliceLit_Eval(t *testing.T) {
 				BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "2"}},
 			},
 		}
-		result := vm.returnsEval(cl)
+		result := evalExpr(cl)
 		if result.Kind() != reflect.Slice {
 			t.Fatalf("expected slice, got %v", result.Kind())
 		}
