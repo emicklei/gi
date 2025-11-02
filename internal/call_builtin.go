@@ -10,16 +10,17 @@ type builtinFunc struct{ name string }
 
 // https://pkg.go.dev/builtin#delete
 func (c CallExpr) evalDelete(vm *VM) {
-	target := vm.returnsEval(c.Args[0])
-	key := vm.returnsEval(c.Args[1])
+	target := vm.frameStack.top().pop()
+	key := vm.frameStack.top().pop()
 	target.SetMapIndex(key, reflect.Value{}) // delete
 }
 
 // https://pkg.go.dev/builtin#append
 func (c CallExpr) evalAppend(vm *VM) {
 	args := make([]reflect.Value, len(c.Args))
-	for i, arg := range c.Args {
-		args[i] = vm.returnsEval(arg)
+	for i := range c.Args {
+		v := vm.frameStack.top().pop()
+		args[i] = v
 	}
 	result := reflect.Append(args[0], args[1:]...)
 	vm.pushOperand(result)

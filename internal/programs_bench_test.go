@@ -57,7 +57,7 @@ func main() {
 			for i := 0; i < b.N; i++ {
 				vm := newVM(prog.Env)
 				collectPrintOutput(vm)
-				if err := WalkPackageFunction(prog, "main", vm); err != nil {
+				if _, err := CallPackageFunction(prog, "main", nil, vm); err != nil {
 					b.Fatal(err)
 				}
 			}

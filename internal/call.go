@@ -154,7 +154,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	setParametersToFrame(fd.Type, args, vm, frame)
 	setZeroReturnsToFrame(fd.Type, vm, frame)
 
-	af := &activeFuncDecl{FuncDecl: fd, bodyListIndex: -1}
+	af := &activeFuncDecl{FuncDecl: fd}
 	vm.activeFuncStack.push(af)
 
 	// when stepping we the call graph in FuncDecl

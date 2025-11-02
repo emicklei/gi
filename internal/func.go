@@ -7,26 +7,8 @@ import (
 )
 
 type activeFuncDecl struct {
-	FuncDecl      FuncDecl
-	bodyListIndex int
-	deferList     []Expr
-}
-
-func (af *activeFuncDecl) hasNextStmt() bool {
-	return af.bodyListIndex+1 < len(af.FuncDecl.Body.List)
-}
-
-func (af *activeFuncDecl) nextStmt() Stmt {
-	af.bodyListIndex++
-	return af.FuncDecl.Body.List[af.bodyListIndex]
-}
-
-func (af *activeFuncDecl) setNextStmtIndex(index int) {
-	af.bodyListIndex = index - 1
-}
-
-func (af *activeFuncDecl) setDone() {
-	af.bodyListIndex = len(af.FuncDecl.Body.List)
+	FuncDecl  FuncDecl
+	deferList []Expr
 }
 
 func (af *activeFuncDecl) addDefer(call Expr) {
@@ -53,29 +35,29 @@ type FuncDecl struct {
 }
 
 func (f FuncDecl) Eval(vm *VM) {
-	if f.Body != nil {
-		af := &activeFuncDecl{FuncDecl: f, bodyListIndex: -1}
-		vm.activeFuncStack.push(af)
-		// execute statements
-		for af.hasNextStmt() {
-			stmt := af.nextStmt()
-			if trace {
-				vm.traceEval(stmt.stmtStep())
-			} else {
-				stmt.stmtStep().Eval(vm)
-			}
-		}
-		// run defer statements
-		for i := len(af.deferList) - 1; i >= 0; i-- {
-			deferCall := af.deferList[i]
-			if trace {
-				vm.traceEval(deferCall)
-			} else {
-				deferCall.Eval(vm)
-			}
-		}
-		vm.activeFuncStack.pop()
-	}
+	// if f.Body != nil {
+	// 	af := &activeFuncDecl{FuncDecl: f, bodyListIndex: -1}
+	// 	vm.activeFuncStack.push(af)
+	// 	// execute statements
+	// 	for af.hasNextStmt() {
+	// 		stmt := af.nextStmt()
+	// 		if trace {
+	// 			vm.traceEval(stmt.stmtStep())
+	// 		} else {
+	// 			stmt.stmtStep().Eval(vm)
+	// 		}
+	// 	}
+	// 	// run defer statements
+	// 	for i := len(af.deferList) - 1; i >= 0; i-- {
+	// 		deferCall := af.deferList[i]
+	// 		if trace {
+	// 			vm.traceEval(deferCall)
+	// 		} else {
+	// 			deferCall.Eval(vm)
+	// 		}
+	// 	}
+	// 	vm.activeFuncStack.pop()
+	// }
 }
 
 func (f FuncDecl) Flow(g *graphBuilder) (head Step) {

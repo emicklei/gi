@@ -75,7 +75,7 @@ func parseAndWalk(t *testing.T, source string) string {
 	// will fail in pipeline without graphviz installed
 	exec.Command("dot", "-Tpng", "-o", gidot+".png", gidot).Run()
 
-	if err := WalkPackageFunction(pkg, "main", vm); err != nil {
+	if _, err := CallPackageFunction(pkg, "main", nil, vm); err != nil {
 		panic(err)
 	}
 	return vm.output.String()

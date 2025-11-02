@@ -99,9 +99,9 @@ type BranchStmt struct {
 func (s BranchStmt) Eval(vm *VM) {
 	switch s.Tok {
 	case token.GOTO:
-		af := vm.activeFuncStack.top()
-		ref := af.FuncDecl.labelToStmt[s.Label.Name]
-		af.setNextStmtIndex(ref.index)
+		// af := vm.activeFuncStack.top()
+		// ref := af.FuncDecl.labelToStmt[s.Label.Name]
+		// af.setNextStmtIndex(ref.index)
 	default:
 		// TODO handle break, continue, fallthrough
 	}

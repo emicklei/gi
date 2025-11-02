@@ -997,6 +997,39 @@ func TestSubpackage(t *testing.T) {
 	testProgramIn(t, "../examples/subpkg", "yet unchecked")
 }
 
+func TestNestedLoop(t *testing.T) {
+	t.Skip()
+	if os.Getenv("GI_TRACE") == "" {
+		t.Skip("GI_TRACE not set")
+	}
+	testProgramIn(t, "../examples/nestedloop", "todo")
+}
+
+func TestNestedLoopFromSource(t *testing.T) {
+	testMain(t, `package main 
+
+import (
+	"fmt"
+)
+
+func squared(n int) int {
+	return n * n
+}
+
+func main() {
+	n := []int{42}
+	i, j := 0, 2
+	for k := i; k < j; k++ {
+		for s := -1; s < k+1; s++ {
+			n = append(n, squared(s))
+			fmt.Println(i, j, k, s)
+		}
+	}
+	fmt.Println(n)
+}
+`, func(out string) bool { return true })
+}
+
 // about nil
 // https://github.com/golang/go/issues/51649
 func TestNilError(t *testing.T) {

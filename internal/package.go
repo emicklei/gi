@@ -208,6 +208,7 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 	return pkg, nil
 }
 
+// Deprecated: use CallPackageFunction
 func RunPackageFunction(pkg *Package, functionName string, args []any, optionalVM *VM) ([]any, error) {
 	var vm *VM
 	if optionalVM != nil {
@@ -266,9 +267,7 @@ func RunPackageFunction(pkg *Package, functionName string, args []any, optionalV
 	return results, nil
 }
 
-func WalkPackageFunction(pkg *Package, functionName string, optionalVM *VM) error {
-
-	// TODO code duplication
+func CallPackageFunction(pkg *Package, functionName string, args []any, optionalVM *VM) ([]any, error) {
 	var vm *VM
 	if optionalVM != nil {
 		vm = optionalVM
@@ -278,27 +277,43 @@ func WalkPackageFunction(pkg *Package, functionName string, optionalVM *VM) erro
 	for _, subpkg := range pkg.Env.packageTable {
 		subvm := newVM(subpkg.Env)
 		if err := subpkg.Initialize(subvm); err != nil {
-			return fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
+			return nil, fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
 		}
 	}
 	if err := pkg.Initialize(vm); err != nil {
-		return fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
+		return nil, fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
+	}
+	fun := pkg.Env.valueLookUp(functionName)
+	if !fun.IsValid() {
+		return nil, fmt.Errorf("%s function definition not found", functionName)
 	}
 
-	// compose a CallExpr to leverage existing call handling
-	newFunction(pkg, functionName, nil, vm)
-
-	return nil
-}
-
-// TODO collect return values
-func newFunction(pkg *Package, functionName string, args []any, vm *VM) {
-	call := CallExpr{
-		Fun:  Ident{Ident: &ast.Ident{Name: functionName}},
-		Args: []Expr{}, // TODO for now, main only
+	// collect parameter values
+	params := make([]reflect.Value, len(args))
+	for i, arg := range args {
+		params[i] = reflect.ValueOf(arg)
 	}
-	g := newGraphBuilder(pkg.Package)
-	vm.takeAll(call.Flow(g))
+
+	// create stack frame with parameters values
+	fundecl := fun.Interface().(FuncDecl)
+	vm.pushNewFrame(fundecl)
+	frame := vm.frameStack.top()
+	setParametersToFrame(fundecl.Type, params, vm, frame)
+
+	vm.takeAll(fundecl.callGraph)
+
+	// collect non-reflection return values
+	top := vm.frameStack.top() // == frame?? TODO
+	results := make([]any, len(top.returnValues))
+	for i, rv := range top.returnValues {
+		if rv.CanInterface() {
+			results[i] = rv.Interface()
+		} else {
+			results[i] = nil
+		}
+	}
+	vm.popFrame()
+	return results, nil
 }
 
 func ParseSource(source string) (*Package, error) {

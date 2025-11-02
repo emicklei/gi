@@ -18,7 +18,7 @@ func Run(filePath string) error {
 	if err != nil {
 		return err
 	}
-	_, err = internal.RunPackageFunction(ffpkg, "main", nil, nil)
+	_, err = internal.CallPackageFunction(ffpkg, "main", nil, nil)
 	return err
 }
 
@@ -35,7 +35,7 @@ type Package = internal.Package
 // Call calls a function named funcName in the given package pkg with the provided parameters values.
 // It returns the results of the function call and an error if any occurred during the call.
 func Call(pkg *Package, funcName string, params ...any) ([]any, error) {
-	return internal.RunPackageFunction(pkg, funcName, params, nil)
+	return internal.CallPackageFunction(pkg, funcName, params, nil)
 }
 
 // RegisterPackage registers an external package with its symbols for use within gi-executed code.

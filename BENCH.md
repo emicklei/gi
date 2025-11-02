@@ -46,3 +46,12 @@ BenchmarkIfElseIfElse/native-12                 1000000000               0.00004
 BenchmarkIfElseIfElse/run-12                         258           4618984 ns/op         2572510 B/op      75587 allocs/op
 BenchmarkIfElseIfElse/walk-12                        256           4632972 ns/op         2070043 B/op      70127 allocs/op
 ```
+2-11-2025
+```
+goos: darwin
+goarch: arm64
+pkg: github.com/emicklei/gi/internal
+cpu: Apple M2 Max
+BenchmarkIfElseIfElse/build-12          1000000000               0.0000410 ns/op               0 B/op          0 allocs/op
+BenchmarkIfElseIfElse/walk-12                210           5682468 ns/op         2071383 B/op      70135 allocs/op
+```
