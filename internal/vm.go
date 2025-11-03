@@ -43,13 +43,18 @@ func (f *stackFrame) String() string {
 }
 
 type VM struct {
-	callStack  stack[*stackFrame]
-	isStepping bool
-	output     *bytes.Buffer
+	callStack   stack[*stackFrame]
+	isStepping  bool
+	output      *bytes.Buffer
+	heap        map[uintptr]reflect.Value // heap storage for escaped pointers
+	heapCounter uintptr                   // counter for generating unique heap addresses
 }
 
 func newVM(env Env) *VM {
-	vm := &VM{output: new(bytes.Buffer)}
+	vm := &VM{
+		output: new(bytes.Buffer),
+		heap:   make(map[uintptr]reflect.Value),
+	}
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
 	vm.callStack.push(frame)
