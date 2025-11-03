@@ -87,50 +87,61 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 		}
 
 		// non-default case
-		for _, expr := range clause.List {
-			if len(clause.Body) == 0 {
-				continue
-			}
-			// compose condition
-			var cond BinaryExpr
+		// non-default case
+		if len(clause.Body) == 0 {
+			continue
+		}
+		// compose condition
+		var cond Expr
+		// build a chain of OR expressions for each case expression
+		for i, expr := range clause.List {
+			var nextCond BinaryExpr
 			if _, ok := expr.(BasicLit); ok {
-				cond = BinaryExpr{
+				nextCond = BinaryExpr{
 					BinaryExpr: &ast.BinaryExpr{Op: token.EQL, OpPos: clause.Pos()},
 					X:          s.Tag,
 					Y:          expr,
 				}
 			}
 			if _, ok := expr.(Ident); ok {
-				cond = BinaryExpr{
+				nextCond = BinaryExpr{
 					BinaryExpr: &ast.BinaryExpr{Op: token.EQL, OpPos: clause.Pos()},
 					X:          s.Tag,
 					Y:          expr,
 				}
 			}
 			if bin, ok := expr.(BinaryExpr); ok {
-				cond = bin
+				nextCond = bin
 			}
-
-			// compose goto to end of switch
-			gotoEnd := BranchStmt{
-				BranchStmt: &ast.BranchStmt{Tok: token.GOTO, TokPos: clause.Pos()},
-				Label:      &Ident{Ident: &ast.Ident{Name: gotoLabel}},
+			if i == 0 {
+				cond = nextCond
+			} else {
+				cond = BinaryExpr{
+					BinaryExpr: &ast.BinaryExpr{Op: token.LOR, OpPos: clause.Pos()},
+					X:          cond,
+					Y:          nextCond,
+				}
 			}
-			list := append(clause.Body, gotoEnd)
-
-			// compose if statement for this case
-			when := IfStmt{
-				IfStmt: &ast.IfStmt{If: clause.Pos()},
-				Cond:   cond,
-				Body:   &BlockStmt{List: list},
-			}
-			whenFlow := when.Flow(g)
-			if head == nil {
-				head = whenFlow
-			}
-			// switch clause ends here
-			g.current = nil
 		}
+
+		// compose goto to end of switch
+		gotoEnd := BranchStmt{
+			BranchStmt: &ast.BranchStmt{Tok: token.GOTO, TokPos: clause.Pos()},
+			Label:      &Ident{Ident: &ast.Ident{Name: gotoLabel}},
+		}
+		list := append(clause.Body, gotoEnd)
+
+		// compose if statement for this case
+		when := IfStmt{
+			IfStmt: &ast.IfStmt{If: clause.Pos()},
+			Cond:   cond,
+			Body:   &BlockStmt{List: list},
+		}
+		whenFlow := when.Flow(g)
+		if head == nil {
+			head = whenFlow
+		}
+		// switch clause does not end here, can fallthrough
 	}
 	g.nextStep(gotoStep)
 	if head == nil {

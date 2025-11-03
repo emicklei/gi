@@ -35,11 +35,28 @@ func (i Instance) Select(name string) reflect.Value {
 
 // composite is (a reflect on) an Instance
 func (i Instance) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
-	// fmt.Printf("%v (%T)", composite, composite)
-	for _, each := range values {
-		// fmt.Printf("%v (%T)\n", each, each)
-		if kv, ok := each.Interface().(KeyValue); ok {
-			i.fields[mustString(kv.Key)] = kv.Value
+	if len(values) == 0 {
+		return composite
+	}
+	// check first element to decide keyed or not
+	if _, ok := values[0].Interface().(KeyValue); ok {
+		for _, each := range values {
+			if kv, ok := each.Interface().(KeyValue); ok {
+				i.fields[mustString(kv.Key)] = kv.Value
+			}
+		}
+	} else {
+		// unkeyed
+		var fieldNames []string
+		for _, field := range i.Type.Fields.List {
+			for _, name := range field.Names {
+				fieldNames = append(fieldNames, name.Name)
+			}
+		}
+		for valueIndex, each := range values {
+			if valueIndex < len(fieldNames) {
+				i.fields[fieldNames[valueIndex]] = each
+			}
 		}
 	}
 	return composite

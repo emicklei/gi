@@ -46,7 +46,14 @@ func collectPrintOutput(vm *VM) {
 	vm.localEnv().set("print", reflect.ValueOf(func(args ...any) {
 		for _, a := range args {
 			if rv, ok := a.(reflect.Value); ok && rv.IsValid() && rv.CanInterface() {
-				fmt.Fprintf(vm.output, "%v", rv.Interface())
+				// check for pointer to array
+				if rv.Kind() == reflect.Ptr && rv.Elem().Kind() == reflect.Array {
+					fmt.Fprintf(vm.output, "%v", rv.Elem().Interface())
+				} else if rv.Kind() == reflect.Ptr {
+					fmt.Fprintf(vm.output, "%v", rv.Elem().Interface())
+				} else {
+					fmt.Fprintf(vm.output, "%v", rv.Interface())
+				}
 			} else {
 				if s, ok := a.(string); ok {
 					io.WriteString(vm.output, s)

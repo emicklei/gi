@@ -20,16 +20,17 @@ func (a ArrayType) Eval(vm *VM) {
 }
 
 func (a ArrayType) Instantiate(vm *VM) reflect.Value {
-	typeName := mustIdentName(a.Elt)
-	rt := builtinTypesMap[typeName]
+	eltTypeName := mustIdentName(a.Elt)
+	eltType := vm.localEnv().typeLookUp(eltTypeName)
 	if a.ArrayType.Len == nil {
-		st := reflect.SliceOf(rt)
-		return reflect.MakeSlice(st, 0, 4)
+		// slice
+		sliceType := reflect.SliceOf(eltType)
+		return reflect.MakeSlice(sliceType, 0, 4)
 	} else {
-		size := vm.returnsEval(a.Len)
-		st := reflect.ArrayOf(int(size.Int()), rt)
-		pArray := reflect.New(st)
-		return pArray.Elem()
+		// array
+		len := vm.returnsEval(a.Len)
+		arrayType := reflect.ArrayOf(int(len.Int()), eltType)
+		return reflect.New(arrayType)
 	}
 }
 
@@ -51,8 +52,9 @@ func (a ArrayType) LiteralCompose(composite reflect.Value, values []reflect.Valu
 		return composite
 	}
 	// array
+	elem := composite.Elem()
 	for i, v := range values {
-		composite.Index(i).Set(v)
+		elem.Index(i).Set(v)
 	}
 	return composite
 }

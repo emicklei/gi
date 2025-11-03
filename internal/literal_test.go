@@ -61,17 +61,21 @@ func TestCompositeArrayLit_Eval(t *testing.T) {
 			},
 		}
 		result := evalExpr(cl)
-		if result.Kind() != reflect.Array {
-			t.Fatalf("expected array, got %v", result.Kind())
+		if result.Kind() != reflect.Ptr {
+			t.Fatalf("expected ptr, got %v", result.Kind())
 		}
-		if result.Len() != 2 {
-			t.Fatalf("expected array of length 2, got %d", result.Len())
+		arr := result.Elem()
+		if arr.Kind() != reflect.Array {
+			t.Fatalf("expected array, got %v", arr.Kind())
 		}
-		if result.Index(0).Int() != 1 {
-			t.Errorf("expected first element to be 1, got %d", result.Index(0).Int())
+		if arr.Len() != 2 {
+			t.Fatalf("expected array of length 2, got %d", arr.Len())
 		}
-		if result.Index(1).Int() != 2 {
-			t.Errorf("expected second element to be 2, got %d", result.Index(1).Int())
+		if arr.Index(0).Int() != 1 {
+			t.Errorf("expected first element to be 1, got %d", arr.Index(0).Int())
+		}
+		if arr.Index(1).Int() != 2 {
+			t.Errorf("expected second element to be 2, got %d", arr.Index(1).Int())
 		}
 	})
 }

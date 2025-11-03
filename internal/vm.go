@@ -168,9 +168,7 @@ func (vm *VM) fatal(err any) {
 		s.Explore(fmt.Sprintf("vm.frameStack.%d.returnValues", i), each.returnValues, structexplorer.Column(1))
 	}
 	s.Dump("gi-vm-panic.html")
-	if trace {
-		panic(err)
-	}
+	panic(err)
 	os.Exit(1)
 }
 

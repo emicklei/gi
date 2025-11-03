@@ -358,6 +358,9 @@ type rangeIteratorSwitchStep struct {
 
 func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
 	rangeable := vm.frameStack.top().pop()
+	if rangeable.Kind() == reflect.Ptr {
+		rangeable = rangeable.Elem()
+	}
 	switch rangeable.Kind() {
 	case reflect.Map:
 		return i.mapFlow.Take(vm)

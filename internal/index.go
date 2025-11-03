@@ -18,6 +18,9 @@ type IndexExpr struct {
 func (i IndexExpr) Eval(vm *VM) {
 	index := vm.frameStack.top().pop()
 	target := vm.frameStack.top().pop()
+	if target.Kind() == reflect.Ptr {
+		target = target.Elem()
+	}
 	if target.Kind() == reflect.Map {
 		v := target.MapIndex(index)
 		vm.pushOperand(v)
@@ -37,8 +40,11 @@ func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
 		target.SetMapIndex(index, value)
 		return
 	}
+	if target.Kind() == reflect.Ptr {
+		target = target.Elem()
+	}
 	if target.Kind() == reflect.Slice || target.Kind() == reflect.Array {
-		reflect.ValueOf(target.Interface()).Index(int(index.Int())).Set(value)
+		target.Index(int(index.Int())).Set(value)
 		return
 	}
 	expected(target, "map or slice or array")
