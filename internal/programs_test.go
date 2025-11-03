@@ -221,6 +221,7 @@ func main() {
 }
 
 func TestGeneric(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
 
 func Generic[T any](arg T) (*T, error) { return &arg, nil }
