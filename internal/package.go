@@ -46,9 +46,9 @@ func (p ExternalPackage) String() string {
 
 // TODO rename to LocalPackage?
 type Package struct {
-	*packages.Package
-	Env         *PkgEnvironment
-	Initialized bool
+	*packages.Package // TODO look for actual data used here
+	Env               *PkgEnvironment
+	Initialized       bool
 }
 
 func (p *Package) Select(name string) reflect.Value {
@@ -66,23 +66,9 @@ func (p *Package) Initialize(vm *VM) error {
 	done := false
 	for !done {
 		done = true
-		// for i, each := range p.Env.declarations {
-		// 	if each != nil {
-		// 		if each.Declare(vm) {
-		// 			p.Env.declarations[i] = nil
-		// 			done = false
-		// 		}
-		// 	}
-		// }
 		for i, decl := range p.Env.declarations {
 			if decl != nil {
-				vm.takeAll(decl.ValueFlow())
-				// val := vm.frameStack.top().peek(0)
-				// if val.IsValid() {
-				// 	p.Env.declarations[i].(ConstOrVar).Declare(vm) // TODO CanDeclare -> CanDefine?
-				// 	p.Env.declarationFlows[i] = nil
-				// 	done = false
-				// }
+				vm.takeAllStartingAt(decl.ValueFlow())
 				if p.Env.declarations[i].Declare(vm) {
 					p.Env.declarations[i] = nil
 					done = false
@@ -183,7 +169,7 @@ func BuildPackageFromAST(ast *ast.File) (*Package, error) {
 	for _, decl := range ast.Decls {
 		b.Visit(decl)
 	}
-	return &Package{Package: goPkg, Env: b.env.(*PkgEnvironment)}, nil
+	return &Package{Env: b.env.(*PkgEnvironment)}, nil
 }
 
 // TODO build options
@@ -201,70 +187,11 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 			b.Visit(decl)
 		}
 	}
-	pkg := &Package{Package: goPkg, Env: b.env.(*PkgEnvironment)}
+	pkg := &Package{Env: b.env.(*PkgEnvironment)}
 	if dotFilename := os.Getenv("GI_DOT"); dotFilename != "" {
 		pkg.writeDotGraph(dotFilename)
 	}
 	return pkg, nil
-}
-
-// Deprecated: use CallPackageFunction
-func RunPackageFunction(pkg *Package, functionName string, args []any, optionalVM *VM) ([]any, error) {
-	var vm *VM
-	if optionalVM != nil {
-		vm = optionalVM
-	} else {
-		vm = newVM(pkg.Env)
-	}
-	for _, subpkg := range pkg.Env.packageTable {
-		subvm := newVM(subpkg.Env)
-		if err := subpkg.Initialize(subvm); err != nil {
-			return nil, fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
-		}
-	}
-	if err := pkg.Initialize(vm); err != nil {
-		return nil, fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
-	}
-	fun := pkg.Env.valueLookUp(functionName)
-	if !fun.IsValid() {
-		return nil, fmt.Errorf("%s function definition not found", functionName)
-	}
-
-	// collect parameter values
-	params := make([]reflect.Value, len(args))
-	for i, arg := range args {
-		params[i] = reflect.ValueOf(arg)
-	}
-
-	// create stack frame with parameters values
-	fundecl := fun.Interface().(FuncDecl)
-	vm.pushNewFrame(fundecl)
-	frame := vm.frameStack.top()
-	setParametersToFrame(fundecl.Type, params, vm, frame)
-
-	// compose a CallExpr to leverage existing call handling
-	call := CallExpr{
-		Fun:  Ident{Ident: &ast.Ident{Name: functionName}},
-		Args: []Expr{}, // TODO for now, main only
-	}
-	if trace {
-		vm.traceEval(call)
-	} else {
-		call.Eval(vm)
-	}
-
-	// collect non-reflection return values
-	top := vm.frameStack.top()
-	results := make([]any, len(top.returnValues))
-	for i, rv := range top.returnValues {
-		if rv.CanInterface() {
-			results[i] = rv.Interface()
-		} else {
-			results[i] = nil
-		}
-	}
-	vm.popFrame()
-	return results, nil
 }
 
 func CallPackageFunction(pkg *Package, functionName string, args []any, optionalVM *VM) ([]any, error) {
@@ -300,7 +227,7 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	frame := vm.frameStack.top()
 	setParametersToFrame(fundecl.Type, params, vm, frame)
 
-	vm.takeAll(fundecl.callGraph)
+	vm.takeAllStartingAt(fundecl.callGraph)
 
 	// collect non-reflection return values
 	top := vm.frameStack.top() // == frame?? TODO

@@ -22,72 +22,7 @@ type RangeStmt struct {
 	Body       *BlockStmt
 }
 
-func (r RangeStmt) Eval(vm *VM) {
-	rangeable := vm.returnsEval(r.X)
-	switch rangeable.Kind() {
-	case reflect.Map:
-		iter := rangeable.MapRange()
-		for iter.Next() {
-			vm.pushNewFrame(r)
-			if r.Key != nil {
-				if ca, ok := r.Key.(CanAssign); ok {
-					ca.Define(vm, iter.Key())
-				}
-			}
-			if r.Value != nil {
-				if ca, ok := r.Value.(CanAssign); ok {
-					ca.Define(vm, iter.Value())
-				}
-			}
-			if trace {
-				vm.traceEval(r.Body)
-			} else {
-				r.Body.Eval(vm)
-			}
-			vm.popFrame()
-		}
-	case reflect.Slice, reflect.Array:
-		for i := 0; i < rangeable.Len(); i++ {
-			vm.pushNewFrame(r)
-			if r.Key != nil {
-				if ca, ok := r.Key.(CanAssign); ok {
-					ca.Define(vm, reflect.ValueOf(i))
-				}
-			}
-			if r.Value != nil {
-				if ca, ok := r.Value.(CanAssign); ok {
-					ca.Define(vm, rangeable.Index(i))
-				}
-			}
-			if trace {
-				vm.traceEval(r.Body)
-			} else {
-				r.Body.Eval(vm)
-			}
-			vm.popFrame()
-		}
-	case reflect.Int:
-		for i := 0; i < int(rangeable.Int()); i++ {
-			vm.pushNewFrame(r)
-			if r.Key != nil {
-				if ca, ok := r.Key.(CanAssign); ok {
-					ca.Define(vm, reflect.ValueOf(i))
-				}
-			}
-			if r.Value != nil {
-				if ca, ok := r.Value.(CanAssign); ok {
-					ca.Define(vm, rangeable.Index(i))
-				}
-			}
-			if trace {
-				vm.traceEval(r.Body)
-			} else {
-				r.Body.Eval(vm)
-			}
-			vm.popFrame()
-		}
-	}
-}
+func (r RangeStmt) Eval(vm *VM) {} // noop
 
 // Flow builds the control flow graph for the RangeStmt.
 // Based on the Kind of X, it will branch into one of three flows:

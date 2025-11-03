@@ -147,7 +147,7 @@ func (d DeferStmt) String() string {
 func (d DeferStmt) stmtStep() Evaluable { return d }
 
 func (d DeferStmt) Eval(vm *VM) {
-	vm.activeFuncStack.top().addDefer(d.Call)
+	// TODO
 }
 
 func (d DeferStmt) Flow(g *graphBuilder) (head Step) {

@@ -55,3 +55,12 @@ cpu: Apple M2 Max
 BenchmarkIfElseIfElse/build-12          1000000000               0.0000410 ns/op               0 B/op          0 allocs/op
 BenchmarkIfElseIfElse/walk-12                210           5682468 ns/op         2071383 B/op      70135 allocs/op
 ```
+2-11-2025
+```
+goos: darwin
+goarch: arm64
+pkg: github.com/emicklei/gi/internal
+cpu: Apple M3 Pro
+BenchmarkIfElseIfElse/build-12          1000000000               0.0000340 ns/op               0 B/op          0 allocs/op
+BenchmarkIfElseIfElse/walk-12                289           4048609 ns/op          637529 B/op      30328 allocs/op
+```

@@ -4,6 +4,9 @@ gen:
 test:
 	go test -cover ./internal
 
+testserial:
+	go test -v -p 1 ./internal
+
 clean:
 	cd internal/testgraphs && rm -f *.dot *.png *.src
 	cd internal && rm -f *.dot *.png *.src

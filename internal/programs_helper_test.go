@@ -96,7 +96,7 @@ func testProgramIn(t *testing.T, dir string, wantFuncOrString any) {
 	if err != nil {
 		t.Fatalf("failed to build package in %s: %v", loc, err)
 	}
-	_, err = RunPackageFunction(pkg, "main", nil, nil)
+	_, err = CallPackageFunction(pkg, "main", nil, nil)
 	if err != nil {
 		t.Fatalf("failed to run package in %s: %v", loc, err)
 	}

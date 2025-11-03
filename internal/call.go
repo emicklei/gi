@@ -100,7 +100,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 	setZeroReturnsToFrame(fl.Type, vm, frame)
 
 	// we already have the call graph in FuncLit
-	vm.takeAll(fl.callGraph)
+	vm.takeAllStartingAt(fl.callGraph)
 
 	// take values before popping frame
 	vals := vm.frameStack.top().returnValues
@@ -145,8 +145,9 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	// TODO deduplicate with handleFuncLit
 	// prepare arguments
 	args := make([]reflect.Value, len(c.Args))
+	// first to last, see Flow
 	for i := range c.Args {
-		val := vm.frameStack.top().pop() // first to last, see Flow
+		val := vm.frameStack.top().pop()
 		args[i] = val
 	}
 	vm.pushNewFrame(c)
@@ -154,17 +155,11 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	setParametersToFrame(fd.Type, args, vm, frame)
 	setZeroReturnsToFrame(fd.Type, vm, frame)
 
-	af := &activeFuncDecl{FuncDecl: fd}
-	vm.activeFuncStack.push(af)
-
 	// when stepping we the call graph in FuncDecl
-	vm.takeAll(fd.callGraph)
+	vm.takeAllStartingAt(fd.callGraph)
 
-	vm.activeFuncStack.pop()
-
-	// top == frame? TODO
 	// take values before popping frame
-	vals := vm.frameStack.top().returnValues
+	vals := frame.returnValues
 	vm.popFrame()
 	vm.pushCallResults(vals)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sync"
 )
 
 var trace = os.Getenv("GI_TRACE") != ""
@@ -65,6 +66,14 @@ func (p *PkgEnvironment) String() string {
 
 func (p *PkgEnvironment) newChild() Env {
 	return newEnvironment(p)
+}
+
+var envPool = sync.Pool{
+	New: func() any {
+		return &Environment{
+			valueTable: map[string]reflect.Value{},
+		}
+	},
 }
 
 type Environment struct {

@@ -13,7 +13,7 @@ func evalExpr(expr Expr) reflect.Value {
 	g := newGraphBuilder(nil)
 	head := expr.Flow(g)
 	vm := newVM(newEnvironment(nil))
-	vm.takeAll(head)
+	vm.takeAllStartingAt(head)
 	result := vm.frameStack.top().pop()
 	return result
 }

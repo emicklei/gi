@@ -39,24 +39,21 @@ func (f *stackFrame) pop() reflect.Value {
 	return v
 }
 
-// peek returns the value at the given offset from the top of the operand stack without removing it.
-func (f *stackFrame) peek(offsetFromTop int) reflect.Value {
-	i := len(f.operandStack) - 1 - offsetFromTop
-	if i < 0 || i >= len(f.operandStack) {
-		var zero reflect.Value
-		return zero
-	}
-	return f.operandStack[i]
-}
-
 // pushEnv creates and activates a new child environment for the stack frame.
 func (f *stackFrame) pushEnv() {
-	f.env = f.env.newChild()
+	child := envPool.Get().(*Environment)
+	child.parent = f.env // can be nil
+	f.env = child
 }
 
 // popEnv reverts to the parent environment for the stack frame.
 func (f *stackFrame) popEnv() {
-	f.env = f.env.getParent()
+	child := f.env.(*Environment)
+	f.env = child.getParent() // can become nil
+	// return child to pool
+	child.parent = nil
+	clear(child.valueTable)
+	envPool.Put(child)
 }
 
 func (f *stackFrame) String() string {
@@ -74,9 +71,8 @@ func (f *stackFrame) String() string {
 
 // VM represents a virtual machine that can execute Go code.
 type VM struct {
-	frameStack      stack[*stackFrame]
-	activeFuncStack stack[*activeFuncDecl] // active function declarations, TODO store in stackFrame?
-	output          *bytes.Buffer          // for testing only
+	frameStack stack[*stackFrame]
+	output     *bytes.Buffer // for testing only
 }
 
 func newVM(env Env) *VM {
@@ -132,12 +128,22 @@ func (vm *VM) pushOperand(v reflect.Value) {
 func (vm *VM) pushNewFrame(e Evaluable) {
 	frame := framePool.Get().(*stackFrame)
 	frame.creator = e
-	frame.env = vm.localEnv().newChild()
+	env := envPool.Get().(*Environment)
+	env.parent = vm.localEnv()
+	frame.env = env
 	vm.frameStack.push(frame)
 }
 
 func (vm *VM) popFrame() {
 	frame := vm.frameStack.pop()
+	// return env to pool
+
+	// TODO because VarPointer holds a reference to the environment
+	// env := frame.env.(*Environment)
+	// clear(env.valueTable)
+	// env.parent = nil
+	// envPool.Put(env)
+
 	// reset references
 	frame.operandStack = frame.operandStack[:0]
 	frame.returnValues = frame.returnValues[:0]
@@ -173,7 +179,7 @@ func (vm *VM) traceEval(e Evaluable) {
 	e.Eval(vm)
 }
 
-func (vm *VM) takeAll(head Step) {
+func (vm *VM) takeAllStartingAt(head Step) {
 	here := head
 	for here != nil {
 		if trace {

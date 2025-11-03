@@ -545,9 +545,7 @@ func main() {
 }
 
 func TestGoto(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
-package main
 
 func main() {
 	s := 1

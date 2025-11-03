@@ -153,7 +153,9 @@ func (c CaseClause) stmtStep() Evaluable { return c }
 func (c CaseClause) String() string {
 	return fmt.Sprintf("CaseClause(%v,%v)", c.List, c.Body)
 }
-func (c CaseClause) Eval(vm *VM) {
+func (c CaseClause) Eval(vm *VM) {}
+
+func (c CaseClause) Eval2(vm *VM) {
 	if c.List == nil {
 		// default case
 		for _, stmt := range c.Body {
@@ -196,7 +198,7 @@ func (c CaseClause) Eval(vm *VM) {
 }
 func (c CaseClause) Flow(g *graphBuilder) (head Step) {
 	// no flow for case clause itself
-	return g.current
+	return nil
 }
 
 type TypeSwitchStmt struct {
