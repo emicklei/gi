@@ -136,13 +136,12 @@ func (vm *VM) pushNewFrame(e Evaluable) {
 
 func (vm *VM) popFrame() {
 	frame := vm.frameStack.pop()
-	// return env to pool
 
-	// TODO because VarPointer holds a reference to the environment
-	// env := frame.env.(*Environment)
-	// clear(env.valueTable)
-	// env.parent = nil
-	// envPool.Put(env)
+	// return env to pool
+	env := frame.env.(*Environment)
+	clear(env.valueTable)
+	env.parent = nil
+	envPool.Put(env)
 
 	// reset references
 	frame.operandStack = frame.operandStack[:0]
@@ -169,7 +168,6 @@ func (vm *VM) fatal(err any) {
 	}
 	s.Dump("gi-vm-panic.html")
 	panic(err)
-	os.Exit(1)
 }
 
 func (vm *VM) traceEval(e Evaluable) {
