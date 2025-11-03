@@ -44,7 +44,9 @@ func main() {
 
 	{
 		b.Run("build", func(b *testing.B) {
-			BuildPackage(pkg)
+			for i := 0; i < b.N; i++ {
+				BuildPackage(pkg)
+			}
 		})
 	}
 

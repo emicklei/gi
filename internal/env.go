@@ -140,10 +140,11 @@ func (e *Environment) set(name string, value reflect.Value) {
 	if name == "_" {
 		return
 	}
+	e.valueTable[name] = value
+	// trace after set
 	if trace {
 		fmt.Println(e, name, "=", value.Interface())
 	}
-	e.valueTable[name] = value
 }
 
 func (e *Environment) addConstOrVar(cv ConstOrVar) {}

@@ -174,9 +174,9 @@ func (c CallExpr) Flow(g *graphBuilder) (head Step) {
 		}
 		c.Args[i].Flow(g)
 	}
-	c.Fun.Flow(g)
+	funFlow := c.Fun.Flow(g)
 	if head == nil { // could be only a function with no args
-		head = g.current
+		head = funFlow
 	}
 	g.next(c)
 	return head

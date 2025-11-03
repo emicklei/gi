@@ -187,7 +187,7 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 			b.Visit(decl)
 		}
 	}
-	pkg := &Package{Env: b.env.(*PkgEnvironment)}
+	pkg := &Package{Package: goPkg, Env: b.env.(*PkgEnvironment)}
 	if dotFilename := os.Getenv("GI_DOT"); dotFilename != "" {
 		pkg.writeDotGraph(dotFilename)
 	}

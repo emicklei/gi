@@ -30,7 +30,8 @@ func (a ArrayType) Instantiate(vm *VM) reflect.Value {
 		// array
 		len := vm.returnsEval(a.Len)
 		arrayType := reflect.ArrayOf(int(len.Int()), eltType)
-		return reflect.New(arrayType)
+		ptrArray := reflect.New(arrayType)
+		return ptrArray.Elem()
 	}
 }
 
@@ -52,7 +53,7 @@ func (a ArrayType) LiteralCompose(composite reflect.Value, values []reflect.Valu
 		return composite
 	}
 	// array
-	elem := composite.Elem()
+	elem := composite
 	for i, v := range values {
 		elem.Index(i).Set(v)
 	}

@@ -7,8 +7,9 @@ import (
 
 // first for struct
 type Instance struct {
-	Type   StructType
-	fields map[string]reflect.Value
+	Type    StructType
+	fields  map[string]reflect.Value
+	methods map[string]FuncDecl
 }
 
 func NewInstance(vm *VM, t StructType) Instance {
@@ -30,7 +31,7 @@ func (i Instance) Select(name string) reflect.Value {
 	if v, ok := i.fields[name]; ok {
 		return v
 	}
-	panic("no such field: " + name)
+	panic("no such field or method: " + name)
 }
 
 // composite is (a reflect on) an Instance

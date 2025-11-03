@@ -230,7 +230,6 @@ func main() {
 }`, "hello")
 }
 func TestDeclare(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -311,7 +310,6 @@ func main() {
 }
 
 func TestArray(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -539,7 +537,7 @@ func TestMethod(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main
 
-func (_ Airplane) S() string { return "airplane" }
+func (_ Airplane) S() string { return "airplane" } // put before type on purpose
 type Airplane struct {}
 func main() {
 	print(Airplane{}.S())
@@ -990,7 +988,6 @@ func main() {
 }
 
 func TestSubpackage(t *testing.T) {
-	t.Skip()
 	if os.Getenv("GI_TRACE") == "" {
 		t.Skip("GI_TRACE not set")
 	}

@@ -47,9 +47,9 @@ func collectPrintOutput(vm *VM) {
 		for _, a := range args {
 			if rv, ok := a.(reflect.Value); ok && rv.IsValid() && rv.CanInterface() {
 				// check for pointer to array
-				if rv.Kind() == reflect.Ptr && rv.Elem().Kind() == reflect.Array {
+				if rv.Kind() == reflect.Pointer && rv.Elem().Kind() == reflect.Array {
 					fmt.Fprintf(vm.output, "%v", rv.Elem().Interface())
-				} else if rv.Kind() == reflect.Ptr {
+				} else if rv.Kind() == reflect.Pointer {
 					fmt.Fprintf(vm.output, "%v", rv.Elem().Interface())
 				} else {
 					fmt.Fprintf(vm.output, "%v", rv.Interface())
@@ -121,6 +121,6 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 	}
 	want := wantFuncOrString.(string)
 	if got, want := out, want; got != want {
-		t.Errorf("[step] got [%v] want [%v]", got, want)
+		t.Errorf("got [%v] want [%v]", got, want)
 	}
 }

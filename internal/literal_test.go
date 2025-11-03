@@ -61,10 +61,7 @@ func TestCompositeArrayLit_Eval(t *testing.T) {
 			},
 		}
 		result := evalExpr(cl)
-		if result.Kind() != reflect.Ptr {
-			t.Fatalf("expected ptr, got %v", result.Kind())
-		}
-		arr := result.Elem()
+		arr := result
 		if arr.Kind() != reflect.Array {
 			t.Fatalf("expected array, got %v", arr.Kind())
 		}

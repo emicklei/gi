@@ -58,7 +58,7 @@ func (g *graphBuilder) nextStep(next Step) {
 		g.current.SetNext(next)
 	} else {
 		if trace {
-			fmt.Printf("fw.next: %v\n", next)
+			fmt.Printf("fw.next:%v\n", next)
 		}
 		g.head = next
 	}
