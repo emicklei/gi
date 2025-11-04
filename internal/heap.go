@@ -30,9 +30,9 @@ type HeapPointer struct {
 // String formats the HeapPointer to look like a real pointer address.
 func (hp HeapPointer) String() string {
 	if hp.EnvRef != nil {
-		return fmt.Sprintf("0x%x", hp.Addr)
+		return fmt.Sprintf("0x%x (%s)", hp.Addr, hp.EnvVarName)
 	}
-	return fmt.Sprintf("0x%x (%s)", hp.Addr, hp.EnvVarName)
+	return fmt.Sprintf("0x%x", hp.Addr)
 }
 
 // allocHeapValue allocates space in the VM heap for a value and returns a HeapPointer to it.
