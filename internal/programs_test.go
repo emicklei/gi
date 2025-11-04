@@ -398,6 +398,22 @@ func main() {
 }`, "bar")
 }
 
+// https://go.dev/ref/spec#Appending_and_copying_slices
+func TestCopy(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {	
+	var a = [...]int{0, 1, 2, 3, 4, 5, 6, 7}
+	var s = make([]int, 6)
+	var b = make([]byte, 5)
+	n1 := copy(s, a[0:])            // n1 == 6, s is []int{0, 1, 2, 3, 4, 5}
+	n2 := copy(s, s[2:])            // n2 == 4, s is []int{2, 3, 4, 5, 4, 5}
+	n3 := copy(b, "Hello, World!")  // n3 == 5, b is []byte("Hello")
+	print(n1, n2, n3)
+}`, "645")
+}
+
 func TestTimeConstant(t *testing.T) {
 	testMain(t, `package main
 

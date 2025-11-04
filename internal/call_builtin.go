@@ -17,30 +17,54 @@ func (c CallExpr) evalDelete(vm *VM) {
 
 // https://pkg.go.dev/builtin#append
 func (c CallExpr) evalAppend(vm *VM) {
+	// Pop arguments from stack. They are in reverse order of declaration.
 	args := make([]reflect.Value, len(c.Args))
 	for i := range c.Args {
-		v := vm.frameStack.top().pop()
-		args[i] = v
+		args[i] = vm.frameStack.top().pop()
 	}
-	// special case: append to []byte from string or byte
-	if len(c.Args) > 0 {
-		target := args[0].Interface()
-		if bytes, ok := target.([]byte); ok {
-			// allow both []byte and string to be appended
-			for i := 1; i < len(args); i++ {
-				if str, ok := args[i].Interface().(string); ok {
-					bytes = append(bytes, str...)
-				} else if b, ok := args[i].Interface().(byte); ok {
-					bytes = append(bytes, b)
-				} else {
-					vm.fatal(fmt.Sprintf("append: cannot append %T to []byte", args[i].Interface()))
+	slice := args[0]
+	elements := args[1:]
+
+	// Special case: append to []byte from string or byte
+	if slice.Type().Elem().Kind() == reflect.Uint8 {
+		if sliceBytes, ok := slice.Interface().([]byte); ok {
+			var canHandle = true
+			var grow int
+			for _, el := range elements {
+				switch v := el.Interface().(type) {
+				case string:
+					grow += len(v)
+				case byte:
+					grow += 1
+				default:
+					canHandle = false
+				}
+				if !canHandle {
+					break
 				}
 			}
-			vm.pushOperand(reflect.ValueOf(bytes))
-			return
+
+			if canHandle {
+				// Optimized append for []byte
+				newSlice := append(sliceBytes, make([]byte, grow)...)
+				offset := len(sliceBytes)
+				for _, el := range elements {
+					switch v := el.Interface().(type) {
+					case string:
+						offset += copy(newSlice[offset:], v)
+					case byte:
+						newSlice[offset] = v
+						offset++
+					}
+				}
+				vm.pushOperand(reflect.ValueOf(newSlice))
+				return
+			}
 		}
 	}
-	result := reflect.Append(args[0], args[1:]...)
+
+	// Fallback to generic reflect.Append
+	result := reflect.Append(slice, elements...)
 	vm.pushOperand(result)
 }
 
