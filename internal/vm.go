@@ -140,9 +140,12 @@ func (vm *VM) popFrame() {
 
 	// return env to pool
 	env := frame.env.(*Environment)
-	clear(env.valueTable)
 	env.parent = nil
-	envPool.Put(env)
+	if !env.hasHeapPointer {
+		// do not recycle environments that contain values referenced by a heap pointer
+		clear(env.valueTable)
+		envPool.Put(env)
+	}
 
 	// reset references
 	frame.operandStack = frame.operandStack[:0]

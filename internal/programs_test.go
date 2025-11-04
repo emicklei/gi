@@ -35,7 +35,6 @@ func TestProgramTypeConvert(t *testing.T) {
 }
 
 func TestProgramTypeUnsignedConvert(t *testing.T) {
-	// t.Skip()
 	tests := []struct {
 		typeName string
 	}{
@@ -123,6 +122,21 @@ func main() {
 }`, "giflow")
 }
 
+func TestAssignToStructField(t *testing.T) {
+	testMain(t, `package main
+
+type Point struct {
+	X int
+	Y int
+}
+func main() {
+	x := 5
+	p := Point{X: 10}
+	p.X = x
+	p.Y = 20
+	print(p.X, p.Y)
+}`, "520")
+}
 func TestTrueFalse(t *testing.T) {
 	testMain(t, `package main
 
@@ -221,7 +235,6 @@ func main() {
 }
 
 func TestGeneric(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func Generic[T any](arg T) (*T, error) { return &arg, nil }
@@ -1039,24 +1052,6 @@ func main() {
 }`, "<nil>")
 }
 
-func TestNilArgumentIntPointer(t *testing.T) {
-	t.Skip()
-	testMain(t, `package main
-
-func show(arg *int) {
-	if arg != nil {
-		print(*arg)
-	} else {
- 		print(nil)
-	}
-}
-func main() {
-	show(nil)
-	i := 42
-	show(&i)
-}`, "nil42")
-}
-
 func TestError(t *testing.T) {
 	testMain(t, `package main
 
@@ -1159,7 +1154,6 @@ func main() {
 }
 
 func TestPointerEscapeFromFunction(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 func ReturnPointer(val int) *int {
 	return &val
@@ -1195,7 +1189,9 @@ func main() {
 }
 
 func TestComplexPointerScenarios(t *testing.T) {
-	t.Skip()
+
+	trace = true
+	defer func() { trace = false }()
 	testMain(t, `package main
 type Point struct {
 	X int

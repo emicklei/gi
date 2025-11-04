@@ -27,6 +27,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 			// Create a heap pointer that references the environment variable
 			env := vm.localEnv().valueOwnerOf(ident.Name)
 			if env != nil {
+				env.markContainsHeapPointer()
 				value := env.valueLookUp(ident.Name)
 				hp := vm.heap.allocHeapVar(env, ident.Name, value.Type())
 				vm.pushOperand(reflect.ValueOf(hp))
