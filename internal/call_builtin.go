@@ -22,6 +22,24 @@ func (c CallExpr) evalAppend(vm *VM) {
 		v := vm.frameStack.top().pop()
 		args[i] = v
 	}
+	// special case: append to []byte from string or byte
+	if len(c.Args) > 0 {
+		target := args[0].Interface()
+		if bytes, ok := target.([]byte); ok {
+			// allow both []byte and string to be appended
+			for i := 1; i < len(args); i++ {
+				if str, ok := args[i].Interface().(string); ok {
+					bytes = append(bytes, str...)
+				} else if b, ok := args[i].Interface().(byte); ok {
+					bytes = append(bytes, b)
+				} else {
+					vm.fatal(fmt.Sprintf("append: cannot append %T to []byte", args[i].Interface()))
+				}
+			}
+			vm.pushOperand(reflect.ValueOf(bytes))
+			return
+		}
+	}
 	result := reflect.Append(args[0], args[1:]...)
 	vm.pushOperand(result)
 }

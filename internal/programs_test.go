@@ -388,6 +388,16 @@ func main() {
 }`, "[][4 5]")
 }
 
+func TestAppendStringToByteSlice(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	var b []byte
+	b = append(b, "bar"...)
+	print(string(b))
+}`, "bar")
+}
+
 func TestTimeConstant(t *testing.T) {
 	testMain(t, `package main
 
