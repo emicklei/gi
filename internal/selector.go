@@ -20,18 +20,30 @@ func (s SelectorExpr) Assign(vm *VM, val reflect.Value) {
 	if idn, ok := s.X.(Ident); ok {
 
 		// need to pop from stack? TODO
+		if trace {
+			fmt.Println("TRACE: SelectorExpr.Assign", idn.Name, s.Sel.Name, "=", val, "operands stack:", vm.frameStack.top().operandStack)
+		}
 
 		recv := vm.localEnv().valueLookUp(idn.Name)
 
-		rec, ok := recv.Interface().(FieldAssignable)
-		if ok {
-			rec.Assign(s.Sel.Name, val)
+		// dereference if pointer to heap value
+		if hp, ok := recv.Interface().(HeapPointer); ok {
+			recv = vm.heap.read(hp)
 		}
+		// can we assign directly to the field?
+		fa, ok := recv.Interface().(FieldAssignable)
+		if ok {
+			fa.Assign(s.Sel.Name, val)
+			return
+		}
+		// TODO missing case?
+
+		vm.fatal(fmt.Sprintf("cannot assign to field %s for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
 		return
 	}
-
 	recv := vm.returnsEval(s.X)
-	// check for pointer to heap value
+
+	// dereference if pointer to heap value
 	if hp, ok := recv.Interface().(HeapPointer); ok {
 		recv = vm.heap.read(hp)
 	}
