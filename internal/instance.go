@@ -7,9 +7,8 @@ import (
 
 // first for struct
 type Instance struct {
-	Type    StructType
-	fields  map[string]reflect.Value
-	methods map[string]FuncDecl
+	Type   StructType
+	fields map[string]reflect.Value
 }
 
 func NewInstance(vm *VM, t StructType) Instance {

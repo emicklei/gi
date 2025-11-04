@@ -80,7 +80,7 @@ func parseAndWalk(t *testing.T, source string) string {
 	gidot := fmt.Sprintf("testgraphs/%s.dot", t.Name())
 	pkg.writeDotGraph(gidot)
 	// will fail in pipeline without graphviz installed
-	exec.Command("dot", "-Tpng", "-o", gidot+".png", gidot).Run()
+	exec.Command("dot", "-Tsvg", "-o", gidot+".svg", gidot).Run()
 
 	if _, err := CallPackageFunction(pkg, "main", nil, vm); err != nil {
 		panic(err)

@@ -35,9 +35,10 @@ go.work.sum
 internal/testgraphs/*.dot
 internal/testgraphs/*.png
 internal/testgraphs/*.src
+internal/testgraphs/*.svg
 PERF.md
 vm-panic.html
 gi-vm-panic.html
 *.prof
 .DS_Store
-mem.pprof
+*.pprof
