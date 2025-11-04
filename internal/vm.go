@@ -72,11 +72,12 @@ func (f *stackFrame) String() string {
 // VM represents a virtual machine that can execute Go code.
 type VM struct {
 	frameStack stack[*stackFrame]
+	heap       *Heap
 	output     *bytes.Buffer // for testing only
 }
 
 func newVM(env Env) *VM {
-	vm := &VM{output: new(bytes.Buffer)}
+	vm := &VM{output: new(bytes.Buffer), heap: newHeap()}
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
 	vm.frameStack.push(frame)

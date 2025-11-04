@@ -19,22 +19,22 @@ func (u UnaryExpr) String() string {
 }
 
 func (u UnaryExpr) Eval(vm *VM) {
-	// Special handling for address-of operator on identifiers
-	// to enable proper pointer semantics
+	// Special case: if taking address of an identifier, create a reference to the variable
 	if u.Op == token.AND {
 		if ident, ok := u.X.(Ident); ok {
-			// Pop the value pushed by Ident.Eval although we won't use it
-			vm.frameStack.top().pop()
-			vp := &VarPointer{
-				env:  vm.localEnv(),
-				name: ident.Name,
+			// Create a heap pointer that references the environment variable
+			env := vm.localEnv().valueOwnerOf(ident.Name)
+			if env != nil {
+				value := env.valueLookUp(ident.Name)
+				hp := vm.heap.allocHeapVar(env, ident.Name, value.Type())
+				vm.pushOperand(reflect.ValueOf(hp))
+				return
 			}
-			vm.pushOperand(reflect.ValueOf(vp))
-			return
 		}
 		if _, ok := u.X.(CompositeLit); ok {
 			v := vm.frameStack.top().pop()
-			vm.pushOperand(reflect.ValueOf(AddressOf{Value: v}))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 			return
 		}
 	}
@@ -59,8 +59,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 		case token.SUB:
 			vm.pushOperand(reflect.ValueOf(int(-v.Int())))
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		case token.XOR:
 			vm.pushOperand(reflect.ValueOf(int(^v.Int())))
 		case token.ADD:
@@ -73,8 +73,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 		case token.SUB:
 			vm.pushOperand(reflect.ValueOf(int8(-v.Int())))
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		case token.XOR:
 			vm.pushOperand(reflect.ValueOf(int8(^v.Int())))
 		case token.ADD:
@@ -87,8 +87,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 		case token.SUB:
 			vm.pushOperand(reflect.ValueOf(int16(-v.Int())))
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		case token.XOR:
 			vm.pushOperand(reflect.ValueOf(int16(^v.Int())))
 		case token.ADD:
@@ -101,8 +101,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 		case token.SUB:
 			vm.pushOperand(reflect.ValueOf(int32(-v.Int())))
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		case token.XOR:
 			vm.pushOperand(reflect.ValueOf(int32(^v.Int())))
 		case token.ADD:
@@ -115,8 +115,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 		case token.SUB:
 			vm.pushOperand(reflect.ValueOf(-v.Int()))
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		case token.XOR:
 			vm.pushOperand(reflect.ValueOf(^v.Int()))
 		case token.ADD:
@@ -129,8 +129,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 		case token.SUB:
 			vm.pushOperand(reflect.ValueOf(uint64(-v.Uint())))
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		case token.XOR:
 			vm.pushOperand(reflect.ValueOf(uint64(^v.Uint())))
 		case token.ADD:
@@ -143,8 +143,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 		case token.SUB:
 			vm.pushOperand(reflect.ValueOf(uint32(-v.Uint())))
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		case token.XOR:
 			vm.pushOperand(reflect.ValueOf(uint32(^v.Uint())))
 		case token.ADD:
@@ -157,8 +157,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 		case token.SUB:
 			vm.pushOperand(reflect.ValueOf(uint16(-v.Uint())))
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		case token.XOR:
 			vm.pushOperand(reflect.ValueOf(uint16(^v.Uint())))
 		case token.ADD:
@@ -171,8 +171,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 		case token.SUB:
 			vm.pushOperand(reflect.ValueOf(uint8(-v.Uint())))
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		case token.XOR:
 			vm.pushOperand(reflect.ValueOf(uint8(^v.Uint())))
 		case token.ADD:
@@ -185,8 +185,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 		case token.SUB:
 			vm.pushOperand(reflect.ValueOf(uint(-v.Uint())))
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		case token.XOR:
 			vm.pushOperand(reflect.ValueOf(uint(^v.Uint())))
 		case token.ADD:
@@ -206,13 +206,20 @@ func (u UnaryExpr) Eval(vm *VM) {
 	case reflect.Struct:
 		switch u.Op {
 		case token.AND:
-			actual := v.Interface()
-			vm.pushOperand(reflect.ValueOf(&actual))
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
 		default:
 			vm.fatal("missing unary operation on struct:" + u.Op.String())
 		}
 	default:
-		vm.fatal("not implemented: UnaryExpr.Eval:" + v.Kind().String())
+		// Handle any other types (string, slice, map, etc.)
+		switch u.Op {
+		case token.AND:
+			hp := vm.heap.allocHeapValue(v)
+			vm.pushOperand(reflect.ValueOf(hp))
+		default:
+			vm.fatal("not implemented: UnaryExpr.Eval:" + v.Kind().String())
+		}
 	}
 }
 

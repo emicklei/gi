@@ -14,9 +14,9 @@ type SelectorExpr struct {
 
 func (s SelectorExpr) Eval(vm *VM) {
 	recv := vm.frameStack.top().pop()
-	// TODO value sementics for address-of
-	if addrOf, ok := recv.Interface().(AddressOf); ok {
-		recv = addrOf.Value
+	// check for pointer to heap value
+	if hp, ok := recv.Interface().(HeapPointer); ok {
+		recv = vm.heap.read(hp)
 	}
 	if !recv.IsValid() {
 		// propagate invalid value
