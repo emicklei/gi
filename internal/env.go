@@ -19,6 +19,7 @@ type Env interface {
 	getParent() Env
 	addConstOrVar(cv ConstOrVar)
 	rootPackageEnv() *PkgEnvironment
+	markContainsHeapPointer()
 }
 
 type PkgEnvironment struct {
@@ -67,6 +68,7 @@ func (p *PkgEnvironment) String() string {
 func (p *PkgEnvironment) newChild() Env {
 	return newEnvironment(p)
 }
+func (p *PkgEnvironment) markContainsHeapPointer() {}
 
 var envPool = sync.Pool{
 	New: func() any {
@@ -77,8 +79,9 @@ var envPool = sync.Pool{
 }
 
 type Environment struct {
-	parent     Env
-	valueTable map[string]reflect.Value
+	parent         Env
+	valueTable     map[string]reflect.Value
+	hasHeapPointer bool
 }
 
 func newEnvironment(parentOrNil Env) Env {
@@ -154,4 +157,8 @@ func (e *Environment) rootPackageEnv() *PkgEnvironment {
 		return nil
 	}
 	return e.parent.rootPackageEnv()
+}
+
+func (e *Environment) markContainsHeapPointer() {
+	e.hasHeapPointer = true
 }

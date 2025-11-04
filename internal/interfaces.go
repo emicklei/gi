@@ -55,6 +55,10 @@ type FieldSelectable interface {
 	Select(name string) reflect.Value
 }
 
+type FieldAssignable interface {
+	Assign(name string, val reflect.Value)
+}
+
 type CanInstantiate interface {
 	Instantiate(vm *VM) reflect.Value // , typeArgs []reflect.Type) reflect.Value
 	LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value

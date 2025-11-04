@@ -35,7 +35,6 @@ func TestProgramTypeConvert(t *testing.T) {
 }
 
 func TestProgramTypeUnsignedConvert(t *testing.T) {
-	// t.Skip()
 	tests := []struct {
 		typeName string
 	}{
@@ -123,6 +122,21 @@ func main() {
 }`, "giflow")
 }
 
+func TestAssignToStructField(t *testing.T) {
+	testMain(t, `package main
+
+type Point struct {
+	X int
+	Y int
+}
+func main() {
+	x := 5
+	p := Point{X: 10}
+	p.X = x
+	p.Y = 20
+	print(p.X, p.Y)
+}`, "520")
+}
 func TestTrueFalse(t *testing.T) {
 	testMain(t, `package main
 
@@ -221,7 +235,6 @@ func main() {
 }
 
 func TestGeneric(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func Generic[T any](arg T) (*T, error) { return &arg, nil }
@@ -1039,24 +1052,6 @@ func main() {
 }`, "<nil>")
 }
 
-func TestNilArgumentIntPointer(t *testing.T) {
-	t.Skip()
-	testMain(t, `package main
-
-func show(arg *int) {
-	if arg != nil {
-		print(*arg)
-	} else {
- 		print(nil)
-	}
-}
-func main() {
-	show(nil)
-	i := 42
-	show(&i)
-}`, "nil42")
-}
-
 func TestError(t *testing.T) {
 	testMain(t, `package main
 
@@ -1128,6 +1123,103 @@ func main() {
 	swap(&x, &y)
 	print(x, y)
 }`, "105")
+}
+
+func TestPointerToLocalVariable(t *testing.T) {
+	testMain(t, `package main
+func main() {
+    // Test 1: Pointer reflects variable changes
+    a := 1
+    b := &a
+    print(*b)  // Should be 1
+    print(" ")
+    a = 2
+    print(*b)  // Should be 2 (pointer reflects the change)
+    print(" ")
+    // Test 2: Writing through pointer updates the variable
+    *b = 42
+    print(a)   // Should be 42
+    print(" ")
+    print(*b)  // Should be 42
+    print(" ")
+    // Test 3: Multiple pointers to same variable
+    c := &a
+    *c = 100
+    print(a)   // Should be 100
+    print(" ")
+    print(*b)  // Should be 100 (b also points to a)
+    print(" ")
+    print(*c)  // Should be 100
+}`, "1 2 42 42 100 100 100")
+}
+
+func TestPointerEscapeFromFunction(t *testing.T) {
+	testMain(t, `package main
+func ReturnPointer(val int) *int {
+	return &val
+}
+func ModifyThroughPointer(p *int) {
+	*p = 999
+}
+func main() {
+	// Test 1: Pointer escapes function scope
+	ptr := ReturnPointer(42)
+	print(*ptr)  // Should be 42
+	print(" ")
+	
+	// Test 2: Modify through returned pointer
+	*ptr = 100
+	print(*ptr)  // Should be 100
+	print(" ")
+	
+	// Test 3: Pass pointer to function
+	x := 5
+	ModifyThroughPointer(&x)
+	print(x)  // Should be 999
+	print(" ")
+	
+	// Test 4: String pointers
+	s := "hello"
+	ps := &s
+	print(*ps)  // Should be "hello"
+	print(" ")
+	s = "world"
+	print(*ps)  // Should be "world" (pointer reflects change)
+}`, "42 100 999 hello world")
+}
+
+func TestComplexPointerScenarios(t *testing.T) {
+
+	trace = true
+	defer func() { trace = false }()
+	testMain(t, `package main
+type Point struct {
+	X int
+	Y int
+}
+func main() {
+	// Test 1: Pointer to struct
+	p := Point{X: 10, Y: 20}
+	ptr := &p
+	print(ptr.X)  // Should be 10
+	print(" ")
+	p.X = 30
+	print(ptr.X)  // Should be 30 (pointer reflects change)
+	print(" ")
+
+	// Test 2: Modify struct through pointer
+	ptr.Y = 99
+	print(p.Y)  // Should be 99
+	print(" ")
+	
+	// Test 3: Pointer arithmetic with different types
+	i := 42
+	pi := &i
+	*pi = *pi + 8
+	print(i)  // Should be 50
+	print(" ")
+	print(*pi)  // Should be 50
+}`, "10 30 99 50 50")
 }
 
 func TestNewStandardType(t *testing.T) {

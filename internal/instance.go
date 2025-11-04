@@ -34,6 +34,15 @@ func (i Instance) Select(name string) reflect.Value {
 	panic("no such field or method: " + name)
 }
 
+func (i Instance) Assign(fieldName string, val reflect.Value) {
+	if _, ok := i.fields[fieldName]; ok {
+		// override, TODO what if HeapPointer?
+		i.fields[fieldName] = val
+		return
+	}
+	panic("no such field: " + fieldName)
+}
+
 // composite is (a reflect on) an Instance
 func (i Instance) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
 	if len(values) == 0 {

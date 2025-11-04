@@ -16,12 +16,18 @@ type StarExpr struct {
 
 func (s StarExpr) Eval(vm *VM) {
 	v := vm.frameStack.top().pop()
-	// Handle VarPointer specially
-	if v.Kind() == reflect.Pointer && v.Type().String() == "*internal.VarPointer" {
-		if vp, ok := v.Interface().(*VarPointer); ok {
-			vm.pushOperand(vp.Deref())
-			return
-		}
+	// Check if this is a heap pointer
+	if hp, ok := v.Interface().(HeapPointer); ok {
+		// Dereference from heap
+		vm.pushOperand(vm.heap.read(hp))
+		return
+	}
+	// Regular pointer dereference - validate it's a pointer
+	if v.Kind() != reflect.Pointer {
+		vm.fatal(fmt.Sprintf("cannot dereference non-pointer type: %v", v.Kind()))
+	}
+	if v.IsNil() {
+		vm.fatal("cannot dereference nil pointer")
 	}
 	vm.pushOperand(v.Elem())
 }
@@ -33,12 +39,10 @@ func (s StarExpr) Flow(g *graphBuilder) (head Step) {
 
 func (s StarExpr) Assign(vm *VM, value reflect.Value) {
 	v := vm.returnsEval(s.X)
-	// Handle VarPointer specially
-	if v.Kind() == reflect.Pointer && v.Type().String() == "*internal.VarPointer" {
-		if vp, ok := v.Interface().(*VarPointer); ok {
-			vp.Assign(value)
-			return
-		}
+	// Check if this is a heap pointer
+	if hp, ok := v.Interface().(HeapPointer); ok {
+		vm.heap.write(hp, value)
+		return
 	}
 	if v.Kind() != reflect.Pointer {
 		vm.fatal(fmt.Sprintf("cannot dereference non-pointer type: %v", v.Kind()))

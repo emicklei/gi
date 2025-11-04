@@ -72,11 +72,12 @@ func (f *stackFrame) String() string {
 // VM represents a virtual machine that can execute Go code.
 type VM struct {
 	frameStack stack[*stackFrame]
+	heap       *Heap
 	output     *bytes.Buffer // for testing only
 }
 
 func newVM(env Env) *VM {
-	vm := &VM{output: new(bytes.Buffer)}
+	vm := &VM{output: new(bytes.Buffer), heap: newHeap()}
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
 	vm.frameStack.push(frame)
@@ -139,9 +140,12 @@ func (vm *VM) popFrame() {
 
 	// return env to pool
 	env := frame.env.(*Environment)
-	clear(env.valueTable)
 	env.parent = nil
-	envPool.Put(env)
+	if !env.hasHeapPointer {
+		// do not recycle environments that contain values referenced by a heap pointer
+		clear(env.valueTable)
+		envPool.Put(env)
+	}
 
 	// reset references
 	frame.operandStack = frame.operandStack[:0]
