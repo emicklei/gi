@@ -20,10 +20,16 @@ func (s StarExpr) Eval(vm *VM) {
 	if hp, ok := v.Interface().(HeapPointer); ok {
 		// Dereference from heap
 		vm.pushOperand(vm.heap.read(hp))
-	} else {
-		// Regular pointer dereference
-		vm.pushOperand(v.Elem())
+		return
 	}
+	// Regular pointer dereference - validate it's a pointer
+	if v.Kind() != reflect.Pointer {
+		vm.fatal(fmt.Sprintf("cannot dereference non-pointer type: %v", v.Kind()))
+	}
+	if v.IsNil() {
+		vm.fatal("cannot dereference nil pointer")
+	}
+	vm.pushOperand(v.Elem())
 }
 func (s StarExpr) Flow(g *graphBuilder) (head Step) {
 	head = s.X.Flow(g)

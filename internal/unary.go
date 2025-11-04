@@ -22,6 +22,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 	// Special case: if taking address of an identifier, create a reference to the variable
 	if u.Op == token.AND {
 		if ident, ok := u.X.(Ident); ok {
+			// Pop the value that was already pushed by the identifier evaluation
+			_ = vm.frameStack.top().pop()
 			// Create a heap pointer that references the environment variable
 			env := vm.localEnv().valueOwnerOf(ident.Name)
 			if env != nil {
