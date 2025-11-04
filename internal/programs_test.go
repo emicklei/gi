@@ -1189,9 +1189,6 @@ func main() {
 }
 
 func TestComplexPointerScenarios(t *testing.T) {
-
-	trace = true
-	defer func() { trace = false }()
 	testMain(t, `package main
 type Point struct {
 	X int

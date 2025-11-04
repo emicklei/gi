@@ -21,17 +21,19 @@
 | Composite type `struct` | ✅ |
 | Composite type `map` | ✅ |
 | Unsigned integer arithmetic | ✅ |
-| `switch` statement |⬜ |
 | `min` , `max` builtins | ✅ |
+| `switch` statement | ✅ |
+| `switch` statement on type | ⬜ |
 | Pointers | ✅ |
+| Std Methods | ✅ |
 | Interfaces | ⬜ |
-| Methods | ✅ |
+| Non-std Methods | ⬜ |
 | Goroutines `go` | ⬜ |
 | Channels `chan` | ⬜ |
 | `select` statement | ⬜ |
 | Function literal | ✅ |
 | Type alias | ✅ |
-| defer | ✅ |
+| defer | ⬜ |
 | variadic function | ⬜ |
 | blank identifier | ✅ |
 | goto | ✅ |
