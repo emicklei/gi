@@ -19,13 +19,18 @@ func (a ArrayType) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(a))
 }
 
-func (a ArrayType) Instantiate(vm *VM) reflect.Value {
+func (a ArrayType) Instantiate(vm *VM, constructorArgs []reflect.Value) reflect.Value {
 	eltTypeName := mustIdentName(a.Elt)
 	eltType := vm.localEnv().typeLookUp(eltTypeName)
 	if a.ArrayType.Len == nil {
 		// slice
 		sliceType := reflect.SliceOf(eltType)
-		return reflect.MakeSlice(sliceType, 0, 4)
+		// optionally, the new slice can have a length
+		size := reflect.ValueOf(0)
+		if len(constructorArgs) > 0 {
+			size = constructorArgs[0]
+		}
+		return reflect.MakeSlice(sliceType, int(size.Int()), int(size.Int()))
 	} else {
 		// array
 		len := vm.returnsEval(a.Len)

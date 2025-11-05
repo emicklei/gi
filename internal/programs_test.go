@@ -320,7 +320,7 @@ func TestSliceCap(t *testing.T) {
 
 func main() {
 	print(cap([]int{1}))
-}`, "4")
+}`, "1")
 }
 
 func TestArray(t *testing.T) {
@@ -386,6 +386,20 @@ func main() {
 }`, "[2]")
 }
 
+func TestCopy(t *testing.T) {
+	t.Skip()
+	trace = true
+	defer func() { trace = false }()
+	testMain(t, `package main
+
+func main() {
+	src := []int{1,2,3}
+	dest := make([]int, 3)
+	n := copy(dest, src)
+	print(n, dest[0], dest[1], dest[2])
+}`, "3123")
+}
+
 func TestAppend(t *testing.T) {
 	testMain(t, `package main
 
@@ -408,7 +422,7 @@ func main() {
 }
 
 // https://go.dev/ref/spec#Appending_and_copying_slices
-func TestCopy(t *testing.T) {
+func TestCopySliceVariations(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main
 

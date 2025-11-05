@@ -17,6 +17,7 @@
 | Composite type `slice` | ✅ |
 | `len`, `append`, `cap`, `delete`, `panic` | ✅ |
 | Package `init` | ✅ |
+| `new` , `make` | ✅ |
 | Binary and Unary Operators | ✅ |
 | Composite type `struct` | ✅ |
 | Composite type `map` | ✅ |

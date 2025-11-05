@@ -63,7 +63,7 @@ func (s CompositeLit) Eval(vm *VM) {
 	if !ok {
 		vm.fatal(fmt.Sprintf("expected CanInstantiate:%v (%T)", internalType, internalType))
 	}
-	instance := i.Instantiate(vm)
+	instance := i.Instantiate(vm, nil)
 	values := make([]reflect.Value, len(s.Elts))
 	for i := range s.Elts {
 		val := vm.frameStack.top().pop()

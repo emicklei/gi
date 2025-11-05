@@ -64,6 +64,8 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		c.evalDelete(vm)
 	case "append":
 		c.evalAppend(vm)
+	case "copy":
+		c.evalCopy(vm)
 	case "clear":
 		cleared := c.evalClear(vm)
 		// the argument of clear needs to be replaced

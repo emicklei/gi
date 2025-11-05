@@ -15,6 +15,14 @@ func (c CallExpr) evalDelete(vm *VM) {
 	target.SetMapIndex(key, reflect.Value{}) // delete
 }
 
+// https://pkg.go.dev/builtin#copy
+func (CallExpr) evalCopy(vm *VM) {
+	dest := vm.frameStack.top().pop()
+	src := vm.frameStack.top().pop()
+	n := reflect.Copy(dest, src)
+	vm.pushOperand(reflect.ValueOf(n))
+}
+
 // https://pkg.go.dev/builtin#append
 func (c CallExpr) evalAppend(vm *VM) {
 	// Pop arguments from stack. They are in reverse order of declaration.
@@ -101,9 +109,14 @@ func (c CallExpr) evalMax(vm *VM) {
 }
 
 func (c CallExpr) evalMake(vm *VM) {
-	typ := vm.returnsEval(c.Args[0])
+	// args are on the stack in reverse order of declaration
+	typ := vm.frameStack.top().pop()
+	args := []reflect.Value{}
+	for i := 1; i < len(c.Args); i++ {
+		args = append(args, vm.frameStack.top().pop())
+	}
 	if ci, ok := typ.Interface().(CanInstantiate); ok {
-		instance := ci.Instantiate(vm)
+		instance := ci.Instantiate(vm, args)
 		vm.pushOperand(instance)
 		return
 	}
@@ -114,7 +127,7 @@ func (c CallExpr) evalNew(vm *VM) {
 	valWithType := vm.frameStack.top().pop()
 	typ := valWithType.Interface()
 	if ci, ok := typ.(CanInstantiate); ok {
-		instance := ci.Instantiate(vm)
+		instance := ci.Instantiate(vm, nil)
 		vm.pushOperand(instance)
 		return
 	}

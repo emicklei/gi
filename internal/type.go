@@ -25,11 +25,11 @@ func (s TypeSpec) Eval(vm *VM) {
 	vm.localEnv().set(s.Name.Name, actualType) // use the spec itself as value
 }
 
-func (s TypeSpec) Instantiate(vm *VM) reflect.Value {
+func (s TypeSpec) Instantiate(vm *VM, constructorArgs []reflect.Value) reflect.Value {
 	actualType := vm.returnsEval(s.Type).Interface()
 	// fmt.Println(actualType)
 	if i, ok := actualType.(CanInstantiate); ok {
-		instance := i.Instantiate(vm)
+		instance := i.Instantiate(vm, constructorArgs)
 		// fmt.Println(instance)
 		return instance
 	}
@@ -82,7 +82,7 @@ func (s StructType) LiteralCompose(composite reflect.Value, values []reflect.Val
 	return i.LiteralCompose(composite, values)
 }
 
-func (s StructType) Instantiate(vm *VM) reflect.Value {
+func (s StructType) Instantiate(vm *VM, constructorArgs []reflect.Value) reflect.Value {
 	return reflect.ValueOf(NewInstance(vm, s))
 }
 
@@ -106,7 +106,7 @@ func (m MapType) Flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (m MapType) Instantiate(vm *VM) reflect.Value {
+func (m MapType) Instantiate(vm *VM, constructorArgs []reflect.Value) reflect.Value {
 	keyTypeName := mustIdentName(m.Key)
 	valueTypeName := mustIdentName(m.Value)
 	keyType := vm.localEnv().typeLookUp(keyTypeName)

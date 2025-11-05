@@ -62,4 +62,5 @@ var builtinsMap = map[string]reflect.Value{
 	"clear":  reflect.ValueOf(builtinFunc{name: "clear"}),
 	"make":   reflect.ValueOf(builtinFunc{name: "make"}),
 	"new":    reflect.ValueOf(builtinFunc{name: "new"}),
+	"copy":   reflect.ValueOf(builtinFunc{name: "copy"}),
 }
