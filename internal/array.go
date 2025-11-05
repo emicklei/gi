@@ -59,3 +59,21 @@ func (a ArrayType) LiteralCompose(composite reflect.Value, values []reflect.Valu
 	}
 	return composite
 }
+
+var _ Expr = SliceExpr{}
+
+// http://golang.org/ref/spec#Slice_expressions
+type SliceExpr struct {
+	*ast.SliceExpr
+	X    Expr
+	Low  Expr // may be nil
+	High Expr // may be nil
+	Max  Expr // may be nil
+}
+
+func (s SliceExpr) String() string {
+	return fmt.Sprintf("SliceExpr(%v,%v:%v:%v)", s.X, s.Low, s.High, s.Max)
+}
+
+func (s SliceExpr) Eval(vm *VM)                      {}
+func (s SliceExpr) Flow(g *graphBuilder) (head Step) { return g.current }

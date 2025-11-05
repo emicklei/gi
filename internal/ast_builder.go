@@ -69,6 +69,28 @@ func (b *ASTBuilder) popFuncDecl() {
 func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 
+	case *ast.SliceExpr:
+		s := SliceExpr{SliceExpr: n}
+		b.Visit(n.X)
+		e := b.pop()
+		s.X = e.(Expr)
+		if n.Low != nil {
+			b.Visit(n.Low)
+			e = b.pop()
+			s.Low = e.(Expr)
+		}
+		if n.High != nil {
+			b.Visit(n.High)
+			e = b.pop()
+			s.High = e.(Expr)
+		}
+		if n.Max != nil {
+			b.Visit(n.Max)
+			e = b.pop()
+			s.Max = e.(Expr)
+		}
+		b.push(s)
+
 	case *ast.TypeSwitchStmt:
 		s := TypeSwitchStmt{TypeSwitchStmt: n}
 		if n.Init != nil {
