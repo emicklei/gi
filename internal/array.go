@@ -75,5 +75,35 @@ func (s SliceExpr) String() string {
 	return fmt.Sprintf("SliceExpr(%v,%v:%v:%v)", s.X, s.Low, s.High, s.Max)
 }
 
-func (s SliceExpr) Eval(vm *VM)                      {}
-func (s SliceExpr) Flow(g *graphBuilder) (head Step) { return g.current }
+func (s SliceExpr) Eval(vm *VM) {
+	// stack has max, high, low, x
+	var high, low, x reflect.Value
+	if s.Max != nil {
+		// ignore max
+		_ = vm.frameStack.top().pop()
+	}
+	if s.High != nil {
+		high = vm.frameStack.top().pop()
+	}
+	if s.Low != nil {
+		low = vm.frameStack.top().pop()
+	}
+	x = vm.frameStack.top().pop()
+	result := x.Slice(int(low.Int()), int(high.Int()))
+	vm.pushOperand(result)
+}
+
+func (s SliceExpr) Flow(g *graphBuilder) (head Step) {
+	head = s.X.Flow(g)
+	if s.Low != nil {
+		s.Low.Flow(g)
+	}
+	if s.High != nil {
+		s.High.Flow(g)
+	}
+	if s.Max != nil {
+		s.Max.Flow(g)
+	}
+	g.next(s)
+	return
+}

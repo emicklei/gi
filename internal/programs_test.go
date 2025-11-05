@@ -378,13 +378,12 @@ func main() {
 }
 
 func TestSubSlice(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
 	list := []int{1,2,3}
 	print(list[1:2])
-}`, "[23]")
+}`, "[2]")
 }
 
 func TestAppend(t *testing.T) {
