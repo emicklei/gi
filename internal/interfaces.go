@@ -92,3 +92,14 @@ type StepTaker interface {
 type Traverseable interface {
 	Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node
 }
+
+type Runtime interface {
+	returnsEval(e Evaluable) reflect.Value
+	returnsType(e Evaluable) reflect.Type
+	pushOperand(v reflect.Value)
+	pushNewFrame(e Evaluable)
+	popFrame()
+	fatal(err any)
+	traceEval(e Evaluable)
+	takeAllStartingAt(head Step)
+}

@@ -24,23 +24,27 @@
 | Unsigned integer arithmetic | ✅ |
 | `min` , `max` builtins | ✅ |
 | `switch` statement | ✅ |
-| `switch` statement on type | ⬜ |
+| `real` `imag` | ✅ |
+| `error` | ✅ |
+| `nil` | ✅ |
 | Pointers | ✅ |
 | Std Methods | ✅ |
-| Interfaces | ⬜ |
-| Non-std Methods | ⬜ |
-| Goroutines `go` | ⬜ |
-| Channels `chan` | ⬜ |
-| `select` statement | ⬜ |
 | Function literal | ✅ |
 | Type alias | ✅ |
-| defer | ⬜ |
-| variadic function | ⬜ |
 | blank identifier | ✅ |
 | goto | ✅ |
 | continue | ⬜ |
 | fallthrough | ⬜ |
 | break | ⬜ |
-| `real` `imag` | ✅ |
-| `error` | ✅ |
-| `nil` | ✅ |
+| `switch` statement on type | ⬜ |
+| Interfaces | ⬜ |
+| Non-std Methods | ⬜ |
+| Goroutines `go` | ⬜ |
+| Channels `chan` | ⬜ |
+| `select` statement | ⬜ |
+| defer | ⬜ |
+| variadic function | ⬜ |
+| recover | ⬜ |
+| min,max with 3 args | ⬜ |
+| min,max with string | ⬜ |
+| infinity | ⬜ |

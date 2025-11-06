@@ -25,7 +25,6 @@ func (CallExpr) evalCopy(vm *VM) {
 
 // https://pkg.go.dev/builtin#append
 func (c CallExpr) evalAppend(vm *VM) {
-	// Pop arguments from stack. They are in reverse order of declaration.
 	args := make([]reflect.Value, len(c.Args))
 	for i := range c.Args {
 		args[i] = vm.frameStack.top().pop()
@@ -110,7 +109,7 @@ func (c CallExpr) evalMax(vm *VM) {
 
 // https://go.dev/ref/spec#Making_slices_maps_and_channels
 func (c CallExpr) evalMake(vm *VM) {
-	// args are on the stack in reverse order of declaration
+	// stack has 1,2, or 3 arguments, left to right
 	typ := vm.frameStack.top().pop()
 	length := 0
 	if len(c.Args) > 1 {
@@ -131,16 +130,16 @@ func (c CallExpr) evalMake(vm *VM) {
 func (c CallExpr) evalNew(vm *VM) {
 	valWithType := vm.frameStack.top().pop()
 	typ := valWithType.Interface()
-	if ci, ok := typ.(CanInstantiate); ok {
-		instance := ci.Instantiate(vm, 0, nil)
-		vm.pushOperand(instance)
-		return
-	}
 	if valWithType.Kind() == reflect.Struct {
 		// typ is an instance of a standard or imported external type
 		rtype := reflect.TypeOf(typ)
 		rval := reflect.New(rtype)
 		vm.pushOperand(rval)
+		return
+	}
+	if ci, ok := typ.(CanInstantiate); ok {
+		instance := ci.Instantiate(vm, 0, nil)
+		vm.pushOperand(instance)
 		return
 	}
 	vm.fatal(fmt.Sprintf("new: expected a CanInstantiate value:%v", typ))

@@ -29,11 +29,3 @@ func TestCallGenericByReflect(t *testing.T) {
 		t.Errorf("expected error to be nil, got %v", results[1].Interface())
 	}
 }
-
-// a := "a"
-// fmt.Println(a)
-func TestCallWithStackframe(t *testing.T) {
-	// f := stackFrame{}
-	// f.funcArgs = []reflect.Value{reflect.ValueOf("a")}
-
-}

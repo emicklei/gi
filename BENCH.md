@@ -64,3 +64,12 @@ cpu: Apple M3 Pro
 BenchmarkIfElseIfElse/build-12          1000000000               0.0000340 ns/op               0 B/op          0 allocs/op
 BenchmarkIfElseIfElse/walk-12                289           4048609 ns/op          637529 B/op      30328 allocs/op
 ```
+6-11-2025
+```
+goos: darwin
+goarch: arm64
+pkg: github.com/emicklei/gi/internal
+cpu: Apple M3 Pro
+BenchmarkIfElseIfElse/build-12            378774              3021 ns/op            5128 B/op        116 allocs/op
+BenchmarkIfElseIfElse/walk-12                284           4262189 ns/op          594691 B/op      30025 allocs/op
+```

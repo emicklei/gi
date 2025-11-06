@@ -125,36 +125,6 @@ func (c *conditionalStep) Take(vm *VM) Step {
 	return c.elseFlow
 }
 
-type pushStackFrameStep struct {
-	step
-}
-
-func (p *pushStackFrameStep) String() string { return fmt.Sprintf("%2d: ~push stackframe", p.ID()) }
-
-func (p *pushStackFrameStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	return p.step.traverse(g, p.String(), "next", visited)
-}
-
-func (p *pushStackFrameStep) Take(vm *VM) Step {
-	vm.pushNewFrame(nil)
-	return p.next
-}
-
-type popStackFrameStep struct {
-	step
-}
-
-func (p *popStackFrameStep) Take(vm *VM) Step {
-	vm.popFrame()
-	return p.next
-}
-
-func (p *popStackFrameStep) String() string { return fmt.Sprintf("%2d: ~pop stackframe", p.ID()) }
-
-func (p *popStackFrameStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	return p.step.traverse(g, p.String(), "next", visited)
-}
-
 type pushEnvironmentStep struct {
 	step
 }

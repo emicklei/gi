@@ -22,23 +22,13 @@ func (s SwitchStmt) stmtStep() Evaluable { return s }
 func (s SwitchStmt) Eval(vm *VM) {
 	vm.frameStack.top().pushEnv()
 	defer vm.frameStack.top().popEnv()
-	if trace {
-		if s.Init != nil {
-			vm.traceEval(s.Init.stmtStep())
-		}
-		if s.Tag != nil {
-			vm.traceEval(s.Tag)
-		}
-		vm.traceEval(s.Body)
-	} else {
-		if s.Init != nil {
-			s.Init.stmtStep().Eval(vm)
-		}
-		if s.Tag != nil {
-			s.Tag.Eval(vm)
-		}
-		s.Body.Eval(vm)
+	if s.Init != nil {
+		vm.eval(s.Init.stmtStep())
 	}
+	if s.Tag != nil {
+		vm.eval(s.Tag)
+	}
+	vm.eval(s.Body)
 }
 func (s SwitchStmt) String() string {
 	return fmt.Sprintf("SwitchStmt(%v,%v,%v)", s.Init, s.Tag, s.Body)
@@ -170,11 +160,7 @@ func (c CaseClause) Eval2(vm *VM) {
 	if c.List == nil {
 		// default case
 		for _, stmt := range c.Body {
-			if trace {
-				vm.traceEval(stmt.stmtStep())
-			} else {
-				stmt.stmtStep().Eval(vm)
-			}
+			vm.eval(stmt.stmtStep())
 		}
 		return
 	}
@@ -197,11 +183,7 @@ func (c CaseClause) Eval2(vm *VM) {
 			vm.frameStack.top().pushEnv()
 			defer vm.frameStack.top().popEnv()
 			for _, stmt := range c.Body {
-				if trace {
-					vm.traceEval(stmt.stmtStep())
-				} else {
-					stmt.stmtStep().Eval(vm)
-				}
+				vm.eval(stmt.stmtStep())
 			}
 			return
 		}

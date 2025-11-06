@@ -64,14 +64,3 @@ func (g *graphBuilder) nextStep(next Step) {
 	}
 	g.current = next
 }
-
-// beginIf creates a conditional step with the given condition
-// and makes it the current step. It returns the created conditional step to set the else branch later.
-// TODO inline
-func (g *graphBuilder) beginIf(cond Expr) *conditionalStep {
-	head := cond.Flow(g)
-	cs := new(conditionalStep)
-	cs.conditionFlow = head
-	g.nextStep(cs)
-	return cs
-}

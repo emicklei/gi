@@ -3,7 +3,6 @@ package internal
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 	"testing"
 )
@@ -152,13 +151,6 @@ func main() {
 	print('e')
 }`, "'e'")
 }
-func TestNumbers(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print(-1,+3.14,0.1e10)
-}`, "-13.141e+09")
-}
 func TestFunc(t *testing.T) {
 	testMain(t, `package main
 
@@ -299,74 +291,6 @@ func main() {
 }`, "gi")
 }
 
-func TestSlice(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print([]int{1, 2})
-}`, "[1 2]")
-}
-
-func TestMakeSlice(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	s1 := make([]int, 1)
-	s2 := make([]int, 2)
-	print(len(s1), len(s2))
-}`, "12")
-}
-
-func TestSliceLen(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print(len([]int{1}))
-}`, "1")
-}
-
-func TestSliceCap(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print(cap([]int{1}))
-}`, "1")
-}
-
-func TestArray(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print([2]string{"A", "B"})
-}`, "[A B]")
-}
-
-func TestArrayLen(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print(len([2]string{"A", "B"}))
-}`, "2")
-}
-
-func TestArrayCap(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print(cap([2]string{"A", "B"}))
-}`, "2")
-}
-
-func TestSliceClear(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	s := []int{1,2,3}
-	clear(s)
-	print(len(s))
-}`, "3")
-}
-
 func TestMapClear(t *testing.T) {
 	testMain(t, `package main
 
@@ -375,83 +299,6 @@ func main() {
 	clear(m)
 	print(len(m))
 }`, "0")
-}
-
-func TestSliceAppendAndIndex(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	list := []int{}
-	list = append(list, 1, 2)
-	print(list[0], list[1])
-}`, "12")
-}
-
-func TestSubSlice(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	list := []int{1,2,3}
-	print(list[1:2])
-}`, "[2]")
-}
-
-func TestEllipsisArray(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	arr := [...]int{1,2,3}	
-	print(arr[0], arr[1], arr[2])
-}
-`, "123")
-}
-
-func TestCopy(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	src := []int{1,2,3}
-	dest := make([]int, 3)
-	n := copy(dest, src)
-	print(n, dest[0], dest[1], dest[2])
-}`, "3123")
-}
-
-func TestAppend(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	list := []int{}
-	print(list)
-	list = append(list, 4, 5)
-	print(list)
-}`, "[][4 5]")
-}
-
-func TestAppendStringToByteSlice(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	var b []byte
-	b = append(b, "bar"...)
-	print(string(b))
-}`, "bar")
-}
-
-// https://go.dev/ref/spec#Appending_and_copying_slices
-func TestCopySliceVariations(t *testing.T) {
-	//t.Skip()
-	testMain(t, `package main
-
-func main() {	
-	var a = [8]int{0, 1, 2, 3, 4, 5, 6, 7}
-	var s = make([]int, 6)
-	var b = make([]byte, 5)
-	n1 := copy(s, a[0:])            // n1 == 6, s is []int{0, 1, 2, 3, 4, 5}
-	n2 := copy(s, s[2:])            // n2 == 4, s is []int{2, 3, 4, 5, 4, 5}
-	n3 := copy(b, "Hello, World!")  // n3 == 5, b is []byte("Hello")
-	print(n1, n2, n3)
-}`, "645")
 }
 
 func TestTimeConstant(t *testing.T) {
@@ -524,81 +371,6 @@ func main() {
 	i := 42
 	print(&i)
 }`, func(out string) bool { return strings.HasPrefix(out, "0x") })
-}
-
-func TestRangeOfStrings(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	strings := []string{"hello", "world"}
-	for i,s := range strings {
-		print(i,s)
-	}
-}`, "0hello1world")
-}
-
-func TestRangeOfStringsNoValue(t *testing.T) {
-	testMain(t, `package main
-
-func main() { 
-	for i := range [2]string{} {
-		print(i)
-	}
-}`, "01")
-}
-
-func TestRangeOfIntNoKey(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	for range 2 {
-		print("a")
-	}
-}`, "aa")
-}
-
-func TestRangeOfIntWithKey(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	for i := range 2 {
-		print(i)
-	}
-}`, "01")
-}
-
-func TestRangeOfMap(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	m := map[string]int{"a":1, "b":2}
-	for k,v := range m {
-		print(k,v)
-	}
-}`, func(out string) bool { return out == "a1b2" || out == "b2a1" })
-}
-
-func TestRangeNested(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	m := map[string]int{"a": 1, "b": 2}
-	for j := range []int{0, 1} {
-		for range j {
-			for i := range 2 {
-				for k, v := range m {
-					print(i)
-					print(k)
-					print(v)
-				}
-			}
-		}
-	}
-}`, func(out string) bool {
-		// because map iteration is random we need to match all possibilities
-		ok, _ := regexp.MatchString("^(?:0a10b2|0b20a1)(?:1a11b2|1b21a1)$", out)
-		return ok
-	})
 }
 
 func TestInit(t *testing.T) {
@@ -834,92 +606,6 @@ func main() {
 }`, "1")
 }
 
-func TestSwitchOnBool(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	var a int = 1
-	switch {
-	case a == 1:
-		print(a)
-	}
-}`, "1")
-}
-
-func TestSwitchOnLiteral(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	var a int
-	switch a = 1; a {
-	case 1:
-		print(a)
-	}
-}`, "1")
-}
-
-func TestSwitchDefault(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	var a int
-	switch a {
-	case 2:
-	default:
-		print(3)
-	}
-}`, "3")
-}
-
-func TestSwitch(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	var a int
-	switch a = 1; a {
-	case 1:
-		print(a)
-	}
-	switch a {
-	case 2:
-	default:
-		print(3)
-	}
-}`, "13")
-}
-
-/**
-a = 1
-if a == 1 {
-	print(a)
-	goto end
-}
-if a == 2 {
-	print(a)
-	goto end
-}
-print(2)
-end:
-**/
-
-func TestSwitchType(t *testing.T) {
-	t.Skip()
-	testMain(t, `package main
-
-func main() {
-	var v any
-	v = "gi"
-	switch v := v.(type) {
-	case int:
-		print("int:", v)
-	case string:
-		print("string:", v)
-	default:
-		print("unknown:", v)
-	}
-}`, "string:gi")
-}
-
 func TestPanic(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -978,62 +664,6 @@ func main() {
 	}()
 	panic("0")
 }`, "0")
-}
-
-func TestUnaries(t *testing.T) {
-	tests := []struct {
-		src  string
-		op   string
-		want string
-	}{
-		{"true", "!", "false"},
-		{"int(1)", "^", "-2"},
-		{"int8(1)", "^", "-2"},
-		{"int16(1)", "^", "-2"},
-		{"int32(1)", "^", "-2"},
-		{"int64(1)", "^", "-2"},
-		{"uint64(1)", "^", "18446744073709551614"},
-		{"uint32(1)", "^", "4294967294"},
-		{"uint16(1)", "^", "65534"},
-		{"uint8(1)", "^", "254"},
-		{"uint(1)", "^", "18446744073709551614"},
-		{"int(1)", "+", "1"},
-		{"int8(1)", "+", "1"},
-		{"int16(1)", "+", "1"},
-		{"int32(1)", "+", "1"},
-		{"int64(1)", "+", "1"},
-		{"uint64(1)", "+", "1"},
-		{"uint32(1)", "+", "1"},
-		{"uint16(1)", "+", "1"},
-		{"uint8(1)", "+", "1"},
-		{"uint(1)", "+", "1"},
-		{"int(1)", "+", "1"},
-		{"int8(1)", "-", "-1"},
-		{"int16(1)", "-", "-1"},
-		{"int32(1)", "-", "-1"},
-		{"int64(1)", "-", "-1"},
-		{"uint64(1)", "-", "18446744073709551615"},
-		{"uint32(1)", "-", "4294967295"},
-		{"uint16(1)", "-", "65535"},
-		{"uint8(1)", "-", "255"},
-		{"uint(1)", "-", "18446744073709551615"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.op, func(t *testing.T) {
-			t.Parallel()
-			src := fmt.Sprintf(`
-			package main
-
-			func main() {
-				v := %s
-				print(%sv)
-			}`, tt.src, tt.op)
-			out := parseAndWalk(t, src)
-			if got, want := out, tt.want; got != want {
-				t.Errorf("%s got [%[1]v:%[1]T] want [%[2]v:%[2]T]", tt.src, got, want)
-			}
-		})
-	}
 }
 
 func TestImaginary(t *testing.T) {

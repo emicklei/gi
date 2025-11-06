@@ -18,41 +18,27 @@ func (c CallExpr) Eval(vm *VM) {
 	// function fn is either an external or an interpreted one
 	fn := vm.frameStack.top().pop() // see Flow
 
-	// TODO
-	if !fn.IsValid() {
-		vm.fatal("call to invalid function:" + fmt.Sprintf("%v", c.Fun))
-	}
-
 	switch fn.Kind() {
+	case reflect.Struct:
+		switch f := fn.Interface().(type) {
+		// order by frequency of use
+		case builtinFunc:
+			c.handleBuiltinFunc(vm, f)
+		case FuncDecl:
+			c.handleFuncDecl(vm, f)
+		case FuncLit:
+			c.handleFuncLit(vm, f)
+		default:
+			vm.fatal(fmt.Sprintf("expected FuncDecl,FuncLit or builtinFunc, got %T", fn.Interface()))
+		}
 	case reflect.Func:
 		args := make([]reflect.Value, len(c.Args))
-		for i, arg := range c.Args {
-			val := vm.frameStack.top().pop() // first to last, see Flow
-			if !val.IsValid() {
-				vm.fatal(fmt.Sprintf("call to function: %v with invalid argument %d: %v", c.Fun, i, arg))
-			}
-			args[i] = val
+		// first to last, see Flow
+		for i := range len(c.Args) {
+			args[i] = vm.frameStack.top().pop()
 		}
 		vals := fn.Call(args)
-		vm.pushCallResults(vals)
-
-	case reflect.Struct:
-		fl, ok := fn.Interface().(FuncLit)
-		if ok {
-			c.handleFuncLit(vm, fl)
-			return
-		}
-		lf, ok := fn.Interface().(FuncDecl)
-		if ok {
-			c.handleFuncDecl(vm, lf)
-			return
-		}
-		bf, ok := fn.Interface().(builtinFunc)
-		if ok {
-			c.handleBuiltinFunc(vm, bf)
-			return
-		}
-		vm.fatal(fmt.Sprintf("expected FuncDecl,FuncLit or builtinFunc, got %T", fn.Interface()))
+		pushCallResults(vm, vals)
 	default:
 		vm.fatal(fmt.Sprintf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface()))
 	}
@@ -60,10 +46,14 @@ func (c CallExpr) Eval(vm *VM) {
 
 func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 	switch bf.name {
-	case "delete":
-		c.evalDelete(vm)
+	case "new":
+		c.evalNew(vm)
 	case "append":
 		c.evalAppend(vm)
+	case "make":
+		c.evalMake(vm)
+	case "delete":
+		c.evalDelete(vm)
 	case "copy":
 		c.evalCopy(vm)
 	case "clear":
@@ -78,10 +68,6 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		c.evalMin(vm)
 	case "max":
 		c.evalMax(vm)
-	case "make":
-		c.evalMake(vm)
-	case "new":
-		c.evalNew(vm)
 	default:
 		vm.fatal("unknown builtin function: " + bf.name)
 	}
@@ -107,7 +93,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 	// take values before popping frame
 	vals := vm.frameStack.top().returnValues
 	vm.popFrame()
-	vm.pushCallResults(vals)
+	pushCallResults(vm, vals)
 }
 
 func setZeroReturnsToFrame(ft *FuncType, vm *VM, frame *stackFrame) {
@@ -163,7 +149,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	// take values before popping frame
 	vals := frame.returnValues
 	vm.popFrame()
-	vm.pushCallResults(vals)
+	pushCallResults(vm, vals)
 }
 
 func (c CallExpr) Flow(g *graphBuilder) (head Step) {

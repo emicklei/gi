@@ -69,7 +69,7 @@ func (f *stackFrame) String() string {
 	return buf.String()
 }
 
-// VM represents a virtual machine that can execute Go code.
+// Runtime represents a virtual machine that can execute Go code.
 type VM struct {
 	frameStack stack[*stackFrame]
 	heap       *Heap
@@ -77,7 +77,10 @@ type VM struct {
 }
 
 func newVM(env Env) *VM {
-	vm := &VM{output: new(bytes.Buffer), heap: newHeap()}
+	vm := &VM{
+		output:     new(bytes.Buffer),
+		frameStack: make(stack[*stackFrame], 16),
+		heap:       newHeap()}
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
 	vm.frameStack.push(frame)
@@ -91,11 +94,7 @@ func (vm *VM) localEnv() Env {
 
 // returnsEval evaluates the argument and returns the popped value that was pushed onto the operand stack.
 func (vm *VM) returnsEval(e Evaluable) reflect.Value {
-	if trace {
-		vm.traceEval(e)
-	} else {
-		e.Eval(vm)
-	}
+	vm.eval(e)
 	return vm.frameStack.top().pop()
 }
 
@@ -148,6 +147,7 @@ func (vm *VM) popFrame() {
 	}
 
 	// reset references
+	// TODO measure the capacity of the slices
 	frame.operandStack = frame.operandStack[:0]
 	frame.returnValues = frame.returnValues[:0]
 	frame.env = nil
@@ -174,8 +174,10 @@ func (vm *VM) fatal(err any) {
 	panic(err)
 }
 
-func (vm *VM) traceEval(e Evaluable) {
-	fmt.Fprintln(os.Stderr, "vm.eval:", e)
+func (vm *VM) eval(e Evaluable) {
+	if trace {
+		fmt.Fprintln(os.Stderr, "vm.eval:", e)
+	}
 	e.Eval(vm)
 }
 
@@ -200,13 +202,5 @@ func (vm *VM) takeAllStartingAt(head Step) {
 			**/
 		}
 		here = here.Take(vm)
-	}
-}
-
-func (vm *VM) pushCallResults(vals []reflect.Value) {
-	// Push return values onto the operand stack in reverse order,
-	// so the first return value ends up on top of the stack.
-	for i := len(vals) - 1; i >= 0; i-- {
-		vm.pushOperand(vals[i])
 	}
 }

@@ -22,32 +22,17 @@ func (i IfStmt) String() string {
 }
 
 func (i IfStmt) Eval(vm *VM) {
-	if trace {
-		if i.Init != nil {
-			vm.traceEval(i.Init)
-		}
-		rv := vm.returnsEval(i.Cond)
-		if rv.Bool() {
-			vm.traceEval(i.Body)
-			return
-		}
-		if i.Else != nil {
-			vm.traceEval(i.Else.stmtStep())
-			return
-		}
-	} else {
-		if i.Init != nil {
-			i.Init.Eval(vm)
-		}
-		rv := vm.returnsEval(i.Cond)
-		if rv.Bool() {
-			i.Body.Eval(vm)
-			return
-		}
-		if i.Else != nil {
-			i.Else.stmtStep().Eval(vm)
-			return
-		}
+	if i.Init != nil {
+		vm.eval(i.Init)
+	}
+	rv := vm.returnsEval(i.Cond)
+	if rv.Bool() {
+		vm.eval(i.Body)
+		return
+	}
+	if i.Else != nil {
+		vm.eval(i.Else.stmtStep())
+		return
 	}
 }
 

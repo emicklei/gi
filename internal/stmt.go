@@ -16,11 +16,7 @@ type ExprStmt struct {
 func (s ExprStmt) stmtStep() Evaluable { return s }
 
 func (s ExprStmt) Eval(vm *VM) {
-	if trace {
-		vm.traceEval(s.X)
-	} else {
-		s.X.Eval(vm)
-	}
+	vm.eval(s.X)
 }
 
 func (s ExprStmt) String() string {
@@ -66,11 +62,7 @@ type LabeledStmt struct {
 }
 
 func (s LabeledStmt) Eval(vm *VM) {
-	if trace {
-		vm.traceEval(s.Stmt.stmtStep())
-	} else {
-		s.Stmt.stmtStep().Eval(vm)
-	}
+	vm.eval(s.Stmt.stmtStep())
 }
 
 func (s LabeledStmt) Flow(g *graphBuilder) (head Step) {
