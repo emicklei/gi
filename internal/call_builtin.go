@@ -84,13 +84,31 @@ func (c CallExpr) evalClear(vm *VM) reflect.Value {
 }
 
 func (c CallExpr) evalMin(vm *VM) {
-	right := vm.frameStack.top().pop() // first to last, see Flow
-	left := vm.frameStack.top().pop()
-	result := BinaryExprValue{op: token.LSS, left: left, right: right}.Eval()
-	if result.Bool() {
-		result = left
+	var result reflect.Value
+	if len(c.Args) == 2 {
+		right := vm.frameStack.top().pop() // first to last, see Flow
+		left := vm.frameStack.top().pop()
+		less := BinaryExprValue{op: token.LSS, left: left, right: right}.Eval()
+		if less.Bool() {
+			result = left
+		} else {
+			result = right
+		}
 	} else {
-		result = right
+		// 3
+		third := vm.frameStack.top().pop()
+		second := vm.frameStack.top().pop()
+		first := vm.frameStack.top().pop()
+		less := BinaryExprValue{op: token.LSS, left: first, right: second}.Eval()
+		if less.Bool() {
+			result = first
+		} else {
+			result = second
+		}
+		less = BinaryExprValue{op: token.LSS, left: result, right: third}.Eval()
+		if !less.Bool() {
+			result = third
+		}
 	}
 	vm.pushOperand(result)
 }

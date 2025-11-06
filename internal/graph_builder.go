@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"os"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -27,7 +28,7 @@ func (g *graphBuilder) next(e Evaluable) {
 // newStep creates a new step for the given Evaluable but does not add it to the current flow.
 func (g *graphBuilder) newStep(e Evaluable) *evaluableStep {
 	if e == nil {
-		panic("call to newStep without Evaluable")
+		g.fatal("call to newStep without Evaluable")
 	}
 	g.idgen++
 	es := new(evaluableStep)
@@ -50,7 +51,7 @@ func (g *graphBuilder) nextStep(next Step) {
 
 	if g.current != nil {
 		if g.current.Next() != nil {
-			panic(fmt.Sprintf("current %s already has a next %s, wanted %s\n", g.current, g.current.Next(), next))
+			g.fatal(fmt.Sprintf("current %s already has a next %s, wanted %s\n", g.current, g.current.Next(), next))
 		}
 		if trace {
 			fmt.Printf("fw.next: %d → %v\n", g.current.ID(), next)
@@ -63,4 +64,9 @@ func (g *graphBuilder) nextStep(next Step) {
 		g.head = next
 	}
 	g.current = next
+}
+
+func (g *graphBuilder) fatal(err any) {
+	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)
+	panic(err)
 }

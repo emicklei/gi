@@ -37,7 +37,7 @@ func (e KeyValueExpr) Flow(g *graphBuilder) (head Step) {
 	case BasicLit:
 		e.Key.Flow(g)
 	default:
-		panic("unhandled key type:" + fmt.Sprintf("%T", e.Key))
+		g.fatal(fmt.Sprintf("unhandled key type: %T", e.Key))
 	}
 
 	g.next(e)

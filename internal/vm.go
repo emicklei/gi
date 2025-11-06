@@ -79,7 +79,7 @@ type VM struct {
 func newVM(env Env) *VM {
 	vm := &VM{
 		output:     new(bytes.Buffer),
-		frameStack: make(stack[*stackFrame], 16),
+		frameStack: make(stack[*stackFrame], 0, 16),
 		heap:       newHeap()}
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
@@ -104,12 +104,20 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 		if ok {
 			return typ
 		}
+		// TODO
+		// custom type
+		i := Instance{}
+		return reflect.TypeOf(i)
 	}
 	if star, ok := e.(StarExpr); ok {
 		nonStarType := vm.returnsType(star.X)
 		return reflect.PointerTo(nonStarType)
 	}
-	vm.fatal(fmt.Sprintf("todo returnsType	for %v", e))
+	if sel, ok := e.(SelectorExpr); ok {
+		pkgType := stdtypes[sel.X.(Ident).Name][sel.Sel.Name]
+		return reflect.TypeOf(pkgType.Interface())
+	}
+	vm.fatal(fmt.Sprintf("unhandled returnsType for %v (%T)", e, e))
 	return nil
 }
 

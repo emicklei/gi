@@ -33,6 +33,8 @@
 | Type alias | ✅ |
 | blank identifier | ✅ |
 | goto | ✅ |
+| min,max with 3 args | ✅ |
+| min,max with string | ✅ |
 | continue | ⬜ |
 | fallthrough | ⬜ |
 | break | ⬜ |
@@ -45,6 +47,3 @@
 | defer | ⬜ |
 | variadic function | ⬜ |
 | recover | ⬜ |
-| min,max with 3 args | ⬜ |
-| min,max with string | ⬜ |
-| infinity | ⬜ |

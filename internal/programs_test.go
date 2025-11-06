@@ -590,7 +590,17 @@ func TestMaxAtLeast(t *testing.T) {
 
 func main() {
 	print(max(1,2,10))
-}`, "10")
+	print(max(1,5,3))
+}`, "105")
+}
+
+func TestMinAtMost(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	print(min(3,2,1))
+	print(min(4,2,3))
+}`, "12")
 }
 
 func TestMaxString(t *testing.T) {
@@ -683,13 +693,16 @@ func main() {
 
 func TestImaginary(t *testing.T) {
 	testMain(t, `package main
-
+const (
+	c4 = len([10]float64{imag(2i)})  // imag(2i) is a constant and no function call is issued
+)
 func main() {
 	a := 1+2i
 	print(a)
 	print(real(a))
 	print(imag(a))
-}`, "(1+2i)12")
+	print(c4)
+}`, "(1+2i)1210")
 }
 
 // https://go.dev/ref/spec#Package_initialization

@@ -69,6 +69,13 @@ func (b *ASTBuilder) popFuncDecl() {
 func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 
+	case *ast.ChanType:
+		s := ChanType{Begin: n.Begin, Arrow: n.Arrow, Dir: n.Dir}
+		b.Visit(n.Value)
+		e := b.pop()
+		s.Value = e.(Expr)
+		b.push(s)
+
 	case *ast.SliceExpr:
 		s := SliceExpr{SliceExpr: n}
 		b.Visit(n.X)
