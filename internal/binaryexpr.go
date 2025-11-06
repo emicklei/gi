@@ -177,6 +177,14 @@ func (b BinaryExprValue) StringEval(left string) reflect.Value {
 		return reflect.ValueOf(left == b.right.String())
 	case token.NEQ:
 		return reflect.ValueOf(left != b.right.String())
+	case token.LSS:
+		return reflect.ValueOf(left < b.right.String())
+	case token.LEQ:
+		return reflect.ValueOf(left <= b.right.String())
+	case token.GTR:
+		return reflect.ValueOf(left > b.right.String())
+	case token.GEQ:
+		return reflect.ValueOf(left >= b.right.String())
 	}
 	panic("not implemented: BinaryExprValue.StringEval:" + b.right.Kind().String())
 }

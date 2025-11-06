@@ -585,6 +585,21 @@ func main() {
 	print(min(1,2), max(1,2))
 }`, "12")
 }
+func TestMaxAtLeast(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	print(max(1,2,10))
+}`, "10")
+}
+
+func TestMaxString(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	print(max("", "foo", "bar"))
+}`, "foo")
+}
 
 func TestTypeAlias(t *testing.T) {
 	testMain(t, `package main
