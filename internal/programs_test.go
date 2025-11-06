@@ -307,6 +307,16 @@ func main() {
 }`, "[1 2]")
 }
 
+func TestMakeSlice(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	s1 := make([]int, 1)
+	s2 := make([]int, 2)
+	print(len(s1), len(s2))
+}`, "12")
+}
+
 func TestSliceLen(t *testing.T) {
 	testMain(t, `package main
 
@@ -386,10 +396,17 @@ func main() {
 }`, "[2]")
 }
 
+func TestEllipsisArray(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	arr := [...]int{1,2,3}	
+	print(arr[0], arr[1], arr[2])
+}
+`, "123")
+}
+
 func TestCopy(t *testing.T) {
-	t.Skip()
-	trace = true
-	defer func() { trace = false }()
 	testMain(t, `package main
 
 func main() {
@@ -423,11 +440,11 @@ func main() {
 
 // https://go.dev/ref/spec#Appending_and_copying_slices
 func TestCopySliceVariations(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	testMain(t, `package main
 
 func main() {	
-	var a = [...]int{0, 1, 2, 3, 4, 5, 6, 7}
+	var a = [8]int{0, 1, 2, 3, 4, 5, 6, 7}
 	var s = make([]int, 6)
 	var b = make([]byte, 5)
 	n1 := copy(s, a[0:])            // n1 == 6, s is []int{0, 1, 2, 3, 4, 5}

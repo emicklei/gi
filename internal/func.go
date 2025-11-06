@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"reflect"
 )
 
 type statementReference struct {
@@ -64,8 +65,16 @@ type Ellipsis struct {
 func (e Ellipsis) String() string {
 	return fmt.Sprintf("Ellipsis(%v)", e.Elt)
 }
-func (e Ellipsis) Eval(vm *VM) {}
+func (e Ellipsis) Eval(vm *VM) {
+	vm.pushOperand(reflect.ValueOf(e))
+}
 
-func (e Ellipsis) Flow(g *graphBuilder) Step {
-	return g.current
+func (e Ellipsis) Flow(g *graphBuilder) (head Step) {
+	if e.Elt != nil {
+		head = e.Elt.Flow(g)
+	} else {
+		g.next(e)
+		return g.current
+	}
+	return
 }

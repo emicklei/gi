@@ -108,15 +108,20 @@ func (c CallExpr) evalMax(vm *VM) {
 	vm.pushOperand(result)
 }
 
+// https://go.dev/ref/spec#Making_slices_maps_and_channels
 func (c CallExpr) evalMake(vm *VM) {
 	// args are on the stack in reverse order of declaration
 	typ := vm.frameStack.top().pop()
-	args := []reflect.Value{}
-	for i := 1; i < len(c.Args); i++ {
-		args = append(args, vm.frameStack.top().pop())
+	length := 0
+	if len(c.Args) > 1 {
+		length = int(vm.frameStack.top().pop().Int())
 	}
+	// TODO
+	// if len(c.Args) > 2 {
+	// 	capacity = int(vm.frameStack.top().pop().Int())
+	// }
 	if ci, ok := typ.Interface().(CanInstantiate); ok {
-		instance := ci.Instantiate(vm, args)
+		instance := ci.Instantiate(vm, length, nil)
 		vm.pushOperand(instance)
 		return
 	}
@@ -127,7 +132,7 @@ func (c CallExpr) evalNew(vm *VM) {
 	valWithType := vm.frameStack.top().pop()
 	typ := valWithType.Interface()
 	if ci, ok := typ.(CanInstantiate); ok {
-		instance := ci.Instantiate(vm, nil)
+		instance := ci.Instantiate(vm, 0, nil)
 		vm.pushOperand(instance)
 		return
 	}

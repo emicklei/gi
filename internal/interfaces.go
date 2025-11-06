@@ -60,7 +60,9 @@ type FieldAssignable interface {
 }
 
 type CanInstantiate interface {
-	Instantiate(vm *VM, constructorArgs []reflect.Value) reflect.Value
+	// size can be 0 if not applicable
+	// constructorArgs can be nil if not applicable
+	Instantiate(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value
 	LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value
 }
 

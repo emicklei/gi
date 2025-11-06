@@ -58,41 +58,44 @@ type CompositeLit struct {
 }
 
 func (s CompositeLit) Eval(vm *VM) {
-	internalType := vm.returnsEval(s.Type).Interface()
-	i, ok := internalType.(CanInstantiate)
-	if !ok {
-		vm.fatal(fmt.Sprintf("expected CanInstantiate:%v (%T)", internalType, internalType))
-	}
-	instance := i.Instantiate(vm, nil)
 	values := make([]reflect.Value, len(s.Elts))
 	for i := range s.Elts {
 		val := vm.frameStack.top().pop()
 		values[i] = val
 	}
+	internalType := vm.frameStack.top().pop().Interface()
+	i, ok := internalType.(CanInstantiate)
+	if !ok {
+		vm.fatal(fmt.Sprintf("expected CanInstantiate:%v (%T)", internalType, internalType))
+	}
+
+	instance := i.Instantiate(vm, len(values), nil)
 	result := i.LiteralCompose(instance, values)
 	vm.pushOperand(result)
 }
 
-func (s CompositeLit) String() string {
-	return fmt.Sprintf("CompositeLit(%v,%v)", s.Type, s.Elts)
-}
-
 func (s CompositeLit) Flow(g *graphBuilder) (head Step) {
+	head = s.Type.Flow(g)
 	// reverse order to have the first element on top of the stack
 	for i := len(s.Elts) - 1; i >= 0; i-- {
 		each := s.Elts[i]
-		if i == len(s.Elts)-1 {
-			head = each.Flow(g)
-			continue
-		}
+		// if i == len(s.Elts)-1 {
+		// 	head = each.Flow(g)
+		// 	continue
+		// }
 		each.Flow(g)
 	}
 	g.next(s)
 	// without elements, head is the current step
-	if head == nil {
-		head = g.current
-	}
-	return head
+	// if head == nil {
+	// 	head = g.current
+	// }
+	// return head
+	return
+}
+
+func (s CompositeLit) String() string {
+	return fmt.Sprintf("CompositeLit(%v,%v)", s.Type, s.Elts)
 }
 
 var _ Expr = FuncLit{}

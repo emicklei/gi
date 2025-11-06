@@ -14,27 +14,28 @@ type ArrayType struct {
 	Elt Expr
 }
 
-// used?
+// Eval creates and pushes an instance of the array or slice type onto the operand stack.
 func (a ArrayType) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(a))
 }
 
-func (a ArrayType) Instantiate(vm *VM, constructorArgs []reflect.Value) reflect.Value {
+func (a ArrayType) Instantiate(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
+	if a.Len != nil {
+		len := vm.returnsEval(a.Len)
+		/// override size from Len expression unless Ellipsis
+		if len.Kind() == reflect.Int {
+			size = int(len.Int())
+		}
+	}
 	eltTypeName := mustIdentName(a.Elt)
 	eltType := vm.localEnv().typeLookUp(eltTypeName)
 	if a.ArrayType.Len == nil {
 		// slice
 		sliceType := reflect.SliceOf(eltType)
-		// optionally, the new slice can have a length
-		size := reflect.ValueOf(0)
-		if len(constructorArgs) > 0 {
-			size = constructorArgs[0]
-		}
-		return reflect.MakeSlice(sliceType, int(size.Int()), int(size.Int()))
+		return reflect.MakeSlice(sliceType, size, size)
 	} else {
 		// array
-		len := vm.returnsEval(a.Len)
-		arrayType := reflect.ArrayOf(int(len.Int()), eltType)
+		arrayType := reflect.ArrayOf(size, eltType)
 		ptrArray := reflect.New(arrayType)
 		return ptrArray.Elem()
 	}
@@ -51,9 +52,12 @@ func (a ArrayType) String() string {
 
 // composite is (a reflect on) a Go array or slice
 func (a ArrayType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
-	if a.ArrayType.Len == nil { // slice
-		for _, v := range values {
-			composite = reflect.Append(composite, v)
+	// TODO optimize this
+
+	if a.ArrayType.Len == nil { // slice has the right length
+		for i, v := range values {
+			//composite = reflect.Append(composite, v)
+			composite.Index(i).Set(v)
 		}
 		return composite
 	}
@@ -93,8 +97,15 @@ func (s SliceExpr) Eval(vm *VM) {
 	if s.Low != nil {
 		low = vm.frameStack.top().pop()
 	}
+	var result reflect.Value
 	x = vm.frameStack.top().pop()
-	result := x.Slice(int(low.Int()), int(high.Int()))
+	if low.IsValid() {
+		if high.IsValid() {
+			result = x.Slice(int(low.Int()), int(high.Int()))
+		} else {
+			result = x.Slice(int(low.Int()), x.Len())
+		}
+	}
 	vm.pushOperand(result)
 }
 

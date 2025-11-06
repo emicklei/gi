@@ -47,7 +47,7 @@ func (v ConstOrVar) Declare(vm *VM) bool {
 	}
 	// if nil then zero
 	if z, ok := v.Type.(CanInstantiate); ok {
-		zv := z.Instantiate(vm, nil)
+		zv := z.Instantiate(vm, 0, nil)
 		vm.localEnv().set(v.Name.Name, zv)
 		return true
 	}

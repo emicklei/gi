@@ -6,6 +6,8 @@ import (
 	"reflect"
 )
 
+var _ CanInstantiate = TypeSpec{}
+
 type TypeSpec struct {
 	*ast.TypeSpec
 	Name       *Ident
@@ -18,19 +20,14 @@ func (s TypeSpec) String() string {
 }
 
 func (s TypeSpec) Eval(vm *VM) {
-	if s.Name == nil {
-		return // TODO ?
-	}
 	actualType := vm.returnsEval(s.Type)
 	vm.localEnv().set(s.Name.Name, actualType) // use the spec itself as value
 }
 
-func (s TypeSpec) Instantiate(vm *VM, constructorArgs []reflect.Value) reflect.Value {
+func (s TypeSpec) Instantiate(vm *VM, _ int, constructorArgs []reflect.Value) reflect.Value {
 	actualType := vm.returnsEval(s.Type).Interface()
-	// fmt.Println(actualType)
 	if i, ok := actualType.(CanInstantiate); ok {
-		instance := i.Instantiate(vm, constructorArgs)
-		// fmt.Println(instance)
+		instance := i.Instantiate(vm, 0, constructorArgs)
 		return instance
 	}
 	vm.fatal(fmt.Sprintf("expected a CanInstantiate value:%v", s.Type))
@@ -82,13 +79,14 @@ func (s StructType) LiteralCompose(composite reflect.Value, values []reflect.Val
 	return i.LiteralCompose(composite, values)
 }
 
-func (s StructType) Instantiate(vm *VM, constructorArgs []reflect.Value) reflect.Value {
+func (s StructType) Instantiate(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
 	return reflect.ValueOf(NewInstance(vm, s))
 }
 
 var (
-	_ Flowable = MapType{}
-	_ Expr     = MapType{}
+	_ Flowable       = MapType{}
+	_ Expr           = MapType{}
+	_ CanInstantiate = MapType{}
 )
 
 type MapType struct {
@@ -106,7 +104,7 @@ func (m MapType) Flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (m MapType) Instantiate(vm *VM, constructorArgs []reflect.Value) reflect.Value {
+func (m MapType) Instantiate(vm *VM, _ int, constructorArgs []reflect.Value) reflect.Value {
 	keyTypeName := mustIdentName(m.Key)
 	valueTypeName := mustIdentName(m.Value)
 	keyType := vm.localEnv().typeLookUp(keyTypeName)
