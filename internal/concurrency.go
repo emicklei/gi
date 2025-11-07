@@ -40,3 +40,36 @@ func (c ChanType) Pos() token.Pos {
 func (c ChanType) String() string {
 	return fmt.Sprintf("ChanType(%v,%v)", c.Dir, c.Value)
 }
+
+var _ Expr = SendStmt{}
+var _ Stmt = SendStmt{}
+
+type SendStmt struct {
+	Arrow token.Pos
+	Chan  Expr
+	Value Expr
+}
+
+func (s SendStmt) Eval(vm *VM) {
+	// stack: value, chan
+	val := vm.frameStack.top().pop()
+	ch := vm.frameStack.top().pop()
+	ch.Send(val)
+}
+
+func (s SendStmt) Flow(g *graphBuilder) (head Step) {
+	head = s.Chan.Flow(g)
+	s.Value.Flow(g)
+	g.next(s)
+	return head
+}
+
+func (s SendStmt) stmtStep() Evaluable { return s }
+
+func (s SendStmt) Pos() token.Pos {
+	return s.Arrow
+}
+
+func (s SendStmt) String() string {
+	return fmt.Sprintf("SendStmt(%v <- %v)", s.Chan, s.Value)
+}

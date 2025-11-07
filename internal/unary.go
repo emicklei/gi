@@ -214,6 +214,18 @@ func (u UnaryExpr) Eval(vm *VM) {
 		default:
 			vm.fatal("missing unary operation on struct:" + u.Op.String())
 		}
+	case reflect.Chan:
+		switch u.Op {
+		case token.ARROW: // receive
+			val, ok := v.Recv()
+			if !ok {
+				vm.pushOperand(reflect.Zero(v.Type()))
+			} else {
+				vm.pushOperand(val)
+			}
+		default:
+			vm.fatal("missing unary operation on chan:" + u.Op.String())
+		}
 	default:
 		// Handle any other types (string, slice, map, etc.)
 		switch u.Op {
