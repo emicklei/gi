@@ -236,16 +236,20 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 
 	// collect non-reflection return values
 	top := vm.frameStack.top()
-	results := make([]any, len(top.returnValues))
-	for i, rv := range top.returnValues {
-		if rv.CanInterface() {
-			results[i] = rv.Interface()
-		} else {
-			results[i] = nil
+	vals := []any{}
+	results := fun.Interface().(FuncDecl).Type.Results
+	if results != nil {
+		for _, field := range results.List {
+			if field.Names != nil {
+				for range len(field.Names) {
+					vals = append(vals, top.pop().Interface())
+				}
+			} else { // unnamed results
+				vals = append(vals, top.pop().Interface())
+			}
 		}
 	}
-	//vm.popFrame()
-	return results, nil
+	return vals, nil
 }
 
 func ParseSource(source string) (*Package, error) {

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 )
@@ -549,7 +548,7 @@ func main(){
 }
 
 // https://go.dev/ref/spec#Defer_statements
-func TestDeferReturn(t *testing.T) {
+func TestDeferReturnUpdateTestNestedLoop(t *testing.T) {
 	// TODO
 	// currently the returns puts all values on the top stackframe
 	// but the defer can change the value from the environment
@@ -741,17 +740,10 @@ func main() {
 }
 
 func TestSubpackage(t *testing.T) {
-	if os.Getenv("GI_TRACE") == "" {
-		t.Skip("GI_TRACE not set")
-	}
 	testProgramIn(t, "../examples/subpkg", "yet unchecked")
 }
 
 func TestNestedLoop(t *testing.T) {
-	t.Skip()
-	if os.Getenv("GI_TRACE") == "" {
-		t.Skip("GI_TRACE not set")
-	}
 	testProgramIn(t, "../examples/nestedloop", "todo")
 }
 
