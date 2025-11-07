@@ -29,14 +29,17 @@ func (r ReturnStmt) Eval(vm *VM) {
 		results[i] = val
 	}
 	// bind result valutes to named results of the function if any
-	fd := vm.frameStack.top().creator.(FuncDecl)
-	ri := 0
-	for _, fields := range fd.Type.Results.List {
-		for _, name := range fields.Names {
-			if name != nil && name.Name != "_" {
-				vm.localEnv().set(name.Name, results[ri])
+	fd, ok := vm.frameStack.top().creator.(FuncDecl)
+	// TODO has to work for FuncLit as well
+	if ok {
+		ri := 0
+		for _, fields := range fd.Type.Results.List {
+			for _, name := range fields.Names {
+				if name != nil && name.Name != "_" {
+					vm.localEnv().set(name.Name, results[ri])
+				}
+				ri++
 			}
-			ri++
 		}
 	}
 
