@@ -78,3 +78,8 @@ func (e Ellipsis) Flow(g *graphBuilder) (head Step) {
 	}
 	return
 }
+
+type funcInvocation struct {
+	flow Step
+	env  Env
+}

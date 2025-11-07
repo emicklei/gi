@@ -513,13 +513,14 @@ func main() {
 }
 
 func TestDefer(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
-	defer print(1)
-	defer print(2)
-}`, "12")
+	a := 1
+	defer print(a)
+	a++
+	defer print(a)
+}`, "21")
 }
 
 func TestNamedReturn(t *testing.T) {
@@ -535,6 +536,10 @@ func main(){
 
 // https://go.dev/ref/spec#Defer_statements
 func TestDeferReturn(t *testing.T) {
+	// TODO
+	// currently the returns puts all values on the top stackframe
+	// but the defer can change the value from the environment
+	// so we need to adjust the return value accordingly somehow
 	t.Skip()
 	testMain(t, `package main
 

@@ -33,8 +33,7 @@ func TestMakeChanUserType(t *testing.T) {
 	}`, func(out string) bool { return strings.HasPrefix(out, "0x") })
 }
 
-func TestMakeChanWriteRead(t *testing.T) {
-	//t.Skip()
+func TestMakeChanIntWriteRead(t *testing.T) {
 	testMain(t, `package main
 
 	func main() {
@@ -43,4 +42,15 @@ func TestMakeChanWriteRead(t *testing.T) {
 		v := <-c
 		print(v)
 	}`, func(out string) bool { return out == "42" })
+}
+
+func TestMakeChanUserWriteRead(t *testing.T) {
+	testMain(t, `package main
+	type User struct{Name string}
+	func main() {
+		c := make(chan User, 1)
+		c <- User{Name: "Alice"}
+		v := <-c
+		print(v.Name)
+	}`, func(out string) bool { return out == "Alice" })
 }

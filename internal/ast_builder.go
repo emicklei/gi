@@ -140,7 +140,11 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			b.Visit(n.Call)
 			e := b.pop()
 			s.Call = e.(Expr)
+			// store call graph in the DeferStmt
+			g := newGraphBuilder(b.goPkg)
+			s.callGraph = s.Call.Flow(g)
 		}
+
 		b.push(s)
 	case *ast.FuncLit:
 		b.pushEnv()

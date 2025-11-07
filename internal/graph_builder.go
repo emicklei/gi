@@ -67,6 +67,6 @@ func (g *graphBuilder) nextStep(next Step) {
 }
 
 func (g *graphBuilder) fatal(err any) {
-	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)
+	fmt.Fprintln(os.Stderr, "[gi] fatal graph error:", err)
 	panic(err)
 }

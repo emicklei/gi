@@ -25,6 +25,7 @@ type stackFrame struct {
 	env          Env
 	operandStack []reflect.Value
 	returnValues []reflect.Value
+	deferList    []funcInvocation
 }
 
 // push adds a value onto the operand stack.
@@ -133,7 +134,7 @@ func (vm *VM) pushOperand(v reflect.Value) {
 	vm.frameStack.top().push(v)
 }
 
-func (vm *VM) pushNewFrame(e Evaluable) {
+func (vm *VM) pushNewFrame(e Evaluable) { // typically a FuncDecl or FuncLit
 	frame := framePool.Get().(*stackFrame)
 	frame.creator = e
 	env := envPool.Get().(*Environment)

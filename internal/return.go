@@ -29,16 +29,17 @@ func (r ReturnStmt) Eval(vm *VM) {
 		results[i] = val
 	}
 	// bind result valutes to named results of the function if any
-	// fd := vm.activeFuncStack.top().FuncDecl
-	// ri := 0
-	// for _, fields := range fd.Type.Results.List {
-	// 	for _, name := range fields.Names {
-	// 		if name != nil && name.Name == "_" {
-	// 			vm.localEnv().set(name.Name, results[ri])
-	// 		}
-	// 		ri++
-	// 	}
-	// }
+	fd := vm.frameStack.top().creator.(FuncDecl)
+	ri := 0
+	for _, fields := range fd.Type.Results.List {
+		for _, name := range fields.Names {
+			if name != nil && name.Name != "_" {
+				vm.localEnv().set(name.Name, results[ri])
+			}
+			ri++
+		}
+	}
+
 	// set return values for the top frame
 	top := vm.frameStack.top()
 	top.returnValues = results

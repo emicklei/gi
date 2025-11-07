@@ -130,6 +130,8 @@ var _ Stmt = DeferStmt{}
 type DeferStmt struct {
 	*ast.DeferStmt
 	Call Expr
+	// detached flow
+	callGraph Step
 }
 
 func (d DeferStmt) String() string {
@@ -139,9 +141,15 @@ func (d DeferStmt) String() string {
 func (d DeferStmt) stmtStep() Evaluable { return d }
 
 func (d DeferStmt) Eval(vm *VM) {
-	// TODO
+	frame := vm.frameStack.top()
+	invocation := funcInvocation{
+		flow: d.callGraph,
+		env:  frame.env.(*Environment).clone(), // TODO promote to interface?
+	}
+	frame.deferList = append(frame.deferList, invocation)
 }
 
 func (d DeferStmt) Flow(g *graphBuilder) (head Step) {
-	return g.current // TODO
+	g.next(d)
+	return g.current
 }

@@ -138,13 +138,21 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 		val := vm.frameStack.top().pop()
 		args[i] = val
 	}
-	vm.pushNewFrame(c)
+	vm.pushNewFrame(fd)
 	frame := vm.frameStack.top()
 	setParametersToFrame(fd.Type, args, vm, frame)
 	setZeroReturnsToFrame(fd.Type, vm, frame)
 
 	// when stepping we the call graph in FuncDecl
 	vm.takeAllStartingAt(fd.callGraph)
+
+	// run defer list
+	for i := len(frame.deferList) - 1; i >= 0; i-- {
+		invocation := frame.deferList[i]
+		frame.env = invocation.env
+		// put env in place
+		vm.takeAllStartingAt(invocation.flow)
+	}
 
 	// take values before popping frame
 	vals := frame.returnValues

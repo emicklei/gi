@@ -210,27 +210,26 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	if err := pkg.Initialize(vm); err != nil {
 		return nil, fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
 	}
+	// TODO maybe let the call do the lookup?
 	fun := pkg.Env.valueLookUp(functionName)
 	if !fun.IsValid() {
 		return nil, fmt.Errorf("%s function definition not found", functionName)
 	}
 
-	// collect parameter values
-	params := make([]reflect.Value, len(args))
-	for i, arg := range args {
-		params[i] = reflect.ValueOf(arg)
+	// TODO make a CallExpr and reuse its logic to set up the call
+	call := CallExpr{
+		Fun:  Ident{Ident: &ast.Ident{Name: functionName}},
+		Args: []Expr{}, // TODO for now, main only
 	}
-
-	// create stack frame with parameters values
-	fundecl := fun.Interface().(FuncDecl)
-	vm.pushNewFrame(fundecl)
-	frame := vm.frameStack.top()
-	setParametersToFrame(fundecl.Type, params, vm, frame)
-
-	vm.takeAllStartingAt(fundecl.callGraph)
+	vm.pushNewFrame(fun.Interface().(FuncDecl))
+	// push arguments as parameters on the operand stack, in reverse order
+	for i := len(args) - 1; i >= 0; i-- {
+		vm.pushOperand(reflect.ValueOf(args[i]))
+	}
+	call.handleFuncDecl(vm, fun.Interface().(FuncDecl))
 
 	// collect non-reflection return values
-	top := vm.frameStack.top() // == frame?? TODO
+	top := vm.frameStack.top()
 	results := make([]any, len(top.returnValues))
 	for i, rv := range top.returnValues {
 		if rv.CanInterface() {
