@@ -215,13 +215,19 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	if !fun.IsValid() {
 		return nil, fmt.Errorf("%s function definition not found", functionName)
 	}
-
-	// TODO make a CallExpr and reuse its logic to set up the call
+	// add noop expressions as arguments; the values will be pushed on the operand stack
+	callArgs := make([]Expr, len(args))
+	for i := range len(args) {
+		callArgs[i] = NoExpr{}
+	}
+	// make a CallExpr and reuse its logic to set up the call
 	call := CallExpr{
 		Fun:  Ident{Ident: &ast.Ident{Name: functionName}},
-		Args: []Expr{}, // TODO for now, main only
+		Args: callArgs,
 	}
+	// set up frame with operand stack
 	vm.pushNewFrame(fun.Interface().(FuncDecl))
+
 	// push arguments as parameters on the operand stack, in reverse order
 	for i := len(args) - 1; i >= 0; i-- {
 		vm.pushOperand(reflect.ValueOf(args[i]))

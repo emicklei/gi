@@ -32,12 +32,18 @@ For development, the following environment variables control the execution and o
 ```go
 package main
 
-import (
-    "github.com/emicklei/gi"
-)
+import "github.com/emicklei/gi"
 
 func main() {
-    gi.Run("path/to/main.go") // or gi.Run(".")       
+	pkg, _ := gi.ParseSource(`package main
+
+import "fmt"
+
+func Hello(name string) {
+	fmt.Println("Hello,", name)
+}
+`)
+	gi.Call(pkg, "Hello", "3i/Atlas")
 }
 ```
 
