@@ -79,6 +79,8 @@ func (e Ellipsis) Flow(g *graphBuilder) (head Step) {
 	return
 }
 
+// funcInvocation represents a function call instance with its own environment.
+// this used to handle defer statements properly.
 type funcInvocation struct {
 	flow Step
 	env  Env

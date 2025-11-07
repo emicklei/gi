@@ -226,7 +226,7 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 		Args: callArgs,
 	}
 	// set up frame with operand stack
-	vm.pushNewFrame(fun.Interface().(FuncDecl))
+	//vm.pushNewFrame(fun.Interface().(FuncDecl))
 
 	// push arguments as parameters on the operand stack, in reverse order
 	for i := len(args) - 1; i >= 0; i-- {
@@ -244,7 +244,7 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 			results[i] = nil
 		}
 	}
-	vm.popFrame()
+	//vm.popFrame()
 	return results, nil
 }
 

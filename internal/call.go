@@ -81,7 +81,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 		val := vm.frameStack.top().pop() // first to last, see Flow
 		args[i] = val
 	}
-	vm.pushNewFrame(c)
+	vm.pushNewFrame(fl)
 	frame := vm.frameStack.top()
 
 	setParametersToFrame(fl.Type, args, vm, frame)
@@ -90,8 +90,16 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 	// we already have the call graph in FuncLit
 	vm.takeAllStartingAt(fl.callGraph)
 
+	// run defer list
+	for i := len(frame.deferList) - 1; i >= 0; i-- {
+		invocation := frame.deferList[i]
+		// put env in place
+		frame.env = invocation.env
+		vm.takeAllStartingAt(invocation.flow)
+	}
+
 	// take values before popping frame
-	vals := vm.frameStack.top().returnValues
+	vals := frame.returnValues
 	vm.popFrame()
 	pushCallResults(vm, vals)
 }

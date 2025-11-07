@@ -35,6 +35,7 @@
 | goto | ✅ |
 | min,max with 3 args | ✅ |
 | min,max with string | ✅ |
+| defer | ✅ |
 | continue | ⬜ |
 | fallthrough | ⬜ |
 | break | ⬜ |
@@ -44,6 +45,5 @@
 | Goroutines `go` | ⬜ |
 | Channels `chan` | ⬜ |
 | `select` statement | ⬜ |
-| defer | ⬜ |
 | variadic function | ⬜ |
 | recover | ⬜ |

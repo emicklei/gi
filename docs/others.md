@@ -4,6 +4,7 @@
 - https://github.com/traefik/yaegi
 - https://github.com/sbinet/go-eval
 - https://github.com/mattn/anko
+- https://github.com/gnolang/gno
 
 Not Go but interesting read
 - https://planetscale.com/blog/faster-interpreters-in-go-catching-up-with-cpp

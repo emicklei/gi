@@ -28,3 +28,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: emicklei/gi
+      
+      - name: Run examples
+        run: make examples

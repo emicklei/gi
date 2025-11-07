@@ -523,6 +523,20 @@ func main() {
 }`, "21")
 }
 
+func TestDeferFuncLiteral(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	defer print(0)
+	f := func() {
+		defer print(1)
+	}
+	defer print(2)
+	f()
+	defer print(3)
+}`, "1320")
+}
+
 func TestNamedReturn(t *testing.T) {
 	testMain(t, `package main
 		
@@ -556,27 +570,23 @@ func main(){
 }
 
 func TestDeferInLoop(t *testing.T) {
-	t.Skip()
 	// i must be captured by value in the defer
 	testMain(t, `package main	
 
-import "fmt"
 func main(){
 	for i := 0; i <= 3; i++ {
-		defer fmt.Print(i)
+		defer print(i)
 	}
 }`, "3210")
 }
 
 func TestDeferInLoopInLiteral(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
-import "fmt"
 func main(){
 	f := func() {
 		for i := 0; i <= 3; i++ {
-			defer fmt.Print(i)
+			defer print(i)
 		}
 	}
 	f()

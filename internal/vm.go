@@ -11,6 +11,7 @@ import (
 	"github.com/emicklei/structexplorer"
 )
 
+// framePool is a pool of stackFrame instances for reuse.
 var framePool = sync.Pool{
 	New: func() any {
 		return &stackFrame{
@@ -20,9 +21,10 @@ var framePool = sync.Pool{
 	},
 }
 
+// stackFrame represents a single frame in the VM's function call stack.
 type stackFrame struct {
-	creator      Evaluable
-	env          Env
+	creator      Evaluable // typically a FuncDecl or FuncLit
+	env          Env       // current environment with name->value mapping
 	operandStack []reflect.Value
 	returnValues []reflect.Value
 	deferList    []funcInvocation
@@ -135,6 +137,9 @@ func (vm *VM) pushOperand(v reflect.Value) {
 }
 
 func (vm *VM) pushNewFrame(e Evaluable) { // typically a FuncDecl or FuncLit
+	if trace {
+		fmt.Println("vm.pushNewFrame:", e)
+	}
 	frame := framePool.Get().(*stackFrame)
 	frame.creator = e
 	env := envPool.Get().(*Environment)
@@ -144,23 +149,26 @@ func (vm *VM) pushNewFrame(e Evaluable) { // typically a FuncDecl or FuncLit
 }
 
 func (vm *VM) popFrame() {
+	if trace {
+		fmt.Println("vm.popFrame")
+	}
 	frame := vm.frameStack.pop()
 
 	// return env to pool
 	env := frame.env.(*Environment)
 	env.parent = nil
+	// do not recycle environments that contain values referenced by a heap pointer
 	if !env.hasHeapPointer {
-		// do not recycle environments that contain values referenced by a heap pointer
 		clear(env.valueTable)
 		envPool.Put(env)
 	}
 
 	// reset references
-	// TODO measure the capacity of the slices
 	frame.operandStack = frame.operandStack[:0]
 	frame.returnValues = frame.returnValues[:0]
 	frame.env = nil
 	frame.creator = nil
+	frame.deferList = frame.deferList[:0]
 	framePool.Put(frame)
 }
 
