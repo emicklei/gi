@@ -13,7 +13,7 @@ import (
 
 var dir = flag.String("dir", ".", "directory to run gi on")
 var dry = flag.Bool("dry", false, "dry run - do not run")
-var badge = flag.Bool("badge", false, "generate badge for the run summary")
+var report = flag.String("report", "treerunner-report.json", "generate report for the run summary")
 
 func main() {
 	flag.Parse()
@@ -31,19 +31,19 @@ func main() {
 		return nil
 	})
 	fmt.Printf("summary: %d succeeded, %d failed\n", success, failed)
-	if *badge {
-		generateBadge(success, failed)
+	if *report != "" {
+		generateReport(success, failed)
 	}
 }
 
-func generateBadge(success, failed int) {
+func generateReport(success, failed int) {
 	data, _ := json.Marshal(map[string]any{
 		"name":    "gobyexample",
 		"success": success,
 		"failed":  failed,
 		"label":   fmt.Sprintf("%d/%d", success, success+failed),
 	})
-	os.WriteFile("treerunner-badge.json", data, 0644)
+	os.WriteFile(*report, data, 0644)
 }
 
 func safeRun(path string) (ok bool) {

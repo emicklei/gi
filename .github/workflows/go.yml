@@ -34,7 +34,10 @@ jobs:
 
       - name: Run GoByExample tests
         run: make gobyexample
-
+        
+  upload:
+    runs-on: ubuntu-latest
+    steps:
       - name: Publish GoByExample result
       - uses: shallwefootball/s3-upload-action@master
         with:
