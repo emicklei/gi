@@ -11,4 +11,7 @@ require (
 
 require github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 
-require golang.org/x/sync v0.17.0 // indirect
+require (
+	github.com/fatih/structtag v1.2.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+)

@@ -47,3 +47,5 @@
 | `select` statement | ⬜ |
 | variadic function | ⬜ |
 | recover | ⬜ |
+| struct json | ⬜ |
+| struct xml | ⬜ |

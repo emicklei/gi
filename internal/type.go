@@ -67,6 +67,17 @@ func makeStructType(ast *ast.StructType) StructType {
 	}
 }
 
+func (s StructType) tagForField(fieldName string) *ast.BasicLit {
+	for _, field := range s.Fields.List {
+		for _, name := range field.Names {
+			if name.Name == fieldName {
+				return field.Tag
+			}
+		}
+	}
+	return nil
+}
+
 func (s StructType) String() string {
 	return fmt.Sprintf("StructType(%v)", s.Fields)
 }

@@ -1,6 +1,9 @@
 package internal
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestTypeAlias(t *testing.T) {
 	testMain(t, `package main
@@ -76,6 +79,43 @@ func main() {
 	heli := airplane{capacity: 50}
 	print(heli.capacity)
 }`, "50")
+}
+
+func TestTypeMarshalJSON(t *testing.T) {
+	testMain(t, fmt.Sprintf(`package main
+
+import "encoding/json"
+
+type Airplane struct {
+	Model string %s
+	Registration string %s
+	Brand string %s
+	owner string
+}
+func main() {
+	heli := Airplane{Model:"helicopter", Registration:"PH-EMM"}
+	data, _ := json.Marshal(heli)
+	print(string(data))
+}`, "`json:\"model\"`", "`json:\"-\"`", "`json:\"brand,omitempty\"`"), `{"model":"helicopter"}`)
+}
+
+func TestTypeMarshalXML(t *testing.T) {
+	t.Skip()
+	testMain(t, fmt.Sprintf(`package main
+
+import "encoding/xml"
+
+type Airplane struct {
+	Model string %s
+	Registration string %s
+	Brand string %s
+	owner string
+}
+func main() {
+	heli := Airplane{Model:"helicopter", Registration:"PH-EMM"}
+	data, _ := xml.Marshal(heli)
+	print(string(data))
+}`, "`xml:\"model\"`", "`xml:\"-\"`", "`xml:\"brand,omitempty\"`"), `<Airplane><model>helicopter</model></Airplane>`)
 }
 
 func TestAddressOfType(t *testing.T) {

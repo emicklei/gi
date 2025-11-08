@@ -67,6 +67,7 @@ The first step is the head of the chain.
 - declTable must be declSlice; the order is important , see TestDeclarationExample
 - clear with a pointer to a var?
 - drop Instance?, use https://stackoverflow.com/questions/57567466/create-a-struct-by-reflection-in-go  this only support Exported fields. Cannot use it.
+- can each Flowable be a step instead decorated by a step?
 
 if a program imports external packages then a new `gi` is created using
 additional generated sources that will setup all exported functions,consts and vars to the environment.

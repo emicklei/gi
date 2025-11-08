@@ -1,8 +1,15 @@
 package internal
 
 import (
+	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"reflect"
+	"strconv"
+	"strings"
+	"unicode"
+
+	"github.com/fatih/structtag"
 )
 
 // first for struct
@@ -69,4 +76,58 @@ func (i Instance) LiteralCompose(composite reflect.Value, values []reflect.Value
 		}
 	}
 	return composite
+}
+
+func (i Instance) MarshalJSON() ([]byte, error) {
+	m := map[string]any{}
+	for fieldName, val := range i.fields {
+		if !val.IsValid() {
+			// TODO bug?
+			// uninitialized field, should not be in output
+			continue
+		}
+		tagName, ok := i.tagFieldName("json", fieldName, val)
+		if ok {
+			m[tagName] = val.Interface()
+		}
+	}
+	return json.Marshal(m)
+}
+
+func (i Instance) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
+	// TODO
+	return nil
+}
+
+// tagFieldName returns the name of the field as it should appear in JSON.
+func (i Instance) tagFieldName(key string, fieldName string, fieldValue reflect.Value) (string, bool) {
+	if !unicode.IsUpper(rune(fieldName[0])) {
+		// unexported field
+		return "", false
+	}
+	lit := i.Type.tagForField(fieldName)
+	if lit == nil {
+		return fieldName, true
+	}
+	unquoted, err := strconv.Unquote(lit.Value)
+	if err != nil {
+		return fieldName, false
+	}
+	tags, err := structtag.Parse(unquoted)
+	if err != nil {
+		return fieldName, false
+	}
+	jsonTag, err := tags.Get(key)
+	if err != nil {
+		return fieldName, false
+	}
+	if jsonTag.Name == "-" {
+		return "", false
+	}
+	if strings.HasSuffix(jsonTag.Name, "omitempty") {
+		if fieldValue.IsZero() {
+			return "", false
+		}
+	}
+	return jsonTag.Name, true
 }
