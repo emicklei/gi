@@ -34,3 +34,9 @@ jobs:
 
       - name: Run GoByExample tests
         run: make gobyexample
+
+      - name: Publish GoByExample result
+        uses: actions/upload-artifact@v4
+        with:
+          name: treerunner
+          path: treerunner-badge.json
