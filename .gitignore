@@ -42,3 +42,4 @@ gi-vm-panic.html
 *.prof
 .DS_Store
 *.pprof
+gobyexample
