@@ -24,7 +24,7 @@ func main() {
 	}
 
 	filepath.WalkDir(*dir, func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
+		if d.IsDir() && path != "." {
 			rr := runReport{}
 			if msg, ok := safeRun(path); ok {
 				wr.Success++
