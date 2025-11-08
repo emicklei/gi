@@ -18,41 +18,59 @@ var report = flag.String("report", "treerunner-report.json", "generate report fo
 func main() {
 	flag.Parse()
 
-	success, failed := 0, 0
+	wr := walkReport{
+		Name: "treerunner",
+		Runs: make(map[string]runReport),
+	}
 
 	filepath.WalkDir(*dir, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
-			if safeRun(path) {
-				success++
+			rr := runReport{}
+			if msg, ok := safeRun(path); ok {
+				wr.Success++
+				rr.Pass = true
 			} else {
-				failed++
+				wr.Failed++
+				rr.Pass = false
+				rr.Error = msg
 			}
+			wr.Runs[path] = rr
 		}
 		return nil
 	})
-	fmt.Printf("summary: %d succeeded, %d failed\n", success, failed)
+	fmt.Printf("summary: %d succeeded, %d failed\n", wr.Success, wr.Failed)
 	if *report != "" {
-		generateReport(success, failed)
+		generateReport(wr)
 	}
 }
 
-func generateReport(success, failed int) {
-	data, _ := json.Marshal(map[string]any{
-		"name":    "gobyexample",
-		"success": success,
-		"failed":  failed,
-		"label":   fmt.Sprintf("%d/%d", success, success+failed),
-	})
+type walkReport struct {
+	Name    string               `json:"name"`
+	Success int                  `json:"success"`
+	Failed  int                  `json:"failed"`
+	Label   string               `json:"label"`
+	Runs    map[string]runReport `json:"runs"`
+}
+
+type runReport struct {
+	Pass  bool   `json:"success"`
+	Error string `json:"error,omitempty"`
+}
+
+func generateReport(wr walkReport) {
+	wr.Label = fmt.Sprintf("%d/%d", wr.Success, wr.Success+wr.Failed)
+	data, _ := json.MarshalIndent(wr, "", "  ")
 	os.WriteFile(*report, data, 0644)
 }
 
-func safeRun(path string) (ok bool) {
+func safeRun(path string) (msg string, ok bool) {
 	fmt.Println("gi run", path)
 	if *dry {
-		return true
+		return "dry run", true
 	}
 	defer func() {
 		if r := recover(); r != nil {
+			msg = fmt.Sprintf("panic: %v", r)
 			fmt.Fprintf(os.Stderr, "[treerunner] recovered from panic: %v\n", r)
 			ok = false
 		}
