@@ -41,6 +41,7 @@ func generateBadge(success, failed int) {
 		"name":    "gobyexample",
 		"success": success,
 		"failed":  failed,
+		"label":   fmt.Sprintf("%d/%d", success, success+failed),
 	})
 	os.WriteFile("treerunner-badge.json", data, 0644)
 }
