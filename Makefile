@@ -36,4 +36,5 @@ examples: install
 gobyexample:
 	cd cmd/treerunner && go install
 	if [ ! -d "gobyexample" ]; then git clone https://github.com/mmcgrana/gobyexample; fi	
-	cd gobyexample/examples && time treerunner -badge .
+	mkdir -p gobyexample/examples/output
+	cd gobyexample/examples && time treerunner -report output/treerunner-report.json .
