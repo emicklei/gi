@@ -31,3 +31,6 @@ jobs:
       
       - name: Run examples
         run: make examples
+
+      - name: Run GoByExample tests
+        run: make gobyexample

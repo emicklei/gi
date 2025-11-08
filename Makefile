@@ -31,3 +31,7 @@ examples: install
 	cd examples/nestedloop && gi run .
 	cd examples/subpkg && GI_TRACE=1 gi run .
 	
+gobyexample:
+	cd cmd/treerunner && go install
+	git clone https://github.com/mmcgrana/gobyexample
+	cd gobyexample/examples && treerunner -dry .

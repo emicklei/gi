@@ -80,6 +80,7 @@ type VM struct {
 }
 
 func newVM(env Env) *VM {
+	patchReflectRegistries()
 	vm := &VM{
 		output:     new(bytes.Buffer),
 		frameStack: make(stack[*stackFrame], 0, 16),
@@ -88,6 +89,16 @@ func newVM(env Env) *VM {
 	frame.env = env
 	vm.frameStack.push(frame)
 	return vm
+}
+
+var patchOnce sync.Once
+
+func patchReflectRegistries() {
+	patchOnce.Do(func() {
+		stdfuncs["os"]["Exit"] = reflect.ValueOf(func(code int) {
+			fmt.Fprintf(os.Stderr, "[gi] os.Exit called with code %d\n", code)
+		})
+	})
 }
 
 // localEnv returns the current environment from the top stack frame.
