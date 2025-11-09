@@ -28,6 +28,9 @@ func (p StandardPackage) Select(name string) reflect.Value {
 		if ok {
 			return t
 		}
+		if trace {
+			fmt.Println("TRACE: StandardPackage.Select not found", p.PkgPath, name)
+		}
 		return reflect.Value{}
 	}
 	return v
