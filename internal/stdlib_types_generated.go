@@ -7,13 +7,17 @@ import (
 	i2 "archive/zip"
 	i3 "bufio"
 	i4 "bytes"
+	i5 "compress/bzip2"
 	i6 "compress/flate"
 	i7 "compress/gzip"
 	i8 "compress/lzw"
 	i9 "compress/zlib"
 	i11 "container/list"
 	i12 "container/ring"
+	i14 "crypto"
+	i15 "crypto/aes"
 	i16 "crypto/cipher"
+	i17 "crypto/des"
 	i18 "crypto/dsa"
 	i19 "crypto/ecdsa"
 	i20 "crypto/ed25519"
@@ -24,11 +28,13 @@ import (
 	i32 "crypto/x509"
 	i33 "database/sql"
 	i34 "database/sql/driver"
+	i35 "encoding/ascii85"
 	i36 "encoding/asn1"
 	i37 "encoding/base32"
 	i38 "encoding/base64"
 	i40 "encoding/csv"
 	i41 "encoding/gob"
+	i42 "encoding/hex"
 	i43 "encoding/json"
 	i44 "encoding/pem"
 	i45 "encoding/xml"
@@ -38,6 +44,7 @@ import (
 	i56 "html/template"
 	i57 "image"
 	i58 "image/color"
+	i60 "image/draw"
 	i61 "image/gif"
 	i62 "image/jpeg"
 	i63 "image/png"
@@ -87,505 +94,612 @@ var stdtypes = map[string]map[string]reflect.Value{}
 
 func init() {
 	stdtypes["archive/tar"] = map[string]reflect.Value{
-		"Header": reflect.ValueOf(i1.Header{}),
-		"Reader": reflect.ValueOf(i1.Reader{}),
-		"Writer": reflect.ValueOf(i1.Writer{}),
+		"Format": makeReflect[i1.Format](),
+		"Header": makeReflect[i1.Header](),
+		"Reader": makeReflect[i1.Reader](),
+		"Writer": makeReflect[i1.Writer](),
 	}
 	stdtypes["archive/zip"] = map[string]reflect.Value{
-		"File": reflect.ValueOf(i2.File{}),
-		"FileHeader": reflect.ValueOf(i2.FileHeader{}),
-		"ReadCloser": reflect.ValueOf(i2.ReadCloser{}),
-		"Reader": reflect.ValueOf(i2.Reader{}),
-		"Writer": reflect.ValueOf(i2.Writer{}),
+		"File": makeReflect[i2.File](),
+		"FileHeader": makeReflect[i2.FileHeader](),
+		"ReadCloser": makeReflect[i2.ReadCloser](),
+		"Reader": makeReflect[i2.Reader](),
+		"Writer": makeReflect[i2.Writer](),
 	}
 	stdtypes["bufio"] = map[string]reflect.Value{
-		"ReadWriter": reflect.ValueOf(i3.ReadWriter{}),
-		"Reader": reflect.ValueOf(i3.Reader{}),
-		"Scanner": reflect.ValueOf(i3.Scanner{}),
-		"Writer": reflect.ValueOf(i3.Writer{}),
+		"ReadWriter": makeReflect[i3.ReadWriter](),
+		"Reader": makeReflect[i3.Reader](),
+		"Scanner": makeReflect[i3.Scanner](),
+		"Writer": makeReflect[i3.Writer](),
 	}
 	stdtypes["bytes"] = map[string]reflect.Value{
-		"Buffer": reflect.ValueOf(i4.Buffer{}),
-		"Reader": reflect.ValueOf(i4.Reader{}),
+		"Buffer": makeReflect[i4.Buffer](),
+		"Reader": makeReflect[i4.Reader](),
+	}
+	stdtypes["compress/bzip2"] = map[string]reflect.Value{
+		"StructuralError": makeReflect[i5.StructuralError](),
 	}
 	stdtypes["compress/flate"] = map[string]reflect.Value{
-		"ReadError": reflect.ValueOf(i6.ReadError{}),
-		"WriteError": reflect.ValueOf(i6.WriteError{}),
-		"Writer": reflect.ValueOf(i6.Writer{}),
+		"CorruptInputError": makeReflect[i6.CorruptInputError](),
+		"InternalError": makeReflect[i6.InternalError](),
+		"ReadError": makeReflect[i6.ReadError](),
+		"WriteError": makeReflect[i6.WriteError](),
+		"Writer": makeReflect[i6.Writer](),
 	}
 	stdtypes["compress/gzip"] = map[string]reflect.Value{
-		"Header": reflect.ValueOf(i7.Header{}),
-		"Reader": reflect.ValueOf(i7.Reader{}),
-		"Writer": reflect.ValueOf(i7.Writer{}),
+		"Header": makeReflect[i7.Header](),
+		"Reader": makeReflect[i7.Reader](),
+		"Writer": makeReflect[i7.Writer](),
 	}
 	stdtypes["compress/lzw"] = map[string]reflect.Value{
-		"Reader": reflect.ValueOf(i8.Reader{}),
-		"Writer": reflect.ValueOf(i8.Writer{}),
+		"Order": makeReflect[i8.Order](),
+		"Reader": makeReflect[i8.Reader](),
+		"Writer": makeReflect[i8.Writer](),
 	}
 	stdtypes["compress/zlib"] = map[string]reflect.Value{
-		"Writer": reflect.ValueOf(i9.Writer{}),
+		"Writer": makeReflect[i9.Writer](),
 	}
 	stdtypes["container/list"] = map[string]reflect.Value{
-		"Element": reflect.ValueOf(i11.Element{}),
-		"List": reflect.ValueOf(i11.List{}),
+		"Element": makeReflect[i11.Element](),
+		"List": makeReflect[i11.List](),
 	}
 	stdtypes["container/ring"] = map[string]reflect.Value{
-		"Ring": reflect.ValueOf(i12.Ring{}),
+		"Ring": makeReflect[i12.Ring](),
+	}
+	stdtypes["crypto"] = map[string]reflect.Value{
+		"DecrypterOpts": makeReflect[i14.DecrypterOpts](),
+		"Hash": makeReflect[i14.Hash](),
+		"PrivateKey": makeReflect[i14.PrivateKey](),
+		"PublicKey": makeReflect[i14.PublicKey](),
+	}
+	stdtypes["crypto/aes"] = map[string]reflect.Value{
+		"KeySizeError": makeReflect[i15.KeySizeError](),
 	}
 	stdtypes["crypto/cipher"] = map[string]reflect.Value{
-		"StreamReader": reflect.ValueOf(i16.StreamReader{}),
-		"StreamWriter": reflect.ValueOf(i16.StreamWriter{}),
+		"StreamReader": makeReflect[i16.StreamReader](),
+		"StreamWriter": makeReflect[i16.StreamWriter](),
+	}
+	stdtypes["crypto/des"] = map[string]reflect.Value{
+		"KeySizeError": makeReflect[i17.KeySizeError](),
 	}
 	stdtypes["crypto/dsa"] = map[string]reflect.Value{
-		"Parameters": reflect.ValueOf(i18.Parameters{}),
-		"PrivateKey": reflect.ValueOf(i18.PrivateKey{}),
-		"PublicKey": reflect.ValueOf(i18.PublicKey{}),
+		"ParameterSizes": makeReflect[i18.ParameterSizes](),
+		"Parameters": makeReflect[i18.Parameters](),
+		"PrivateKey": makeReflect[i18.PrivateKey](),
+		"PublicKey": makeReflect[i18.PublicKey](),
 	}
 	stdtypes["crypto/ecdsa"] = map[string]reflect.Value{
-		"PrivateKey": reflect.ValueOf(i19.PrivateKey{}),
-		"PublicKey": reflect.ValueOf(i19.PublicKey{}),
+		"PrivateKey": makeReflect[i19.PrivateKey](),
+		"PublicKey": makeReflect[i19.PublicKey](),
 	}
 	stdtypes["crypto/ed25519"] = map[string]reflect.Value{
-		"Options": reflect.ValueOf(i20.Options{}),
+		"Options": makeReflect[i20.Options](),
 	}
 	stdtypes["crypto/elliptic"] = map[string]reflect.Value{
-		"CurveParams": reflect.ValueOf(i21.CurveParams{}),
+		"CurveParams": makeReflect[i21.CurveParams](),
 	}
 	stdtypes["crypto/rc4"] = map[string]reflect.Value{
-		"Cipher": reflect.ValueOf(i25.Cipher{}),
+		"Cipher": makeReflect[i25.Cipher](),
+		"KeySizeError": makeReflect[i25.KeySizeError](),
 	}
 	stdtypes["crypto/rsa"] = map[string]reflect.Value{
-		"CRTValue": reflect.ValueOf(i26.CRTValue{}),
-		"OAEPOptions": reflect.ValueOf(i26.OAEPOptions{}),
-		"PKCS1v15DecryptOptions": reflect.ValueOf(i26.PKCS1v15DecryptOptions{}),
-		"PSSOptions": reflect.ValueOf(i26.PSSOptions{}),
-		"PrecomputedValues": reflect.ValueOf(i26.PrecomputedValues{}),
-		"PrivateKey": reflect.ValueOf(i26.PrivateKey{}),
-		"PublicKey": reflect.ValueOf(i26.PublicKey{}),
+		"CRTValue": makeReflect[i26.CRTValue](),
+		"OAEPOptions": makeReflect[i26.OAEPOptions](),
+		"PKCS1v15DecryptOptions": makeReflect[i26.PKCS1v15DecryptOptions](),
+		"PSSOptions": makeReflect[i26.PSSOptions](),
+		"PrecomputedValues": makeReflect[i26.PrecomputedValues](),
+		"PrivateKey": makeReflect[i26.PrivateKey](),
+		"PublicKey": makeReflect[i26.PublicKey](),
 	}
 	stdtypes["crypto/tls"] = map[string]reflect.Value{
-		"Certificate": reflect.ValueOf(i31.Certificate{}),
-		"CertificateRequestInfo": reflect.ValueOf(i31.CertificateRequestInfo{}),
-		"CertificateVerificationError": reflect.ValueOf(i31.CertificateVerificationError{}),
-		"CipherSuite": reflect.ValueOf(i31.CipherSuite{}),
-		"ClientHelloInfo": reflect.ValueOf(i31.ClientHelloInfo{}),
-		"ClientSessionState": reflect.ValueOf(i31.ClientSessionState{}),
-		"Config": reflect.ValueOf(i31.Config{}),
-		"Conn": reflect.ValueOf(i31.Conn{}),
-		"ConnectionState": reflect.ValueOf(i31.ConnectionState{}),
-		"Dialer": reflect.ValueOf(i31.Dialer{}),
-		"ECHRejectionError": reflect.ValueOf(i31.ECHRejectionError{}),
-		"EncryptedClientHelloKey": reflect.ValueOf(i31.EncryptedClientHelloKey{}),
-		"QUICConfig": reflect.ValueOf(i31.QUICConfig{}),
-		"QUICConn": reflect.ValueOf(i31.QUICConn{}),
-		"QUICEvent": reflect.ValueOf(i31.QUICEvent{}),
-		"QUICSessionTicketOptions": reflect.ValueOf(i31.QUICSessionTicketOptions{}),
-		"RecordHeaderError": reflect.ValueOf(i31.RecordHeaderError{}),
-		"SessionState": reflect.ValueOf(i31.SessionState{}),
+		"AlertError": makeReflect[i31.AlertError](),
+		"Certificate": makeReflect[i31.Certificate](),
+		"CertificateRequestInfo": makeReflect[i31.CertificateRequestInfo](),
+		"CertificateVerificationError": makeReflect[i31.CertificateVerificationError](),
+		"CipherSuite": makeReflect[i31.CipherSuite](),
+		"ClientAuthType": makeReflect[i31.ClientAuthType](),
+		"ClientHelloInfo": makeReflect[i31.ClientHelloInfo](),
+		"ClientSessionState": makeReflect[i31.ClientSessionState](),
+		"Config": makeReflect[i31.Config](),
+		"Conn": makeReflect[i31.Conn](),
+		"ConnectionState": makeReflect[i31.ConnectionState](),
+		"CurveID": makeReflect[i31.CurveID](),
+		"Dialer": makeReflect[i31.Dialer](),
+		"ECHRejectionError": makeReflect[i31.ECHRejectionError](),
+		"EncryptedClientHelloKey": makeReflect[i31.EncryptedClientHelloKey](),
+		"QUICConfig": makeReflect[i31.QUICConfig](),
+		"QUICConn": makeReflect[i31.QUICConn](),
+		"QUICEncryptionLevel": makeReflect[i31.QUICEncryptionLevel](),
+		"QUICEvent": makeReflect[i31.QUICEvent](),
+		"QUICEventKind": makeReflect[i31.QUICEventKind](),
+		"QUICSessionTicketOptions": makeReflect[i31.QUICSessionTicketOptions](),
+		"RecordHeaderError": makeReflect[i31.RecordHeaderError](),
+		"RenegotiationSupport": makeReflect[i31.RenegotiationSupport](),
+		"SessionState": makeReflect[i31.SessionState](),
+		"SignatureScheme": makeReflect[i31.SignatureScheme](),
 	}
 	stdtypes["crypto/x509"] = map[string]reflect.Value{
-		"CertPool": reflect.ValueOf(i32.CertPool{}),
-		"Certificate": reflect.ValueOf(i32.Certificate{}),
-		"CertificateInvalidError": reflect.ValueOf(i32.CertificateInvalidError{}),
-		"CertificateRequest": reflect.ValueOf(i32.CertificateRequest{}),
-		"ConstraintViolationError": reflect.ValueOf(i32.ConstraintViolationError{}),
-		"HostnameError": reflect.ValueOf(i32.HostnameError{}),
-		"OID": reflect.ValueOf(i32.OID{}),
-		"PolicyMapping": reflect.ValueOf(i32.PolicyMapping{}),
-		"RevocationList": reflect.ValueOf(i32.RevocationList{}),
-		"RevocationListEntry": reflect.ValueOf(i32.RevocationListEntry{}),
-		"SystemRootsError": reflect.ValueOf(i32.SystemRootsError{}),
-		"UnhandledCriticalExtension": reflect.ValueOf(i32.UnhandledCriticalExtension{}),
-		"UnknownAuthorityError": reflect.ValueOf(i32.UnknownAuthorityError{}),
-		"VerifyOptions": reflect.ValueOf(i32.VerifyOptions{}),
+		"CertPool": makeReflect[i32.CertPool](),
+		"Certificate": makeReflect[i32.Certificate](),
+		"CertificateInvalidError": makeReflect[i32.CertificateInvalidError](),
+		"CertificateRequest": makeReflect[i32.CertificateRequest](),
+		"ConstraintViolationError": makeReflect[i32.ConstraintViolationError](),
+		"ExtKeyUsage": makeReflect[i32.ExtKeyUsage](),
+		"HostnameError": makeReflect[i32.HostnameError](),
+		"InsecureAlgorithmError": makeReflect[i32.InsecureAlgorithmError](),
+		"InvalidReason": makeReflect[i32.InvalidReason](),
+		"KeyUsage": makeReflect[i32.KeyUsage](),
+		"OID": makeReflect[i32.OID](),
+		"PEMCipher": makeReflect[i32.PEMCipher](),
+		"PolicyMapping": makeReflect[i32.PolicyMapping](),
+		"PublicKeyAlgorithm": makeReflect[i32.PublicKeyAlgorithm](),
+		"RevocationList": makeReflect[i32.RevocationList](),
+		"RevocationListEntry": makeReflect[i32.RevocationListEntry](),
+		"SignatureAlgorithm": makeReflect[i32.SignatureAlgorithm](),
+		"SystemRootsError": makeReflect[i32.SystemRootsError](),
+		"UnhandledCriticalExtension": makeReflect[i32.UnhandledCriticalExtension](),
+		"UnknownAuthorityError": makeReflect[i32.UnknownAuthorityError](),
+		"VerifyOptions": makeReflect[i32.VerifyOptions](),
 	}
 	stdtypes["database/sql"] = map[string]reflect.Value{
-		"ColumnType": reflect.ValueOf(i33.ColumnType{}),
-		"Conn": reflect.ValueOf(i33.Conn{}),
-		"DB": reflect.ValueOf(i33.DB{}),
-		"DBStats": reflect.ValueOf(i33.DBStats{}),
-		"NamedArg": reflect.ValueOf(i33.NamedArg{}),
-		"NullBool": reflect.ValueOf(i33.NullBool{}),
-		"NullByte": reflect.ValueOf(i33.NullByte{}),
-		"NullFloat64": reflect.ValueOf(i33.NullFloat64{}),
-		"NullInt16": reflect.ValueOf(i33.NullInt16{}),
-		"NullInt32": reflect.ValueOf(i33.NullInt32{}),
-		"NullInt64": reflect.ValueOf(i33.NullInt64{}),
-		"NullString": reflect.ValueOf(i33.NullString{}),
-		"NullTime": reflect.ValueOf(i33.NullTime{}),
-		"Out": reflect.ValueOf(i33.Out{}),
-		"Row": reflect.ValueOf(i33.Row{}),
-		"Rows": reflect.ValueOf(i33.Rows{}),
-		"Stmt": reflect.ValueOf(i33.Stmt{}),
-		"Tx": reflect.ValueOf(i33.Tx{}),
-		"TxOptions": reflect.ValueOf(i33.TxOptions{}),
+		"ColumnType": makeReflect[i33.ColumnType](),
+		"Conn": makeReflect[i33.Conn](),
+		"DB": makeReflect[i33.DB](),
+		"DBStats": makeReflect[i33.DBStats](),
+		"IsolationLevel": makeReflect[i33.IsolationLevel](),
+		"NamedArg": makeReflect[i33.NamedArg](),
+		"NullBool": makeReflect[i33.NullBool](),
+		"NullByte": makeReflect[i33.NullByte](),
+		"NullFloat64": makeReflect[i33.NullFloat64](),
+		"NullInt16": makeReflect[i33.NullInt16](),
+		"NullInt32": makeReflect[i33.NullInt32](),
+		"NullInt64": makeReflect[i33.NullInt64](),
+		"NullString": makeReflect[i33.NullString](),
+		"NullTime": makeReflect[i33.NullTime](),
+		"Out": makeReflect[i33.Out](),
+		"Row": makeReflect[i33.Row](),
+		"Rows": makeReflect[i33.Rows](),
+		"Stmt": makeReflect[i33.Stmt](),
+		"Tx": makeReflect[i33.Tx](),
+		"TxOptions": makeReflect[i33.TxOptions](),
 	}
 	stdtypes["database/sql/driver"] = map[string]reflect.Value{
-		"NamedValue": reflect.ValueOf(i34.NamedValue{}),
-		"NotNull": reflect.ValueOf(i34.NotNull{}),
-		"Null": reflect.ValueOf(i34.Null{}),
-		"TxOptions": reflect.ValueOf(i34.TxOptions{}),
+		"IsolationLevel": makeReflect[i34.IsolationLevel](),
+		"NamedValue": makeReflect[i34.NamedValue](),
+		"NotNull": makeReflect[i34.NotNull](),
+		"Null": makeReflect[i34.Null](),
+		"RowsAffected": makeReflect[i34.RowsAffected](),
+		"TxOptions": makeReflect[i34.TxOptions](),
+		"Value": makeReflect[i34.Value](),
+	}
+	stdtypes["encoding/ascii85"] = map[string]reflect.Value{
+		"CorruptInputError": makeReflect[i35.CorruptInputError](),
 	}
 	stdtypes["encoding/asn1"] = map[string]reflect.Value{
-		"BitString": reflect.ValueOf(i36.BitString{}),
-		"RawValue": reflect.ValueOf(i36.RawValue{}),
-		"StructuralError": reflect.ValueOf(i36.StructuralError{}),
-		"SyntaxError": reflect.ValueOf(i36.SyntaxError{}),
+		"BitString": makeReflect[i36.BitString](),
+		"Enumerated": makeReflect[i36.Enumerated](),
+		"Flag": makeReflect[i36.Flag](),
+		"RawValue": makeReflect[i36.RawValue](),
+		"StructuralError": makeReflect[i36.StructuralError](),
+		"SyntaxError": makeReflect[i36.SyntaxError](),
 	}
 	stdtypes["encoding/base32"] = map[string]reflect.Value{
-		"Encoding": reflect.ValueOf(i37.Encoding{}),
+		"CorruptInputError": makeReflect[i37.CorruptInputError](),
+		"Encoding": makeReflect[i37.Encoding](),
 	}
 	stdtypes["encoding/base64"] = map[string]reflect.Value{
-		"Encoding": reflect.ValueOf(i38.Encoding{}),
+		"CorruptInputError": makeReflect[i38.CorruptInputError](),
+		"Encoding": makeReflect[i38.Encoding](),
 	}
 	stdtypes["encoding/csv"] = map[string]reflect.Value{
-		"ParseError": reflect.ValueOf(i40.ParseError{}),
-		"Reader": reflect.ValueOf(i40.Reader{}),
-		"Writer": reflect.ValueOf(i40.Writer{}),
+		"ParseError": makeReflect[i40.ParseError](),
+		"Reader": makeReflect[i40.Reader](),
+		"Writer": makeReflect[i40.Writer](),
 	}
 	stdtypes["encoding/gob"] = map[string]reflect.Value{
-		"CommonType": reflect.ValueOf(i41.CommonType{}),
-		"Decoder": reflect.ValueOf(i41.Decoder{}),
-		"Encoder": reflect.ValueOf(i41.Encoder{}),
+		"CommonType": makeReflect[i41.CommonType](),
+		"Decoder": makeReflect[i41.Decoder](),
+		"Encoder": makeReflect[i41.Encoder](),
+	}
+	stdtypes["encoding/hex"] = map[string]reflect.Value{
+		"InvalidByteError": makeReflect[i42.InvalidByteError](),
 	}
 	stdtypes["encoding/json"] = map[string]reflect.Value{
-		"Decoder": reflect.ValueOf(i43.Decoder{}),
-		"Encoder": reflect.ValueOf(i43.Encoder{}),
-		"InvalidUTF8Error": reflect.ValueOf(i43.InvalidUTF8Error{}),
-		"InvalidUnmarshalError": reflect.ValueOf(i43.InvalidUnmarshalError{}),
-		"MarshalerError": reflect.ValueOf(i43.MarshalerError{}),
-		"SyntaxError": reflect.ValueOf(i43.SyntaxError{}),
-		"UnmarshalFieldError": reflect.ValueOf(i43.UnmarshalFieldError{}),
-		"UnmarshalTypeError": reflect.ValueOf(i43.UnmarshalTypeError{}),
-		"UnsupportedTypeError": reflect.ValueOf(i43.UnsupportedTypeError{}),
-		"UnsupportedValueError": reflect.ValueOf(i43.UnsupportedValueError{}),
+		"Decoder": makeReflect[i43.Decoder](),
+		"Delim": makeReflect[i43.Delim](),
+		"Encoder": makeReflect[i43.Encoder](),
+		"InvalidUTF8Error": makeReflect[i43.InvalidUTF8Error](),
+		"InvalidUnmarshalError": makeReflect[i43.InvalidUnmarshalError](),
+		"MarshalerError": makeReflect[i43.MarshalerError](),
+		"Number": makeReflect[i43.Number](),
+		"SyntaxError": makeReflect[i43.SyntaxError](),
+		"Token": makeReflect[i43.Token](),
+		"UnmarshalFieldError": makeReflect[i43.UnmarshalFieldError](),
+		"UnmarshalTypeError": makeReflect[i43.UnmarshalTypeError](),
+		"UnsupportedTypeError": makeReflect[i43.UnsupportedTypeError](),
+		"UnsupportedValueError": makeReflect[i43.UnsupportedValueError](),
 	}
 	stdtypes["encoding/pem"] = map[string]reflect.Value{
-		"Block": reflect.ValueOf(i44.Block{}),
+		"Block": makeReflect[i44.Block](),
 	}
 	stdtypes["encoding/xml"] = map[string]reflect.Value{
-		"Attr": reflect.ValueOf(i45.Attr{}),
-		"Decoder": reflect.ValueOf(i45.Decoder{}),
-		"Encoder": reflect.ValueOf(i45.Encoder{}),
-		"EndElement": reflect.ValueOf(i45.EndElement{}),
-		"Name": reflect.ValueOf(i45.Name{}),
-		"ProcInst": reflect.ValueOf(i45.ProcInst{}),
-		"StartElement": reflect.ValueOf(i45.StartElement{}),
-		"SyntaxError": reflect.ValueOf(i45.SyntaxError{}),
-		"TagPathError": reflect.ValueOf(i45.TagPathError{}),
-		"UnsupportedTypeError": reflect.ValueOf(i45.UnsupportedTypeError{}),
+		"Attr": makeReflect[i45.Attr](),
+		"Decoder": makeReflect[i45.Decoder](),
+		"Encoder": makeReflect[i45.Encoder](),
+		"EndElement": makeReflect[i45.EndElement](),
+		"Name": makeReflect[i45.Name](),
+		"ProcInst": makeReflect[i45.ProcInst](),
+		"StartElement": makeReflect[i45.StartElement](),
+		"SyntaxError": makeReflect[i45.SyntaxError](),
+		"TagPathError": makeReflect[i45.TagPathError](),
+		"Token": makeReflect[i45.Token](),
+		"UnmarshalError": makeReflect[i45.UnmarshalError](),
+		"UnsupportedTypeError": makeReflect[i45.UnsupportedTypeError](),
 	}
 	stdtypes["expvar"] = map[string]reflect.Value{
-		"Float": reflect.ValueOf(i47.Float{}),
-		"Int": reflect.ValueOf(i47.Int{}),
-		"KeyValue": reflect.ValueOf(i47.KeyValue{}),
-		"Map": reflect.ValueOf(i47.Map{}),
-		"String": reflect.ValueOf(i47.String{}),
+		"Float": makeReflect[i47.Float](),
+		"Int": makeReflect[i47.Int](),
+		"KeyValue": makeReflect[i47.KeyValue](),
+		"Map": makeReflect[i47.Map](),
+		"String": makeReflect[i47.String](),
 	}
 	stdtypes["flag"] = map[string]reflect.Value{
-		"Flag": reflect.ValueOf(i48.Flag{}),
-		"FlagSet": reflect.ValueOf(i48.FlagSet{}),
+		"ErrorHandling": makeReflect[i48.ErrorHandling](),
+		"Flag": makeReflect[i48.Flag](),
+		"FlagSet": makeReflect[i48.FlagSet](),
 	}
 	stdtypes["hash/maphash"] = map[string]reflect.Value{
-		"Hash": reflect.ValueOf(i54.Hash{}),
-		"Seed": reflect.ValueOf(i54.Seed{}),
+		"Hash": makeReflect[i54.Hash](),
+		"Seed": makeReflect[i54.Seed](),
 	}
 	stdtypes["html/template"] = map[string]reflect.Value{
-		"Error": reflect.ValueOf(i56.Error{}),
-		"Template": reflect.ValueOf(i56.Template{}),
+		"CSS": makeReflect[i56.CSS](),
+		"Error": makeReflect[i56.Error](),
+		"ErrorCode": makeReflect[i56.ErrorCode](),
+		"HTML": makeReflect[i56.HTML](),
+		"HTMLAttr": makeReflect[i56.HTMLAttr](),
+		"JS": makeReflect[i56.JS](),
+		"JSStr": makeReflect[i56.JSStr](),
+		"Srcset": makeReflect[i56.Srcset](),
+		"Template": makeReflect[i56.Template](),
+		"URL": makeReflect[i56.URL](),
 	}
 	stdtypes["image"] = map[string]reflect.Value{
-		"Alpha": reflect.ValueOf(i57.Alpha{}),
-		"Alpha16": reflect.ValueOf(i57.Alpha16{}),
-		"CMYK": reflect.ValueOf(i57.CMYK{}),
-		"Config": reflect.ValueOf(i57.Config{}),
-		"Gray": reflect.ValueOf(i57.Gray{}),
-		"Gray16": reflect.ValueOf(i57.Gray16{}),
-		"NRGBA": reflect.ValueOf(i57.NRGBA{}),
-		"NRGBA64": reflect.ValueOf(i57.NRGBA64{}),
-		"NYCbCrA": reflect.ValueOf(i57.NYCbCrA{}),
-		"Paletted": reflect.ValueOf(i57.Paletted{}),
-		"Point": reflect.ValueOf(i57.Point{}),
-		"RGBA": reflect.ValueOf(i57.RGBA{}),
-		"RGBA64": reflect.ValueOf(i57.RGBA64{}),
-		"Rectangle": reflect.ValueOf(i57.Rectangle{}),
-		"Uniform": reflect.ValueOf(i57.Uniform{}),
-		"YCbCr": reflect.ValueOf(i57.YCbCr{}),
+		"Alpha": makeReflect[i57.Alpha](),
+		"Alpha16": makeReflect[i57.Alpha16](),
+		"CMYK": makeReflect[i57.CMYK](),
+		"Config": makeReflect[i57.Config](),
+		"Gray": makeReflect[i57.Gray](),
+		"Gray16": makeReflect[i57.Gray16](),
+		"NRGBA": makeReflect[i57.NRGBA](),
+		"NRGBA64": makeReflect[i57.NRGBA64](),
+		"NYCbCrA": makeReflect[i57.NYCbCrA](),
+		"Paletted": makeReflect[i57.Paletted](),
+		"Point": makeReflect[i57.Point](),
+		"RGBA": makeReflect[i57.RGBA](),
+		"RGBA64": makeReflect[i57.RGBA64](),
+		"Rectangle": makeReflect[i57.Rectangle](),
+		"Uniform": makeReflect[i57.Uniform](),
+		"YCbCr": makeReflect[i57.YCbCr](),
+		"YCbCrSubsampleRatio": makeReflect[i57.YCbCrSubsampleRatio](),
 	}
 	stdtypes["image/color"] = map[string]reflect.Value{
-		"Alpha": reflect.ValueOf(i58.Alpha{}),
-		"Alpha16": reflect.ValueOf(i58.Alpha16{}),
-		"CMYK": reflect.ValueOf(i58.CMYK{}),
-		"Gray": reflect.ValueOf(i58.Gray{}),
-		"Gray16": reflect.ValueOf(i58.Gray16{}),
-		"NRGBA": reflect.ValueOf(i58.NRGBA{}),
-		"NRGBA64": reflect.ValueOf(i58.NRGBA64{}),
-		"NYCbCrA": reflect.ValueOf(i58.NYCbCrA{}),
-		"RGBA": reflect.ValueOf(i58.RGBA{}),
-		"RGBA64": reflect.ValueOf(i58.RGBA64{}),
-		"YCbCr": reflect.ValueOf(i58.YCbCr{}),
+		"Alpha": makeReflect[i58.Alpha](),
+		"Alpha16": makeReflect[i58.Alpha16](),
+		"CMYK": makeReflect[i58.CMYK](),
+		"Gray": makeReflect[i58.Gray](),
+		"Gray16": makeReflect[i58.Gray16](),
+		"NRGBA": makeReflect[i58.NRGBA](),
+		"NRGBA64": makeReflect[i58.NRGBA64](),
+		"NYCbCrA": makeReflect[i58.NYCbCrA](),
+		"RGBA": makeReflect[i58.RGBA](),
+		"RGBA64": makeReflect[i58.RGBA64](),
+		"YCbCr": makeReflect[i58.YCbCr](),
+	}
+	stdtypes["image/draw"] = map[string]reflect.Value{
+		"Op": makeReflect[i60.Op](),
 	}
 	stdtypes["image/gif"] = map[string]reflect.Value{
-		"GIF": reflect.ValueOf(i61.GIF{}),
-		"Options": reflect.ValueOf(i61.Options{}),
+		"GIF": makeReflect[i61.GIF](),
+		"Options": makeReflect[i61.Options](),
 	}
 	stdtypes["image/jpeg"] = map[string]reflect.Value{
-		"Options": reflect.ValueOf(i62.Options{}),
+		"FormatError": makeReflect[i62.FormatError](),
+		"Options": makeReflect[i62.Options](),
+		"UnsupportedError": makeReflect[i62.UnsupportedError](),
 	}
 	stdtypes["image/png"] = map[string]reflect.Value{
-		"Encoder": reflect.ValueOf(i63.Encoder{}),
+		"CompressionLevel": makeReflect[i63.CompressionLevel](),
+		"Encoder": makeReflect[i63.Encoder](),
+		"EncoderBuffer": makeReflect[i63.EncoderBuffer](),
+		"FormatError": makeReflect[i63.FormatError](),
+		"UnsupportedError": makeReflect[i63.UnsupportedError](),
 	}
 	stdtypes["index/suffixarray"] = map[string]reflect.Value{
-		"Index": reflect.ValueOf(i64.Index{}),
+		"Index": makeReflect[i64.Index](),
 	}
 	stdtypes["io"] = map[string]reflect.Value{
-		"LimitedReader": reflect.ValueOf(i65.LimitedReader{}),
-		"OffsetWriter": reflect.ValueOf(i65.OffsetWriter{}),
-		"PipeReader": reflect.ValueOf(i65.PipeReader{}),
-		"PipeWriter": reflect.ValueOf(i65.PipeWriter{}),
-		"SectionReader": reflect.ValueOf(i65.SectionReader{}),
+		"LimitedReader": makeReflect[i65.LimitedReader](),
+		"OffsetWriter": makeReflect[i65.OffsetWriter](),
+		"PipeReader": makeReflect[i65.PipeReader](),
+		"PipeWriter": makeReflect[i65.PipeWriter](),
+		"SectionReader": makeReflect[i65.SectionReader](),
 	}
 	stdtypes["io/fs"] = map[string]reflect.Value{
-		"PathError": reflect.ValueOf(i66.PathError{}),
+		"FileMode": makeReflect[i66.FileMode](),
+		"PathError": makeReflect[i66.PathError](),
 	}
 	stdtypes["log"] = map[string]reflect.Value{
-		"Logger": reflect.ValueOf(i68.Logger{}),
+		"Logger": makeReflect[i68.Logger](),
 	}
 	stdtypes["log/slog"] = map[string]reflect.Value{
-		"Attr": reflect.ValueOf(i69.Attr{}),
-		"HandlerOptions": reflect.ValueOf(i69.HandlerOptions{}),
-		"JSONHandler": reflect.ValueOf(i69.JSONHandler{}),
-		"LevelVar": reflect.ValueOf(i69.LevelVar{}),
-		"Logger": reflect.ValueOf(i69.Logger{}),
-		"Record": reflect.ValueOf(i69.Record{}),
-		"Source": reflect.ValueOf(i69.Source{}),
-		"TextHandler": reflect.ValueOf(i69.TextHandler{}),
-		"Value": reflect.ValueOf(i69.Value{}),
+		"Attr": makeReflect[i69.Attr](),
+		"HandlerOptions": makeReflect[i69.HandlerOptions](),
+		"JSONHandler": makeReflect[i69.JSONHandler](),
+		"Kind": makeReflect[i69.Kind](),
+		"Level": makeReflect[i69.Level](),
+		"LevelVar": makeReflect[i69.LevelVar](),
+		"Logger": makeReflect[i69.Logger](),
+		"Record": makeReflect[i69.Record](),
+		"Source": makeReflect[i69.Source](),
+		"TextHandler": makeReflect[i69.TextHandler](),
+		"Value": makeReflect[i69.Value](),
 	}
 	stdtypes["log/syslog"] = map[string]reflect.Value{
-		"Writer": reflect.ValueOf(i70.Writer{}),
+		"Priority": makeReflect[i70.Priority](),
+		"Writer": makeReflect[i70.Writer](),
 	}
 	stdtypes["math/big"] = map[string]reflect.Value{
-		"ErrNaN": reflect.ValueOf(i72.ErrNaN{}),
-		"Float": reflect.ValueOf(i72.Float{}),
-		"Int": reflect.ValueOf(i72.Int{}),
-		"Rat": reflect.ValueOf(i72.Rat{}),
+		"Accuracy": makeReflect[i72.Accuracy](),
+		"ErrNaN": makeReflect[i72.ErrNaN](),
+		"Float": makeReflect[i72.Float](),
+		"Int": makeReflect[i72.Int](),
+		"Rat": makeReflect[i72.Rat](),
+		"RoundingMode": makeReflect[i72.RoundingMode](),
+		"Word": makeReflect[i72.Word](),
 	}
 	stdtypes["math/rand"] = map[string]reflect.Value{
-		"Rand": reflect.ValueOf(i75.Rand{}),
-		"Zipf": reflect.ValueOf(i75.Zipf{}),
+		"Rand": makeReflect[i75.Rand](),
+		"Zipf": makeReflect[i75.Zipf](),
 	}
 	stdtypes["mime"] = map[string]reflect.Value{
-		"WordDecoder": reflect.ValueOf(i76.WordDecoder{}),
+		"WordDecoder": makeReflect[i76.WordDecoder](),
+		"WordEncoder": makeReflect[i76.WordEncoder](),
 	}
 	stdtypes["mime/multipart"] = map[string]reflect.Value{
-		"FileHeader": reflect.ValueOf(i77.FileHeader{}),
-		"Form": reflect.ValueOf(i77.Form{}),
-		"Part": reflect.ValueOf(i77.Part{}),
-		"Reader": reflect.ValueOf(i77.Reader{}),
-		"Writer": reflect.ValueOf(i77.Writer{}),
+		"FileHeader": makeReflect[i77.FileHeader](),
+		"Form": makeReflect[i77.Form](),
+		"Part": makeReflect[i77.Part](),
+		"Reader": makeReflect[i77.Reader](),
+		"Writer": makeReflect[i77.Writer](),
 	}
 	stdtypes["mime/quotedprintable"] = map[string]reflect.Value{
-		"Reader": reflect.ValueOf(i78.Reader{}),
-		"Writer": reflect.ValueOf(i78.Writer{}),
+		"Reader": makeReflect[i78.Reader](),
+		"Writer": makeReflect[i78.Writer](),
 	}
 	stdtypes["net"] = map[string]reflect.Value{
-		"AddrError": reflect.ValueOf(i79.AddrError{}),
-		"DNSConfigError": reflect.ValueOf(i79.DNSConfigError{}),
-		"DNSError": reflect.ValueOf(i79.DNSError{}),
-		"Dialer": reflect.ValueOf(i79.Dialer{}),
-		"IPAddr": reflect.ValueOf(i79.IPAddr{}),
-		"IPConn": reflect.ValueOf(i79.IPConn{}),
-		"IPNet": reflect.ValueOf(i79.IPNet{}),
-		"Interface": reflect.ValueOf(i79.Interface{}),
-		"KeepAliveConfig": reflect.ValueOf(i79.KeepAliveConfig{}),
-		"ListenConfig": reflect.ValueOf(i79.ListenConfig{}),
-		"MX": reflect.ValueOf(i79.MX{}),
-		"NS": reflect.ValueOf(i79.NS{}),
-		"OpError": reflect.ValueOf(i79.OpError{}),
-		"ParseError": reflect.ValueOf(i79.ParseError{}),
-		"Resolver": reflect.ValueOf(i79.Resolver{}),
-		"SRV": reflect.ValueOf(i79.SRV{}),
-		"TCPAddr": reflect.ValueOf(i79.TCPAddr{}),
-		"TCPConn": reflect.ValueOf(i79.TCPConn{}),
-		"TCPListener": reflect.ValueOf(i79.TCPListener{}),
-		"UDPAddr": reflect.ValueOf(i79.UDPAddr{}),
-		"UDPConn": reflect.ValueOf(i79.UDPConn{}),
-		"UnixAddr": reflect.ValueOf(i79.UnixAddr{}),
-		"UnixConn": reflect.ValueOf(i79.UnixConn{}),
-		"UnixListener": reflect.ValueOf(i79.UnixListener{}),
+		"AddrError": makeReflect[i79.AddrError](),
+		"DNSConfigError": makeReflect[i79.DNSConfigError](),
+		"DNSError": makeReflect[i79.DNSError](),
+		"Dialer": makeReflect[i79.Dialer](),
+		"Flags": makeReflect[i79.Flags](),
+		"IPAddr": makeReflect[i79.IPAddr](),
+		"IPConn": makeReflect[i79.IPConn](),
+		"IPNet": makeReflect[i79.IPNet](),
+		"Interface": makeReflect[i79.Interface](),
+		"InvalidAddrError": makeReflect[i79.InvalidAddrError](),
+		"KeepAliveConfig": makeReflect[i79.KeepAliveConfig](),
+		"ListenConfig": makeReflect[i79.ListenConfig](),
+		"MX": makeReflect[i79.MX](),
+		"NS": makeReflect[i79.NS](),
+		"OpError": makeReflect[i79.OpError](),
+		"ParseError": makeReflect[i79.ParseError](),
+		"Resolver": makeReflect[i79.Resolver](),
+		"SRV": makeReflect[i79.SRV](),
+		"TCPAddr": makeReflect[i79.TCPAddr](),
+		"TCPConn": makeReflect[i79.TCPConn](),
+		"TCPListener": makeReflect[i79.TCPListener](),
+		"UDPAddr": makeReflect[i79.UDPAddr](),
+		"UDPConn": makeReflect[i79.UDPConn](),
+		"UnixAddr": makeReflect[i79.UnixAddr](),
+		"UnixConn": makeReflect[i79.UnixConn](),
+		"UnixListener": makeReflect[i79.UnixListener](),
+		"UnknownNetworkError": makeReflect[i79.UnknownNetworkError](),
 	}
 	stdtypes["net/http"] = map[string]reflect.Value{
-		"Client": reflect.ValueOf(i80.Client{}),
-		"Cookie": reflect.ValueOf(i80.Cookie{}),
-		"CrossOriginProtection": reflect.ValueOf(i80.CrossOriginProtection{}),
-		"HTTP2Config": reflect.ValueOf(i80.HTTP2Config{}),
-		"MaxBytesError": reflect.ValueOf(i80.MaxBytesError{}),
-		"ProtocolError": reflect.ValueOf(i80.ProtocolError{}),
-		"Protocols": reflect.ValueOf(i80.Protocols{}),
-		"PushOptions": reflect.ValueOf(i80.PushOptions{}),
-		"Request": reflect.ValueOf(i80.Request{}),
-		"Response": reflect.ValueOf(i80.Response{}),
-		"ResponseController": reflect.ValueOf(i80.ResponseController{}),
-		"ServeMux": reflect.ValueOf(i80.ServeMux{}),
-		"Server": reflect.ValueOf(i80.Server{}),
-		"Transport": reflect.ValueOf(i80.Transport{}),
+		"Client": makeReflect[i80.Client](),
+		"ConnState": makeReflect[i80.ConnState](),
+		"Cookie": makeReflect[i80.Cookie](),
+		"CrossOriginProtection": makeReflect[i80.CrossOriginProtection](),
+		"Dir": makeReflect[i80.Dir](),
+		"HTTP2Config": makeReflect[i80.HTTP2Config](),
+		"MaxBytesError": makeReflect[i80.MaxBytesError](),
+		"ProtocolError": makeReflect[i80.ProtocolError](),
+		"Protocols": makeReflect[i80.Protocols](),
+		"PushOptions": makeReflect[i80.PushOptions](),
+		"Request": makeReflect[i80.Request](),
+		"Response": makeReflect[i80.Response](),
+		"ResponseController": makeReflect[i80.ResponseController](),
+		"SameSite": makeReflect[i80.SameSite](),
+		"ServeMux": makeReflect[i80.ServeMux](),
+		"Server": makeReflect[i80.Server](),
+		"Transport": makeReflect[i80.Transport](),
 	}
 	stdtypes["net/http/cgi"] = map[string]reflect.Value{
-		"Handler": reflect.ValueOf(i81.Handler{}),
+		"Handler": makeReflect[i81.Handler](),
 	}
 	stdtypes["net/http/cookiejar"] = map[string]reflect.Value{
-		"Jar": reflect.ValueOf(i82.Jar{}),
-		"Options": reflect.ValueOf(i82.Options{}),
+		"Jar": makeReflect[i82.Jar](),
+		"Options": makeReflect[i82.Options](),
 	}
 	stdtypes["net/http/httptest"] = map[string]reflect.Value{
-		"ResponseRecorder": reflect.ValueOf(i84.ResponseRecorder{}),
-		"Server": reflect.ValueOf(i84.Server{}),
+		"ResponseRecorder": makeReflect[i84.ResponseRecorder](),
+		"Server": makeReflect[i84.Server](),
 	}
 	stdtypes["net/http/httptrace"] = map[string]reflect.Value{
-		"ClientTrace": reflect.ValueOf(i85.ClientTrace{}),
-		"DNSDoneInfo": reflect.ValueOf(i85.DNSDoneInfo{}),
-		"DNSStartInfo": reflect.ValueOf(i85.DNSStartInfo{}),
-		"GotConnInfo": reflect.ValueOf(i85.GotConnInfo{}),
-		"WroteRequestInfo": reflect.ValueOf(i85.WroteRequestInfo{}),
+		"ClientTrace": makeReflect[i85.ClientTrace](),
+		"DNSDoneInfo": makeReflect[i85.DNSDoneInfo](),
+		"DNSStartInfo": makeReflect[i85.DNSStartInfo](),
+		"GotConnInfo": makeReflect[i85.GotConnInfo](),
+		"WroteRequestInfo": makeReflect[i85.WroteRequestInfo](),
 	}
 	stdtypes["net/http/httputil"] = map[string]reflect.Value{
-		"ClientConn": reflect.ValueOf(i86.ClientConn{}),
-		"ProxyRequest": reflect.ValueOf(i86.ProxyRequest{}),
-		"ReverseProxy": reflect.ValueOf(i86.ReverseProxy{}),
-		"ServerConn": reflect.ValueOf(i86.ServerConn{}),
+		"ClientConn": makeReflect[i86.ClientConn](),
+		"ProxyRequest": makeReflect[i86.ProxyRequest](),
+		"ReverseProxy": makeReflect[i86.ReverseProxy](),
+		"ServerConn": makeReflect[i86.ServerConn](),
 	}
 	stdtypes["net/mail"] = map[string]reflect.Value{
-		"Address": reflect.ValueOf(i88.Address{}),
-		"AddressParser": reflect.ValueOf(i88.AddressParser{}),
-		"Message": reflect.ValueOf(i88.Message{}),
+		"Address": makeReflect[i88.Address](),
+		"AddressParser": makeReflect[i88.AddressParser](),
+		"Message": makeReflect[i88.Message](),
 	}
 	stdtypes["net/rpc"] = map[string]reflect.Value{
-		"Call": reflect.ValueOf(i89.Call{}),
-		"Client": reflect.ValueOf(i89.Client{}),
-		"Request": reflect.ValueOf(i89.Request{}),
-		"Response": reflect.ValueOf(i89.Response{}),
-		"Server": reflect.ValueOf(i89.Server{}),
+		"Call": makeReflect[i89.Call](),
+		"Client": makeReflect[i89.Client](),
+		"Request": makeReflect[i89.Request](),
+		"Response": makeReflect[i89.Response](),
+		"Server": makeReflect[i89.Server](),
+		"ServerError": makeReflect[i89.ServerError](),
 	}
 	stdtypes["net/smtp"] = map[string]reflect.Value{
-		"Client": reflect.ValueOf(i91.Client{}),
-		"ServerInfo": reflect.ValueOf(i91.ServerInfo{}),
+		"Client": makeReflect[i91.Client](),
+		"ServerInfo": makeReflect[i91.ServerInfo](),
 	}
 	stdtypes["net/textproto"] = map[string]reflect.Value{
-		"Conn": reflect.ValueOf(i92.Conn{}),
-		"Error": reflect.ValueOf(i92.Error{}),
-		"Pipeline": reflect.ValueOf(i92.Pipeline{}),
-		"Reader": reflect.ValueOf(i92.Reader{}),
-		"Writer": reflect.ValueOf(i92.Writer{}),
+		"Conn": makeReflect[i92.Conn](),
+		"Error": makeReflect[i92.Error](),
+		"Pipeline": makeReflect[i92.Pipeline](),
+		"ProtocolError": makeReflect[i92.ProtocolError](),
+		"Reader": makeReflect[i92.Reader](),
+		"Writer": makeReflect[i92.Writer](),
 	}
 	stdtypes["net/url"] = map[string]reflect.Value{
-		"Error": reflect.ValueOf(i93.Error{}),
-		"URL": reflect.ValueOf(i93.URL{}),
-		"Userinfo": reflect.ValueOf(i93.Userinfo{}),
+		"Error": makeReflect[i93.Error](),
+		"EscapeError": makeReflect[i93.EscapeError](),
+		"InvalidHostError": makeReflect[i93.InvalidHostError](),
+		"URL": makeReflect[i93.URL](),
+		"Userinfo": makeReflect[i93.Userinfo](),
 	}
 	stdtypes["os"] = map[string]reflect.Value{
-		"File": reflect.ValueOf(i94.File{}),
-		"LinkError": reflect.ValueOf(i94.LinkError{}),
-		"ProcAttr": reflect.ValueOf(i94.ProcAttr{}),
-		"Process": reflect.ValueOf(i94.Process{}),
-		"ProcessState": reflect.ValueOf(i94.ProcessState{}),
-		"Root": reflect.ValueOf(i94.Root{}),
-		"SyscallError": reflect.ValueOf(i94.SyscallError{}),
+		"File": makeReflect[i94.File](),
+		"LinkError": makeReflect[i94.LinkError](),
+		"ProcAttr": makeReflect[i94.ProcAttr](),
+		"Process": makeReflect[i94.Process](),
+		"ProcessState": makeReflect[i94.ProcessState](),
+		"Root": makeReflect[i94.Root](),
+		"SyscallError": makeReflect[i94.SyscallError](),
 	}
 	stdtypes["os/exec"] = map[string]reflect.Value{
-		"Cmd": reflect.ValueOf(i95.Cmd{}),
-		"Error": reflect.ValueOf(i95.Error{}),
-		"ExitError": reflect.ValueOf(i95.ExitError{}),
+		"Cmd": makeReflect[i95.Cmd](),
+		"Error": makeReflect[i95.Error](),
+		"ExitError": makeReflect[i95.ExitError](),
 	}
 	stdtypes["os/user"] = map[string]reflect.Value{
-		"Group": reflect.ValueOf(i97.Group{}),
-		"User": reflect.ValueOf(i97.User{}),
+		"Group": makeReflect[i97.Group](),
+		"UnknownGroupError": makeReflect[i97.UnknownGroupError](),
+		"UnknownGroupIdError": makeReflect[i97.UnknownGroupIdError](),
+		"UnknownUserError": makeReflect[i97.UnknownUserError](),
+		"UnknownUserIdError": makeReflect[i97.UnknownUserIdError](),
+		"User": makeReflect[i97.User](),
 	}
 	stdtypes["plugin"] = map[string]reflect.Value{
-		"Plugin": reflect.ValueOf(i100.Plugin{}),
+		"Plugin": makeReflect[i100.Plugin](),
+		"Symbol": makeReflect[i100.Symbol](),
 	}
 	stdtypes["regexp"] = map[string]reflect.Value{
-		"Regexp": reflect.ValueOf(i101.Regexp{}),
+		"Regexp": makeReflect[i101.Regexp](),
 	}
 	stdtypes["regexp/syntax"] = map[string]reflect.Value{
-		"Error": reflect.ValueOf(i102.Error{}),
-		"Inst": reflect.ValueOf(i102.Inst{}),
-		"Prog": reflect.ValueOf(i102.Prog{}),
-		"Regexp": reflect.ValueOf(i102.Regexp{}),
+		"EmptyOp": makeReflect[i102.EmptyOp](),
+		"Error": makeReflect[i102.Error](),
+		"ErrorCode": makeReflect[i102.ErrorCode](),
+		"Flags": makeReflect[i102.Flags](),
+		"Inst": makeReflect[i102.Inst](),
+		"InstOp": makeReflect[i102.InstOp](),
+		"Op": makeReflect[i102.Op](),
+		"Prog": makeReflect[i102.Prog](),
+		"Regexp": makeReflect[i102.Regexp](),
 	}
 	stdtypes["strconv"] = map[string]reflect.Value{
-		"NumError": reflect.ValueOf(i104.NumError{}),
+		"NumError": makeReflect[i104.NumError](),
 	}
 	stdtypes["strings"] = map[string]reflect.Value{
-		"Builder": reflect.ValueOf(i105.Builder{}),
-		"Reader": reflect.ValueOf(i105.Reader{}),
-		"Replacer": reflect.ValueOf(i105.Replacer{}),
+		"Builder": makeReflect[i105.Builder](),
+		"Reader": makeReflect[i105.Reader](),
+		"Replacer": makeReflect[i105.Replacer](),
 	}
 	stdtypes["sync"] = map[string]reflect.Value{
-		"Cond": reflect.ValueOf(i106.Cond{}),
-		"Map": reflect.ValueOf(i106.Map{}),
-		"Mutex": reflect.ValueOf(i106.Mutex{}),
-		"Once": reflect.ValueOf(i106.Once{}),
-		"Pool": reflect.ValueOf(i106.Pool{}),
-		"RWMutex": reflect.ValueOf(i106.RWMutex{}),
-		"WaitGroup": reflect.ValueOf(i106.WaitGroup{}),
+		"Cond": makeReflect[i106.Cond](),
+		"Map": makeReflect[i106.Map](),
+		"Mutex": makeReflect[i106.Mutex](),
+		"Once": makeReflect[i106.Once](),
+		"Pool": makeReflect[i106.Pool](),
+		"RWMutex": makeReflect[i106.RWMutex](),
+		"WaitGroup": makeReflect[i106.WaitGroup](),
 	}
 	stdtypes["sync/atomic"] = map[string]reflect.Value{
-		"Bool": reflect.ValueOf(i107.Bool{}),
-		"Int32": reflect.ValueOf(i107.Int32{}),
-		"Int64": reflect.ValueOf(i107.Int64{}),
-		"Uint32": reflect.ValueOf(i107.Uint32{}),
-		"Uint64": reflect.ValueOf(i107.Uint64{}),
-		"Uintptr": reflect.ValueOf(i107.Uintptr{}),
-		"Value": reflect.ValueOf(i107.Value{}),
+		"Bool": makeReflect[i107.Bool](),
+		"Int32": makeReflect[i107.Int32](),
+		"Int64": makeReflect[i107.Int64](),
+		"Uint32": makeReflect[i107.Uint32](),
+		"Uint64": makeReflect[i107.Uint64](),
+		"Uintptr": makeReflect[i107.Uintptr](),
+		"Value": makeReflect[i107.Value](),
 	}
 	stdtypes["text/scanner"] = map[string]reflect.Value{
-		"Position": reflect.ValueOf(i108.Position{}),
-		"Scanner": reflect.ValueOf(i108.Scanner{}),
+		"Position": makeReflect[i108.Position](),
+		"Scanner": makeReflect[i108.Scanner](),
 	}
 	stdtypes["text/tabwriter"] = map[string]reflect.Value{
-		"Writer": reflect.ValueOf(i109.Writer{}),
+		"Writer": makeReflect[i109.Writer](),
 	}
 	stdtypes["text/template"] = map[string]reflect.Value{
-		"ExecError": reflect.ValueOf(i110.ExecError{}),
-		"Template": reflect.ValueOf(i110.Template{}),
+		"ExecError": makeReflect[i110.ExecError](),
+		"Template": makeReflect[i110.Template](),
 	}
 	stdtypes["text/template/parse"] = map[string]reflect.Value{
-		"ActionNode": reflect.ValueOf(i111.ActionNode{}),
-		"BoolNode": reflect.ValueOf(i111.BoolNode{}),
-		"BranchNode": reflect.ValueOf(i111.BranchNode{}),
-		"BreakNode": reflect.ValueOf(i111.BreakNode{}),
-		"ChainNode": reflect.ValueOf(i111.ChainNode{}),
-		"CommandNode": reflect.ValueOf(i111.CommandNode{}),
-		"CommentNode": reflect.ValueOf(i111.CommentNode{}),
-		"ContinueNode": reflect.ValueOf(i111.ContinueNode{}),
-		"DotNode": reflect.ValueOf(i111.DotNode{}),
-		"FieldNode": reflect.ValueOf(i111.FieldNode{}),
-		"IdentifierNode": reflect.ValueOf(i111.IdentifierNode{}),
-		"IfNode": reflect.ValueOf(i111.IfNode{}),
-		"ListNode": reflect.ValueOf(i111.ListNode{}),
-		"NilNode": reflect.ValueOf(i111.NilNode{}),
-		"NumberNode": reflect.ValueOf(i111.NumberNode{}),
-		"PipeNode": reflect.ValueOf(i111.PipeNode{}),
-		"RangeNode": reflect.ValueOf(i111.RangeNode{}),
-		"StringNode": reflect.ValueOf(i111.StringNode{}),
-		"TemplateNode": reflect.ValueOf(i111.TemplateNode{}),
-		"TextNode": reflect.ValueOf(i111.TextNode{}),
-		"Tree": reflect.ValueOf(i111.Tree{}),
-		"VariableNode": reflect.ValueOf(i111.VariableNode{}),
-		"WithNode": reflect.ValueOf(i111.WithNode{}),
+		"ActionNode": makeReflect[i111.ActionNode](),
+		"BoolNode": makeReflect[i111.BoolNode](),
+		"BranchNode": makeReflect[i111.BranchNode](),
+		"BreakNode": makeReflect[i111.BreakNode](),
+		"ChainNode": makeReflect[i111.ChainNode](),
+		"CommandNode": makeReflect[i111.CommandNode](),
+		"CommentNode": makeReflect[i111.CommentNode](),
+		"ContinueNode": makeReflect[i111.ContinueNode](),
+		"DotNode": makeReflect[i111.DotNode](),
+		"FieldNode": makeReflect[i111.FieldNode](),
+		"IdentifierNode": makeReflect[i111.IdentifierNode](),
+		"IfNode": makeReflect[i111.IfNode](),
+		"ListNode": makeReflect[i111.ListNode](),
+		"Mode": makeReflect[i111.Mode](),
+		"NilNode": makeReflect[i111.NilNode](),
+		"NodeType": makeReflect[i111.NodeType](),
+		"NumberNode": makeReflect[i111.NumberNode](),
+		"PipeNode": makeReflect[i111.PipeNode](),
+		"Pos": makeReflect[i111.Pos](),
+		"RangeNode": makeReflect[i111.RangeNode](),
+		"StringNode": makeReflect[i111.StringNode](),
+		"TemplateNode": makeReflect[i111.TemplateNode](),
+		"TextNode": makeReflect[i111.TextNode](),
+		"Tree": makeReflect[i111.Tree](),
+		"VariableNode": makeReflect[i111.VariableNode](),
+		"WithNode": makeReflect[i111.WithNode](),
 	}
 	stdtypes["time"] = map[string]reflect.Value{
-		"Location": reflect.ValueOf(i112.Location{}),
-		"ParseError": reflect.ValueOf(i112.ParseError{}),
-		"Ticker": reflect.ValueOf(i112.Ticker{}),
-		"Time": reflect.ValueOf(i112.Time{}),
-		"Timer": reflect.ValueOf(i112.Timer{}),
+		"Duration": makeReflect[i112.Duration](),
+		"Location": makeReflect[i112.Location](),
+		"Month": makeReflect[i112.Month](),
+		"ParseError": makeReflect[i112.ParseError](),
+		"Ticker": makeReflect[i112.Ticker](),
+		"Time": makeReflect[i112.Time](),
+		"Timer": makeReflect[i112.Timer](),
+		"Weekday": makeReflect[i112.Weekday](),
 	}
 	stdtypes["unicode"] = map[string]reflect.Value{
-		"CaseRange": reflect.ValueOf(i113.CaseRange{}),
-		"Range16": reflect.ValueOf(i113.Range16{}),
-		"Range32": reflect.ValueOf(i113.Range32{}),
-		"RangeTable": reflect.ValueOf(i113.RangeTable{}),
+		"CaseRange": makeReflect[i113.CaseRange](),
+		"Range16": makeReflect[i113.Range16](),
+		"Range32": makeReflect[i113.Range32](),
+		"RangeTable": makeReflect[i113.RangeTable](),
 	}
 }

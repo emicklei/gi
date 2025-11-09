@@ -40,3 +40,9 @@ func pushCallResults(vm *VM, vals []reflect.Value) {
 		vm.pushOperand(vals[i])
 	}
 }
+
+// makeReflect is a helper function used in generated code to create reflect.Value of a type T.
+func makeReflect[T any]() reflect.Value {
+	var t T
+	return reflect.ValueOf(t)
+}

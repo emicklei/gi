@@ -16,6 +16,16 @@ func main() {
 }`, "1")
 }
 
+func TestTypeAlias2(t *testing.T) {
+	testMain(t, `package main
+
+type HTML string
+
+func main() {
+	print(HTML("gi"))
+}`, "gi")
+}
+
 func TestMap(t *testing.T) {
 	testMain(t, `package main
 

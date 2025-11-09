@@ -525,7 +525,6 @@ func main() {
 }
 
 func TestByteSliceToString(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -734,6 +733,16 @@ func main() {
 	wg.Done()
 	print("done")
 }`, "done")
+}
+
+func TestNoInitStdtype(t *testing.T) {
+	testMain(t, `package main
+
+import "html/template"
+func main() {
+	var h template.HTML
+	print(h)
+}`, "")
 }
 
 func TestBlankIdentifier(t *testing.T) {
