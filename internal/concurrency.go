@@ -31,7 +31,7 @@ func (c ChanType) Instantiate(vm *VM, buffer int, constructorArgs []reflect.Valu
 	ch := reflect.ChanOf(dir, typ)
 	return reflect.MakeChan(ch, int(buffer))
 }
-func (c ChanType) LiteralCompose(composite reflect.Value, elementType reflect.Type, values []reflect.Value) reflect.Value {
+func (c ChanType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
 	return composite
 }
 func (c ChanType) Pos() token.Pos {

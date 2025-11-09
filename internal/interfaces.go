@@ -37,10 +37,6 @@ type Flowable interface {
 	Flow(g *graphBuilder) (head Step)
 }
 
-type HasZeroValue interface {
-	ZeroValue(env Env) reflect.Value
-}
-
 // All statement nodes implement the Stmt interface.
 type Stmt interface {
 	Flowable
@@ -48,7 +44,7 @@ type Stmt interface {
 }
 
 type CanCompose interface {
-	LiteralCompose(composite reflect.Value, elementType reflect.Type, values []reflect.Value) reflect.Value
+	LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value
 }
 
 type FieldSelectable interface {

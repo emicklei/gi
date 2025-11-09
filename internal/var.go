@@ -35,12 +35,10 @@ func (v ConstOrVar) Declare(vm *VM) bool {
 			return false
 		}
 		if val.Interface() == untypedNil {
-			// if nil then zero
-			if z, ok := v.Type.(HasZeroValue); ok {
-				zv := z.ZeroValue(vm.localEnv())
-				vm.localEnv().set(v.Name.Name, zv)
-				return true
-			}
+			typ := vm.returnsType(v.Type)
+			zv := reflect.Zero(typ)
+			vm.localEnv().set(v.Name.Name, zv)
+			return true
 		}
 		vm.localEnv().set(v.Name.Name, val)
 		return true
@@ -50,10 +48,6 @@ func (v ConstOrVar) Declare(vm *VM) bool {
 		zv := z.Instantiate(vm, 0, nil)
 		vm.localEnv().set(v.Name.Name, zv)
 		return true
-	}
-	if z, ok := v.Type.(HasZeroValue); ok {
-		zv := z.ZeroValue(vm.localEnv())
-		vm.localEnv().set(v.Name.Name, zv)
 	}
 	typ := vm.returnsType(v.Type)
 	zv := reflect.Zero(typ)

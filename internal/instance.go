@@ -50,7 +50,7 @@ func (i Instance) Assign(fieldName string, val reflect.Value) {
 }
 
 // composite is (a reflect on) an Instance
-func (i Instance) LiteralCompose(composite reflect.Value, elementType reflect.Type, values []reflect.Value) reflect.Value {
+func (i Instance) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
 	if len(values) == 0 {
 		return composite
 	}
