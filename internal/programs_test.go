@@ -516,6 +516,23 @@ func main(){
 }`, "3210")
 }
 
+func TestStringToByteSlice(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	print([]byte("go"))
+}`, "[103 111]")
+}
+
+func TestByteSliceToString(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+	print(string([]byte{103,111}))
+}`, "go")
+}
+
 func TestMinMax(t *testing.T) {
 	testMain(t, `package main
 

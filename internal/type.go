@@ -34,9 +34,9 @@ func (s TypeSpec) Instantiate(vm *VM, _ int, constructorArgs []reflect.Value) re
 	return reflect.Value{}
 }
 
-func (s TypeSpec) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
+func (s TypeSpec) LiteralCompose(composite reflect.Value, elementType reflect.Type, values []reflect.Value) reflect.Value {
 	if c, ok := s.Type.(CanCompose); ok {
-		return c.LiteralCompose(composite, values)
+		return c.LiteralCompose(composite, elementType, values)
 	}
 	return expected(s.Type, "a CanCompose value")
 }
@@ -82,12 +82,12 @@ func (s StructType) String() string {
 	return fmt.Sprintf("StructType(%v)", s.Fields)
 }
 
-func (s StructType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
+func (s StructType) LiteralCompose(composite reflect.Value, elementType reflect.Type, values []reflect.Value) reflect.Value {
 	i, ok := composite.Interface().(CanCompose)
 	if !ok {
 		expected(composite, "CanCompose")
 	}
-	return i.LiteralCompose(composite, values)
+	return i.LiteralCompose(composite, elementType, values)
 }
 
 func (s StructType) Instantiate(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
@@ -123,7 +123,7 @@ func (m MapType) Instantiate(vm *VM, _ int, constructorArgs []reflect.Value) ref
 	mapType := reflect.MapOf(keyType, valueType)
 	return reflect.MakeMap(mapType)
 }
-func (m MapType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
+func (m MapType) LiteralCompose(composite reflect.Value, elementType reflect.Type, values []reflect.Value) reflect.Value {
 	if composite.Kind() != reflect.Map {
 		expected(composite, "map")
 	}

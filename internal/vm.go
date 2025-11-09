@@ -131,6 +131,10 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 		pkgType := stdtypes[sel.X.(Ident).Name][sel.Sel.Name]
 		return reflect.TypeOf(pkgType.Interface())
 	}
+	if ar, ok := e.(ArrayType); ok {
+		elemType := vm.returnsType(ar.Elt)
+		return reflect.SliceOf(elemType)
+	}
 	vm.fatal(fmt.Sprintf("unhandled returnsType for %v (%T)", e, e))
 	return nil
 }

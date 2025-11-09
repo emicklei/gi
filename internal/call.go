@@ -28,6 +28,8 @@ func (c CallExpr) Eval(vm *VM) {
 			c.handleFuncDecl(vm, f)
 		case FuncLit:
 			c.handleFuncLit(vm, f)
+		case ArrayType:
+			c.handleArrayType(vm, f)
 		default:
 			vm.fatal(fmt.Sprintf("expected FuncDecl,FuncLit or builtinFunc, got %T", fn.Interface()))
 		}
@@ -42,6 +44,18 @@ func (c CallExpr) Eval(vm *VM) {
 	default:
 		vm.fatal(fmt.Sprintf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface()))
 	}
+}
+
+func (c CallExpr) handleArrayType(vm *VM, at ArrayType) {
+	// do a conversion to array/slice
+	toConvert := vm.frameStack.top().pop()
+	rt := vm.returnsType(at.Elt)
+	length := toConvert.Len()
+	capacity := toConvert.Len()
+	st := reflect.SliceOf(rt)
+	sl := reflect.MakeSlice(st, length, capacity)
+	reflect.Copy(sl, toConvert)
+	vm.pushOperand(sl)
 }
 
 func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {

@@ -51,20 +51,27 @@ func (a ArrayType) String() string {
 }
 
 // composite is (a reflect on) a Go array or slice
-func (a ArrayType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
+func (a ArrayType) LiteralCompose(composite reflect.Value, elementType reflect.Type, values []reflect.Value) reflect.Value {
 	// TODO optimize this
 
 	if a.ArrayType.Len == nil { // slice has the right length
 		for i, v := range values {
-			//composite = reflect.Append(composite, v)
-			composite.Index(i).Set(v)
+			// TODO check if conversion is needed
+			if v.CanConvert(elementType) {
+				composite.Index(i).Set(v.Convert(elementType))
+			} else {
+				composite.Index(i).Set(v)
+			}
 		}
 		return composite
 	}
 	// array
-	elem := composite
 	for i, v := range values {
-		elem.Index(i).Set(v)
+		if v.CanConvert(elementType) {
+			composite.Index(i).Set(v.Convert(elementType))
+		} else {
+			composite.Index(i).Set(v)
+		}
 	}
 	return composite
 }
