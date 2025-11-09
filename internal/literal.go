@@ -70,12 +70,7 @@ func (s CompositeLit) Eval(vm *VM) {
 	}
 
 	instance := i.Instantiate(vm, len(values), nil)
-	var elementType reflect.Type
-	// only if elements are present we need to determine the element type
-	if len(values) > 0 {
-		elementType = values[0].Type()
-	}
-	result := i.LiteralCompose(instance, elementType, values)
+	result := i.LiteralCompose(instance, values)
 	vm.pushOperand(result)
 }
 
