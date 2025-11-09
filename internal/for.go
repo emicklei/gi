@@ -24,11 +24,17 @@ func (f ForStmt) Flow(g *graphBuilder) (head Step) {
 		f.Init.Flow(g)
 	}
 	begin := new(conditionalStep)
-	begin.conditionFlow = f.Cond.Flow(g)
+	if f.Cond != nil {
+		begin.conditionFlow = f.Cond.Flow(g)
+	}
 	g.nextStep(begin)
 	f.Body.Flow(g)
-	f.Post.Flow(g)
-	g.nextStep(begin.conditionFlow)
+	if f.Post != nil {
+		f.Post.Flow(g)
+	}
+	if f.Cond != nil {
+		g.nextStep(begin.conditionFlow)
+	}
 	pop := new(popEnvironmentStep)
 	begin.elseFlow = pop
 	g.current = pop
