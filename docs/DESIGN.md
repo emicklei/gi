@@ -68,6 +68,7 @@ The first step is the head of the chain.
 - clear with a pointer to a var?
 - drop Instance?, use https://stackoverflow.com/questions/57567466/create-a-struct-by-reflection-in-go  this only support Exported fields. Cannot use it.
 - can each Flowable be a step instead decorated by a step?
+- look like ZeroValue can be dropped
 
 
 . make the stats of gobyexample available as a badge in the project with a link to the lastest build step
