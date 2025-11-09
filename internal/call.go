@@ -30,6 +30,8 @@ func (c CallExpr) Eval(vm *VM) {
 			c.handleFuncLit(vm, f)
 		case ArrayType:
 			c.handleArrayType(vm, f)
+		case TypeSpec:
+			c.handleTypeSpec(vm, f)
 		default:
 			vm.fatal(fmt.Sprintf("expected FuncDecl,FuncLit or builtinFunc, got %T", fn.Interface()))
 		}
@@ -44,6 +46,14 @@ func (c CallExpr) Eval(vm *VM) {
 	default:
 		vm.fatal(fmt.Sprintf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface()))
 	}
+}
+
+func (c CallExpr) handleTypeSpec(vm *VM, ts TypeSpec) {
+	// do a conversion to the specified type
+	toConvert := vm.frameStack.top().pop()
+	rt := vm.returnsType(ts.Type)
+	cv := toConvert.Convert(rt)
+	vm.pushOperand(cv)
 }
 
 func (c CallExpr) handleArrayType(vm *VM, at ArrayType) {
