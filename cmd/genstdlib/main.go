@@ -180,7 +180,7 @@ func generateStdTypesFile(usedPkgs []string, usedPkgFuncs map[string]PackageCont
 		}
 		fmt.Fprintf(outFile, "\tstdtypes[\"%s\"] = map[string]reflect.Value{\n", pkg)
 		for _, typ := range pkgInfo.Types {
-			fmt.Fprintf(outFile, "\t\t\"%s\": reflect.ValueOf(%s.%s{}),\n", typ, alias, typ)
+			fmt.Fprintf(outFile, "\t\t\"%s\": makeReflect[%s.%s](),\n", typ, alias, typ)
 		}
 		fmt.Fprintln(outFile, "\t}")
 	}
@@ -391,6 +391,11 @@ func getExportedFunctionsAndTypes(pkgImportPath string) (string, []string, []str
 							if ts.Name.IsExported() {
 								isGeneric := ts.TypeParams != nil && ts.TypeParams.NumFields() > 0
 								if _, ok := ts.Type.(*ast.StructType); ok && !isGeneric {
+									typeSet[ts.Name.Name] = struct{}{}
+								} else {
+									//fmt.Printf("%s %T\n", ts.Name.Name, ts.Type)
+								}
+								if _, ok := ts.Type.(*ast.Ident); ok && !isGeneric {
 									typeSet[ts.Name.Name] = struct{}{}
 								}
 							}
