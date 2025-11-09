@@ -55,6 +55,9 @@ func (v ConstOrVar) Declare(vm *VM) bool {
 		zv := z.ZeroValue(vm.localEnv())
 		vm.localEnv().set(v.Name.Name, zv)
 	}
+	typ := vm.returnsType(v.Type)
+	zv := reflect.Zero(typ)
+	vm.localEnv().set(v.Name.Name, zv)
 	return true
 }
 
