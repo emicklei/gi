@@ -27,10 +27,12 @@ func TestIncDec(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.tok.String()+" "+tc.start.Kind().String(), func(t *testing.T) {
 			vm := newVM(newEnvironment(nil))
-			vm.localEnv().set("x", tc.start)
+			x := makeIdent("x")
+			x.Define(vm, tc.start)
+
 			n := IncDecStmt{
 				IncDecStmt: &ast.IncDecStmt{Tok: tc.tok},
-				X:          Ident{Ident: &ast.Ident{Name: "x"}},
+				X:          x,
 			}
 			g := newGraphBuilder(nil)
 			head := n.Flow(g)

@@ -87,7 +87,16 @@ func (s SelectorExpr) Eval(vm *VM) {
 	}
 	meth := recv.MethodByName(s.Sel.Name)
 	if !meth.IsValid() {
-		vm.fatal(fmt.Sprintf("method %s not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
+		// TODO not correct
+		val := recv.Interface()
+		pval := &val
+		pvaltype := reflect.ValueOf(pval)
+
+		pmeth, ok := pvaltype.Type().MethodByName(s.Sel.Name)
+		if !ok {
+			vm.fatal(fmt.Sprintf("method %s not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
+		}
+		meth = reflect.ValueOf(pmeth)
 	}
 	vm.pushOperand(meth)
 }

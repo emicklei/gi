@@ -83,7 +83,7 @@ func (p *Package) Initialize(vm *VM) error {
 	for _, each := range p.Env.inits {
 		// TODO clean up
 		call := CallExpr{
-			Fun:  Ident{Ident: &ast.Ident{Name: "init"}},
+			Fun:  makeIdent("init"),
 			Args: []Expr{}, // TODO for now, main only
 		}
 		call.handleFuncDecl(vm, each)
@@ -225,7 +225,7 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	}
 	// make a CallExpr and reuse its logic to set up the call
 	call := CallExpr{
-		Fun:  Ident{Ident: &ast.Ident{Name: functionName}},
+		Fun:  makeIdent(functionName),
 		Args: callArgs,
 	}
 	// set up frame with operand stack

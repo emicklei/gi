@@ -184,7 +184,7 @@ func (NoExpr) String() string { return "NoExpr" }
 func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
-	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", g.idgen)}} // must be unique in env
+	indexVar := makeIdent(fmt.Sprintf("_index_%d", g.idgen)) // must be unique in env
 	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
 	initIndex := AssignStmt{
 		AssignStmt: &ast.AssignStmt{
@@ -249,7 +249,7 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
-	indexVar := Ident{Ident: &ast.Ident{Name: fmt.Sprintf("_index_%d", g.idgen)}} // must be unique in env
+	indexVar := makeIdent(fmt.Sprintf("_index_%d", g.idgen)) // must be unique in env
 	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
 	initIndex := AssignStmt{
 		AssignStmt: &ast.AssignStmt{

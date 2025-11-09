@@ -735,6 +735,18 @@ func main() {
 }`, "done")
 }
 
+func TestPointerMethod(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+import "sync"
+func main() {
+	var wg sync.WaitGroup
+	wg.Go(func(){})
+	print("done")
+}`, "done")
+}
+
 func TestNoInitStdtype(t *testing.T) {
 	testMain(t, `package main
 

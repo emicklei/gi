@@ -263,7 +263,8 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.X = e.(Expr)
 		b.push(s)
 	case *ast.Ident:
-		s := Ident{Ident: n}
+		s := makeIdent(n.Name)
+		s.NamePos = n.NamePos
 		b.push(s)
 	case *ast.BlockStmt:
 		s := BlockStmt{BlockStmt: n}
