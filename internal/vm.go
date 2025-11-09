@@ -128,6 +128,12 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 		return reflect.PointerTo(nonStarType)
 	}
 	if sel, ok := e.(SelectorExpr); ok {
+		typ := vm.localEnv().valueLookUp(sel.X.(Ident).Name)
+		val := typ.Interface()
+		if canSelect, ok := val.(FieldSelectable); ok {
+			selVal := canSelect.Select(sel.Sel.Name)
+			return reflect.TypeOf(selVal.Interface())
+		}
 		pkgType := stdtypes[sel.X.(Ident).Name][sel.Sel.Name]
 		return reflect.TypeOf(pkgType.Interface())
 	}
