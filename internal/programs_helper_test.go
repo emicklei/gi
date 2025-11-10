@@ -78,9 +78,12 @@ func parseAndWalk(t *testing.T, source string) string {
 	// create dot graph for debugging
 	os.WriteFile(fmt.Sprintf("testgraphs/%s.src", t.Name()), []byte(source), 0644)
 	gidot := fmt.Sprintf("testgraphs/%s.dot", t.Name())
-	pkg.writeDotGraph(gidot)
+	pkg.writeCallGraph(gidot)
 	// will fail in pipeline without graphviz installed
 	exec.Command("dot", "-Tsvg", "-o", gidot+".svg", gidot).Run()
+
+	// create ast dump for debugging
+	pkg.writeAST(fmt.Sprintf("testgraphs/%s.ast", t.Name()))
 
 	if _, err := CallPackageFunction(pkg, "main", nil, vm); err != nil {
 		panic(err)

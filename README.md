@@ -24,7 +24,8 @@ See [status](STATUS.md) for the supported Go language features.
 For development, the following environment variables control the execution and output:
 
 - `GI_TRACE=1` : produce tracing of the virtual machine that executes the statements and expressions.
-- `GI_DOT=out.dot` : produce a Graphviz DOT file showing the call graph.
+- `GI_CALL=out.dot` : produce a Graphviz DOT file showing the call graph.
+- `GI_AST=out.ast` : produce the mirror AST text file.
 
 ## Use as package
 

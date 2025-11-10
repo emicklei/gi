@@ -32,10 +32,10 @@ go.work.sum
 .specstory
 .vscode
 
-internal/testgraphs/*.dot
+*.dot
 internal/testgraphs/*.png
-internal/testgraphs/*.src
-internal/testgraphs/*.svg
+*.src
+*.svg
 PERF.md
 vm-panic.html
 gi-vm-panic.html
@@ -43,3 +43,5 @@ gi-vm-panic.html
 .DS_Store
 *.pprof
 gobyexample
+*.txt
+*.ast

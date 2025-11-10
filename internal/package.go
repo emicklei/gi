@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/emicklei/dot"
+	"github.com/spewerspew/spew"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -91,7 +93,13 @@ func (p *Package) Initialize(vm *VM) error {
 	return nil
 }
 
-func (p *Package) writeDotGraph(fileName string) {
+func (p *Package) writeAST(fileName string) {
+	buf := new(bytes.Buffer)
+	spew.Fdump(buf, p)
+	os.WriteFile(fileName, buf.Bytes(), 0644)
+}
+
+func (p *Package) writeCallGraph(fileName string) {
 	g := dot.NewGraph(dot.Directed)
 	g.NodeInitializer(func(n dot.Node) {
 		n.Box()
@@ -191,8 +199,11 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 		}
 	}
 	pkg := &Package{Package: goPkg, Env: b.env.(*PkgEnvironment)}
-	if dotFilename := os.Getenv("GI_DOT"); dotFilename != "" {
-		pkg.writeDotGraph(dotFilename)
+	if callGraphFilename := os.Getenv("GI_CALL"); callGraphFilename != "" {
+		pkg.writeCallGraph(callGraphFilename)
+	}
+	if astFilename := os.Getenv("GI_AST"); astFilename != "" {
+		pkg.writeAST(astFilename)
 	}
 	return pkg, nil
 }
