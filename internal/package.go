@@ -122,6 +122,9 @@ func (p *Package) writeCallGraph(fileName string) {
 }
 
 func (p *Package) String() string {
+	if p == nil || p.Package == nil {
+		return "Package(<nil>)"
+	}
 	return fmt.Sprintf("Package(%s,%s)", p.Name, p.PkgPath)
 }
 

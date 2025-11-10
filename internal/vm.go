@@ -60,6 +60,9 @@ func (f *stackFrame) popEnv() {
 }
 
 func (f *stackFrame) String() string {
+	if f == nil {
+		return "stackFrame(<nil>)"
+	}
 	buf := strings.Builder{}
 	if f.creator != nil {
 		fmt.Fprintf(&buf, "%v ", f.creator)

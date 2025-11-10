@@ -63,6 +63,9 @@ func (p *PkgEnvironment) rootPackageEnv() *PkgEnvironment {
 }
 
 func (p *PkgEnvironment) String() string {
+	if p == nil || p.packageTable == nil {
+		return "PkgEnvironment(<nil>)"
+	}
 	return fmt.Sprintf("PkgEnvironment(pkgs=%d)", len(p.packageTable))
 }
 
@@ -104,6 +107,9 @@ func (e *Environment) depth() int {
 }
 
 func (e *Environment) String() string {
+	if e == nil {
+		return "Environment(<nil>)"
+	}
 	return fmt.Sprintf("-- env[depth=%d,len=%d]", e.depth(), len(e.valueTable))
 }
 

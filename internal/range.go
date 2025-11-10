@@ -82,6 +82,9 @@ func (r *rangeMapIteratorInitStep) Traverse(g *dot.Graph, visited map[int]dot.No
 }
 
 func (r *rangeMapIteratorInitStep) String() string {
+	if r == nil {
+		return "rangeMapIteratorInitStep(<nil>)"
+	}
 	return r.step.StringWith("range-map-iterator-init:" + r.localVarName)
 }
 
@@ -120,6 +123,9 @@ func (r *rangeMapIteratorNextStep) Traverse(g *dot.Graph, visited map[int]dot.No
 }
 
 func (r *rangeMapIteratorNextStep) String() string {
+	if r == nil {
+		return "rangeMapIteratorNextStep(<nil>)"
+	}
 	return r.step.StringWith("range-map-iterator-next:" + r.localVarName)
 }
 

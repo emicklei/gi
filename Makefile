@@ -8,8 +8,8 @@ testserial:
 	go test -v -p 1 ./internal
 
 clean:
-	cd internal/testgraphs && rm -f *.dot *.png *.src *.svg
-	cd internal && rm -f *.dot *.png *.src *.svg
+	cd internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast
+	cd internal && rm -f *.dot *.png *.src *.svg *.ast
 
 todo:
 	cd internal && go test -v | grep SKIP

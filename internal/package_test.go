@@ -36,3 +36,8 @@ func Hello(name string) (int, string) {
 		t.Fatalf("expected result 'World', got %v", results[1])
 	}
 }
+
+func TestWriteAST(t *testing.T) {
+	p := Package{Env: newPkgEnvironment(nil)}
+	p.writeAST("testgraphs/test.ast")
+}

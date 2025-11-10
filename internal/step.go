@@ -23,6 +23,9 @@ func (s *step) SetID(id int) {
 }
 
 func (s *step) String() string {
+	if s == nil {
+		return "step(<nil>)"
+	}
 	return fmt.Sprintf("%2d: ?", s.id)
 }
 
@@ -86,6 +89,9 @@ func (s *evaluableStep) Pos() token.Pos {
 }
 
 func (s *evaluableStep) String() string {
+	if s == nil {
+		return "evaluableStep(<nil>)"
+	}
 	return fmt.Sprintf("%2d: %v", s.id, s.Evaluable)
 }
 
@@ -100,6 +106,9 @@ type conditionalStep struct {
 }
 
 func (c *conditionalStep) String() string {
+	if c == nil {
+		return "conditionalStep(<nil>)"
+	}
 	return fmt.Sprintf("%2d: if", c.ID())
 }
 
@@ -138,6 +147,9 @@ func (p *pushEnvironmentStep) Take(vm *VM) Step {
 }
 
 func (p *pushEnvironmentStep) String() string {
+	if p == nil {
+		return "pushEnvironmentStep(<nil>)"
+	}
 	return fmt.Sprintf("%2d: ~push env", p.ID())
 }
 func (p *pushEnvironmentStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
@@ -154,6 +166,9 @@ func (p *popEnvironmentStep) Take(vm *VM) Step {
 }
 
 func (p *popEnvironmentStep) String() string {
+	if p == nil {
+		return "popEnvironmentStep(<nil>)"
+	}
 	return fmt.Sprintf("%2d: ~pop env", p.ID())
 }
 
@@ -176,6 +191,9 @@ type labeledStep struct {
 }
 
 func (s *labeledStep) String() string {
+	if s == nil {
+		return "labeledStep(<nil>)"
+	}
 	return fmt.Sprintf("%2d: %v", s.id, s.label)
 }
 func (s *labeledStep) Pos() token.Pos {
