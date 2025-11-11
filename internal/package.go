@@ -85,7 +85,7 @@ func (p *Package) Initialize(vm *VM) error {
 	for _, each := range p.Env.inits {
 		// TODO clean up
 		call := CallExpr{
-			Fun:  makeIdent("init"),
+			Fun:  Ident{Name: "init"},
 			Args: []Expr{}, // TODO for now, main only
 		}
 		call.handleFuncDecl(vm, each)
@@ -95,7 +95,11 @@ func (p *Package) Initialize(vm *VM) error {
 
 func (p *Package) writeAST(fileName string) {
 	buf := new(bytes.Buffer)
-	spew.Fdump(buf, p)
+	spew.Config.DisableMethods = true
+	// only dump the actual values of each var/function in the environment
+	for _, v := range p.Env.Env.(*Environment).valueTable {
+		spew.Fdump(buf, v.Interface())
+	}
 	os.WriteFile(fileName, buf.Bytes(), 0644)
 }
 
@@ -239,7 +243,7 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	}
 	// make a CallExpr and reuse its logic to set up the call
 	call := CallExpr{
-		Fun:  makeIdent(functionName),
+		Fun:  Ident{Name: functionName},
 		Args: callArgs,
 	}
 	// set up frame with operand stack

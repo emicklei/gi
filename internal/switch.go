@@ -56,7 +56,7 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 		// check for default case
 		if clause.List == nil {
 			// compose goto to end of switch
-			labelIdent := makeIdent(gotoLabel)
+			labelIdent := Ident{Name: gotoLabel}
 			gotoEnd := BranchStmt{
 				BranchStmt: &ast.BranchStmt{Tok: token.GOTO, TokPos: clause.Pos()},
 				Label:      &labelIdent,
@@ -116,7 +116,7 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 		}
 
 		// compose goto to end of switch
-		labelIdent := makeIdent(gotoLabel)
+		labelIdent := Ident{Name: gotoLabel}
 		gotoEnd := BranchStmt{
 			BranchStmt: &ast.BranchStmt{Tok: token.GOTO, TokPos: clause.Pos()},
 			Label:      &labelIdent,

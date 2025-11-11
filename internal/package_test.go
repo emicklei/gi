@@ -1,6 +1,9 @@
 package internal
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestParseSource(t *testing.T) {
 	source := `package main
@@ -39,5 +42,7 @@ func Hello(name string) (int, string) {
 
 func TestWriteAST(t *testing.T) {
 	p := Package{Env: newPkgEnvironment(nil)}
+	p.Env.set("a", reflect.ValueOf(1))
 	p.writeAST("testgraphs/test.ast")
+	// file must have: (int) 1
 }

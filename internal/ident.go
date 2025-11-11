@@ -14,10 +14,6 @@ type Ident struct {
 	Name    string
 }
 
-func makeIdent(name string) Ident {
-	return Ident{Name: name}
-}
-
 func (i Ident) Eval(vm *VM) {
 	vm.pushOperand(vm.localEnv().valueLookUp(i.Name))
 }

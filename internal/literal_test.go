@@ -50,7 +50,7 @@ func TestCompositeArrayLit_Eval(t *testing.T) {
 			},
 			Len: BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "2"}},
 			// a real element type would be needed for a full test
-			Elt: makeIdent("int"),
+			Elt: Ident{Name: "int"},
 		}
 		cl := CompositeLit{
 			CompositeLit: &ast.CompositeLit{},
@@ -85,7 +85,7 @@ func TestCompositeSliceLit_Eval(t *testing.T) {
 				Len: nil,
 			},
 			// a real element type would be needed for a full test
-			Elt: makeIdent("int"),
+			Elt: Ident{Name: "int"},
 		}
 		cl := CompositeLit{
 			CompositeLit: &ast.CompositeLit{},
