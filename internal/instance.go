@@ -11,14 +11,16 @@ import (
 	"github.com/fatih/structtag"
 )
 
-// first for struct
+var instanceType = reflect.TypeOf(&Instance{})
+
 type Instance struct {
 	Type   StructType
 	fields map[string]reflect.Value
 }
 
-func NewInstance(vm *VM, t StructType) Instance {
-	i := Instance{Type: t,
+// NewInstance creates a new Instance of the given StructType.
+func NewInstance(vm *VM, t StructType) *Instance {
+	i := &Instance{Type: t,
 		fields: map[string]reflect.Value{},
 	}
 	for _, field := range t.Fields.List {
@@ -29,18 +31,18 @@ func NewInstance(vm *VM, t StructType) Instance {
 	}
 	return i
 }
-func (i Instance) String() string {
-	return fmt.Sprintf("Instance(%v)", i.Type)
+func (i *Instance) String() string {
+	return fmt.Sprintf("*Instance(%v)", i.Type)
 }
 
-func (i Instance) Select(name string) reflect.Value {
+func (i *Instance) Select(name string) reflect.Value {
 	if v, ok := i.fields[name]; ok {
 		return v
 	}
 	panic("no such field or method: " + name)
 }
 
-func (i Instance) Assign(fieldName string, val reflect.Value) {
+func (i *Instance) Assign(fieldName string, val reflect.Value) {
 	if _, ok := i.fields[fieldName]; ok {
 		// override, TODO what if HeapPointer?
 		i.fields[fieldName] = val
@@ -50,7 +52,7 @@ func (i Instance) Assign(fieldName string, val reflect.Value) {
 }
 
 // composite is (a reflect on) an Instance
-func (i Instance) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
+func (i *Instance) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
 	if len(values) == 0 {
 		return composite
 	}
@@ -78,7 +80,7 @@ func (i Instance) LiteralCompose(composite reflect.Value, values []reflect.Value
 	return composite
 }
 
-func (i Instance) MarshalJSON() ([]byte, error) {
+func (i *Instance) MarshalJSON() ([]byte, error) {
 	m := map[string]any{}
 	for fieldName, val := range i.fields {
 		tagName, ok := i.tagFieldName("json", fieldName, val)
@@ -89,7 +91,7 @@ func (i Instance) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
-func (i Instance) UnmarshalJSON(data []byte) error {
+func (i *Instance) UnmarshalJSON(data []byte) error {
 	m := map[string]any{}
 	err := json.Unmarshal(data, &m)
 	if err != nil {
@@ -106,13 +108,13 @@ func (i Instance) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (i Instance) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
+func (i *Instance) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	// TODO
 	return nil
 }
 
 // tagFieldName returns the name of the field as it should appear in JSON.
-func (i Instance) tagFieldName(key string, fieldName string, fieldValue reflect.Value) (string, bool) {
+func (i *Instance) tagFieldName(key string, fieldName string, fieldValue reflect.Value) (string, bool) {
 	if !unicode.IsUpper(rune(fieldName[0])) {
 		// unexported field
 		return "", false

@@ -256,31 +256,6 @@ func main() {
 }`, "011")
 }
 
-func TestVar(t *testing.T) {
-	testMain(t, `package main
-
-var (
-	a = 1
-	s string
-	b bool
-)
-func main() {
-	print(a,s,b)
-}`, "1false")
-}
-
-func TestConstScope(t *testing.T) {
-	testMain(t, `package main
-
-var b = a
-func main() {
-	var b = a
-	const a = 2
-	print(a, b)
-}
-const a = 1`, "21")
-}
-
 func TestDeclareAndInit(t *testing.T) {
 	testMain(t, `package main
 

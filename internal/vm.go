@@ -121,10 +121,8 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 		if ok {
 			return typ
 		}
-		// TODO
-		// custom type
-		i := Instance{}
-		return reflect.TypeOf(i)
+		// non-imported user defined type
+		return instanceType
 	}
 	if star, ok := e.(StarExpr); ok {
 		nonStarType := vm.returnsType(star.X)

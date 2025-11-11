@@ -28,7 +28,7 @@ type HeapPointer struct {
 	EnvVarName string       // the variable name in the environment
 }
 
-func (hp HeapPointer) UnmarshalJSON(data []byte) error {
+func (hp *HeapPointer) UnmarshalJSON(data []byte) error {
 	if hp.EnvRef == nil {
 		return nil // TODO???
 	}
@@ -48,16 +48,19 @@ func (hp HeapPointer) String() string {
 	return fmt.Sprintf("0x%x", hp.Addr)
 }
 
-var hppt = reflect.TypeOf(new(HeapPointer))
-
+// TODO inline?
 func isHeapPointer(rv reflect.Value) (hp *HeapPointer, ok bool) {
 	if rv.Kind() != reflect.Pointer {
 		return nil, false
 	}
-	if rv.Type() != hppt {
+	if rv.IsZero() {
 		return nil, false
 	}
-	return rv.Interface().(*HeapPointer), true
+	if !rv.CanInterface() {
+		return nil, false
+	}
+	hp, ok = rv.Interface().(*HeapPointer)
+	return
 }
 
 // allocHeapValue allocates space in the VM heap for a value and returns a HeapPointer to it.

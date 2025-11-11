@@ -7,6 +7,47 @@ import (
 	"reflect"
 )
 
+/*
+*
+var _ Decl = ValueSpec{}
+
+	type ValueSpec struct {
+		CVs []ConstOrVar
+	}
+
+func (v ValueSpec) Eval(vm *VM) {} // noop
+
+	func (v ValueSpec) Flow(g *graphBuilder) (head Step) {
+		for i, cv := range v.CVs {
+			cvFlow := cv.Flow(g)
+			if i == 0 {
+				head = cvFlow
+			}
+		}
+		return head
+	}
+
+	func (v ValueSpec) Declare(vm *VM) bool {
+		for _, cv := range v.CVs {
+			if !cv.Declare(vm) {
+				return false
+			}
+		}
+		return true
+	}
+
+func (v ValueSpec) declStep() CanDeclare { return v }
+
+	func (v ValueSpec) Pos() token.Pos {
+		return token.NoPos // TODO
+	}
+
+	func (v ValueSpec) String() string {
+		return fmt.Sprintf("ValueSpec(len=%d)", len(v.CVs))
+	}
+
+*
+*/
 var _ CanAssign = ConstOrVar{}
 
 type ConstOrVar struct {

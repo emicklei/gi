@@ -110,7 +110,7 @@ func main() {
 }
 
 func TestTypeUnmarshalJSON(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	testMain(t, fmt.Sprintf(`package main
 
 import "encoding/json"
