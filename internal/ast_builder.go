@@ -69,6 +69,13 @@ func (b *ASTBuilder) popFuncDecl() {
 func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 
+	case *ast.ParenExpr:
+		s := ParenExpr{LParen: n.Lparen}
+		b.Visit(n.X)
+		e := b.pop()
+		s.X = e.(Expr)
+		b.push(s)
+
 	case *ast.SendStmt:
 		s := SendStmt{Arrow: n.Arrow}
 		b.Visit(n.Chan)

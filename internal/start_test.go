@@ -23,6 +23,21 @@ func main() {
 }`, "20")
 }
 
+func TestPointerTypedNil(t *testing.T) {
+	//t.Skip()
+	trace = true
+	defer func() { trace = false }()
+	testMain(t, `package main
+
+func main() {
+	nv4 := (*int64)(nil)
+	print(nv4)
+	v4 := int64(42)
+	nv4 = &v4
+	print(*nv4)
+}`, "<nil>42")
+}
+
 func TestPointerMultipleAssignments(t *testing.T) {
 	testMain(t, `package main
 

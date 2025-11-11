@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"reflect"
 )
 
@@ -11,9 +12,10 @@ var _ CanAssign = ConstOrVar{}
 type ConstOrVar struct {
 	*ast.ValueSpec
 	// for each Name in ValueSpec there is a ConstOrVar
-	Name  *Ident
-	Type  Expr
-	Value Expr
+	NamePos token.Pos
+	Name    *Ident
+	Type    Expr
+	Value   Expr
 	// value flow
 	callGraph Step
 }
@@ -70,6 +72,8 @@ func (v ConstOrVar) Flow(g *graphBuilder) (head Step) {
 }
 
 func (v ConstOrVar) declStep() CanDeclare { return v }
+
+func (v ConstOrVar) Pos() token.Pos { return v.NamePos }
 
 func (v ConstOrVar) String() string {
 	return fmt.Sprintf("ConstOrVar(%v)", v.Name.Name)
