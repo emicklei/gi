@@ -39,7 +39,30 @@ func (c CallExpr) Eval(vm *VM) {
 		args := make([]reflect.Value, len(c.Args))
 		// first to last, see Flow
 		for i := range len(c.Args) {
-			args[i] = vm.frameStack.top().pop()
+			//fmt.Println(fn.Interface())
+			//fmt.Println(fn.Type())
+			var argType reflect.Type
+			if fn.Type().IsVariadic() {
+				argType = fn.Type().In(0)
+			} else {
+				argType = fn.Type().In(i)
+			}
+			val := vm.frameStack.top().pop()
+			if hp, ok := isHeapPointer(val); ok {
+				// TODO does not work
+				hpv := vm.heap.read(hp)
+				temp := hpv.Interface()
+				val = reflect.ValueOf(&temp)
+				// after the call use the value of temp to write back the heapointer backing value
+				defer func() {
+					vm.heap.write(hp, reflect.ValueOf(temp))
+				}()
+			}
+			if val.CanConvert(argType) {
+				args[i] = val.Convert(argType)
+			} else {
+				args[i] = val
+			}
 		}
 		vals := fn.Call(args)
 		pushCallResults(vm, vals)

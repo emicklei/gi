@@ -48,6 +48,18 @@ func (hp HeapPointer) String() string {
 	return fmt.Sprintf("0x%x", hp.Addr)
 }
 
+var hppt = reflect.TypeOf(new(HeapPointer))
+
+func isHeapPointer(rv reflect.Value) (hp *HeapPointer, ok bool) {
+	if rv.Kind() != reflect.Pointer {
+		return nil, false
+	}
+	if rv.Type() != hppt {
+		return nil, false
+	}
+	return rv.Interface().(*HeapPointer), true
+}
+
 // allocHeapValue allocates space in the VM heap for a value and returns a HeapPointer to it.
 func (h *Heap) allocHeapValue(v reflect.Value) *HeapPointer {
 	addr := h.counter

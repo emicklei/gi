@@ -766,3 +766,24 @@ func main() {
 	print(h)
 }`, "flow")
 }
+
+func TestConvertArgumentType(t *testing.T) {
+	trace = true
+	testMain(t, `package main
+import "math"
+func main() {
+	print(math.Sin(1))
+}`, "0.8414709848078965")
+}
+
+func TestConvertArgumentPointerType(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+import "flag"
+func main() {
+	var name string
+	flag.StringVar(&name, "name", "World", "a name to say hello to")
+	flag.Parse()
+	print("Hello, %s!\n", name)
+}`, "")
+}

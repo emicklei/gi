@@ -83,7 +83,7 @@ var builtinsMap = map[string]reflect.Value{
 		}
 		return a.(*int32)
 	}),
-	"int64": reflect.ValueOf(func(i int) int64 { return int64(i) }),
+	"int64": reflect.ValueOf(toInt64),
 	"*int64": reflect.ValueOf(func(a any) *int64 {
 		if a == untypedNil {
 			return (*int64)(nil)
