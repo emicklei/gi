@@ -109,6 +109,27 @@ func main() {
 }`, "`json:\"model\"`", "`json:\"-\"`", "`json:\"brand,omitempty\"`"), `{"model":"helicopter"}`)
 }
 
+func TestTypeUnmarshalJSON(t *testing.T) {
+	testMain(t, fmt.Sprintf(`package main
+
+import "encoding/json"
+
+type Airplane struct {
+	Model string %s
+	Registration string %s
+	Brand string %s
+	owner string
+}
+func main() {
+	content := %s
+	heli := Airplane{}
+	json.Unmarshal([]byte(content), &heli)
+	print(heli.Model)
+}`, "`json:\"model\"`",
+		"`json:\"-\"`",
+		"`json:\"brand,omitempty\"`",
+		"`{\"model\":\"helicopter\"}`"), "helicopter")
+}
 func TestTypeMarshalXML(t *testing.T) {
 	t.Skip()
 	testMain(t, fmt.Sprintf(`package main

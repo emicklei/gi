@@ -340,6 +340,7 @@ func main() {
 }
 
 func TestAddressOfInt(t *testing.T) {
+
 	testMain(t, `package main
 
 func main() {

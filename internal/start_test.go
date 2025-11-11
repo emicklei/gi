@@ -24,9 +24,6 @@ func main() {
 }
 
 func TestPointerTypedNil(t *testing.T) {
-	//t.Skip()
-	trace = true
-	defer func() { trace = false }()
 	testMain(t, `package main
 
 func main() {

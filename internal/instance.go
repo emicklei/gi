@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 	"unicode"
 
 	"github.com/fatih/structtag"
@@ -23,8 +22,9 @@ func NewInstance(vm *VM, t StructType) Instance {
 		fields: map[string]reflect.Value{},
 	}
 	for _, field := range t.Fields.List {
+		typ := vm.returnsType(field.Type)
 		for _, name := range field.Names {
-			i.fields[name.Name] = reflect.Value{} // field.Type.ZeroValue(vm.localEnv())
+			i.fields[name.Name] = reflect.New(typ).Elem()
 		}
 	}
 	return i
@@ -81,17 +81,29 @@ func (i Instance) LiteralCompose(composite reflect.Value, values []reflect.Value
 func (i Instance) MarshalJSON() ([]byte, error) {
 	m := map[string]any{}
 	for fieldName, val := range i.fields {
-		if !val.IsValid() {
-			// TODO bug?
-			// uninitialized field, should not be in output
-			continue
-		}
 		tagName, ok := i.tagFieldName("json", fieldName, val)
 		if ok {
 			m[tagName] = val.Interface()
 		}
 	}
 	return json.Marshal(m)
+}
+
+func (i Instance) UnmarshalJSON(data []byte) error {
+	m := map[string]any{}
+	err := json.Unmarshal(data, &m)
+	if err != nil {
+		return err
+	}
+	for fieldName, val := range i.fields {
+		tagName, ok := i.tagFieldName("json", fieldName, val)
+		if ok {
+			if val, ok := m[tagName]; ok {
+				i.fields[fieldName] = reflect.ValueOf(val)
+			}
+		}
+	}
+	return nil
 }
 
 func (i Instance) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
@@ -124,7 +136,7 @@ func (i Instance) tagFieldName(key string, fieldName string, fieldValue reflect.
 	if jsonTag.Name == "-" {
 		return "", false
 	}
-	if strings.HasSuffix(jsonTag.Name, "omitempty") {
+	if jsonTag.HasOption("omitempty") {
 		if fieldValue.IsZero() {
 			return "", false
 		}

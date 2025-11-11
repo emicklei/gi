@@ -27,7 +27,7 @@ func (s SelectorExpr) Assign(vm *VM, val reflect.Value) {
 		recv := vm.localEnv().valueLookUp(idn.Name)
 
 		// dereference if pointer to heap value
-		if hp, ok := recv.Interface().(HeapPointer); ok {
+		if hp, ok := recv.Interface().(*HeapPointer); ok {
 			recv = vm.heap.read(hp)
 		}
 		// can we assign directly to the field?
@@ -44,7 +44,7 @@ func (s SelectorExpr) Assign(vm *VM, val reflect.Value) {
 	recv := vm.returnsEval(s.X)
 
 	// dereference if pointer to heap value
-	if hp, ok := recv.Interface().(HeapPointer); ok {
+	if hp, ok := recv.Interface().(*HeapPointer); ok {
 		recv = vm.heap.read(hp)
 	}
 	if !recv.IsValid() {
@@ -68,7 +68,7 @@ func (s SelectorExpr) Assign(vm *VM, val reflect.Value) {
 func (s SelectorExpr) Eval(vm *VM) {
 	recv := vm.frameStack.top().pop()
 	// check for pointer to heap value
-	if hp, ok := recv.Interface().(HeapPointer); ok {
+	if hp, ok := recv.Interface().(*HeapPointer); ok {
 		recv = vm.heap.read(hp)
 	}
 	if !recv.IsValid() {

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 )
@@ -27,6 +28,18 @@ type HeapPointer struct {
 	EnvVarName string       // the variable name in the environment
 }
 
+func (hp HeapPointer) UnmarshalJSON(data []byte) error {
+	if hp.EnvRef == nil {
+		return nil // TODO???
+	}
+	deref := hp.EnvRef.valueLookUp(hp.EnvVarName)
+	val := deref.Interface()
+	if i, ok := val.(Instance); ok {
+		return i.UnmarshalJSON(data)
+	}
+	return json.Unmarshal(data, &val)
+}
+
 // String formats the HeapPointer to look like a real pointer address.
 func (hp HeapPointer) String() string {
 	if hp.EnvRef != nil {
@@ -36,11 +49,11 @@ func (hp HeapPointer) String() string {
 }
 
 // allocHeapValue allocates space in the VM heap for a value and returns a HeapPointer to it.
-func (h *Heap) allocHeapValue(v reflect.Value) HeapPointer {
+func (h *Heap) allocHeapValue(v reflect.Value) *HeapPointer {
 	addr := h.counter
 	h.counter++
 	h.values[addr] = v
-	return HeapPointer{
+	return &HeapPointer{
 		Addr: addr,
 		Type: v.Type(),
 	}
@@ -48,10 +61,10 @@ func (h *Heap) allocHeapValue(v reflect.Value) HeapPointer {
 
 // allocHeapVar allocates a heap pointer that references a variable in an environment.
 // This is used when taking the address of a variable (like &a).
-func (h *Heap) allocHeapVar(env Env, varName string, varType reflect.Type) HeapPointer {
+func (h *Heap) allocHeapVar(env Env, varName string, varType reflect.Type) *HeapPointer {
 	addr := h.counter
 	h.counter++
-	return HeapPointer{
+	return &HeapPointer{
 		Addr:       addr,
 		Type:       varType,
 		EnvRef:     env,
@@ -60,7 +73,7 @@ func (h *Heap) allocHeapVar(env Env, varName string, varType reflect.Type) HeapP
 }
 
 // read retrieves a value from the VM heap.
-func (h *Heap) read(hp HeapPointer) reflect.Value {
+func (h *Heap) read(hp *HeapPointer) reflect.Value {
 	// If this is an environment reference, read from the environment
 	if hp.EnvRef != nil {
 		return hp.EnvRef.valueLookUp(hp.EnvVarName)
@@ -74,7 +87,7 @@ func (h *Heap) read(hp HeapPointer) reflect.Value {
 }
 
 // write updates a value in the VM heap.
-func (h *Heap) write(hp HeapPointer, value reflect.Value) {
+func (h *Heap) write(hp *HeapPointer, value reflect.Value) {
 	// If this is an environment reference, write to the environment
 	if hp.EnvRef != nil {
 		hp.EnvRef.set(hp.EnvVarName, value)
