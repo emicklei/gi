@@ -374,6 +374,7 @@ func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
 		return i.sliceOrArrayFlow.Take(vm)
 	case reflect.Int:
 		return i.intFlow.Take(vm)
+	// case reflect.TypeFor[T]().CanSeq():
 	default:
 		panic(fmt.Sprintf("cannot range over type %v", rangeable.Type()))
 	}
