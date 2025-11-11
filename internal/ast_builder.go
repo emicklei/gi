@@ -246,23 +246,27 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.X = e.(Expr)
 		b.push(s)
 	case *ast.ValueSpec:
-		for i, each := range n.Names {
-			s := ConstOrVar{ValueSpec: n}
+		s := ValueSpec{}
+		for _, each := range n.Names {
 			b.Visit(each)
-			e := b.pop().(Ident)
-			s.Name = &e
-			if n.Type != nil {
-				b.Visit(n.Type)
-				et := b.pop()
-				s.Type = et.(Expr)
-			}
-			if n.Values != nil {
-				b.Visit(n.Values[i])
-				ev := b.pop()
-				s.Value = ev.(Expr)
-			}
-			b.push(s)
+			e := b.pop()
+			i := e.(Ident)
+			s.Names = append(s.Names, &i)
 		}
+		if n.Type != nil {
+			b.Visit(n.Type)
+			e := b.pop()
+			s.Type = e.(Expr)
+		}
+		if n.Values != nil {
+			for _, val := range n.Values {
+				b.Visit(val)
+				e := b.pop()
+				s.Values = append(s.Values, e.(Expr))
+			}
+		}
+		b.push(s)
+
 	case *ast.ExprStmt:
 		s := ExprStmt{ExprStmt: n}
 		b.Visit(n.X)
@@ -507,16 +511,14 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		case token.CONST, token.VAR:
 			for _, each := range n.Specs {
 				b.Visit(each)
-				// let the environment know before evaluation
+				// let the environment know
 				e := b.pop()
-				c := e.(ConstOrVar)
-
+				c := e.(ValueSpec)
 				g := newGraphBuilder(b.goPkg)
 				c.callGraph = c.Flow(g)
-
 				b.env.addConstOrVar(c)
 				// add to stack as normal
-				b.push(e)
+				b.push(c)
 			}
 		case token.IMPORT:
 			for _, each := range n.Specs {

@@ -28,7 +28,6 @@ const a = 1`, "21")
 }
 
 func TestMultiVar(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {	

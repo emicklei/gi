@@ -18,7 +18,7 @@ type Env interface {
 	newChild() Env
 	depth() int
 	getParent() Env
-	addConstOrVar(cv ConstOrVar)
+	addConstOrVar(cv ValueSpec)
 	rootPackageEnv() *PkgEnvironment
 	markContainsHeapPointer()
 }
@@ -47,7 +47,7 @@ func (p *PkgEnvironment) addInit(f FuncDecl) {
 	p.inits = append(p.inits, f)
 }
 
-func (p *PkgEnvironment) addConstOrVar(cv ConstOrVar) {
+func (p *PkgEnvironment) addConstOrVar(cv ValueSpec) {
 	p.declarations = append(p.declarations, CanDeclare(cv))
 }
 
@@ -157,7 +157,7 @@ func (e *Environment) set(name string, value reflect.Value) {
 	}
 }
 
-func (e *Environment) addConstOrVar(cv ConstOrVar) {}
+func (e *Environment) addConstOrVar(cv ValueSpec) {}
 
 func (e *Environment) rootPackageEnv() *PkgEnvironment {
 	if e.parent == nil {
