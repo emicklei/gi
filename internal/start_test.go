@@ -29,6 +29,15 @@ func TestPointerTypedNil(t *testing.T) {
 func main() {
 	nv4 := (*int64)(nil)
 	print(nv4)
+}`, "<nil>")
+}
+
+func TestPointerTypedNil2(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	nv4 := (*int64)(nil)
+	print(nv4)
 	v4 := int64(42)
 	nv4 = &v4
 	print(*nv4)

@@ -39,8 +39,6 @@ func (c CallExpr) Eval(vm *VM) {
 		args := make([]reflect.Value, len(c.Args))
 		// first to last, see Flow
 		for i := range len(c.Args) {
-			//fmt.Println(fn.Interface())
-			//fmt.Println(fn.Type())
 			var argType reflect.Type
 			if fn.Type().IsVariadic() {
 				argType = fn.Type().In(0)
@@ -48,6 +46,13 @@ func (c CallExpr) Eval(vm *VM) {
 				argType = fn.Type().In(i)
 			}
 			val := vm.frameStack.top().pop()
+			if !val.IsValid() || val == untypedNil {
+				args[i] = reflect.New(argType).Elem()
+				continue
+			}
+			//fmt.Println(fn.Interface())
+			//fmt.Println(fn.Type())
+
 			if hp, ok := isHeapPointer(val); ok {
 				// TODO does not work
 				hpv := vm.heap.read(hp)

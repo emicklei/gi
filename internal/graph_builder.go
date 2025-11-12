@@ -48,18 +48,17 @@ func (g *graphBuilder) nextStep(next Step) {
 		g.idgen++
 		next.SetID(g.idgen)
 	}
-
 	if g.current != nil {
 		if g.current.Next() != nil {
 			g.fatal(fmt.Sprintf("current %s already has a next %s, wanted %s\n", g.current, g.current.Next(), next))
 		}
 		if trace {
-			fmt.Printf("fw.next: %d → %v\n", g.current.ID(), next)
+			fmt.Printf("fw: %d → %v\n", g.current.ID(), next)
 		}
 		g.current.SetNext(next)
 	} else {
 		if trace {
-			fmt.Printf("fw.next:%v\n", next)
+			fmt.Printf("fw:%v\n", next)
 		}
 		g.head = next
 	}

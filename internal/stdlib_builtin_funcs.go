@@ -6,9 +6,12 @@ import (
 )
 
 var (
-	untypedNil   = Nil{}
-	reflectTrue  = reflect.ValueOf(true)
-	reflectFalse = reflect.ValueOf(false)
+	untypedNil        any
+	reflectNil        = reflect.ValueOf(untypedNil)
+	undeclaredNil     = struct{}{}
+	reflectUndeclared = reflect.ValueOf(undeclaredNil)
+	reflectTrue       = reflect.ValueOf(true)
+	reflectFalse      = reflect.ValueOf(false)
 )
 
 // reflectCondition converts a boolean to shared reflect.Value.
@@ -18,10 +21,6 @@ func reflectCondition(b bool) reflect.Value {
 	}
 	return reflectFalse
 }
-
-type Nil struct{}
-
-func (Nil) String() string { return "untyped nil" }
 
 // https://pkg.go.dev/builtin
 var builtinsMap = map[string]reflect.Value{
@@ -99,7 +98,7 @@ var builtinsMap = map[string]reflect.Value{
 	}),
 	"imag":    reflect.ValueOf(func(c complex128) float64 { return imag(c) }),
 	"len":     reflect.ValueOf(func(v any) int { return reflect.ValueOf(v).Len() }),
-	"nil":     reflect.ValueOf(untypedNil),
+	"nil":     reflectNil,
 	"panic":   reflect.ValueOf(func(v any) { panic(v) }),
 	"print":   reflect.ValueOf(func(args ...any) { fmt.Print(args...) }),
 	"println": reflect.ValueOf(func(args ...any) { fmt.Println(args...) }),

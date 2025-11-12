@@ -17,7 +17,9 @@ var (
 
 type RangeStmt struct {
 	*ast.RangeStmt
-	Key, Value Expr // Key, Value may be nil
+	ForPos     token.Pos
+	Tok        token.Token // ILLEGAL if Key == nil, ASSIGN, DEFINE
+	Key, Value Expr        // Key, Value may be nil
 	X          Expr
 	Body       *BlockStmt
 }
@@ -29,9 +31,10 @@ func (r RangeStmt) Eval(vm *VM) {} // noop
 //   - mapFlow for maps
 //   - sliceOrArrayFlow for slices and arrays
 //   - intFlow for integers
+//   - funcFlow for functions of type iter.Seq[V any], iter.Seq2[K comparable, V any]
 //
-// All three flows converge to a done step.
-// The last 2 subflows are transformed into a ForStmt that uses a hidden index variable.
+// All four flows converge to a done step.
+// The last 3 subflows are transformed into a ForStmt that uses a hidden index variable.
 // TODO fix position info
 func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)
@@ -61,6 +64,8 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 		g.current = g.newLabeledStep("range-int")
 		switcher.intFlow = r.IntFlow(g)
 		g.nextStep(rangeDone)
+	default:
+		g.fatal(fmt.Sprintf("cannot range over type %v", goType))
 	}
 	return
 }
@@ -374,7 +379,9 @@ func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
 		return i.sliceOrArrayFlow.Take(vm)
 	case reflect.Int:
 		return i.intFlow.Take(vm)
-	// case reflect.TypeFor[T]().CanSeq():
+	case reflect.Func: // func(yield func(V) bool): //iter.Seq[V any]:
+		//return i.funcFlow.Take(vm)
+		fallthrough
 	default:
 		panic(fmt.Sprintf("cannot range over type %v", rangeable.Type()))
 	}

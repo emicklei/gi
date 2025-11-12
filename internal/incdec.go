@@ -23,8 +23,9 @@ func (i IncDecStmt) Flow(g *graphBuilder) (head Step) {
 
 func (i IncDecStmt) Eval(vm *VM) {
 	val := vm.frameStack.top().pop()
-	if !val.IsValid() {
-		// TODO
+	// propagate undeclared value. this happens when the expression is
+	// used in a package variable or constant declaration
+	if val == reflectUndeclared {
 		return
 	}
 	if i.Tok == token.INC {

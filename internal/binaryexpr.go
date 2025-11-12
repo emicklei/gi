@@ -19,16 +19,16 @@ type BinaryExpr struct {
 func (s BinaryExpr) Eval(vm *VM) {
 	// see Flow for the order
 	right := vm.frameStack.top().pop()
-	// propagate invalid value. this happens when the expression is
+	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
-	if !right.IsValid() {
+	if right == reflectUndeclared {
 		vm.pushOperand(right)
 		return
 	}
 	left := vm.frameStack.top().pop()
-	// propagate invalid value. this happens when the expression is
+	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
-	if !left.IsValid() {
+	if left == reflectUndeclared {
 		vm.pushOperand(left)
 		return
 	}
@@ -128,8 +128,59 @@ func (b BinaryExprValue) Eval() reflect.Value {
 		return b.BoolEval(b.left.Bool())
 	case reflect.Pointer:
 		return b.PointerEval(b.left)
+	case reflect.Interface:
+		return b.InterfaceEval(b.left)
+	case reflect.Invalid:
+		return b.UntypedNilEval(b.left)
 	}
 	panic("not implemented: BinaryExprValue.Eval:" + b.left.Kind().String())
+}
+
+func (b BinaryExprValue) UntypedNilEval(left reflect.Value) reflect.Value {
+	// duplicated code from InterfaceEval
+	// left is a struct
+	rightIsNil := b.right.IsNil()
+	switch b.op {
+	case token.EQL:
+		if left == reflectNil {
+			return reflect.ValueOf(b.right == reflectNil || rightIsNil)
+		}
+		if left == b.right {
+			return reflectTrue
+		}
+		return reflectFalse
+	case token.NEQ:
+		if left.Interface() != untypedNil {
+			return reflect.ValueOf(rightIsNil || b.right.Interface() != untypedNil)
+		}
+		if left != b.right {
+			return reflectTrue
+		}
+		return reflectFalse
+	default:
+		panic("not implemented: BinaryExprValue.StructEval:" + b.op.String())
+	}
+}
+
+func (b BinaryExprValue) InterfaceEval(left reflect.Value) reflect.Value {
+	leftIsNil := left == reflectNil || left.IsNil()
+	rightIsNil := b.right == reflectNil || b.right.IsNil()
+	switch b.op {
+	case token.EQL:
+		if leftIsNil && rightIsNil {
+			return reflectTrue
+		}
+		return reflectFalse
+	case token.NEQ:
+		if leftIsNil && !rightIsNil {
+			return reflectTrue
+		}
+		if !leftIsNil && rightIsNil {
+			return reflectTrue
+		}
+		return reflectFalse
+	}
+	panic("not implemented: BinaryExprValue.InterfaceEval:" + b.right.Kind().String())
 }
 
 func (b BinaryExprValue) PointerEval(left reflect.Value) reflect.Value {

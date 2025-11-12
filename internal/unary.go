@@ -43,9 +43,9 @@ func (u UnaryExpr) Eval(vm *VM) {
 	}
 
 	v := vm.frameStack.top().pop()
-	// propagate invalid value. this happens when the expression is
+	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
-	if !v.IsValid() {
+	if v == reflectUndeclared {
 		vm.pushOperand(v)
 		return
 	}

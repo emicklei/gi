@@ -43,6 +43,7 @@ func buildPackage(t *testing.T, source string) *Package {
 }
 
 func collectPrintOutput(vm *VM) {
+	// TODO make it behave like print
 	vm.localEnv().set("print", reflect.ValueOf(func(args ...any) {
 		for _, a := range args {
 			if rv, ok := a.(reflect.Value); ok && rv.IsValid() && rv.CanInterface() {
@@ -58,6 +59,10 @@ func collectPrintOutput(vm *VM) {
 				if s, ok := a.(string); ok {
 					io.WriteString(vm.output, s)
 					continue
+				} else if a == undeclaredNil {
+					fmt.Fprintf(vm.output, "<nil>")
+				} else if a == untypedNil {
+					fmt.Fprintf(vm.output, "<nil>")
 				} else {
 					fmt.Fprintf(vm.output, "%v", a)
 				}

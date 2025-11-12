@@ -120,7 +120,7 @@ func (e *Environment) valueLookUp(name string) reflect.Value {
 	v, ok := e.valueTable[name]
 	if !ok {
 		if e.parent == nil {
-			return reflect.Value{}
+			return reflectUndeclared
 		}
 		return e.parent.valueLookUp(name)
 	}

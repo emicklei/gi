@@ -173,3 +173,46 @@ func TestBinaryExprValue_IntOpInt(t *testing.T) {
 		t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 	}
 }
+
+func TestInterfaceEqualsNilError(t *testing.T) {
+	testMain(t, `package main
+ 
+func main() {
+	var e error
+	if e == nil {
+		print("1")
+	}		
+}`, "1")
+}
+func TestUntypedNilEqualsNilError(t *testing.T) {
+	testMain(t, `package main
+ 
+func main() {
+	var e error
+	if nil == e{
+		print("2")
+	}		
+}`, "2")
+}
+func TestNilErrorEqualsNilError(t *testing.T) {
+	testMain(t, `package main
+ 
+func main() {
+	var e1 error
+	var e2 error
+	if e1 == e2{
+		print("3")
+	}		
+}`, "3")
+}
+func TestNonNilErrorEqualsNilError(t *testing.T) {
+	testMain(t, `package main
+import "errors"
+func main() {
+	e1 := errors.New("err")
+	var e2 error
+	if e1 != e2{
+		print("4")
+	}		
+}`, "4")
+}

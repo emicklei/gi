@@ -28,7 +28,7 @@ func (v ValueSpec) Declare(vm *VM) bool {
 	if v.Type == nil {
 		for _, idn := range v.Names {
 			val := vm.frameStack.top().pop()
-			if !val.IsValid() {
+			if val == reflectUndeclared {
 				// this happens when the value expression is referencing a undeclared variable
 				return false
 			}
