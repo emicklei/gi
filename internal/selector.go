@@ -71,7 +71,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 	if hp, ok := recv.Interface().(*HeapPointer); ok {
 		recv = vm.heap.read(hp)
 	}
-	if !recv.IsValid() {
+	if recv == reflectUndeclared {
 		// propagate invalid value
 		vm.pushOperand(recv)
 		return
@@ -85,6 +85,26 @@ func (s SelectorExpr) Eval(vm *VM) {
 		vm.pushOperand(sel)
 		return
 	}
+
+	if recv.Kind() == reflect.Struct {
+		field := recv.FieldByName(s.Sel.Name)
+		if field.IsValid() {
+			vm.pushOperand(field)
+			return
+		}
+	}
+
+	if recv.Kind() == reflect.Pointer {
+		nonPtrRecv := recv.Elem()
+		if nonPtrRecv.Kind() == reflect.Struct {
+			field := nonPtrRecv.FieldByName(s.Sel.Name)
+			if field.IsValid() {
+				vm.pushOperand(field)
+				return
+			}
+		}
+	}
+
 	meth := recv.MethodByName(s.Sel.Name)
 	if !meth.IsValid() {
 		// TODO not correct
@@ -93,12 +113,17 @@ func (s SelectorExpr) Eval(vm *VM) {
 		pvaltype := reflect.ValueOf(pval)
 
 		pmeth, ok := pvaltype.Type().MethodByName(s.Sel.Name)
-		if !ok {
-			vm.fatal(fmt.Sprintf("method %s not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
+		if ok {
+			meth = reflect.ValueOf(pmeth)
+			vm.pushOperand(meth)
+			return
 		}
-		meth = reflect.ValueOf(pmeth)
+	} else {
+		vm.pushOperand(meth)
+		return
 	}
-	vm.pushOperand(meth)
+
+	vm.fatal(fmt.Sprintf("method or field \"%s\" not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
 }
 
 func (s SelectorExpr) Flow(g *graphBuilder) (head Step) {
