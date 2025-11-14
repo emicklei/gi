@@ -3,7 +3,9 @@ package internal
 import (
 	"bytes"
 	"fmt"
+	"go/token"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
@@ -79,11 +81,14 @@ func (f *stackFrame) String() string {
 type VM struct {
 	frameStack stack[*stackFrame]
 	heap       *Heap
-	output     *bytes.Buffer // for testing only
+	output     *bytes.Buffer  // for testing only
+	fileSet    *token.FileSet // optional file set for position info
 }
 
 func newVM(env Env) *VM {
-	patchReflectRegistries()
+	if trace {
+		patchReflectRegistries()
+	}
 	vm := &VM{
 		output:     new(bytes.Buffer),
 		frameStack: make(stack[*stackFrame], 0, 16),
@@ -102,6 +107,10 @@ func patchReflectRegistries() {
 			fmt.Fprintf(os.Stderr, "[gi] os.Exit called with code %d\n", code)
 		})
 	})
+}
+
+func (vm *VM) setFileSet(fs *token.FileSet) {
+	vm.fileSet = fs
 }
 
 // localEnv returns the current environment from the top stack frame.
@@ -224,21 +233,17 @@ func (vm *VM) takeAllStartingAt(head Step) {
 	here := head
 	for here != nil {
 		if trace {
-			fmt.Println(here)
-			/**
-			// try to print file and line number
-			if len(vm.activeFuncStack) > 0 {
-				fs := vm.activeFuncStack.top().FuncDecl.fileSet
-				if fs != nil {
-					f := fs.File(here.Pos())
-					fmt.Println("\t", f.Name(), f.Line(here.Pos()))
+			fmt.Print(here)
+			if vm.fileSet != nil {
+				f := vm.fileSet.File(here.Pos())
+				if f != nil {
+					nodir := filepath.Base(f.Name())
+					fmt.Print(" @ ", nodir, ":", f.Line(here.Pos()))
 				} else {
-					fmt.Println("no file set???", here)
+					fmt.Print(" @ bad file info")
 				}
-			} else {
-				fmt.Println("no active function???", here)
 			}
-			**/
+			fmt.Println()
 		}
 		here = here.Take(vm)
 	}

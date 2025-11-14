@@ -223,9 +223,11 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 		vm = optionalVM
 	} else {
 		vm = newVM(pkg.Env)
+		vm.setFileSet(pkg.Fset)
 	}
 	for _, subpkg := range pkg.Env.packageTable {
 		subvm := newVM(subpkg.Env)
+		subvm.setFileSet(pkg.Fset)
 		if err := subpkg.Initialize(subvm); err != nil {
 			return nil, fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
 		}
@@ -248,9 +250,6 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 		Fun:  Ident{Name: functionName},
 		Args: callArgs,
 	}
-	// set up frame with operand stack
-	//vm.pushNewFrame(fun.Interface().(FuncDecl))
-
 	// push arguments as parameters on the operand stack, in reverse order
 	for i := len(args) - 1; i >= 0; i-- {
 		vm.pushOperand(reflect.ValueOf(args[i]))

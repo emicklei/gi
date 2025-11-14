@@ -725,6 +725,7 @@ func main() {
 }
 
 func TestNoInitStdtype(t *testing.T) {
+	trace = true
 	testMain(t, `package main
 
 import "html/template"
@@ -744,7 +745,6 @@ func main() {
 }
 
 func TestConvertArgumentType(t *testing.T) {
-	trace = true
 	testMain(t, `package main
 import "math"
 func main() {

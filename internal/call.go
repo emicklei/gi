@@ -242,5 +242,5 @@ func (c CallExpr) Flow(g *graphBuilder) (head Step) {
 }
 
 func (c CallExpr) String() string {
-	return fmt.Sprintf("CallExpr(%v, len=%d)", c.Fun, len(c.Args))
+	return fmt.Sprintf("CallExpr(%v, args=%d)", c.Fun, len(c.Args))
 }
