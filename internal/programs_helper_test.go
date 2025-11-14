@@ -2,48 +2,26 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"io"
 	"os"
 	"os/exec"
 	"path"
 	"reflect"
 	"testing"
-
-	"golang.org/x/tools/go/packages"
 )
 
 func buildPackage(t *testing.T, source string) *Package {
 	t.Helper()
-	cwd, _ := os.Getwd()
-	cfg := &packages.Config{
-		// copied from Package.go
-		Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles | packages.NeedTypesInfo,
-		Fset: token.NewFileSet(),
-		Dir:  path.Join(cwd, "./testprogram"),
-		// copied from Package.go
-		ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
-			return parser.ParseFile(fset, filename, src, parser.SkipObjectResolution)
-		},
-		Overlay: map[string][]byte{
-			path.Join(cwd, "./testprogram/main.go"): []byte(source),
-		},
-	}
-	gopkg, err := LoadPackage(cfg.Dir, cfg)
+
+	locakPkg, err := ParseSource(source)
 	if err != nil {
-		t.Fatalf("failed to load packages: %v", err)
+		t.Fatalf("failed to parse source: %v", err)
 	}
-	ffpkg, err := BuildPackage(gopkg)
-	if err != nil {
-		t.Fatalf("failed to build package: %v", err)
-	}
-	return ffpkg
+	return locakPkg
 }
 
+// this print function outputs are different from the standard and is only used for tests
 func collectPrintOutput(vm *VM) {
-	// TODO make it behave like print
 	vm.localEnv().set("print", reflect.ValueOf(func(args ...any) {
 		for _, a := range args {
 			if rv, ok := a.(reflect.Value); ok && rv.IsValid() && rv.CanInterface() {
@@ -74,7 +52,7 @@ func collectPrintOutput(vm *VM) {
 func parseAndWalk(t *testing.T, source string) string {
 	t.Helper()
 	if trace {
-		fmt.Println("test:", t.Name())
+		fmt.Println("TEST:", t.Name())
 	}
 	pkg := buildPackage(t, source)
 	vm := newVM(pkg.Env)
@@ -92,7 +70,7 @@ func parseAndWalk(t *testing.T, source string) string {
 		pkg.writeAST(fmt.Sprintf("testgraphs/%s.ast", t.Name()))
 	}
 	if _, err := CallPackageFunction(pkg, "main", nil, vm); err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	return vm.output.String()
 }

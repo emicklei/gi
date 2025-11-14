@@ -69,12 +69,12 @@ The first step is the head of the chain.
 - drop Instance?, use https://stackoverflow.com/questions/57567466/create-a-struct-by-reflection-in-go  this only support Exported fields. Cannot use it.
 - can each Flowable be a step instead decorated by a step?
 - look like ZeroValue can be dropped
-- binaryexpr can be optimized by inspecting type on build time and cache Go function for the expression evaluation
-. fmt.Println for Instances needs rework
-
-
-. make the stats of gobyexample available as a badge in the project with a link to the lastest build step
+-  make the stats of gobyexample available as a badge in the project with a link to the lastest build step
 - https://img.shields.io/badge/dynamic/json?url=https://github.com/badges/shields/raw/master/package.json&query=$.name&label=piet
+- binaryexpr can be optimized by inspecting type on build time and cache Go function for the expression evaluation
+- same can be done for unary expr?
+. fmt.Println for Instances needs rework
+- symbolstable and typestable can be merged into one
 
 
 if a program imports external packages then a new `gi` is created using

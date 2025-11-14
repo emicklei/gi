@@ -1,6 +1,8 @@
 package internal
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestPointerBasic(t *testing.T) {
 	testMain(t, `package main
@@ -177,4 +179,17 @@ func main() {
 	print(" ")
 	print(*pi)  // Should be 50
 }`, "10 30 99 50 50")
+}
+
+func TestJSONUnmarshalBasicTypes(t *testing.T) {
+	testMain(t, `package main
+
+import "encoding/json"
+
+func main() {
+	var i int
+	json.Unmarshal([]byte("42"), &i)
+	print(i)
+}
+`, "42")
 }

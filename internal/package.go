@@ -7,6 +7,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"path"
 	"reflect"
 	"time"
 
@@ -132,6 +133,8 @@ func (p *Package) String() string {
 	return fmt.Sprintf("Package(%s,%s)", p.Name, p.PkgPath)
 }
 
+var loadMode = packages.NeedName | packages.NeedSyntax | packages.NeedFiles | packages.NeedTypesInfo
+
 func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package, error) {
 	if dir == "" {
 		return nil, fmt.Errorf("directory must be specified")
@@ -147,7 +150,7 @@ func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package
 		cfg = optionalConfig
 	} else {
 		cfg = &packages.Config{
-			Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles | packages.NeedTypesInfo,
+			Mode: loadMode,
 			Fset: token.NewFileSet(),
 			Dir:  dir,
 			// set the [parser.SkipObjectResolution] parser flag to disable syntactic object resolution
@@ -190,7 +193,6 @@ func BuildPackageFromAST(ast *ast.File) (*Package, error) {
 	return &Package{Env: b.env.(*PkgEnvironment)}, nil
 }
 
-// TODO build options
 func BuildPackage(goPkg *packages.Package) (*Package, error) {
 	if trace {
 		now := time.Now()
@@ -274,13 +276,35 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 }
 
 func ParseSource(source string) (*Package, error) {
-	ast, err := parser.ParseFile(token.NewFileSet(), "main.go", source, 0)
+
+	// create a temp dir with a main.go file and go.mod
+	dir, err := os.MkdirTemp("", "gi-temp-dir")
 	if err != nil {
 		return nil, err
 	}
-	ffpkg, err := BuildPackageFromAST(ast)
+	mainFile := path.Join(dir, "main.go")
+	err = os.WriteFile(mainFile, []byte(source), 0644)
 	if err != nil {
 		return nil, err
 	}
-	return ffpkg, nil
+	modeFile := path.Join(dir, "go.mod")
+	err = os.WriteFile(modeFile, []byte("module tempmod\n go 1.25\n"), 0644)
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(dir) // Clean up
+
+	cfg := &packages.Config{
+		Mode: loadMode,
+		Fset: token.NewFileSet(),
+		Dir:  dir,
+		ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+			return parser.ParseFile(fset, filename, src, parser.SkipObjectResolution)
+		},
+	}
+	gopkg, err := LoadPackage(cfg.Dir, cfg)
+	if err != nil {
+		return nil, err
+	}
+	return BuildPackage(gopkg)
 }

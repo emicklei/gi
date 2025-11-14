@@ -184,6 +184,32 @@ func main() {
 	}		
 }`, "1")
 }
+
+func TestBinaryExpr2(t *testing.T) {
+	testMain(t, `package main
+ 
+func main() {
+	var x int64 = 40
+	var y int64 = 2
+	print(x + y)	
+}`, "42")
+}
+
+func TestBinaryExpr2Funcs(t *testing.T) {
+	testMain(t, `package main
+ 
+func f1() int64 {
+	return 40
+}
+func f2() int64 {
+	return 2
+}	
+
+func main() {
+	print(f1() + f2())	
+}`, "42")
+}
+
 func TestUntypedNilEqualsNilError(t *testing.T) {
 	testMain(t, `package main
  

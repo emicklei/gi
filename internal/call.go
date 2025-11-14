@@ -54,17 +54,15 @@ func (c CallExpr) Eval(vm *VM) {
 			//fmt.Println(fn.Type())
 
 			if hp, ok := isHeapPointer(val); ok {
-				// TODO does not work
+				// TODO does it always work?
 				hpv := vm.heap.read(hp)
 				// TODO convert before set to temp?
 				temp := hpv.Interface()
-				fmt.Println(temp, &temp)
 				val = reflect.ValueOf(&temp)
 				// after the call use the value of temp to write back the heapointer backing value
-				// defer func() {
-				// 	fmt.Println(temp, &temp)
-				// 	vm.heap.write(hp, reflect.ValueOf(temp))
-				// }()
+				defer func() {
+					vm.heap.write(hp, reflect.ValueOf(temp))
+				}()
 				args[i] = val
 			} else {
 				if val.CanConvert(argType) {
