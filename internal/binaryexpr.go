@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"reflect"
 )
@@ -11,9 +10,10 @@ var _ Flowable = BinaryExpr{}
 var _ Expr = BinaryExpr{}
 
 type BinaryExpr struct {
-	*ast.BinaryExpr
-	X Expr // left
-	Y Expr // right
+	OpPos token.Pos   // position of Op
+	Op    token.Token // operator
+	X     Expr        // left
+	Y     Expr        // right
 }
 
 func (s BinaryExpr) Eval(vm *VM) {
@@ -49,6 +49,10 @@ func (s BinaryExpr) Flow(g *graphBuilder) (head Step) {
 
 func (s BinaryExpr) String() string {
 	return fmt.Sprintf("BinaryExpr(%v %v %v)", s.X, s.Op, s.Y)
+}
+
+func (s BinaryExpr) Pos() token.Pos {
+	return s.OpPos
 }
 
 type BinaryExprValue struct {

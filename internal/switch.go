@@ -89,16 +89,18 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 			var nextCond BinaryExpr
 			if _, ok := expr.(BasicLit); ok {
 				nextCond = BinaryExpr{
-					BinaryExpr: &ast.BinaryExpr{Op: token.EQL, OpPos: clause.Pos()},
-					X:          s.Tag,
-					Y:          expr,
+					Op:    token.EQL,
+					OpPos: clause.Pos(),
+					X:     s.Tag,
+					Y:     expr,
 				}
 			}
 			if _, ok := expr.(Ident); ok {
 				nextCond = BinaryExpr{
-					BinaryExpr: &ast.BinaryExpr{Op: token.EQL, OpPos: clause.Pos()},
-					X:          s.Tag,
-					Y:          expr,
+					Op:    token.EQL,
+					OpPos: clause.Pos(),
+					X:     s.Tag,
+					Y:     expr,
 				}
 			}
 			if bin, ok := expr.(BinaryExpr); ok {
@@ -108,9 +110,10 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 				cond = nextCond
 			} else {
 				cond = BinaryExpr{
-					BinaryExpr: &ast.BinaryExpr{Op: token.LOR, OpPos: clause.Pos()},
-					X:          cond,
-					Y:          nextCond,
+					Op:    token.LOR,
+					OpPos: clause.Pos(),
+					X:     cond,
+					Y:     nextCond,
 				}
 			}
 		}

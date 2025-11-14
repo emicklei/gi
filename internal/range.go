@@ -219,11 +219,10 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 	}
 	// index < x
 	cond := BinaryExpr{
-		BinaryExpr: &ast.BinaryExpr{
-			Op: token.LSS,
-		},
-		X: indexVar,
-		Y: r.X,
+		Op:    token.LSS,
+		OpPos: r.ForPos,
+		X:     indexVar,
+		Y:     r.X,
 	}
 	// index++
 	post := IncDecStmt{
@@ -299,11 +298,10 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 	}
 	// index < len(x)
 	cond := BinaryExpr{
-		BinaryExpr: &ast.BinaryExpr{
-			Op: token.LSS,
-		},
-		X: indexVar,
-		Y: ReflectLenExpr{X: r.X},
+		Op:    token.LSS,
+		OpPos: r.ForPos,
+		X:     indexVar,
+		Y:     ReflectLenExpr{X: r.X},
 	}
 	// index++
 	post := IncDecStmt{

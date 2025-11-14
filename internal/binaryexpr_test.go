@@ -51,9 +51,9 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 				left := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: tt.left}}
 				right := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: tt.right}}
 				expr := BinaryExpr{
-					X:          left,
-					Y:          right,
-					BinaryExpr: &ast.BinaryExpr{Op: tt.op},
+					X:  left,
+					Y:  right,
+					Op: tt.op,
 				}
 				result := evalExpr(expr)
 
@@ -88,9 +88,9 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 				left := BasicLit{BasicLit: &ast.BasicLit{Kind: token.FLOAT, Value: tt.left}}
 				right := BasicLit{BasicLit: &ast.BasicLit{Kind: token.FLOAT, Value: tt.right}}
 				expr := BinaryExpr{
-					X:          left,
-					Y:          right,
-					BinaryExpr: &ast.BinaryExpr{Op: tt.op},
+					X:  left,
+					Y:  right,
+					Op: tt.op,
 				}
 				result := evalExpr(expr)
 				if math.Abs(result.Float()-tt.expected) > 1e-9 {
@@ -104,9 +104,9 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 		left := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "42"}}
 		right := BasicLit{BasicLit: &ast.BasicLit{Kind: token.FLOAT, Value: "3.14"}}
 		expr := BinaryExpr{
-			X:          left,
-			Y:          right,
-			BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
+			X:  left,
+			Y:  right,
+			Op: token.ADD,
 		}
 		result := evalExpr(expr)
 		if result.Kind() != reflect.Float64 {
@@ -121,9 +121,9 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 		left := BasicLit{BasicLit: &ast.BasicLit{Kind: token.FLOAT, Value: "3.14"}}
 		right := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "42"}}
 		expr := BinaryExpr{
-			X:          left,
-			Y:          right,
-			BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
+			X:  left,
+			Y:  right,
+			Op: token.ADD,
 		}
 		result := evalExpr(expr)
 		if result.Kind() != reflect.Float64 {
@@ -138,9 +138,9 @@ func TestBinaryExprValue_Eval(t *testing.T) {
 		left := BasicLit{BasicLit: &ast.BasicLit{Kind: token.STRING, Value: "Hello, "}}
 		right := BasicLit{BasicLit: &ast.BasicLit{Kind: token.STRING, Value: "World!"}}
 		expr := BinaryExpr{
-			X:          left,
-			Y:          right,
-			BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
+			X:  left,
+			Y:  right,
+			Op: token.ADD,
 		}
 		result := evalExpr(expr)
 		if result.Kind() != reflect.String {

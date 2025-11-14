@@ -377,7 +377,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			return b
 		}
 
-		s := BinaryExpr{BinaryExpr: n}
+		s := BinaryExpr{OpPos: n.OpPos, Op: n.Op}
 		b.Visit(n.X)
 		e := b.pop()
 		s.X = e.(Expr)

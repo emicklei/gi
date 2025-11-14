@@ -10,9 +10,9 @@ func TestStepByStep(t *testing.T) {
 	left := BasicLit{BasicLit: &ast.BasicLit{Kind: token.STRING, Value: "Hello, "}}
 	right := BasicLit{BasicLit: &ast.BasicLit{Kind: token.STRING, Value: "World!"}}
 	expr := BinaryExpr{
-		X:          left,
-		Y:          right,
-		BinaryExpr: &ast.BinaryExpr{Op: token.ADD},
+		X:  left,
+		Y:  right,
+		Op: token.ADD,
 	}
 	leftStep := &evaluableStep{Evaluable: left}
 	rightStep := &evaluableStep{Evaluable: right}
