@@ -86,7 +86,7 @@ type VM struct {
 }
 
 func newVM(env Env) *VM {
-	if trace {
+	if os.Getenv("GI_IGNORE_EXIT") != "" {
 		patchReflectRegistries()
 	}
 	vm := &VM{
