@@ -725,7 +725,6 @@ func main() {
 }
 
 func TestNoInitStdtype(t *testing.T) {
-	trace = true
 	testMain(t, `package main
 
 import "html/template"
