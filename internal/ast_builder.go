@@ -403,7 +403,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.X = e.(Expr)
 		b.push(s)
 	case *ast.StarExpr:
-		s := StarExpr{StarExpr: n}
+		s := StarExpr{StarPos: n.Star}
 		b.Visit(n.X)
 		e := b.pop()
 		s.X = e.(Expr)

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"reflect"
 )
@@ -11,8 +10,8 @@ var _ Expr = StarExpr{}
 var _ CanAssign = StarExpr{}
 
 type StarExpr struct {
-	*ast.StarExpr
-	X Expr
+	StarPos token.Pos
+	X       Expr
 }
 
 func (s StarExpr) Eval(vm *VM) {
@@ -67,6 +66,9 @@ func (s StarExpr) Define(vm *VM, value reflect.Value) {
 	// This would be like *p := value, which is invalid syntax
 	vm.fatal("cannot use := with pointer dereference")
 }
+
+func (s StarExpr) Pos() token.Pos { return s.StarPos }
+
 func (s StarExpr) String() string {
 	return fmt.Sprintf("StarExpr(%v)", s.X)
 }
