@@ -86,25 +86,30 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 		var cond Expr
 		// build a chain of OR expressions for each case expression
 		for i, expr := range clause.List {
-			var nextCond BinaryExpr
-			if _, ok := expr.(BasicLit); ok {
-				nextCond = BinaryExpr{
-					Op:    token.EQL,
-					OpPos: clause.Pos(),
-					X:     s.Tag,
-					Y:     expr,
+			var nextCond Expr
+			if s.Tag != nil {
+				if _, ok := expr.(BasicLit); ok {
+					nextCond = BinaryExpr{
+						Op:    token.EQL,
+						OpPos: clause.Pos(),
+						X:     s.Tag,
+						Y:     expr,
+					}
 				}
-			}
-			if _, ok := expr.(Ident); ok {
-				nextCond = BinaryExpr{
-					Op:    token.EQL,
-					OpPos: clause.Pos(),
-					X:     s.Tag,
-					Y:     expr,
+				if _, ok := expr.(Ident); ok {
+					nextCond = BinaryExpr{
+						Op:    token.EQL,
+						OpPos: clause.Pos(),
+						X:     s.Tag,
+						Y:     expr,
+					}
 				}
 			}
 			if bin, ok := expr.(BinaryExpr); ok {
 				nextCond = bin
+			}
+			if nextCond == nil {
+				nextCond = expr
 			}
 			if i == 0 {
 				cond = nextCond

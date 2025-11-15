@@ -9,7 +9,7 @@ var _ Stmt = IfStmt{}
 
 type IfStmt struct {
 	*ast.IfStmt
-	Init Expr
+	Init Stmt
 	Cond Expr
 	Body *BlockStmt
 	Else Stmt // else if ...
@@ -23,7 +23,7 @@ func (i IfStmt) String() string {
 
 func (i IfStmt) Eval(vm *VM) {
 	if i.Init != nil {
-		vm.eval(i.Init)
+		vm.eval(i.Init.stmtStep())
 	}
 	rv := vm.returnsEval(i.Cond)
 	if rv.Bool() {

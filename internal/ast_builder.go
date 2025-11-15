@@ -360,7 +360,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		// TODO experiment
 		xt := b.goPkg.TypesInfo.TypeOf(n.X)
 		yt := b.goPkg.TypesInfo.TypeOf(n.Y)
-		binFuncKey := fmt.Sprintf("%s_%d_%s", xt.Underlying().String(), n.Op, yt.Underlying().String())
+		binFuncKey := fmt.Sprintf("%s%d%s", xt.Underlying().String(), n.Op, yt.Underlying().String())
 		binFunc, ok := binFuncs[binFuncKey]
 		if ok {
 			s := BinaryExpr2{}
@@ -413,7 +413,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		if n.Init != nil {
 			b.Visit(n.Init)
 			e := b.pop()
-			s.Init = e.(Expr)
+			s.Init = e.(Stmt)
 		}
 		b.Visit(n.Cond)
 		e := b.pop()
