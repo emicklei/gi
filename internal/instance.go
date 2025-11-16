@@ -1,9 +1,11 @@
 package internal
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"reflect"
 	"strconv"
 	"unicode"
@@ -12,6 +14,8 @@ import (
 )
 
 var instanceType = reflect.TypeOf(&Instance{})
+
+var _ fmt.Formatter = Instance{}
 
 type Instance struct {
 	Type   StructType
@@ -144,4 +148,30 @@ func (i *Instance) tagFieldName(key string, fieldName string, fieldValue reflect
 		}
 	}
 	return jsonTag.Name, true
+}
+
+func (i Instance) Format(f fmt.State, verb rune) {
+	var buf bytes.Buffer
+	fmt.Fprint(&buf, "internal.Aircraft{") // TODO
+	c := 0
+	for fieldName, val := range i.fields {
+		if unicode.IsUpper(rune(fieldName[0])) {
+			if c > 0 {
+				fmt.Fprint(&buf, ", ")
+			}
+			fmt.Fprint(&buf, fieldName, ":")
+			formatFieldValue(&buf, verb, val.Interface())
+			c++
+		}
+	}
+	fmt.Fprint(&buf, "}")
+	f.Write(buf.Bytes())
+}
+
+func formatFieldValue(w io.Writer, verb rune, val any) {
+	if s, ok := val.(string); ok {
+		fmt.Fprintf(w, "%q", s)
+		return
+	}
+	format(w, verb, val)
 }

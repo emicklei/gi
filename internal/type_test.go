@@ -70,11 +70,11 @@ func main() {
 func TestNewType(t *testing.T) {
 	testMain(t, `package main
 
-type Airplane struct {
+type Aircraft struct {
 	Model string
 }
 func main() {
-	heli := Airplane{Model:"helicopter"}
+	heli := Aircraft{Model:"helicopter"}
 	print(heli.Model)
 }`, "helicopter")
 }
@@ -96,14 +96,14 @@ func TestTypeMarshalJSON(t *testing.T) {
 
 import "encoding/json"
 
-type Airplane struct {
+type Aircraft struct {
 	Model string %s
 	Registration string %s
 	Brand string %s
 	owner string
 }
 func main() {
-	heli := Airplane{Model:"helicopter", Registration:"PH-EMM"}
+	heli := Aircraft{Model:"helicopter", Registration:"PH-EMM"}
 	data, _ := json.Marshal(heli)
 	print(string(data))
 }`, "`json:\"model\"`", "`json:\"-\"`", "`json:\"brand,omitempty\"`"), `{"model":"helicopter"}`)
@@ -115,7 +115,7 @@ func TestTypeUnmarshalJSON(t *testing.T) {
 
 import "encoding/json"
 
-type Airplane struct {
+type Aircraft struct {
 	Model string %s
 	Registration string %s
 	Brand string %s
@@ -123,7 +123,7 @@ type Airplane struct {
 }
 func main() {
 	content := %s
-	heli := Airplane{}
+	heli := Aircraft{}
 	json.Unmarshal([]byte(content), &heli)
 	print(heli.Model)
 }`, "`json:\"model\"`",
@@ -137,27 +137,27 @@ func TestTypeMarshalXML(t *testing.T) {
 
 import "encoding/xml"
 
-type Airplane struct {
+type Aircraft struct {
 	Model string %s
 	Registration string %s
 	Brand string %s
 	owner string
 }
 func main() {
-	heli := Airplane{Model:"helicopter", Registration:"PH-EMM"}
+	heli := Aircraft{Model:"helicopter", Registration:"PH-EMM"}
 	data, _ := xml.Marshal(heli)
 	print(string(data))
-}`, "`xml:\"model\"`", "`xml:\"-\"`", "`xml:\"brand,omitempty\"`"), `<Airplane><model>helicopter</model></Airplane>`)
+}`, "`xml:\"model\"`", "`xml:\"-\"`", "`xml:\"brand,omitempty\"`"), `<Aircraft><model>helicopter</model></Aircraft>`)
 }
 
 func TestAddressOfType(t *testing.T) {
 	testMain(t, `package main
 
-type Airplane struct {
+type Aircraft struct {
 	Model string
 }
 func main() {
-	heli := &Airplane{Model:"helicopter"}
+	heli := &Aircraft{Model:"helicopter"}
 	print(heli.Model)
 }`, "helicopter")
 }
@@ -166,9 +166,33 @@ func TestMethod(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main
 
-func (_ Airplane) S() string { return "airplane" } // put before type on purpose
-type Airplane struct {}
+func (_ Aircraft) S() string { return "aircraft" } // put before type on purpose
+type Aircraft struct {}
 func main() {
-	print(Airplane{}.S())
-}`, "airplane")
+	print(Aircraft{}.S())
+}`, "aircraft")
+}
+
+func TestFmtFormat(t *testing.T) {
+	testMain(t, `package main
+import "fmt"
+// import "bytes"
+type Aircraft struct {
+	Model string
+	Price float32
+	hidden int
+}
+func main() {
+	// var buf bytes.Buffer
+	fmt.Printf("%#v",Aircraft{Model: "balloon", Price: 3.14})
+}`, "")
+}
+func TestGoFmtFormat(t *testing.T) {
+	type Aircraft struct {
+		Model  string
+		Price  float32
+		hidden int
+	}
+	a := Aircraft{Model: "balloon", Price: 3.14}
+	fmt.Printf("%#v", a)
 }
