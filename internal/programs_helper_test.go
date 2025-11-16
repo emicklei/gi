@@ -49,6 +49,17 @@ func collectPrintOutput(vm *VM) {
 	}))
 }
 
+func parseForDebug(t *testing.T, source string) *VM {
+	t.Helper()
+	if trace {
+		fmt.Println("DEBUG:", t.Name())
+	}
+	pkg := buildPackage(t, source)
+	vm := newVM(pkg.Env)
+	vm.setFileSet(pkg.Fset)
+	return vm
+}
+
 func parseAndWalk(t *testing.T, source string) string {
 	t.Helper()
 	if trace {
