@@ -76,6 +76,7 @@ The first step is the head of the chain.
 - same can be done for unary expr?
 . fmt.Println for Instances needs rework
 - symbolstable and typestable can be merged into one
+- github.com/fatih/structtag replace with some SDK pkg?
 
 
 ## potential blockers
