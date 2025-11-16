@@ -3,15 +3,16 @@ package internal
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"reflect"
 )
 
 var _ Expr = ArrayType{}
 
 type ArrayType struct {
-	*ast.ArrayType
-	Len Expr
-	Elt Expr
+	Lbrack token.Pos // position of "["
+	Len    Expr
+	Elt    Expr
 }
 
 // Eval creates and pushes an instance of the array or slice type onto the operand stack.
@@ -29,7 +30,7 @@ func (a ArrayType) Instantiate(vm *VM, size int, constructorArgs []reflect.Value
 	}
 	eltTypeName := mustIdentName(a.Elt)
 	eltType := vm.localEnv().typeLookUp(eltTypeName)
-	if a.ArrayType.Len == nil {
+	if a.Len == nil {
 		// slice
 		sliceType := reflect.SliceOf(eltType)
 		return reflect.MakeSlice(sliceType, size, size)
@@ -46,8 +47,10 @@ func (a ArrayType) Flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
+func (a ArrayType) Pos() token.Pos { return a.Lbrack }
+
 func (a ArrayType) String() string {
-	return fmt.Sprintf("ArrayType(%v,slice=%v)", a.Elt, a.ArrayType.Len == nil)
+	return fmt.Sprintf("ArrayType(%v,slice=%v)", a.Elt, a.Len == nil)
 }
 
 // composite is (a reflect on) a Go array or slice

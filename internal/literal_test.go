@@ -45,9 +45,6 @@ func TestCompositeArrayLit_Eval(t *testing.T) {
 	t.Run("array literal", func(t *testing.T) {
 		// mock array type
 		at := ArrayType{
-			ArrayType: &ast.ArrayType{
-				Len: &ast.BasicLit{Kind: token.INT, Value: "2"},
-			},
 			Len: BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "2"}},
 			// a real element type would be needed for a full test
 			Elt: Ident{Name: "int"},
@@ -81,9 +78,6 @@ func TestCompositeSliceLit_Eval(t *testing.T) {
 	t.Run("slice literal", func(t *testing.T) {
 		// mock array type
 		at := ArrayType{
-			ArrayType: &ast.ArrayType{
-				Len: nil,
-			},
 			// a real element type would be needed for a full test
 			Elt: Ident{Name: "int"},
 		}

@@ -59,6 +59,7 @@ The first step is the head of the chain.
 
 ### Dev Notes
 
+- About types: https://github.com/golang/example/tree/master/gotypes
 - stackframe on Go stack not heap?
 - think about a driver api to do stepping,breakpoints
 - how to handle concurrency. (eval -> native, walk -> simulated?)
@@ -77,11 +78,12 @@ The first step is the head of the chain.
 - symbolstable and typestable can be merged into one
 
 
-if a program imports external packages then a new `gi` is created using
-additional generated sources that will setup all exported functions,consts and vars to the environment.
-this technique is also applied in `varvoy`.
+## potential blockers
+- reflect structs can only have exposed fields. for that reason Instance was created but the SDK is not aware of this. For example, fmt.Println might not work correctly with Instance values.
+- stepping happens per go-routine; what to do with the others when controlling one of them?
 
-- About types: https://github.com/golang/example/tree/master/gotypes
+## external pkg
+- if a program imports external packages then a new `gi` is created using additional generated sources that will setup all exported functions,consts and vars to the environment. this technique is also applied in `varvoy`.
 
 ## ideas for Gi Playground
 - https://godbolt.org/

@@ -2,20 +2,14 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
+	"go/token"
 )
 
 var _ Stmt = BlockStmt{}
 
 type BlockStmt struct {
-	*ast.BlockStmt
-	List []Stmt
-}
-
-func (b BlockStmt) stmtStep() Evaluable { return b }
-
-func (b BlockStmt) String() string {
-	return fmt.Sprintf("BlockStmt(len=%d)", len(b.List))
+	LbracePos token.Pos // position of "{"
+	List      []Stmt
 }
 
 func (b BlockStmt) Eval(vm *VM) {
@@ -34,4 +28,12 @@ func (b BlockStmt) Flow(g *graphBuilder) (head Step) {
 		_ = stmt.Flow(g)
 	}
 	return head
+}
+
+func (b BlockStmt) stmtStep() Evaluable { return b }
+
+func (b BlockStmt) Pos() token.Pos { return b.LbracePos }
+
+func (b BlockStmt) String() string {
+	return fmt.Sprintf("BlockStmt(len=%d)", len(b.List))
 }

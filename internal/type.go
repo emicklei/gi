@@ -3,20 +3,17 @@ package internal
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"reflect"
 )
 
 var _ CanInstantiate = TypeSpec{}
 
 type TypeSpec struct {
-	*ast.TypeSpec
 	Name       *Ident
 	TypeParams *FieldList
 	Type       Expr
-}
-
-func (s TypeSpec) String() string {
-	return fmt.Sprintf("TypeSpec(%v,%v,%v)", s.Name, s.TypeParams, s.Type)
+	AssignPos  token.Pos
 }
 
 func (s TypeSpec) Eval(vm *VM) {
@@ -40,6 +37,12 @@ func (s TypeSpec) LiteralCompose(composite reflect.Value, values []reflect.Value
 	}
 	return expected(s.Type, "a CanCompose value")
 }
+
+func (s TypeSpec) String() string {
+	return fmt.Sprintf("TypeSpec(%v,%v,%v)", s.Name, s.TypeParams, s.Type)
+}
+
+func (s TypeSpec) Pos() token.Pos { return s.AssignPos }
 
 var (
 	_ Flowable = StructType{}

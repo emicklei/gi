@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"reflect"
 )
@@ -10,12 +9,9 @@ import (
 var _ Expr = UnaryExpr{}
 
 type UnaryExpr struct {
-	*ast.UnaryExpr
-	X Expr
-}
-
-func (u UnaryExpr) String() string {
-	return fmt.Sprintf("UnaryExpr(%s %s)", u.Op, u.X)
+	OpPos token.Pos   // position of Op
+	Op    token.Token // operator
+	X     Expr
 }
 
 func (u UnaryExpr) Eval(vm *VM) {
@@ -243,3 +239,9 @@ func (u UnaryExpr) Flow(g *graphBuilder) (head Step) {
 	g.next(u)
 	return head
 }
+
+func (u UnaryExpr) String() string {
+	return fmt.Sprintf("UnaryExpr(%s %s)", u.Op, u.X)
+}
+
+func (u UnaryExpr) Pos() token.Pos { return u.OpPos }

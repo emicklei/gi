@@ -2,23 +2,17 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
+	"go/token"
 )
 
 var _ Stmt = IfStmt{}
 
 type IfStmt struct {
-	*ast.IfStmt
-	Init Stmt
-	Cond Expr
-	Body *BlockStmt
-	Else Stmt // else if ...
-}
-
-func (i IfStmt) stmtStep() Evaluable { return i }
-
-func (i IfStmt) String() string {
-	return fmt.Sprintf("IfStmt(%v, %v, %v, %v)", i.Init, i.Cond, i.Body, i.Else)
+	IfPos token.Pos
+	Init  Stmt
+	Cond  Expr
+	Body  *BlockStmt
+	Else  Stmt // else if ...
 }
 
 func (i IfStmt) Eval(vm *VM) {
@@ -66,4 +60,12 @@ func (i IfStmt) Flow(g *graphBuilder) (head Step) {
 		begin.elseFlow = pop
 	}
 	return head
+}
+
+func (i IfStmt) stmtStep() Evaluable { return i }
+
+func (i IfStmt) Pos() token.Pos { return i.IfPos }
+
+func (i IfStmt) String() string {
+	return fmt.Sprintf("IfStmt(%v, %v, %v, %v)", i.Init, i.Cond, i.Body, i.Else)
 }

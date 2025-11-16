@@ -128,17 +128,11 @@ func (s BranchStmt) stmtStep() Evaluable { return s }
 var _ Stmt = DeferStmt{}
 
 type DeferStmt struct {
-	*ast.DeferStmt
-	Call Expr
+	DeferPos token.Pos
+	Call     Expr
 	// detached flow
 	callGraph Step
 }
-
-func (d DeferStmt) String() string {
-	return fmt.Sprintf("DeferStmt(%v)", d.Call)
-}
-
-func (d DeferStmt) stmtStep() Evaluable { return d }
 
 func (d DeferStmt) Eval(vm *VM) {
 	frame := vm.frameStack.top()
@@ -153,3 +147,11 @@ func (d DeferStmt) Flow(g *graphBuilder) (head Step) {
 	g.next(d)
 	return g.current
 }
+
+func (d DeferStmt) Pos() token.Pos { return d.DeferPos }
+
+func (d DeferStmt) String() string {
+	return fmt.Sprintf("DeferStmt(%v)", d.Call)
+}
+
+func (d DeferStmt) stmtStep() Evaluable { return d }

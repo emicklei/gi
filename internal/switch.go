@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
-	"reflect"
 )
 
 var _ Stmt = SwitchStmt{}
@@ -133,9 +132,9 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 
 		// compose if statement for this case
 		when := IfStmt{
-			IfStmt: &ast.IfStmt{If: clause.Pos()},
-			Cond:   cond,
-			Body:   &BlockStmt{List: list},
+			IfPos: clause.Pos(),
+			Cond:  cond,
+			Body:  &BlockStmt{List: list},
 		}
 		whenFlow := when.Flow(g)
 		if head == nil {
@@ -155,53 +154,24 @@ var _ Flowable = CaseClause{}
 // A CaseClause represents a case of an expression or type switch statement.
 type CaseClause struct {
 	*ast.CaseClause
-	List []Expr // list of expressions; nil means default case
-	Body []Stmt
+	CasePos token.Pos // position of "case" or "default" keyword
+	List    []Expr    // list of expressions; nil means default case
+	Body    []Stmt
 }
+
+func (c CaseClause) Eval(vm *VM) {}
+
+func (c CaseClause) Flow(g *graphBuilder) (head Step) {
+	// no flow for case clause itself
+	return nil
+}
+
+func (c CaseClause) Pos() token.Pos { return c.CasePos }
 
 func (c CaseClause) stmtStep() Evaluable { return c }
 
 func (c CaseClause) String() string {
 	return fmt.Sprintf("CaseClause(%v,%v)", c.List, c.Body)
-}
-func (c CaseClause) Eval(vm *VM) {}
-
-func (c CaseClause) Eval2(vm *VM) {
-	if c.List == nil {
-		// default case
-		for _, stmt := range c.Body {
-			vm.eval(stmt.stmtStep())
-		}
-		return
-	}
-	f := vm.frameStack.top()
-	var left reflect.Value
-	if len(f.operandStack) != 0 {
-		left = vm.frameStack.top().pop()
-	}
-	for _, expr := range c.List {
-		right := vm.returnsEval(expr)
-		var cond bool
-		if left.IsValid() {
-			// because value is on the operand stack we compare
-			cond = left.Equal(right)
-		} else {
-			// no operand on stack, treat as boolean expression
-			cond = right.Bool()
-		}
-		if cond {
-			vm.frameStack.top().pushEnv()
-			defer vm.frameStack.top().popEnv()
-			for _, stmt := range c.Body {
-				vm.eval(stmt.stmtStep())
-			}
-			return
-		}
-	}
-}
-func (c CaseClause) Flow(g *graphBuilder) (head Step) {
-	// no flow for case clause itself
-	return nil
 }
 
 type TypeSwitchStmt struct {

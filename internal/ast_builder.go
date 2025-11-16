@@ -142,7 +142,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.DeferStmt:
-		s := DeferStmt{DeferStmt: n}
+		s := DeferStmt{DeferPos: n.Defer}
 		if n.Call != nil {
 			b.Visit(n.Call)
 			e := b.pop()
@@ -151,7 +151,6 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			g := newGraphBuilder(b.goPkg)
 			s.callGraph = s.Call.Flow(g)
 		}
-
 		b.push(s)
 	case *ast.FuncLit:
 		b.pushEnv()
@@ -240,7 +239,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Body = &blk
 		b.push(s)
 	case *ast.UnaryExpr:
-		s := &UnaryExpr{UnaryExpr: n}
+		s := UnaryExpr{Op: n.Op, OpPos: n.OpPos}
 		b.Visit(n.X)
 		e := b.pop()
 		s.X = e.(Expr)
@@ -278,7 +277,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.NamePos = n.NamePos
 		b.push(s)
 	case *ast.BlockStmt:
-		s := BlockStmt{BlockStmt: n}
+		s := BlockStmt{LbracePos: n.Lbrace}
 		for _, stmt := range n.List {
 			b.Visit(stmt)
 			e := b.pop()
@@ -409,7 +408,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.X = e.(Expr)
 		b.push(s)
 	case *ast.IfStmt:
-		s := IfStmt{IfStmt: n}
+		s := IfStmt{IfPos: n.If}
 		if n.Init != nil {
 			b.Visit(n.Init)
 			e := b.pop()
@@ -569,7 +568,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.ArrayType:
-		s := ArrayType{ArrayType: n}
+		s := ArrayType{Lbrack: n.Lbrack}
 		if n.Len != nil {
 			b.Visit(n.Len)
 			e := b.pop()
@@ -589,7 +588,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Value = e.(Expr)
 		b.push(s)
 	case *ast.TypeSpec:
-		s := TypeSpec{TypeSpec: n}
+		s := TypeSpec{AssignPos: n.Assign}
 		if n.Name != nil {
 			b.Visit(n.Name)
 			e := b.pop().(Ident)
