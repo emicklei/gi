@@ -762,3 +762,15 @@ func main() {
 	print("Hello, %s!\n", name)
 }`, "")
 }
+
+func TestCompileTimeMapKey(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+	m := map[string]int{
+	"o"+"n"+"e": 1,
+}
+	print(m["one"])
+}`, "1")
+}

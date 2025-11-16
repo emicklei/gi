@@ -166,11 +166,10 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 			rhs = append(rhs, NoExpr{}) // feels hacky
 		}
 		updateKeyValue := AssignStmt{
-			AssignStmt: &ast.AssignStmt{
-				Tok: token.DEFINE,
-			},
-			Lhs: lhs,
-			Rhs: rhs,
+			TokPos: r.Pos(),
+			Tok:    token.DEFINE,
+			Lhs:    lhs,
+			Rhs:    rhs,
 		}
 		bodyFlow := updateKeyValue.Flow(g)
 		iter.bodyFlow = bodyFlow
@@ -198,22 +197,20 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 	indexVar := Ident{Name: fmt.Sprintf("_index_%d", g.idgen)} // must be unique in env
 	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
 	initIndex := AssignStmt{
-		AssignStmt: &ast.AssignStmt{
-			Tok: token.DEFINE,
-		},
-		Lhs: []Expr{indexVar},
-		Rhs: []Expr{zeroInt},
+		Tok:    token.DEFINE,
+		TokPos: r.Pos(),
+		Lhs:    []Expr{indexVar},
+		Rhs:    []Expr{zeroInt},
 	}
 	init := BlockStmt{List: []Stmt{initIndex}}
 
 	// key := 0 // only one var permitted
 	if r.Key != nil {
 		initKey := AssignStmt{
-			AssignStmt: &ast.AssignStmt{
-				Tok: token.DEFINE,
-			},
-			Lhs: []Expr{r.Key},
-			Rhs: []Expr{indexVar},
+			Tok:    token.DEFINE,
+			TokPos: r.Pos(),
+			Lhs:    []Expr{r.Key},
+			Rhs:    []Expr{indexVar},
 		}
 		init.List = append(init.List, initKey)
 	}
@@ -226,10 +223,9 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 	}
 	// index++
 	post := IncDecStmt{
-		IncDecStmt: &ast.IncDecStmt{
-			Tok: token.INC,
-		},
-		X: indexVar,
+		Tok:    token.INC,
+		TokPos: r.Pos(),
+		X:      indexVar,
 	}
 	body := &BlockStmt{
 		List: r.Body.List,
@@ -237,11 +233,10 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 	// key = index
 	if r.Key != nil {
 		updateKey := AssignStmt{
-			AssignStmt: &ast.AssignStmt{
-				Tok: token.ASSIGN,
-			},
-			Lhs: []Expr{r.Key},
-			Rhs: []Expr{indexVar},
+			Tok:    token.ASSIGN,
+			TokPos: r.Pos(),
+			Lhs:    []Expr{r.Key},
+			Rhs:    []Expr{indexVar},
 		}
 		// body with updated key assignment at the top
 		body.List = append([]Stmt{updateKey}, body.List...)
@@ -262,11 +257,10 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 	indexVar := Ident{Name: fmt.Sprintf("_index_%d", g.idgen)} // must be unique in env
 	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
 	initIndex := AssignStmt{
-		AssignStmt: &ast.AssignStmt{
-			Tok: token.DEFINE,
-		},
-		Lhs: []Expr{indexVar},
-		Rhs: []Expr{zeroInt},
+		Tok:    token.DEFINE,
+		TokPos: r.Pos(),
+		Lhs:    []Expr{indexVar},
+		Rhs:    []Expr{zeroInt},
 	}
 	// key and value are optionally defined
 	lhs, rhs := []Expr{}, []Expr{}
@@ -277,18 +271,18 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 	if r.Value != nil {
 		lhs = append(lhs, r.Value)
 		rhs = append(rhs, IndexExpr{
-			X:     r.X,
-			Index: indexVar,
+			Lbrack: r.Pos(),
+			X:      r.X,
+			Index:  indexVar,
 		})
 	}
 	// key := x[0]
 	// value := x[0]
 	initKeyValue := AssignStmt{
-		AssignStmt: &ast.AssignStmt{
-			Tok: token.DEFINE,
-		},
-		Lhs: lhs,
-		Rhs: rhs,
+		Tok:    token.DEFINE,
+		TokPos: r.Pos(),
+		Lhs:    lhs,
+		Rhs:    rhs,
 	}
 	init := BlockStmt{
 		List: []Stmt{
@@ -305,19 +299,17 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 	}
 	// index++
 	post := IncDecStmt{
-		IncDecStmt: &ast.IncDecStmt{
-			Tok: token.INC,
-		},
-		X: indexVar,
+		Tok:    token.INC,
+		TokPos: r.Pos(),
+		X:      indexVar,
 	}
 	// key = x[index]
 	// value = x[index]
 	updateKeyValue := AssignStmt{
-		AssignStmt: &ast.AssignStmt{
-			Tok: token.ASSIGN,
-		},
-		Lhs: lhs,
-		Rhs: rhs,
+		Tok:    token.ASSIGN,
+		TokPos: r.Pos(),
+		Lhs:    lhs,
+		Rhs:    rhs,
 	}
 	// body with updated key/value assignment at the top
 	body := &BlockStmt{

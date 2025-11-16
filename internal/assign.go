@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"reflect"
 )
@@ -10,12 +9,11 @@ import (
 var _ Stmt = AssignStmt{}
 
 type AssignStmt struct {
-	*ast.AssignStmt
-	Lhs []Expr
-	Rhs []Expr
+	TokPos token.Pos   // position of Tok
+	Tok    token.Token // assignment token, DEFINE
+	Lhs    []Expr
+	Rhs    []Expr
 }
-
-func (a AssignStmt) stmtStep() Evaluable { return a }
 
 func (a AssignStmt) Eval(vm *VM) {
 	var lastVal reflect.Value
@@ -36,7 +34,7 @@ func (a AssignStmt) Eval(vm *VM) {
 		if !ok_ {
 			vm.fatal(fmt.Sprintf("cannot assign %v to a %T", v.Interface(), each))
 		}
-		switch a.AssignStmt.Tok {
+		switch a.Tok {
 		case token.DEFINE: // :=
 			target.Define(vm, v)
 		case token.ASSIGN: // =
@@ -86,15 +84,12 @@ func (a AssignStmt) Eval(vm *VM) {
 			result := BinaryExprValue{left: current, op: token.AND_NOT, right: v}.Eval()
 			target.Assign(vm, result)
 		default:
-			panic("unsupported assignment " + a.AssignStmt.Tok.String())
+			panic("unsupported assignment " + a.Tok.String())
 		}
 	}
 	if len(a.Lhs) < len(a.Rhs) {
 		_ = vm.frameStack.top().pop()
 	}
-}
-func (a AssignStmt) String() string {
-	return fmt.Sprintf("AssignStmt(%v %s %v)", a.Lhs, a.AssignStmt.Tok, a.Rhs)
 }
 
 func (a AssignStmt) Flow(g *graphBuilder) (head Step) {
@@ -112,4 +107,12 @@ func (a AssignStmt) Flow(g *graphBuilder) (head Step) {
 		head = g.current
 	}
 	return head
+}
+
+func (a AssignStmt) Pos() token.Pos { return a.TokPos }
+
+func (a AssignStmt) stmtStep() Evaluable { return a }
+
+func (a AssignStmt) String() string {
+	return fmt.Sprintf("AssignStmt(%v %s %v)", a.Lhs, a.Tok, a.Rhs)
 }

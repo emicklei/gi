@@ -82,3 +82,8 @@ additional generated sources that will setup all exported functions,consts and v
 this technique is also applied in `varvoy`.
 
 - About types: https://github.com/golang/example/tree/master/gotypes
+
+## ideas for Gi Playground
+- https://godbolt.org/
+- call graphs in tab view
+- structexplorer to see all environments and stackframes

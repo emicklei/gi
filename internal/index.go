@@ -2,7 +2,7 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
+	"go/token"
 	"reflect"
 )
 
@@ -10,9 +10,9 @@ var _ Expr = IndexExpr{}
 var _ CanAssign = IndexExpr{}
 
 type IndexExpr struct {
-	*ast.IndexExpr
-	X     Expr
-	Index Expr
+	Lbrack token.Pos // position of "["
+	X      Expr
+	Index  Expr
 }
 
 func (i IndexExpr) Eval(vm *VM) {
@@ -60,6 +60,8 @@ func (i IndexExpr) Flow(g *graphBuilder) (head Step) {
 	g.next(i)
 	return head
 }
+
+func (i IndexExpr) Pos() token.Pos { return i.Lbrack }
 
 func (i IndexExpr) String() string {
 	return fmt.Sprintf("IndexExpr(%v, %v)", i.X, i.Index)

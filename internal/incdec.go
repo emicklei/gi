@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"reflect"
 )
@@ -11,8 +10,9 @@ var _ Flowable = IncDecStmt{}
 var _ Stmt = IncDecStmt{}
 
 type IncDecStmt struct {
-	*ast.IncDecStmt
-	X Expr
+	TokPos token.Pos   // position of Tok
+	Tok    token.Token // INC or DEC
+	X      Expr
 }
 
 func (i IncDecStmt) Flow(g *graphBuilder) (head Step) {
@@ -80,6 +80,7 @@ func (i IncDecStmt) Eval(vm *VM) {
 		}
 	}
 }
+func (i IncDecStmt) Pos() token.Pos { return i.TokPos }
 
 func (i IncDecStmt) stmtStep() Evaluable { return i }
 

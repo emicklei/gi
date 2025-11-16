@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"go/ast"
 	"go/token"
 	"reflect"
 	"testing"
@@ -31,8 +30,8 @@ func TestIncDec(t *testing.T) {
 			x.Define(vm, tc.start)
 
 			n := IncDecStmt{
-				IncDecStmt: &ast.IncDecStmt{Tok: tc.tok},
-				X:          x,
+				Tok: tc.tok,
+				X:   x,
 			}
 			g := newGraphBuilder(nil)
 			head := n.Flow(g)

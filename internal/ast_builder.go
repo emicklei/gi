@@ -212,7 +212,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Value = e.(Expr)
 		b.push(s)
 	case *ast.IncDecStmt:
-		s := &IncDecStmt{IncDecStmt: n}
+		s := &IncDecStmt{Tok: n.Tok, TokPos: n.TokPos}
 		b.Visit(n.X)
 		e := b.pop()
 		s.X = e.(Expr)
@@ -286,7 +286,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.AssignStmt:
-		s := AssignStmt{AssignStmt: n}
+		s := AssignStmt{Tok: n.Tok, TokPos: n.TokPos}
 		for _, l := range n.Lhs {
 			b.Visit(l)
 			e := b.pop()
@@ -637,7 +637,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Body = &bs
 		b.push(s)
 	case *ast.IndexExpr:
-		s := IndexExpr{IndexExpr: n}
+		s := IndexExpr{Lbrack: n.Lbrack}
 		b.Visit(n.X)
 		e := b.pop()
 		s.X = e.(Expr)
