@@ -148,12 +148,6 @@ func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package
 	if dir == "" {
 		return nil, fmt.Errorf("directory must be specified")
 	}
-	if trace {
-		now := time.Now()
-		defer func() {
-			fmt.Printf("pkg.load(%s) took %v\n", dir, time.Since(now))
-		}()
-	}
 	var cfg *packages.Config
 	if optionalConfig != nil {
 		cfg = optionalConfig
@@ -214,6 +208,10 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 	for _, stx := range goPkg.Syntax {
 		for _, decl := range stx.Decls {
 			b.Visit(decl)
+			if b.buildErr != nil {
+				// fail fast
+				return nil, b.buildErr
+			}
 		}
 	}
 	pkg := &Package{Package: goPkg, Env: b.env.(*PkgEnvironment)}

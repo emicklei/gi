@@ -143,19 +143,19 @@ func (b BinaryExprValue) Eval() reflect.Value {
 func (b BinaryExprValue) UntypedNilEval(left reflect.Value) reflect.Value {
 	// duplicated code from InterfaceEval
 	// left is a struct
-	rightIsNil := b.right.IsNil()
+	rightIsNil := b.right == reflectNil || b.right.IsNil()
 	switch b.op {
 	case token.EQL:
 		if left == reflectNil {
-			return reflect.ValueOf(b.right == reflectNil || rightIsNil)
+			return reflect.ValueOf(rightIsNil)
 		}
 		if left == b.right {
 			return reflectTrue
 		}
 		return reflectFalse
 	case token.NEQ:
-		if left.Interface() != untypedNil {
-			return reflect.ValueOf(rightIsNil || b.right.Interface() != untypedNil)
+		if left != reflectNil {
+			return reflect.ValueOf(rightIsNil)
 		}
 		if left != b.right {
 			return reflectTrue

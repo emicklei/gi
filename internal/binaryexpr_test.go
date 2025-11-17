@@ -217,9 +217,11 @@ func main() {
 	var e error
 	if nil == e{
 		print("2")
-	}		
+	}	
+			
 }`, "2")
 }
+
 func TestNilErrorEqualsNilError(t *testing.T) {
 	testMain(t, `package main
  

@@ -153,7 +153,11 @@ func (e *Environment) set(name string, value reflect.Value) {
 	e.valueTable[name] = value
 	// trace after set
 	if trace {
-		fmt.Println(e, name, "=", value.Interface())
+		if value.IsValid() {
+			fmt.Println(e, name, "=", value.Interface())
+		} else {
+			fmt.Println(e, name, "=", value)
+		}
 	}
 }
 

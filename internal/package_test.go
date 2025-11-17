@@ -46,3 +46,17 @@ func TestWriteAST(t *testing.T) {
 	p.writeAST("testgraphs/test.ast")
 	// file must have: (int) 1
 }
+
+func TestLoadEmptyStdPackage(t *testing.T) {
+	source := `package main
+import "slices"
+func main() {
+	slices.All([]int{})
+	print("done")
+}`
+	_, err := ParseSource(source)
+	if err == nil {
+		t.Fatalf("slices should fail (now): %v", err)
+	}
+	t.Log(err)
+}

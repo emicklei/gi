@@ -31,6 +31,7 @@ type ASTBuilder struct {
 	opts      buildOptions
 	goPkg     *packages.Package
 	funcStack stack[funcDeclPair]
+	buildErr  error // capture any error during building
 }
 
 func newASTBuilder(goPkg *packages.Package) ASTBuilder {
@@ -38,6 +39,8 @@ func newASTBuilder(goPkg *packages.Package) ASTBuilder {
 	pkgenv := newPkgEnvironment(builtins)
 	return ASTBuilder{goPkg: goPkg, env: pkgenv, opts: buildOptions{}}
 }
+
+func (b *ASTBuilder) Err() error { return b.buildErr }
 
 func (b *ASTBuilder) pushEnv() {
 	b.env = b.env.newChild()
@@ -342,17 +345,17 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			// strip module prefix
 			loc, err := filepath.Abs(filepath.Join("..", unq))
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to locate imported package %s: %v\n", unq, err)
+				b.buildErr = fmt.Errorf("failed to locate imported package %s: %v", unq, err)
 				break
 			}
 			gopkg, err := LoadPackage(loc, nil)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to load imported package %s: %v\n", unq, err)
+				b.buildErr = fmt.Errorf("failed to load imported package %s: %v", unq, err)
 				break
 			}
 			pkg, err := BuildPackage(gopkg)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to build imported package %s: %v\n", unq, err)
+				b.buildErr = fmt.Errorf("failed to build imported package %s: %v", unq, err)
 				break
 			}
 			root.packageTable[unq] = pkg
