@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"reflect"
 )
@@ -79,15 +78,13 @@ var _ Expr = SliceExpr{}
 
 // http://golang.org/ref/spec#Slice_expressions
 type SliceExpr struct {
-	*ast.SliceExpr
-	X    Expr
-	Low  Expr // may be nil
-	High Expr // may be nil
-	Max  Expr // may be nil
-}
-
-func (s SliceExpr) String() string {
-	return fmt.Sprintf("SliceExpr(%v,%v:%v:%v)", s.X, s.Low, s.High, s.Max)
+	X      Expr      // expression
+	Lbrack token.Pos // position of "["
+	Low    Expr      // begin of slice range; or nil
+	High   Expr      // end of slice range; or nil
+	Max    Expr      // maximum capacity of slice; or nil
+	// TODO handle this
+	Slice3 bool // true if 3-index slice (2 colons present)
 }
 
 func (s SliceExpr) Eval(vm *VM) {
@@ -128,4 +125,10 @@ func (s SliceExpr) Flow(g *graphBuilder) (head Step) {
 	}
 	g.next(s)
 	return
+}
+
+func (s SliceExpr) Pos() token.Pos { return s.Lbrack }
+
+func (s SliceExpr) String() string {
+	return fmt.Sprintf("SliceExpr(%v,%v:%v:%v)", s.X, s.Low, s.High, s.Max)
 }

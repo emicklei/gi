@@ -2,9 +2,9 @@ gen:
 	cd cmd/genstdlib && go run .
 
 test:
-	go test -cover ./internal
+	GI_TRACE=1 go test -cover ./internal
 
-testserial:
+serial:
 	GI_TRACE=1 go test -v -p 1 ./internal
 
 clean:

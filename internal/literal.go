@@ -12,7 +12,7 @@ import (
 var _ Expr = BasicLit{}
 
 type BasicLit struct {
-	*ast.BasicLit
+	*ast.BasicLit // TODO copy fields?
 }
 
 func (s BasicLit) Eval(vm *VM) {
@@ -36,16 +36,14 @@ func (s BasicLit) Eval(vm *VM) {
 		panic("not implemented: BasicList.Eval:" + s.Kind.String())
 	}
 }
-func (s BasicLit) Loc(f *token.File) string {
-	return fmt.Sprintf("%v:BasicLit(%v)", f.Position(s.Pos()), s.Value)
-}
-func (s BasicLit) String() string {
-	return fmt.Sprintf("BasicLit(%v)", s.Value)
-}
 
 func (s BasicLit) Flow(g *graphBuilder) (head Step) {
 	g.next(s)
 	return g.current
+}
+
+func (s BasicLit) String() string {
+	return fmt.Sprintf("BasicLit(%v)", s.Value)
 }
 
 var _ Flowable = CompositeLit{}

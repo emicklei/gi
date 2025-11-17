@@ -41,11 +41,12 @@ func main() {
 
 import "fmt"
 
-func Hello(name string) {
+func Hello(name string) int {
 	fmt.Println("Hello,", name)
+	return 42
 }
 `)
-	gi.Call(pkg, "Hello", "3i/Atlas")
+	answer, err := gi.Call(pkg, "Hello", "3i/Atlas")
 }
 ```
 

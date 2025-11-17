@@ -104,9 +104,9 @@ var (
 )
 
 type MapType struct {
-	*ast.MapType
-	Key   Expr
-	Value Expr
+	MapPos token.Pos
+	Key    Expr
+	Value  Expr
 }
 
 func (m MapType) Eval(vm *VM) {
@@ -128,7 +128,7 @@ func (m MapType) Instantiate(vm *VM, _ int, constructorArgs []reflect.Value) ref
 }
 func (m MapType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
 	if composite.Kind() != reflect.Map {
-		expected(composite, "map")
+		expected(composite, "map") // TODO bug if reached here?
 	}
 	for _, kv := range values {
 		kv := kv.Interface().(KeyValue)
@@ -136,6 +136,8 @@ func (m MapType) LiteralCompose(composite reflect.Value, values []reflect.Value)
 	}
 	return composite
 }
+
+func (m MapType) Pos() token.Pos { return m.MapPos }
 
 func (m MapType) String() string {
 	return fmt.Sprintf("MapType(%v,%v)", m.Key, m.Value)

@@ -16,11 +16,11 @@ var (
 )
 
 type RangeStmt struct {
-	*ast.RangeStmt
 	ForPos     token.Pos
 	Tok        token.Token // ILLEGAL if Key == nil, ASSIGN, DEFINE
 	Key, Value Expr        // Key, Value may be nil
 	X          Expr
+	XType      types.Type // depending on type, different flows are created
 	Body       *BlockStmt
 }
 
@@ -43,10 +43,8 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	// all flows converge to this done step
 	rangeDone := g.newLabeledStep("range-done")
 
-	// determine the type of X
-	goType := g.goPkg.TypesInfo.TypeOf(r.RangeStmt.X)
-
-	switch goType.Underlying().(type) {
+	// flow depends on the type of X
+	switch r.XType.Underlying().(type) {
 	case *types.Map:
 		// start the map flow, detached from the current
 		g.current = g.newLabeledStep("range-map")
@@ -65,7 +63,7 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 		switcher.intFlow = r.IntFlow(g)
 		g.nextStep(rangeDone)
 	default:
-		g.fatal(fmt.Sprintf("cannot range over type %v", goType))
+		g.fatal(fmt.Sprintf("unhandled range over type %v", r.XType))
 	}
 	return
 }
@@ -324,6 +322,8 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 	}
 	return forstmt.Flow(g)
 }
+
+func (r RangeStmt) Pos() token.Pos { return r.ForPos }
 
 func (r RangeStmt) String() string {
 	return fmt.Sprintf("RangeStmt(%v, %v, %v, %v)", r.Key, r.Value, r.X, r.Body)

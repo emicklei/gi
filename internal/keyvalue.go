@@ -10,13 +10,9 @@ import (
 var _ Expr = KeyValueExpr{}
 
 type KeyValueExpr struct {
-	*ast.KeyValueExpr
+	Colon token.Pos // position of ":"
 	Key   Expr
 	Value Expr
-}
-
-func (e KeyValueExpr) String() string {
-	return fmt.Sprintf("KeyValueExpr(%v,%v)", e.Key, e.Value)
 }
 
 func (e KeyValueExpr) Eval(vm *VM) {
@@ -42,6 +38,12 @@ func (e KeyValueExpr) Flow(g *graphBuilder) (head Step) {
 
 	g.next(e)
 	return head
+}
+
+func (e KeyValueExpr) Pos() token.Pos { return e.Colon }
+
+func (e KeyValueExpr) String() string {
+	return fmt.Sprintf("KeyValueExpr(%v,%v)", e.Key, e.Value)
 }
 
 type KeyValue struct {

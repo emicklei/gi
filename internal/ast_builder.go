@@ -16,7 +16,13 @@ import (
 
 var _ ast.Visitor = (*ASTBuilder)(nil)
 
+// TODO used?
 type buildOptions struct {
+}
+
+type funcDeclPair struct {
+	decl    FuncDecl      // the mirror node
+	astDecl *ast.FuncDecl // need this to find index of each block stmt
 }
 
 type ASTBuilder struct {
@@ -24,7 +30,7 @@ type ASTBuilder struct {
 	env       Env
 	opts      buildOptions
 	goPkg     *packages.Package
-	funcStack stack[FuncDecl]
+	funcStack stack[funcDeclPair]
 }
 
 func newASTBuilder(goPkg *packages.Package) ASTBuilder {
@@ -58,8 +64,8 @@ func (b *ASTBuilder) envSet(name string, value reflect.Value) {
 	b.env.set(name, value)
 }
 
-func (b *ASTBuilder) pushFuncDecl(f FuncDecl) {
-	b.funcStack.push(f)
+func (b *ASTBuilder) pushFuncDecl(f FuncDecl, a *ast.FuncDecl) {
+	b.funcStack.push(funcDeclPair{decl: f, astDecl: a})
 }
 func (b *ASTBuilder) popFuncDecl() {
 	b.funcStack.pop()
@@ -94,7 +100,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		b.push(s)
 
 	case *ast.SliceExpr:
-		s := SliceExpr{SliceExpr: n}
+		s := SliceExpr{Lbrack: n.Lbrack, Slice3: n.Slice3}
 		b.Visit(n.X)
 		e := b.pop()
 		s.X = e.(Expr)
@@ -202,7 +208,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.MapType:
-		s := MapType{MapType: n}
+		s := MapType{MapPos: n.Map}
 		b.Visit(n.Key)
 		e := b.pop()
 		s.Key = e.(Expr)
@@ -385,7 +391,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Y = e.(Expr)
 		b.push(s)
 	case *ast.CallExpr:
-		s := CallExpr{CallExpr: n}
+		s := CallExpr{Lparen: n.Lparen}
 		b.Visit(n.Fun)
 		e := b.pop()
 		s.Fun = e.(Expr)
@@ -439,10 +445,9 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		// any declarations inside the function scope
 		b.pushEnv()
 		s := FuncDecl{
-			FuncDecl:    n,
 			labelToStmt: make(map[string]statementReference),
 			fileSet:     b.goPkg.Fset}
-		b.pushFuncDecl(s)
+		b.pushFuncDecl(s, n)
 		defer b.popFuncDecl()
 		if n.Recv != nil {
 			b.Visit(n.Recv)
@@ -483,7 +488,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		b.envSet(n.Name.Name, reflect.ValueOf(s))
 
 	case *ast.FuncType:
-		s := FuncType{FuncType: n}
+		s := FuncType{FuncPos: n.Func}
 		if n.TypeParams != nil {
 			b.Visit(n.TypeParams)
 			e := b.pop().(FieldList)
@@ -499,7 +504,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			b.Visit(n.Results)
 			e := b.pop()
 			f := e.(FieldList)
-			s.Returns = &f
+			s.Results = &f
 		}
 		b.push(s)
 	case *ast.FieldList:
@@ -579,7 +584,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Elt = e.(Expr)
 		b.push(s)
 	case *ast.KeyValueExpr:
-		s := KeyValueExpr{KeyValueExpr: n}
+		s := KeyValueExpr{Colon: n.Colon}
 		b.Visit(n.Key)
 		e := b.pop()
 		s.Key = e.(Expr)
@@ -617,7 +622,8 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.RangeStmt:
-		s := RangeStmt{RangeStmt: n}
+		s := RangeStmt{ForPos: n.For}
+		s.XType = b.goPkg.TypesInfo.TypeOf(n.X)
 		if n.Key != nil {
 			b.Visit(n.Key)
 			e := b.pop()
@@ -662,12 +668,12 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		// elsewhere and not set a labeledStep now.
 
 		// add label -> statement by index mapping in current function
-		index := slices.Index(b.funcStack.top().FuncDecl.Body.List, ast.Stmt(n))
+		index := slices.Index(b.funcStack.top().astDecl.Body.List, ast.Stmt(n))
 		refStep := new(labeledStep)
 		refStep.label = s.Label.Name
 		refStep.pos = s.Pos()
 		ref := statementReference{index: index, step: refStep} // has no ID
-		b.funcStack.top().labelToStmt[s.Label.Name] = ref
+		b.funcStack.top().decl.labelToStmt[s.Label.Name] = ref
 
 	case *ast.BranchStmt:
 		s := BranchStmt{BranchStmt: n}

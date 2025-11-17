@@ -13,7 +13,6 @@ type statementReference struct {
 }
 
 type FuncDecl struct {
-	*ast.FuncDecl
 	Name *Ident
 	Recv *FieldList // for methods
 	Body *BlockStmt
@@ -38,22 +37,26 @@ func (f FuncDecl) Flow(g *graphBuilder) (head Step) {
 	return
 }
 
+func (f FuncDecl) Pos() token.Pos { return f.Type.Pos() }
+
 func (f FuncDecl) String() string {
 	return fmt.Sprintf("FuncDecl(%s)", f.Name.Name)
 }
 
 type FuncType struct {
-	*ast.FuncType
-	TypeParams *FieldList
-	Params     *FieldList
-	Returns    *FieldList
-}
-
-func (t FuncType) String() string {
-	return fmt.Sprintf("FuncType(%v,%v,%v)", t.TypeParams, t.Params, t.Returns)
+	FuncPos    token.Pos
+	TypeParams *FieldList // type parameters; or nil
+	Params     *FieldList // (incoming) parameters; non-nil
+	Results    *FieldList // (outgoing) results; or nil
 }
 
 func (t FuncType) Eval(vm *VM) {}
+
+func (t FuncType) Pos() token.Pos { return t.FuncPos }
+
+func (t FuncType) String() string {
+	return fmt.Sprintf("FuncType(%v,%v,%v)", t.TypeParams, t.Params, t.Results)
+}
 
 var _ Expr = Ellipsis{}
 

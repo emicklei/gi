@@ -16,6 +16,13 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+var importedPkgs = make(map[string]map[string]reflect.Value)
+
+func RegisterPackage(pkgPath string, symbols map[string]reflect.Value) {
+	// TODO check for override?
+	importedPkgs[pkgPath] = symbols
+}
+
 type StandardPackage struct {
 	Name    string
 	PkgPath string
@@ -31,10 +38,7 @@ func (p StandardPackage) Select(name string) reflect.Value {
 		if ok {
 			return t
 		}
-		if trace {
-			fmt.Println("TRACE: StandardPackage.Select not found", p.PkgPath, name)
-		}
-		return reflect.Value{}
+		panic(fmt.Sprintf("package not found: %s %s", p.PkgPath, name))
 	}
 	return v
 }
@@ -95,6 +99,11 @@ func (p *Package) Initialize(vm *VM) error {
 }
 
 func (p *Package) writeAST(fileName string) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("SPEW: failed to write AST file", r)
+		}
+	}()
 	buf := new(bytes.Buffer)
 	spew.Config.DisableMethods = true
 	// only dump the actual values of each var/function in the environment

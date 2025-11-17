@@ -2,16 +2,16 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
+	"go/token"
 	"reflect"
 )
 
 var _ Expr = CallExpr{}
 
 type CallExpr struct {
-	*ast.CallExpr
-	Fun  Expr
-	Args []Expr
+	Lparen token.Pos // position of "("
+	Fun    Expr
+	Args   []Expr // function arguments; or nil
 }
 
 func (c CallExpr) Eval(vm *VM) {
@@ -160,11 +160,11 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 }
 
 func setZeroReturnsToFrame(ft *FuncType, vm *VM, frame *stackFrame) {
-	if ft.Returns == nil {
+	if ft.Results == nil {
 		return
 	}
 	r := 0
-	for _, field := range ft.Returns.List {
+	for _, field := range ft.Results.List {
 		for _, name := range field.Names {
 			val := reflect.Zero(vm.returnsType(field.Type)) // TODO use gopkg?
 			frame.env.set(name.Name, val)
@@ -240,6 +240,8 @@ func (c CallExpr) Flow(g *graphBuilder) (head Step) {
 	g.next(c)
 	return head
 }
+
+func (c CallExpr) Pos() token.Pos { return c.Lparen }
 
 func (c CallExpr) String() string {
 	return fmt.Sprintf("CallExpr(%v, args=%d)", c.Fun, len(c.Args))
