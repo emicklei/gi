@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-// deprecated
+// Deprecated
 func expected(value any, expectation string) reflect.Value {
 	panic(fmt.Sprintf("expected %s : %v (%T)", expectation, value, value))
 }

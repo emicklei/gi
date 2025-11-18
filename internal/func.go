@@ -43,6 +43,8 @@ func (f FuncDecl) String() string {
 	return fmt.Sprintf("FuncDecl(%s)", f.Name.Name)
 }
 
+var _ Expr = FuncType{}
+
 type FuncType struct {
 	FuncPos    token.Pos
 	TypeParams *FieldList // type parameters; or nil
@@ -51,6 +53,11 @@ type FuncType struct {
 }
 
 func (t FuncType) Eval(vm *VM) {}
+
+func (t FuncType) Flow(g *graphBuilder) (head Step) {
+	// TODO
+	return g.current
+}
 
 func (t FuncType) Pos() token.Pos { return t.FuncPos }
 

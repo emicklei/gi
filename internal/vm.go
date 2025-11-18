@@ -149,6 +149,10 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 		elemType := vm.returnsType(ar.Elt)
 		return reflect.SliceOf(elemType)
 	}
+	// if ft, ok := e.(FuncType); ok {
+	// 	elemType := vm.returnsType(ar.Elt)
+	// 	return reflect.SliceOf(elemType)
+	// }
 	vm.fatal(fmt.Sprintf("unhandled returnsType for %v (%T)", e, e))
 	return nil
 }

@@ -56,7 +56,7 @@ func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
 }
 
 func (i IndexExpr) Define(vm *VM, value reflect.Value) {
-	fmt.Println("IndexExpr.Define", i, value)
+	vm.fatal("not yet implemented: IndexExpr.Define")
 }
 
 func (i IndexExpr) Flow(g *graphBuilder) (head Step) {
