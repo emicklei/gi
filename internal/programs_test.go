@@ -104,6 +104,15 @@ func main() {
 }`, "giflow")
 }
 
+func TestRuneOfString(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	print(len("สวัสดี"))
+	print("สวัสดี"[0])
+}`, "18224")
+}
+
 func TestCompareString(t *testing.T) { // TODO compare for all comparables
 	testMain(t, `package main
 

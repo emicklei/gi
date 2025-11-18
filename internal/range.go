@@ -58,10 +58,22 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 		g.nextStep(rangeDone)
 
 	case *types.Basic:
-		// start the int flow, detached from the current
-		g.current = g.newLabeledStep("range-int")
-		switcher.intFlow = r.IntFlow(g)
-		g.nextStep(rangeDone)
+		basicKind := r.XType.Underlying().(*types.Basic).Kind()
+		if basicKind == types.Int {
+			// start the int flow, detached from the current
+			g.current = g.newLabeledStep("range-int")
+			switcher.intFlow = r.IntFlow(g)
+			g.nextStep(rangeDone)
+			break
+		}
+		if basicKind == types.String || basicKind == types.UntypedString {
+			// start the runes flow, detached from the current
+			g.current = g.newLabeledStep("range-runes")
+			switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
+			g.nextStep(rangeDone)
+			break
+		}
+		g.fatal(fmt.Sprintf("unhandled range over basic type %v", r.XType))
 	default:
 		g.fatal(fmt.Sprintf("unhandled range over type %v", r.XType))
 	}
@@ -369,6 +381,15 @@ func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
 		return i.sliceOrArrayFlow.Take(vm)
 	case reflect.Int:
 		return i.intFlow.Take(vm)
+	case reflect.String:
+		// iterate over runes
+		str := rangeable.String()
+		runeSlice := make([]rune, 0, len(str))
+		for _, r := range str {
+			runeSlice = append(runeSlice, r)
+		}
+		vm.pushOperand(reflect.ValueOf(runeSlice))
+		return i.sliceOrArrayFlow.Take(vm)
 	case reflect.Func: // func(yield func(V) bool): //iter.Seq[V any]:
 		//return i.funcFlow.Take(vm)
 		fallthrough

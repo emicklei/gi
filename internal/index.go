@@ -30,7 +30,12 @@ func (i IndexExpr) Eval(vm *VM) {
 		vm.pushOperand(target.Index(int(index.Int())))
 		return
 	}
-	expected(target, "map or slice or array")
+	if target.Kind() == reflect.String {
+		v := reflect.ValueOf(target.String()[int(index.Int())])
+		vm.pushOperand(v)
+		return
+	}
+	vm.fatal(fmt.Sprintf("expected map or slice or array, got %s", target.Kind()))
 }
 
 func (i IndexExpr) Assign(vm *VM, value reflect.Value) {

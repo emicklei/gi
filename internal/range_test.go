@@ -16,6 +16,16 @@ func main() {
 }`, "0hello1world")
 }
 
+func TestRangeOfString(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	for _, s := range "gi" {
+		print(s)
+	}
+}`, "103105")
+}
+
 func TestRangeOfStringsNoValue(t *testing.T) {
 	testMain(t, `package main
 
