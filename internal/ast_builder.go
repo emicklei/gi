@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"slices"
 	"strconv"
+	"strings"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -311,6 +312,13 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		pkgName := path.Base(unq)
 		if n.Name != nil {
 			pkgName = n.Name.Name
+		}
+		// HACK TODO
+		if strings.HasSuffix(unq, "v2") {
+			if trace {
+				fmt.Println("WARNING: need package name from import fix")
+			}
+			pkgName = path.Base(filepath.Join(unq, ".."))
 		}
 		// check for standard package
 		if symbolTable := stdfuncs[unq]; symbolTable != nil {

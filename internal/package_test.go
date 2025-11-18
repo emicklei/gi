@@ -60,3 +60,23 @@ func main() {
 	}
 	t.Log(err)
 }
+
+func TestV2Package(t *testing.T) {
+	testMain(t, `package main
+import (
+	"math/rand/v2"
+)
+func main() {
+	print(rand.IntN(1))
+}`, "0")
+}
+
+func TestBlankImport(t *testing.T) {
+	testMain(t, `package main
+import (
+	_ "math/rand/v2"
+)
+func main() {
+	print(1)
+}`, "1")
+}

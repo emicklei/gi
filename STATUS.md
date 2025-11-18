@@ -49,3 +49,4 @@
 | recover | ⬜ |
 | struct json | ⬜ |
 | struct xml | ⬜ |
+| type assertion | ⬜ |

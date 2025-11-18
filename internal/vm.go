@@ -86,8 +86,16 @@ type VM struct {
 }
 
 func newVM(env Env) *VM {
+	// TODO not sure when/if useful outside treerunner
 	if os.Getenv("GI_IGNORE_EXIT") != "" {
-		patchReflectRegistries()
+		stdfuncs["os"]["Exit"] = reflect.ValueOf(func(code int) {
+			fmt.Fprintf(os.Stderr, "[gi] os.Exit called with code %d\n", code)
+		})
+	}
+	if os.Getenv("GI_IGNORE_PANIC") != "" {
+		builtinsMap["panic"] = reflect.ValueOf(func(why any) {
+			fmt.Fprintf(os.Stderr, "[gi] panic called with %v\n", why)
+		})
 	}
 	vm := &VM{
 		output:     new(bytes.Buffer),
@@ -97,16 +105,6 @@ func newVM(env Env) *VM {
 	frame.env = env
 	vm.frameStack.push(frame)
 	return vm
-}
-
-var patchOnce sync.Once
-
-func patchReflectRegistries() {
-	patchOnce.Do(func() {
-		stdfuncs["os"]["Exit"] = reflect.ValueOf(func(code int) {
-			fmt.Fprintf(os.Stderr, "[gi] os.Exit called with code %d\n", code)
-		})
-	})
 }
 
 func (vm *VM) setFileSet(fs *token.FileSet) {

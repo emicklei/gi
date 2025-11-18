@@ -91,6 +91,16 @@ func main() {
 }`, "[2]")
 }
 
+func TestReSlice(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	a := [5]int{1, 2, 3, 4, 5}
+	t := a[1:3:5]
+	print(t)
+}`, "[2 3]")
+}
+
 func TestEllipsisArray(t *testing.T) {
 	testMain(t, `package main
 

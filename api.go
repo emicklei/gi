@@ -14,11 +14,11 @@ func Run(filePath string) error {
 	if err != nil {
 		return err
 	}
-	ffpkg, err := internal.BuildPackage(gopkg)
+	pkg, err := internal.BuildPackage(gopkg)
 	if err != nil {
 		return err
 	}
-	_, err = internal.CallPackageFunction(ffpkg, "main", nil, nil)
+	_, err = internal.CallPackageFunction(pkg, "main", nil, nil)
 	return err
 }
 

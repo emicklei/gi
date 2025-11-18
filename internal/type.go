@@ -8,6 +8,7 @@ import (
 )
 
 var _ CanInstantiate = TypeSpec{}
+var _ Expr = TypeSpec{}
 
 type TypeSpec struct {
 	Name       *Ident
@@ -19,6 +20,11 @@ type TypeSpec struct {
 func (s TypeSpec) Eval(vm *VM) {
 	actualType := vm.returnsEval(s.Type)
 	vm.localEnv().set(s.Name.Name, actualType) // use the spec itself as value
+}
+
+func (s TypeSpec) Flow(g *graphBuilder) (head Step) {
+	g.next(s)
+	return g.current
 }
 
 func (s TypeSpec) Instantiate(vm *VM, _ int, constructorArgs []reflect.Value) reflect.Value {
