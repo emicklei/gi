@@ -8,4 +8,4 @@ Remote execution of Go source on the server upon handling a HTTP request.
 
 ## send Go source to execute
 
-    curl -v --data-binary "@function.src" "http://localhost:8080/gi?func=doit"
+    curl -v --data-binary "@function.script" "http://localhost:8080/gi?func=doit"

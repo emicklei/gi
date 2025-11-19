@@ -1,0 +1,5 @@
+package main
+
+func doit() int {
+    return 42
+}
