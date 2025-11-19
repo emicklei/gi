@@ -63,6 +63,16 @@ func main() {
 }`, "1")
 }
 
+func TestDeclareFunctionLiteral(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	var f func(a int) int
+	f = func(a int) int { return a }
+	print(f(1))
+}`, "1")
+}
+
 func TestFuncAsPackageVar(t *testing.T) {
 	testMain(t, `package main
 
