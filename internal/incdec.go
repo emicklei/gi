@@ -6,6 +6,8 @@ import (
 	"reflect"
 )
 
+type IncDecFunc func(v reflect.Value) reflect.Value
+
 var _ Flowable = IncDecStmt{}
 var _ Stmt = IncDecStmt{}
 

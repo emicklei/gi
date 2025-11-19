@@ -45,3 +45,5 @@ gi-vm-panic.html
 gobyexample
 *.txt
 *.ast
+
+.zed
