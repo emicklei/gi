@@ -124,6 +124,8 @@ func (b BinaryExprValue) Eval() reflect.Value {
 	case reflect.Uint64:
 		return reflect.ValueOf(b.UIntEval(b.left.Uint()).Uint())
 	// non-ints
+	case reflect.Float32:
+		return b.FloatEval(b.left.Float())
 	case reflect.Float64:
 		return b.FloatEval(b.left.Float())
 	case reflect.String:
@@ -266,7 +268,7 @@ func (b BinaryExprValue) UIntEval(left uint64) reflect.Value {
 
 func (b BinaryExprValue) FloatEval(left float64) reflect.Value {
 	switch b.right.Kind() {
-	case reflect.Float64:
+	case reflect.Float32, reflect.Float64:
 		return b.FloatOpFloat(left, b.right.Float())
 	case reflect.Int:
 		return b.FloatOpFloat(left, float64(b.right.Int()))
@@ -284,6 +286,18 @@ func (b BinaryExprValue) FloatOpFloat(left float64, right float64) reflect.Value
 		return reflect.ValueOf(left * right)
 	case token.QUO:
 		return reflect.ValueOf(left / right)
+	case token.EQL:
+		return reflect.ValueOf(left == right)
+	case token.NEQ:
+		return reflect.ValueOf(left != right)
+	case token.LSS:
+		return reflect.ValueOf(left < right)
+	case token.LEQ:
+		return reflect.ValueOf(left <= right)
+	case token.GTR:
+		return reflect.ValueOf(left > right)
+	case token.GEQ:
+		return reflect.ValueOf(left >= right)
 	}
 	panic("not implemented: BinaryExprValue.FloatOpFloat:" + b.op.String())
 }

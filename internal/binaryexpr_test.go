@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"math"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -243,4 +244,102 @@ func main() {
 		print("4")
 	}		
 }`, "4")
+}
+
+func expectFloat32(t *testing.T, expected float32) func(string) bool {
+	return func(out string) bool {
+		f, err := strconv.ParseFloat(out, 32)
+		if err != nil {
+			t.Errorf("failed to parse output: %v", err)
+			return false
+		}
+		if math.Abs(float64(expected)-f) > 1e-6 {
+			t.Errorf("got %v want %v", f, expected)
+			return false
+		}
+		return true
+	}
+}
+
+func TestBinaryExprFloat32(t *testing.T) {
+	t.Run("add", func(t *testing.T) {
+		testMain(t, `package main
+func main() {
+	var x float32 = 1.1
+	var y float32 = 2.2
+	print(x + y)
+}`, expectFloat32(t, 3.3000002))
+	})
+	t.Run("sub", func(t *testing.T) {
+		testMain(t, `package main
+func main() {
+	var x float32 = 5.5
+	var y float32 = 3.3
+	print(x - y)
+}`, expectFloat32(t, 2.2))
+	})
+	t.Run("mul", func(t *testing.T) {
+		testMain(t, `package main
+func main() {
+	var x float32 = 2.2
+	var y float32 = 3.3
+	print(x * y)
+}`, expectFloat32(t, 7.2600005))
+	})
+	t.Run("quo", func(t *testing.T) {
+		testMain(t, `package main
+func main() {
+	var x float32 = 6.6
+	var y float32 = 3.3
+	print(x / y)
+}`, expectFloat32(t, 2))
+	})
+	t.Run("eql", func(t *testing.T) {
+		testMain(t, `package main
+func main() {
+	var x float32 = 6.6
+	var y float32 = 6.6
+	print(x == y)
+}`, "true")
+	})
+	t.Run("neq", func(t *testing.T) {
+		testMain(t, `package main
+func main() {
+	var x float32 = 6.6
+	var y float32 = 3.3
+	print(x != y)
+}`, "true")
+	})
+	t.Run("lss", func(t *testing.T) {
+		testMain(t, `package main
+func main() {
+	var x float32 = 3.3
+	var y float32 = 6.6
+	print(x < y)
+}`, "true")
+	})
+	t.Run("leq", func(t *testing.T) {
+		testMain(t, `package main
+func main() {
+	var x float32 = 3.3
+	var y float32 = 3.3
+	print(x <= y)
+}`, "true")
+	})
+	t.Run("gtr", func(t *testing.T) {
+		testMain(t, `package main
+func main() {
+	var x float32 = 6.6
+	var y float32 = 3.3
+	print(x > y)
+}`, "true")
+	})
+	t.Run("geq", func(t *testing.T) {
+		testMain(t, `package main
+func main() {
+	var x float32 = 6.6
+	var y float32 = 6.6
+	print(x >= y)
+}`, "true")
+	})
 }

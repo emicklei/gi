@@ -197,6 +197,17 @@ var binFuncs = map[string]BinaryExprFunc{
 	"float64" + token.NEQ.String() + "float64": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.Float() != y.Float()) },
 	"float64" + token.LEQ.String() + "float64": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.Float() <= y.Float()) },
 	"float64" + token.GEQ.String() + "float64": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.Float() >= y.Float()) },
+	// float32
+	"float32" + token.ADD.String() + "float32": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(float32(x.Float() + y.Float())) },
+	"float32" + token.SUB.String() + "float32": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(float32(x.Float() - y.Float())) },
+	"float32" + token.MUL.String() + "float32": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(float32(x.Float() * y.Float())) },
+	"float32" + token.QUO.String() + "float32": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(float32(x.Float() / y.Float())) },
+	"float32" + token.EQL.String() + "float32": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.Float() == y.Float()) },
+	"float32" + token.LSS.String() + "float32": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.Float() < y.Float()) },
+	"float32" + token.GTR.String() + "float32": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.Float() > y.Float()) },
+	"float32" + token.NEQ.String() + "float32": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.Float() != y.Float()) },
+	"float32" + token.LEQ.String() + "float32": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.Float() <= y.Float()) },
+	"float32" + token.GEQ.String() + "float32": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.Float() >= y.Float()) },
 	// string
 	"string" + token.ADD.String() + "string": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.String() + y.String()) },
 	"string" + token.EQL.String() + "string": func(x, y reflect.Value) reflect.Value { return reflect.ValueOf(x.String() == y.String()) },
