@@ -104,6 +104,12 @@ func newVM(env Env) *VM {
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
 	vm.frameStack.push(frame)
+
+	// TODO
+	if os.Getenv("GI_IGNORE_PANIC") == "" {
+		builtinsMap["panic"] = reflect.ValueOf(vm.fatal)
+	}
+
 	return vm
 }
 
@@ -212,12 +218,15 @@ func (vm *VM) fatal(err any) {
 	// dump the callstack
 	for i := len(vm.frameStack) - 1; i >= 0; i-- {
 		frame := vm.frameStack[i]
-		fmt.Fprintln(os.Stderr, "[gi]", frame)
+		fmt.Fprintln(os.Stderr, "[gi]", vm.sourceLocation(frame.creator), frame)
 	}
 	s := structexplorer.NewService("vm", vm)
 	for i, each := range vm.frameStack {
 		s.Explore(fmt.Sprintf("vm.frameStack.%d", i), each, structexplorer.Column(0))
 		s.Explore(fmt.Sprintf("vm.frameStack.%d.env", i), each.env, structexplorer.Column(1))
+		if tableHolder, ok := each.env.(*Environment); ok {
+			s.Explore(fmt.Sprintf("vm.frameStack.%d.env.valueTable", i), tableHolder.valueTable, structexplorer.Column(2))
+		}
 		s.Explore(fmt.Sprintf("vm.frameStack.%d.operandStack", i), each.operandStack, structexplorer.Column(1))
 		s.Explore(fmt.Sprintf("vm.frameStack.%d.returnValues", i), each.returnValues, structexplorer.Column(1))
 	}
@@ -237,17 +246,23 @@ func (vm *VM) takeAllStartingAt(head Step) {
 	for here != nil {
 		if trace {
 			fmt.Print(here)
-			if vm.fileSet != nil {
-				f := vm.fileSet.File(here.Pos())
-				if f != nil {
-					nodir := filepath.Base(f.Name())
-					fmt.Print(" @ ", nodir, ":", f.Line(here.Pos()))
-				} else {
-					fmt.Print(" @ bad file info")
-				}
-			}
-			fmt.Println()
+			fmt.Printf(" @ %s\n", vm.sourceLocation(here))
 		}
 		here = here.Take(vm)
 	}
+}
+
+// sourceLocation returns a string representation of the source location of the given Evaluable (can be nil).
+func (vm *VM) sourceLocation(e Evaluable) string {
+	if e == nil {
+		return "<no creator>"
+	}
+	if vm.fileSet == nil {
+		return "<no file set>"
+	}
+	if f := vm.fileSet.File(e.Pos()); f != nil {
+		nodir := filepath.Base(f.Name())
+		return fmt.Sprintf("%s:%d", nodir, f.Line(e.Pos()))
+	}
+	return "<bad pos>"
 }
