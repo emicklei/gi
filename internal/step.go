@@ -150,7 +150,7 @@ func (p *pushEnvironmentStep) String() string {
 	if p == nil {
 		return "pushEnvironmentStep(<nil>)"
 	}
-	return fmt.Sprintf("%2d: ~push env", p.ID())
+	return fmt.Sprintf("%d: ~push env", p.ID())
 }
 func (p *pushEnvironmentStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	return p.step.traverse(g, p.String(), "next", visited)

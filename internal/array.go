@@ -27,8 +27,7 @@ func (a ArrayType) Instantiate(vm *VM, size int, constructorArgs []reflect.Value
 			size = int(len.Int())
 		}
 	}
-	eltTypeName := mustIdentName(a.Elt)
-	eltType := vm.localEnv().typeLookUp(eltTypeName)
+	eltType := vm.returnsType(a.Elt)
 	if a.Len == nil {
 		// slice
 		sliceType := reflect.SliceOf(eltType)

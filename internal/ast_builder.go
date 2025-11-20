@@ -571,10 +571,12 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Decl = e.(Decl)
 		b.push(s)
 	case *ast.CompositeLit:
-		s := CompositeLit{CompositeLit: n}
-		b.Visit(n.Type)
-		e := b.pop()
-		s.Type = e.(Expr)
+		s := CompositeLit{Lbrace: n.Lbrace}
+		if n.Type != nil {
+			b.Visit(n.Type)
+			e := b.pop()
+			s.Type = e.(Expr)
+		}
 		if n.Elts != nil {
 			for _, elt := range n.Elts {
 				b.Visit(elt)

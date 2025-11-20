@@ -88,3 +88,7 @@ type StepTaker interface {
 type Traverseable interface {
 	Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node
 }
+
+type assignableExpr interface {
+	Assigneable(vm *VM) CanAssign
+}

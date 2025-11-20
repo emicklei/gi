@@ -50,9 +50,9 @@ var _ Flowable = CompositeLit{}
 var _ Expr = CompositeLit{}
 
 type CompositeLit struct {
-	*ast.CompositeLit
-	Type Expr
-	Elts []Expr
+	Lbrace token.Pos // position of "{"
+	Type   Expr      // literal type; or nil
+	Elts   []Expr    // list of composite elements; or nil
 }
 
 func (s CompositeLit) Eval(vm *VM) {
@@ -73,24 +73,26 @@ func (s CompositeLit) Eval(vm *VM) {
 }
 
 func (s CompositeLit) Flow(g *graphBuilder) (head Step) {
-	head = s.Type.Flow(g)
+	if s.Type != nil {
+		head = s.Type.Flow(g)
+	}
 	// reverse order to have the first element on top of the stack
 	for i := len(s.Elts) - 1; i >= 0; i-- {
-		each := s.Elts[i]
-		// if i == len(s.Elts)-1 {
-		// 	head = each.Flow(g)
-		// 	continue
-		// }
-		each.Flow(g)
+		eltFlow := s.Elts[i].Flow(g)
+		if i == len(s.Elts)-1 {
+			if head == nil {
+				head = eltFlow
+			}
+		}
 	}
 	g.next(s)
-	// without elements, head is the current step
-	// if head == nil {
-	// 	head = g.current
-	// }
-	// return head
+	if head == nil {
+		head = g.current
+	}
 	return
 }
+
+func (s CompositeLit) Pos() token.Pos { return s.Lbrace }
 
 func (s CompositeLit) String() string {
 	return fmt.Sprintf("CompositeLit(%v,%v)", s.Type, s.Elts)

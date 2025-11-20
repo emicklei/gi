@@ -93,14 +93,22 @@ func (a AssignStmt) Eval(vm *VM) {
 }
 
 func (a AssignStmt) Flow(g *graphBuilder) (head Step) {
+	for i := 0; i < len(a.Lhs); i++ {
+		each := a.Lhs[i]
+		each.Flow(g)
+		if i == 0 {
+			head = g.current
+		}
+	}
 	// right to left
 	for i := len(a.Rhs) - 1; i >= 0; i-- {
 		each := a.Rhs[i]
-		if i == len(a.Rhs)-1 {
-			head = each.Flow(g)
-			continue
-		}
 		each.Flow(g)
+		if i == len(a.Rhs)-1 {
+			if head == nil {
+				head = g.current
+			}
+		}
 	}
 	g.next(a)
 	if head == nil {

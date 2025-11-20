@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -53,7 +54,17 @@ func (g *graphBuilder) nextStep(next Step) {
 			g.fatal(fmt.Sprintf("current %s already has a next %s, wanted %s\n", g.current, g.current.Next(), next))
 		}
 		if trace {
-			fmt.Printf("fw: %d → %v\n", g.current.ID(), next)
+			fmt.Printf("fw: %d → %v", g.current.ID(), next)
+			if g.goPkg != nil && g.goPkg.Fset != nil {
+				f := g.goPkg.Fset.File(g.current.Pos())
+				if f != nil {
+					nodir := filepath.Base(f.Name())
+					fmt.Print(" @ ", nodir, ":", f.Line(g.current.Pos()))
+				} else {
+					fmt.Print(" @ bad file info")
+				}
+			}
+			fmt.Println()
 		}
 		g.current.SetNext(next)
 	} else {

@@ -16,6 +16,10 @@ type IndexExpr struct {
 }
 
 func (i IndexExpr) Eval(vm *VM) {
+	if len(vm.frameStack.top().operandStack) == 0 {
+		vm.eval(i.Index)
+		vm.eval(i.X)
+	}
 	index := vm.frameStack.top().pop()
 	target := vm.frameStack.top().pop()
 	if target.Kind() == reflect.Ptr {
@@ -38,15 +42,46 @@ func (i IndexExpr) Eval(vm *VM) {
 	vm.fatal(fmt.Sprintf("expected map or slice or array, got %s", target.Kind()))
 }
 
+// assign:
+// to variable
+// to map index
+// to slice or array index
+// to struct field
+
+type variableAssigner struct {
+	ident Ident
+}
+type mapIndexAssigner struct {
+	container reflect.Value
+	key       reflect.Value
+}
+type sliceOrArrayIndexAssigner struct {
+	container reflect.Value
+	index     int
+}
+type structFieldAssigner struct {
+	container reflect.Value
+	fieldName string
+}
+
+// find the object to assign the value to
+
+// func (vm *VM) findAssigner(e Expr) CanAssign {
+// 	if ident, ok := e.(Ident); ok {
+// 		return ident
+// 	}
+// }
+
 func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
+	vm.printStack()
 	target := vm.returnsEval(i.X)
 	index := vm.returnsEval(i.Index)
+	if target.Kind() == reflect.Pointer {
+		target = target.Elem()
+	}
 	if target.Kind() == reflect.Map {
 		target.SetMapIndex(index, value)
 		return
-	}
-	if target.Kind() == reflect.Ptr {
-		target = target.Elem()
 	}
 	if target.Kind() == reflect.Slice || target.Kind() == reflect.Array {
 		target.Index(int(index.Int())).Set(value)

@@ -153,7 +153,13 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 	}
 	if ar, ok := e.(ArrayType); ok {
 		elemType := vm.returnsType(ar.Elt)
-		return reflect.SliceOf(elemType)
+		if ar.Len == nil {
+			return reflect.SliceOf(elemType)
+		} else {
+			lenVal := vm.returnsEval(ar.Len)
+			size := int(lenVal.Int())
+			return reflect.ArrayOf(size, elemType)
+		}
 	}
 	if _, ok := e.(FuncType); ok {
 		// any function type will do; we just need its reflect.Type
@@ -265,4 +271,43 @@ func (vm *VM) sourceLocation(e Evaluable) string {
 		return fmt.Sprintf("%s:%d", nodir, f.Line(e.Pos()))
 	}
 	return "<bad pos>"
+}
+
+func (vm *VM) printStack() {
+	if len(vm.frameStack) == 0 {
+		fmt.Println("vm.ops: <empty>")
+		return
+	}
+	frame := vm.frameStack.top()
+	for k, v := range frame.env.(*Environment).valueTable { // TODO hack
+		if v.IsValid() && v.CanInterface() {
+			if v == reflectNil {
+				fmt.Printf("vm.env[%s]: untyped nil\n", k)
+				continue
+			}
+			if v == reflectUndeclared {
+				fmt.Printf("vm.env[%s]: undeclared value\n", k)
+				continue
+			}
+			fmt.Printf("vm.env[%s]: %v (%T)\n", k, v.Interface(), v.Interface())
+		} else {
+			fmt.Printf("vm.env[%s]: %v\n", k, v)
+		}
+	}
+	for i := 0; i < len(frame.operandStack); i++ {
+		v := frame.operandStack[i]
+		if v.IsValid() && v.CanInterface() {
+			if v == reflectNil {
+				fmt.Printf("vm.ops[%d]: untyped nil\n", i)
+				continue
+			}
+			if v == reflectUndeclared {
+				fmt.Printf("vm.ops[%d]: undeclared value\n", i)
+				continue
+			}
+			fmt.Printf("vm.ops[%d]: %v (%T)\n", i, v.Interface(), v.Interface())
+		} else {
+			fmt.Printf("vm.ops[%d]: %v\n", i, v)
+		}
+	}
 }

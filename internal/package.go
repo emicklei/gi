@@ -175,27 +175,6 @@ func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package
 	return pkgs[0], nil
 }
 
-func BuildPackageFromAST(ast *ast.File) (*Package, error) {
-	if trace {
-		now := time.Now()
-		defer func() {
-			fmt.Printf("pkg.buildFromAST(%s) took %v\n", ast.Name.Name, time.Since(now))
-		}()
-	}
-	goPkg := &packages.Package{
-		ID: "main", Name: ast.Name.Name, PkgPath: "main",
-	}
-	b := newASTBuilder(goPkg)
-	b.opts = buildOptions{}
-	for _, imp := range ast.Imports {
-		b.Visit(imp)
-	}
-	for _, decl := range ast.Decls {
-		b.Visit(decl)
-	}
-	return &Package{Env: b.env.(*PkgEnvironment)}, nil
-}
-
 func BuildPackage(goPkg *packages.Package) (*Package, error) {
 	if trace {
 		now := time.Now()

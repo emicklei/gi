@@ -158,3 +158,16 @@ func main() {
 	print(n1, n2, n3)
 }`, "645")
 }
+
+func TestTwoDimArray(t *testing.T) {
+	t.Skip() // TODO AssignStmt must flow for LHS
+	testMain(t, `package main
+
+func main() {
+	var a [2][3]string
+	a[0] = [3]string{"foo", "bar", "baz"}
+	a[1][0] = "foo"
+	print(a[0][1])
+	print(a[1][0])
+}`, "barfoo")
+}

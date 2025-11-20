@@ -129,6 +129,17 @@ func main() {
 }`, "giflow")
 }
 
+func TestArrayFuncIndexAssign(t *testing.T) {
+	//t.Skip()
+	testMain(t, `package main	
+func one() int { return 1 }
+func main() {
+	a := [2]int{0,1}
+	a[one()] = 10
+	print(a[1])
+}`, "10")
+}
+
 func TestAssignToStructField(t *testing.T) {
 	testMain(t, `package main
 
