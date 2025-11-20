@@ -11,8 +11,8 @@ import (
 type graphBuilder struct {
 	idgen     int
 	goPkg     *packages.Package // for type information
-	head      Step              // the entry point to the flow graph
-	current   Step              // the current step to attach the next step to
+	previous  Step              // the previous step before current; or nil
+	current   Step              // the current step to attach the next step to; or nil
 	funcStack stack[FuncDecl]   // to keep track of current function for branch statements
 }
 
@@ -60,8 +60,8 @@ func (g *graphBuilder) nextStep(next Step) {
 		if trace {
 			fmt.Printf("fw:%v\n", next)
 		}
-		g.head = next
 	}
+	g.previous = g.current
 	g.current = next
 }
 

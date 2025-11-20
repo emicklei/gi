@@ -16,7 +16,7 @@ func TestGrapherNext(t *testing.T) {
 	if s1.Next() != s2 {
 		t.Errorf("expected s1.Next() to be s2")
 	}
-	if g.head != s1 {
-		t.Errorf("expected head to be s1")
+	if g.previous != s1 {
+		t.Errorf("expected g.previous to be s1")
 	}
 }
