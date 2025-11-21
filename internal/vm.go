@@ -85,6 +85,8 @@ type VM struct {
 	fileSet    *token.FileSet // optional file set for position info
 }
 
+var panicOnce sync.Once
+
 func newVM(env Env) *VM {
 	// TODO not sure when/if useful outside treerunner
 	if os.Getenv("GI_IGNORE_EXIT") != "" {
@@ -107,7 +109,9 @@ func newVM(env Env) *VM {
 
 	// TODO
 	if os.Getenv("GI_IGNORE_PANIC") == "" {
-		builtinsMap["panic"] = reflect.ValueOf(vm.fatal)
+		panicOnce.Do(func() {
+			builtinsMap["panic"] = reflect.ValueOf(vm.fatal)
+		})
 	}
 
 	return vm
@@ -174,7 +178,13 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 func (vm *VM) pushOperand(v reflect.Value) {
 	if trace {
 		if v.IsValid() && v.CanInterface() {
-			fmt.Printf("vm.push: %v (%T)\n", v.Interface(), v.Interface())
+			if v == reflectNil {
+				fmt.Printf("vm.push: untyped nil\n")
+			} else if v == reflectUndeclared {
+				fmt.Printf("vm.push: undeclared\n")
+			} else {
+				fmt.Printf("vm.push: %v (%T)\n", v.Interface(), v.Interface())
+			}
 		} else {
 			fmt.Printf("vm.push: %v\n", v)
 		}

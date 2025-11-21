@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"go/token"
 	"os"
 	"path/filepath"
 
@@ -39,8 +40,8 @@ func (g *graphBuilder) newStep(e Evaluable) *evaluableStep {
 }
 
 // newLabeledStep creates a labeled step but does not add it to the current flow.
-func (g *graphBuilder) newLabeledStep(label string) Step {
-	return &labeledStep{label: label}
+func (g *graphBuilder) newLabeledStep(label string, pos token.Pos) Step {
+	return &labeledStep{label: label, pos: pos}
 }
 
 // nextStep adds the given step after the current one and makes it the current step.
@@ -81,7 +82,7 @@ func (g *graphBuilder) fatal(err any) {
 	panic(err)
 }
 
-func (g *graphBuilder) flowBack() {
+func (g *graphBuilder) stepBack() {
 	g.idgen--
 	g.current = g.previous
 	if g.current != nil {

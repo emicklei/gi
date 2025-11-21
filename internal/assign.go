@@ -16,9 +16,10 @@ type AssignStmt struct {
 }
 
 func (a AssignStmt) Eval(vm *VM) {
+	// TODO remove debug
 	vm.printStack()
 	var lastVal reflect.Value
-	for i := len(a.Lhs) - 1; i >= 0; i-- {
+	for i := 0; i < len(a.Lhs); i++ {
 		each := a.Lhs[i]
 		var v reflect.Value
 		// handle "ok" idiom for map index expressions
@@ -121,13 +122,13 @@ func (a AssignStmt) apply(each Expr, vm *VM, v reflect.Value) {
 
 // pairwise flow
 func (a AssignStmt) Flow(g *graphBuilder) (head Step) {
-	for i := 0; i < len(a.Lhs); i++ {
+	for i := len(a.Lhs) - 1; i >= 0; i-- {
 		left := a.Lhs[i]
-		leftFlow := left.Flow(g)
+		left.Flow(g)
 		// step back to previous, the last node must not be evaluated
-		g.flowBack()
+		g.stepBack()
 		if head == nil && g.current != nil {
-			head = leftFlow
+			head = g.current
 		}
 		// right side may be shorter (e.g. x, y = f())
 		if i < len(a.Rhs) {

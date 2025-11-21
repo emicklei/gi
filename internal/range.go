@@ -41,19 +41,19 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	switcher := new(rangeIteratorSwitchStep)
 	g.nextStep(switcher)
 	// all flows converge to this done step
-	rangeDone := g.newLabeledStep("range-done")
+	rangeDone := g.newLabeledStep("range-done", r.Pos())
 
 	// flow depends on the type of X
 	switch r.XType.Underlying().(type) {
 	case *types.Map:
 		// start the map flow, detached from the current
-		g.current = g.newLabeledStep("range-map")
+		g.current = g.newLabeledStep("range-map", r.Pos())
 		switcher.mapFlow = r.MapFlow(g)
 		g.nextStep(rangeDone)
 
 	case *types.Slice, *types.Array:
 		// start the list flow, detached from the current
-		g.current = g.newLabeledStep("range-slice-or-array")
+		g.current = g.newLabeledStep("range-slice-or-array", r.Pos())
 		switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
 		g.nextStep(rangeDone)
 
@@ -61,14 +61,14 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 		basicKind := r.XType.Underlying().(*types.Basic).Kind()
 		if basicKind == types.Int {
 			// start the int flow, detached from the current
-			g.current = g.newLabeledStep("range-int")
+			g.current = g.newLabeledStep("range-int", r.Pos())
 			switcher.intFlow = r.IntFlow(g)
 			g.nextStep(rangeDone)
 			break
 		}
 		if basicKind == types.String || basicKind == types.UntypedString {
 			// start the runes flow, detached from the current
-			g.current = g.newLabeledStep("range-runes")
+			g.current = g.newLabeledStep("range-runes", r.Pos())
 			switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
 			g.nextStep(rangeDone)
 			break
@@ -83,6 +83,7 @@ func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 type rangeMapIteratorInitStep struct {
 	step
 	localVarName string
+	pos          token.Pos
 }
 
 func (r *rangeMapIteratorInitStep) Take(vm *VM) Step {
@@ -94,6 +95,10 @@ func (r *rangeMapIteratorInitStep) Take(vm *VM) Step {
 
 func (r *rangeMapIteratorInitStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	return r.step.traverse(g, r.step.StringWith("map-iterator-init"), "next", visited)
+}
+
+func (r *rangeMapIteratorInitStep) Pos() token.Pos {
+	return r.pos
 }
 
 func (r *rangeMapIteratorInitStep) String() string {
@@ -108,6 +113,7 @@ type rangeMapIteratorNextStep struct {
 	localVarName         string
 	bodyFlow             Step
 	yieldKey, yieldValue bool
+	pos                  token.Pos
 }
 
 func (r *rangeMapIteratorNextStep) Take(vm *VM) Step {
@@ -137,6 +143,10 @@ func (r *rangeMapIteratorNextStep) Traverse(g *dot.Graph, visited map[int]dot.No
 	return me
 }
 
+func (r *rangeMapIteratorNextStep) Pos() token.Pos {
+	return r.pos
+}
+
 func (r *rangeMapIteratorNextStep) String() string {
 	if r == nil {
 		return "rangeMapIteratorNextStep(<nil>)"
@@ -150,22 +160,25 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	// create the iterator
 	localVarName := fmt.Sprintf("_mapIter_%d", g.idgen)
 	init := new(rangeMapIteratorInitStep)
+	init.pos = r.Pos()
 	init.localVarName = localVarName
 	g.nextStep(init)
 
 	// iterator next step
 	iter := new(rangeMapIteratorNextStep)
+	iter.pos = r.Pos()
 	iter.localVarName = localVarName
 	iter.yieldKey = r.Key != nil
 	iter.yieldValue = r.Value != nil
 	g.nextStep(iter)
 
 	// start the body flow, detached from the current
-	g.current = g.newLabeledStep("range-map-body")
+	g.current = g.newLabeledStep("range-map-body", r.Pos())
 	if iter.yieldKey || iter.yieldValue {
 		// key = key
 		// value = x[value]
-		// value and key are on the operand stack by the iterator step
+		// value and key will be on the operand stack by the iterator step
+		// so we use NoExpr as rhs placeholders
 		lhs, rhs := []Expr{}, []Expr{}
 		if iter.yieldKey {
 			lhs = append(lhs, r.Key)

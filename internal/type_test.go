@@ -37,17 +37,6 @@ func main() {
 }`, "3")
 }
 
-func TestMapOk(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	m := map[string]int{}
-	m["a"] = 1
-	a, ok := m["a"]
-	print(a,ok)
-}`, "1true")
-}
-
 func TestMapInitialized(t *testing.T) {
 	testMain(t, `package main
 

@@ -45,7 +45,7 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 		}
 	}
 	gotoLabel := fmt.Sprintf("switch-end-%d", g.idgen)
-	gotoStep := g.newLabeledStep(gotoLabel)
+	gotoStep := g.newLabeledStep(gotoLabel, s.Pos())
 	ref := statementReference{step: gotoStep} // has no ID
 	g.funcStack.top().labelToStmt[gotoLabel] = ref
 

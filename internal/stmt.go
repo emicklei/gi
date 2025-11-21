@@ -102,7 +102,7 @@ func (s BranchStmt) Eval(vm *VM) {
 func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
 	switch s.Tok {
 	case token.GOTO:
-		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.Label.Name))
+		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.Label.Name), s.Pos())
 		g.nextStep(head)
 		fd := g.funcStack.top()
 		ref, ok := fd.labelToStmt[s.Label.Name]

@@ -92,3 +92,15 @@ The first step is the head of the chain.
 - https://godbolt.org/
 - call graphs in tab view
 - structexplorer to see all environments and stackframes
+
+## operand order on stack
+- when a function returns 2 or more values then operands are stacked in reverse order `pushCallResults` ; first is on top.
+- for a multi-assign stmt the values of the rhs expressions must be stacked in reverse order:
+   
+  a , b := callReturning12() // stack: 2,1
+  c , d := 1 , 2 // stack: 2,1
+
+- so in assign, pairwise flow must be done right-to-left, eval must be done left-to-right
+
+  d = 2, c = 1
+
