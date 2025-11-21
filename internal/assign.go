@@ -16,8 +16,6 @@ type AssignStmt struct {
 }
 
 func (a AssignStmt) Eval(vm *VM) {
-	// TODO remove debug
-	vm.printStack()
 	var lastVal reflect.Value
 	for i := 0; i < len(a.Lhs); i++ {
 		each := a.Lhs[i]

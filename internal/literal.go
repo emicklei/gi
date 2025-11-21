@@ -61,15 +61,15 @@ func (s CompositeLit) Eval(vm *VM) {
 		val := vm.frameStack.top().pop()
 		values[i] = val
 	}
-	internalType := vm.frameStack.top().pop().Interface()
-	i, ok := internalType.(CanInstantiate)
-	if !ok {
-		vm.fatal(fmt.Sprintf("expected CanInstantiate:%v (%T)", internalType, internalType))
+	typeOrValue := vm.frameStack.top().pop().Interface()
+	if inst, ok := typeOrValue.(CanInstantiate); ok {
+		instance := inst.Instantiate(vm, len(values), nil)
+		result := inst.LiteralCompose(instance, values)
+		vm.pushOperand(result)
+	} else {
+		vm.console(typeOrValue)
+		vm.pushOperand(reflect.ValueOf(typeOrValue)) // TODO??
 	}
-
-	instance := i.Instantiate(vm, len(values), nil)
-	result := i.LiteralCompose(instance, values)
-	vm.pushOperand(result)
 }
 
 func (s CompositeLit) Flow(g *graphBuilder) (head Step) {

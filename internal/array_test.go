@@ -160,7 +160,6 @@ func main() {
 }
 
 func TestTwoDimArray(t *testing.T) {
-	t.Skip() // TODO AssignStmt must flow for LHS
 	testMain(t, `package main
 
 func main() {
@@ -170,4 +169,17 @@ func main() {
 	print(a[0][1])
 	print(a[1][0])
 }`, "barfoo")
+}
+
+func TestTwoDimIntArray(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+	twoD := [2][3]int{
+		{1, 2, 3},
+		{1, 2, 3},
+	}
+	print(twoD[0][1])
+}`, "2")
 }

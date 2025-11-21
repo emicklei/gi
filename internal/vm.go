@@ -299,25 +299,29 @@ func (vm *VM) printStack() {
 				fmt.Printf("vm.env[%s]: undeclared value\n", k)
 				continue
 			}
-			fmt.Printf("vm.env[%s]: %v (%T)\n", k, v.Interface(), v.Interface())
+			fmt.Printf("vm.env.%s = %v (%T)\n", k, v.Interface(), v.Interface())
 		} else {
-			fmt.Printf("vm.env[%s]: %v\n", k, v)
+			fmt.Printf("vm.env.%s = %v\n", k, v)
 		}
 	}
 	for i := 0; i < len(frame.operandStack); i++ {
 		v := frame.operandStack[i]
 		if v.IsValid() && v.CanInterface() {
 			if v == reflectNil {
-				fmt.Printf("vm.ops[%d]: untyped nil\n", i)
+				fmt.Printf("vm.ops.%d: untyped nil\n", i)
 				continue
 			}
 			if v == reflectUndeclared {
-				fmt.Printf("vm.ops[%d]: undeclared value\n", i)
+				fmt.Printf("vm.ops.%d: undeclared value\n", i)
 				continue
 			}
-			fmt.Printf("vm.ops[%d]: %v (%T)\n", i, v.Interface(), v.Interface())
+			fmt.Printf("vm.ops.%d: %v (%T)\n", i, v.Interface(), v.Interface())
 		} else {
-			fmt.Printf("vm.ops[%d]: %v\n", i, v)
+			fmt.Printf("vm.ops.%d: %v\n", i, v)
 		}
 	}
+}
+
+func (vm *VM) console(v any) {
+	fmt.Printf("vm.console: %#v (%T)\n", v, v)
 }
