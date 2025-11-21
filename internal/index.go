@@ -74,8 +74,8 @@ type structFieldAssigner struct {
 
 func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
 	vm.printStack()
-	target := vm.returnsEval(i.X)
-	index := vm.returnsEval(i.Index)
+	index := vm.frameStack.top().pop()
+	target := vm.frameStack.top().pop()
 	if target.Kind() == reflect.Pointer {
 		target = target.Elem()
 	}

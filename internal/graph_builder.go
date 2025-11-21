@@ -80,3 +80,12 @@ func (g *graphBuilder) fatal(err any) {
 	fmt.Fprintln(os.Stderr, "[gi] fatal graph error:", err)
 	panic(err)
 }
+
+func (g *graphBuilder) flowBack() {
+	g.idgen--
+	g.current = g.previous
+	if g.current != nil {
+		g.current.SetNext(nil)
+	}
+	g.previous = nil // we don't track further back for now
+}

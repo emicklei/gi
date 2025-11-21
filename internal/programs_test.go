@@ -121,6 +121,14 @@ func main() {
 }`, "false")
 }
 
+func TestSimpleAssign(t *testing.T) {
+	testMain(t, `package main	
+func main() {
+	s := "gi"
+	print(s)
+}`, "gi")
+}
+
 func TestMultiAssign(t *testing.T) {
 	testMain(t, `package main	
 func main() {
@@ -130,7 +138,7 @@ func main() {
 }
 
 func TestArrayFuncIndexAssign(t *testing.T) {
-	//t.Skip()
+	// t.Skip()
 	testMain(t, `package main	
 func one() int { return 1 }
 func main() {

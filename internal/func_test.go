@@ -18,12 +18,14 @@ func TestFuncMultiReturn(t *testing.T) {
 	testMain(t, `package main
 
 func ab(a int, b int) (int,int) {
+	print(a,b)
+	// stack order: b, a
 	return a,b
 }
 func main() {
 	a,b := ab(2, 3)
 	print(a,b)
-}`, "23")
+}`, "2323")
 }
 
 func TestNamedReturn(t *testing.T) {

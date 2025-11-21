@@ -35,9 +35,9 @@ func mustIdentName(e Expr) string {
 	panic(fmt.Sprintf("expected Ident but got %T", e))
 }
 
+// Push return values onto the operand stack in reverse order,
+// so the first return value ends up on top of the stack.
 func pushCallResults(vm *VM, vals []reflect.Value) {
-	// Push return values onto the operand stack in reverse order,
-	// so the first return value ends up on top of the stack.
 	for i := len(vals) - 1; i >= 0; i-- {
 		vm.pushOperand(vals[i])
 	}
