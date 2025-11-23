@@ -59,6 +59,7 @@ func (s CompositeLit) Eval(vm *VM) {
 	values := make([]reflect.Value, len(s.Elts))
 	for i := range s.Elts {
 		val := vm.frameStack.top().pop()
+		vm.console(val)
 		values[i] = val
 	}
 	typeOrValue := vm.frameStack.top().pop().Interface()

@@ -56,10 +56,13 @@ func (a ArrayType) LiteralCompose(composite reflect.Value, values []reflect.Valu
 	if len(values) == 0 {
 		return composite
 	}
+	fmt.Printf("composite: %#v %T\n", composite.Interface(), composite.Interface())
 	// TODO optimize this
 	elementType := composite.Type().Elem()
+	fmt.Printf("element type: %#v\n", elementType)
 
 	for i, v := range values {
+		fmt.Println("value[i]", v.Interface())
 		needConversion := elementType != reflect.TypeOf(v)
 		if needConversion {
 			if v.CanConvert(elementType) {
