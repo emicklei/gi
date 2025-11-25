@@ -87,21 +87,11 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 		for i, expr := range clause.List {
 			var nextCond Expr
 			if s.Tag != nil {
-				if _, ok := expr.(BasicLit); ok {
-					nextCond = BinaryExpr{
-						Op:    token.EQL,
-						OpPos: clause.Pos(),
-						X:     s.Tag,
-						Y:     expr,
-					}
-				}
-				if _, ok := expr.(Ident); ok {
-					nextCond = BinaryExpr{
-						Op:    token.EQL,
-						OpPos: clause.Pos(),
-						X:     s.Tag,
-						Y:     expr,
-					}
+				nextCond = BinaryExpr{
+					Op:    token.EQL,
+					OpPos: clause.Pos(),
+					X:     s.Tag,
+					Y:     expr,
 				}
 			}
 			if bin, ok := expr.(BinaryExpr); ok {
@@ -175,19 +165,15 @@ func (c CaseClause) String() string {
 }
 
 type TypeSwitchStmt struct {
-	*ast.TypeSwitchStmt
-	Init   Stmt // initialization statement; or nil
-	Assign Stmt // assignment statement; or nil
-	Body   *BlockStmt
+	SwitchPos token.Pos
+	Init      Stmt // initialization statement; or nil
+	Assign    Stmt // x := y.(type) or y.(type)
+	Body      *BlockStmt
 }
 
 func (s TypeSwitchStmt) stmtStep() Evaluable { return s }
 
 func (s TypeSwitchStmt) Eval(vm *VM) {}
-
-func (s TypeSwitchStmt) String() string {
-	return fmt.Sprintf("TypeSwitchStmt(%v,%v,%v)", s.Init, s.Assign, s.Body)
-}
 
 func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 	if s.Init != nil {
@@ -202,4 +188,10 @@ func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 	}
 	// body has CaseClauses, see SwitchStmt.Flow
 	return head
+}
+
+func (s TypeSwitchStmt) Pos() token.Pos { return s.SwitchPos }
+
+func (s TypeSwitchStmt) String() string {
+	return fmt.Sprintf("TypeSwitchStmt(%v,%v,%v)", s.Init, s.Assign, s.Body)
 }

@@ -7,6 +7,36 @@ import (
 	"reflect"
 )
 
+var _ Expr = TypeAssertExpr{}
+
+type TypeAssertExpr struct {
+	X      Expr
+	Type   Expr // asserted type; nil means type switch X.(type)
+	Lparen token.Pos
+}
+
+func (e TypeAssertExpr) Eval(vm *VM) {
+	if e.Type == nil {
+		val := vm.frameStack.top().pop()
+		valType := val.Type()
+		//vm.console(val)
+		//vm.console(valType)
+		vm.pushOperand(reflect.ValueOf(valType))
+	}
+}
+
+func (e TypeAssertExpr) Flow(g *graphBuilder) (head Step) {
+	head = e.X.Flow(g)
+	g.next(e)
+	return
+}
+
+func (e TypeAssertExpr) String() string {
+	return fmt.Sprintf("TypeAssertExpr(%v,%v)", e.X, e.Type)
+}
+
+func (e TypeAssertExpr) Pos() token.Pos { return e.Lparen }
+
 var _ CanInstantiate = TypeSpec{}
 var _ Expr = TypeSpec{}
 

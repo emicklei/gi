@@ -323,5 +323,9 @@ func (vm *VM) printStack() {
 }
 
 func (vm *VM) console(v any) {
+	if rt, ok := v.(reflect.Type); ok {
+		fmt.Printf("vm.console: type %s\n", rt.Name())
+		return
+	}
 	fmt.Printf("vm.console: %#v (%T)\n", v, v)
 }
