@@ -58,6 +58,19 @@ type CompositeLit struct {
 }
 
 func (s CompositeLit) Eval(vm *VM) {
+
+	// if Type is not present, we put all values on the stack as is
+	if s.Type == nil {
+		values := make([]reflect.Value, len(s.Elts))
+		for i := range s.Elts {
+			val := vm.callStack.top().pop()
+			vm.console(val)
+			values[i] = val
+		}
+		vm.pushOperand(reflect.ValueOf(values))
+		return
+	}
+
 	values := make([]reflect.Value, len(s.Elts))
 	for i := range s.Elts {
 		val := vm.callStack.top().pop()

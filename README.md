@@ -50,4 +50,9 @@ func Hello(name string) int {
 }
 ```
 
+#### Credits
+
+The build pipeline uses all programs of [Go By Example](https://gobyexample.com/) to check whether they are executable with `gi`.
+A report is accessible using the status shield `gobyexample` on top of this page.
+
 &copy; 2025. https://ernestmicklei.com . MIT License

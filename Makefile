@@ -5,7 +5,7 @@ test:
 	go test -cover ./internal
 
 serial:
-	go test -v -p 1 ./internal
+	GI_TRACE=1 go test -v -p 1 ./internal
 
 clean:
 	cd internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast
