@@ -108,7 +108,7 @@ func newVM(env Env) *VM {
 	vm.callStack.push(frame)
 
 	// TODO
-	if os.Getenv("GI_IGNORE_PANIC") == "" {
+	if os.Getenv("GI_IGNORE_PANIC") != "" {
 		panicOnce.Do(func() {
 			builtinsMap["panic"] = reflect.ValueOf(vm.fatal)
 		})

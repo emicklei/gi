@@ -79,6 +79,7 @@ The first step is the head of the chain.
 - github.com/fatih/structtag replace with some SDK pkg?
 - how to handle returnsType of FuncType? and what if FuncType is using local pkg types?
 - handle omitzero
+- frameStack -> callStack
 
 
 ## potential blockers

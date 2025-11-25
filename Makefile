@@ -2,10 +2,10 @@ gen:
 	cd cmd/genstdlib && go run .
 
 test:
-	GI_TRACE=1 go test -cover ./internal
+	go test -cover ./internal
 
 serial:
-	GI_TRACE=1 go test -v -p 1 ./internal
+	go test -v -p 1 ./internal
 
 clean:
 	cd internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast

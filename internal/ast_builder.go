@@ -588,6 +588,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			b.Visit(n.Type)
 			e := b.pop()
 			s.Type = e.(Expr)
+			s.ParserType = b.goPkg.TypesInfo.TypeOf(n.Type)
 		}
 		if n.Elts != nil {
 			for _, elt := range n.Elts {

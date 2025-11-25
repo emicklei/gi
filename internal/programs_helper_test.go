@@ -111,7 +111,6 @@ func testProgramIn(t *testing.T, dir string, wantFuncOrString any) {
 func testMain(t *testing.T, source string, wantFuncOrString any) {
 	t.Parallel()
 	t.Helper()
-	trace = true
 	out := parseAndWalk(t, source)
 	if fn, ok := wantFuncOrString.(func(string) bool); ok {
 		if !fn(out) {

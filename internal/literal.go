@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"go/types"
 	"reflect"
 	"strconv"
 	"strings"
@@ -50,9 +51,10 @@ var _ Flowable = CompositeLit{}
 var _ Expr = CompositeLit{}
 
 type CompositeLit struct {
-	Lbrace token.Pos // position of "{"
-	Type   Expr      // literal type; or nil
-	Elts   []Expr    // list of composite elements; or nil
+	Lbrace     token.Pos  // position of "{"
+	Type       Expr       // literal type; or nil
+	ParserType types.Type // literal type; or nil
+	Elts       []Expr     // list of composite elements; or nil
 }
 
 func (s CompositeLit) Eval(vm *VM) {
@@ -68,7 +70,6 @@ func (s CompositeLit) Eval(vm *VM) {
 		result := inst.LiteralCompose(instance, values)
 		vm.pushOperand(result)
 	} else {
-		vm.console(typeOrValue)
 		vm.pushOperand(reflect.ValueOf(typeOrValue)) // TODO??
 	}
 }

@@ -42,36 +42,6 @@ func (i IndexExpr) Eval(vm *VM) {
 	vm.fatal(fmt.Sprintf("expected map or slice or array, got %s", target.Kind()))
 }
 
-// assign:
-// to variable
-// to map index
-// to slice or array index
-// to struct field
-
-type variableAssigner struct {
-	ident Ident
-}
-type mapIndexAssigner struct {
-	container reflect.Value
-	key       reflect.Value
-}
-type sliceOrArrayIndexAssigner struct {
-	container reflect.Value
-	index     int
-}
-type structFieldAssigner struct {
-	container reflect.Value
-	fieldName string
-}
-
-// find the object to assign the value to
-
-// func (vm *VM) findAssigner(e Expr) CanAssign {
-// 	if ident, ok := e.(Ident); ok {
-// 		return ident
-// 	}
-// }
-
 func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
 	vm.printStack()
 	index := vm.callStack.top().pop()
