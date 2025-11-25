@@ -10,15 +10,15 @@ type builtinFunc struct{ name string }
 
 // https://pkg.go.dev/builtin#delete
 func (c CallExpr) evalDelete(vm *VM) {
-	target := vm.frameStack.top().pop()
-	key := vm.frameStack.top().pop()
+	target := vm.callStack.top().pop()
+	key := vm.callStack.top().pop()
 	target.SetMapIndex(key, reflect.Value{}) // delete
 }
 
 // https://pkg.go.dev/builtin#copy
 func (CallExpr) evalCopy(vm *VM) {
-	dest := vm.frameStack.top().pop()
-	src := vm.frameStack.top().pop()
+	dest := vm.callStack.top().pop()
+	src := vm.callStack.top().pop()
 	n := reflect.Copy(dest, src)
 	vm.pushOperand(reflect.ValueOf(n))
 }
@@ -27,7 +27,7 @@ func (CallExpr) evalCopy(vm *VM) {
 func (c CallExpr) evalAppend(vm *VM) {
 	args := make([]reflect.Value, len(c.Args))
 	for i := range c.Args {
-		args[i] = vm.frameStack.top().pop()
+		args[i] = vm.callStack.top().pop()
 	}
 	slice := args[0]
 	elements := args[1:]
@@ -78,7 +78,7 @@ func (c CallExpr) evalAppend(vm *VM) {
 // https://pkg.go.dev/builtin#clear
 // It returns the cleared map or slice.
 func (c CallExpr) evalClear(vm *VM) reflect.Value {
-	mapOrSlice := vm.frameStack.top().pop()
+	mapOrSlice := vm.callStack.top().pop()
 	mapOrSlice.Clear()
 	return mapOrSlice
 }
@@ -86,8 +86,8 @@ func (c CallExpr) evalClear(vm *VM) reflect.Value {
 func (c CallExpr) evalMin(vm *VM) {
 	var result reflect.Value
 	if len(c.Args) == 2 {
-		right := vm.frameStack.top().pop() // first to last, see Flow
-		left := vm.frameStack.top().pop()
+		right := vm.callStack.top().pop() // first to last, see Flow
+		left := vm.callStack.top().pop()
 		less := BinaryExprValue{op: token.LSS, left: left, right: right}.Eval()
 		if less.Bool() {
 			result = left
@@ -96,9 +96,9 @@ func (c CallExpr) evalMin(vm *VM) {
 		}
 	} else {
 		// 3
-		third := vm.frameStack.top().pop()
-		second := vm.frameStack.top().pop()
-		first := vm.frameStack.top().pop()
+		third := vm.callStack.top().pop()
+		second := vm.callStack.top().pop()
+		first := vm.callStack.top().pop()
 		less := BinaryExprValue{op: token.LSS, left: first, right: second}.Eval()
 		if less.Bool() {
 			result = first
@@ -116,8 +116,8 @@ func (c CallExpr) evalMin(vm *VM) {
 func (c CallExpr) evalMax(vm *VM) {
 	var result reflect.Value
 	if len(c.Args) == 2 {
-		right := vm.frameStack.top().pop() // first to last, see Flow
-		left := vm.frameStack.top().pop()
+		right := vm.callStack.top().pop() // first to last, see Flow
+		left := vm.callStack.top().pop()
 		less := BinaryExprValue{op: token.LSS, left: left, right: right}.Eval()
 		if less.Bool() {
 			result = right
@@ -126,9 +126,9 @@ func (c CallExpr) evalMax(vm *VM) {
 		}
 	} else {
 		// 3
-		third := vm.frameStack.top().pop()
-		second := vm.frameStack.top().pop()
-		first := vm.frameStack.top().pop()
+		third := vm.callStack.top().pop()
+		second := vm.callStack.top().pop()
+		first := vm.callStack.top().pop()
 		less := BinaryExprValue{op: token.LSS, left: first, right: second}.Eval()
 		if less.Bool() {
 			result = second
@@ -146,10 +146,10 @@ func (c CallExpr) evalMax(vm *VM) {
 // https://go.dev/ref/spec#Making_slices_maps_and_channels
 func (c CallExpr) evalMake(vm *VM) {
 	// stack has 1,2, or 3 arguments, left to right
-	typ := vm.frameStack.top().pop()
+	typ := vm.callStack.top().pop()
 	length := 0
 	if len(c.Args) > 1 {
-		length = int(vm.frameStack.top().pop().Int())
+		length = int(vm.callStack.top().pop().Int())
 	}
 	// TODO
 	// if len(c.Args) > 2 {
@@ -164,7 +164,7 @@ func (c CallExpr) evalMake(vm *VM) {
 }
 
 func (c CallExpr) evalNew(vm *VM) {
-	valWithType := vm.frameStack.top().pop()
+	valWithType := vm.callStack.top().pop()
 	typ := valWithType.Interface()
 	if valWithType.Kind() == reflect.Struct {
 		// typ is an instance of a standard or imported external type

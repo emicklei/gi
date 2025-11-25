@@ -80,20 +80,33 @@ print(2)
 end:
 **/
 
-func TestSwitchType(t *testing.T) {
+func TestSwitchTypeAssign(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main
 
 func main() {
 	var v any
 	v = "gi"
-	switch v := v.(type) {
-	case int:
-		print("int:", v)
+	switch w := v.(type) {
+	case int, int8:
+		print("int:", w)
 	case string:
-		print("string:", v)
+		print("string:", w)
 	default:
-		print("unknown:", v)
+		print("unknown:", w)
 	}
 }`, "string:gi")
+}
+func TestSwitchTypeNoAssign(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+	var i any
+	i = 1
+	switch i.(type) {
+	case int:
+		print("int:", i) 
+	}
+}`, "int:1")
 }

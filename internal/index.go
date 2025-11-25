@@ -16,12 +16,12 @@ type IndexExpr struct {
 }
 
 func (i IndexExpr) Eval(vm *VM) {
-	if len(vm.frameStack.top().operandStack) == 0 {
+	if len(vm.callStack.top().operands) == 0 {
 		vm.eval(i.Index)
 		vm.eval(i.X)
 	}
-	index := vm.frameStack.top().pop()
-	target := vm.frameStack.top().pop()
+	index := vm.callStack.top().pop()
+	target := vm.callStack.top().pop()
 	if target.Kind() == reflect.Ptr {
 		target = target.Elem()
 	}
@@ -74,8 +74,8 @@ type structFieldAssigner struct {
 
 func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
 	vm.printStack()
-	index := vm.frameStack.top().pop()
-	target := vm.frameStack.top().pop()
+	index := vm.callStack.top().pop()
+	target := vm.callStack.top().pop()
 	if target.Kind() == reflect.Pointer {
 		target = target.Elem()
 	}

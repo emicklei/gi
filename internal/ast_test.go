@@ -26,7 +26,7 @@ func TestStepByStep(t *testing.T) {
 		here.Take(vm)
 		here = here.Next()
 	}
-	if got, want := vm.frameStack.top().pop().Interface(), "Hello, World!"; got != want {
+	if got, want := vm.callStack.top().pop().Interface(), "Hello, World!"; got != want {
 		t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
 	}
 }

@@ -19,7 +19,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 	if u.Op == token.AND {
 		if ident, ok := u.X.(Ident); ok {
 			// Pop the value that was already pushed by the identifier evaluation
-			_ = vm.frameStack.top().pop()
+			_ = vm.callStack.top().pop()
 			// Create a heap pointer that references the environment variable
 			env := vm.localEnv().valueOwnerOf(ident.Name)
 			if env != nil {
@@ -31,14 +31,14 @@ func (u UnaryExpr) Eval(vm *VM) {
 			}
 		}
 		if _, ok := u.X.(CompositeLit); ok {
-			v := vm.frameStack.top().pop()
+			v := vm.callStack.top().pop()
 			hp := vm.heap.allocHeapValue(v)
 			vm.pushOperand(reflect.ValueOf(hp))
 			return
 		}
 	}
 
-	v := vm.frameStack.top().pop()
+	v := vm.callStack.top().pop()
 	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
 	if v == reflectUndeclared {

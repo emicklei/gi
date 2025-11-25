@@ -94,16 +94,16 @@ func (s SliceExpr) Eval(vm *VM) {
 	var high, low, x reflect.Value
 	if s.Max != nil {
 		// ignore max
-		_ = vm.frameStack.top().pop()
+		_ = vm.callStack.top().pop()
 	}
 	if s.High != nil {
-		high = vm.frameStack.top().pop()
+		high = vm.callStack.top().pop()
 	}
 	if s.Low != nil {
-		low = vm.frameStack.top().pop()
+		low = vm.callStack.top().pop()
 	}
 	var result reflect.Value
-	x = vm.frameStack.top().pop()
+	x = vm.callStack.top().pop()
 	if low.IsValid() {
 		if high.IsValid() {
 			result = x.Slice(int(low.Int()), int(high.Int()))

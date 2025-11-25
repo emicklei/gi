@@ -20,14 +20,14 @@ type ValueSpec struct {
 
 func (v ValueSpec) declStep() CanDeclare { return v }
 
-func (v ValueSpec) ValueFlow() Step {
+func (v ValueSpec) CallGraph() Step {
 	return v.callGraph
 }
 
 func (v ValueSpec) Declare(vm *VM) bool {
 	if v.Type == nil {
 		for _, idn := range v.Names {
-			val := vm.frameStack.top().pop()
+			val := vm.callStack.top().pop()
 			if val == reflectUndeclared {
 				// this happens when the value expression is referencing a undeclared variable
 				return false
@@ -40,7 +40,7 @@ func (v ValueSpec) Declare(vm *VM) bool {
 	// left to right, see Flow
 	for _, idn := range v.Names {
 		if v.Values != nil {
-			val := vm.frameStack.top().pop()
+			val := vm.callStack.top().pop()
 			if !val.IsValid() {
 				return false
 			}
@@ -70,7 +70,7 @@ func (v ValueSpec) Eval(vm *VM) {
 	// left to right, see Flow
 	for _, idn := range v.Names {
 		if v.Values != nil {
-			val := vm.frameStack.top().pop()
+			val := vm.callStack.top().pop()
 			if !val.IsValid() {
 				return
 			}

@@ -84,8 +84,9 @@ var _ Stmt = BranchStmt{}
 
 // BranchStmt represents a break, continue, goto, or fallthrough statement.
 type BranchStmt struct {
-	*ast.BranchStmt
-	Label *Ident
+	TokPos token.Pos   // position of Tok
+	Tok    token.Token // keyword token (BREAK, CONTINUE, GOTO, FALLTHROUGH)
+	Label  *Ident
 }
 
 func (s BranchStmt) Eval(vm *VM) {
@@ -119,6 +120,8 @@ func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
+func (s BranchStmt) Pos() token.Pos { return s.TokPos }
+
 func (s BranchStmt) String() string {
 	return fmt.Sprintf("BranchStmt(%v)", s.Label)
 }
@@ -135,7 +138,7 @@ type DeferStmt struct {
 }
 
 func (d DeferStmt) Eval(vm *VM) {
-	frame := vm.frameStack.top()
+	frame := vm.callStack.top()
 	invocation := funcInvocation{
 		flow: d.callGraph,
 		env:  frame.env.(*Environment).clone(), // TODO promote to interface?

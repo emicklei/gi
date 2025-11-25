@@ -52,8 +52,8 @@ type SendStmt struct {
 
 func (s SendStmt) Eval(vm *VM) {
 	// stack: value, chan
-	val := vm.frameStack.top().pop()
-	ch := vm.frameStack.top().pop()
+	val := vm.callStack.top().pop()
+	ch := vm.callStack.top().pop()
 	ch.Send(val)
 }
 

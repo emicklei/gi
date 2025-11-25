@@ -78,7 +78,7 @@ func (p *Package) Initialize(vm *VM) error {
 		done = true
 		for i, decl := range p.Env.declarations {
 			if decl != nil {
-				vm.takeAllStartingAt(decl.ValueFlow())
+				vm.takeAllStartingAt(decl.CallGraph())
 				if p.Env.declarations[i].Declare(vm) {
 					p.Env.declarations[i] = nil
 					done = false
@@ -243,7 +243,7 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	call.handleFuncDecl(vm, fun.Interface().(FuncDecl))
 
 	// collect non-reflection return values
-	top := vm.frameStack.top()
+	top := vm.callStack.top()
 	vals := []any{}
 	results := fun.Interface().(FuncDecl).Type.Results
 	if results != nil {

@@ -21,7 +21,7 @@ func (s SelectorExpr) Assign(vm *VM, val reflect.Value) {
 
 		// need to pop from stack? TODO
 		if trace {
-			fmt.Println("TRACE: SelectorExpr.Assign", idn.Name, s.Sel.Name, "=", val, "operands stack:", vm.frameStack.top().operandStack)
+			fmt.Println("TRACE: SelectorExpr.Assign", idn.Name, s.Sel.Name, "=", val, "operands:", vm.callStack.top().operands)
 		}
 
 		recv := vm.localEnv().valueLookUp(idn.Name)
@@ -66,7 +66,7 @@ func (s SelectorExpr) Assign(vm *VM, val reflect.Value) {
 }
 
 func (s SelectorExpr) Eval(vm *VM) {
-	recv := vm.frameStack.top().pop()
+	recv := vm.callStack.top().pop()
 	// check for pointer to heap value
 	if hp, ok := recv.Interface().(*HeapPointer); ok {
 		recv = vm.heap.read(hp)

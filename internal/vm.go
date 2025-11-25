@@ -17,7 +17,7 @@ import (
 var framePool = sync.Pool{
 	New: func() any {
 		return &stackFrame{
-			operandStack: make([]reflect.Value, 0, 8),
+			operands:     make([]reflect.Value, 0, 8),
 			returnValues: make([]reflect.Value, 0, 2),
 		}
 	},
@@ -27,20 +27,20 @@ var framePool = sync.Pool{
 type stackFrame struct {
 	creator      Evaluable // typically a FuncDecl or FuncLit
 	env          Env       // current environment with name->value mapping
-	operandStack []reflect.Value
+	operands     []reflect.Value
 	returnValues []reflect.Value
 	deferList    []funcInvocation
 }
 
 // push adds a value onto the operand stack.
 func (f *stackFrame) push(v reflect.Value) {
-	f.operandStack = append(f.operandStack, v)
+	f.operands = append(f.operands, v)
 }
 
-// pop removes and returns the top value from the operand stack.
+// pop removes and returns the top value from the operand list.
 func (f *stackFrame) pop() reflect.Value {
-	v := f.operandStack[len(f.operandStack)-1]
-	f.operandStack = f.operandStack[:len(f.operandStack)-1]
+	v := f.operands[len(f.operands)-1]
+	f.operands = f.operands[:len(f.operands)-1]
 	return v
 }
 
@@ -72,17 +72,17 @@ func (f *stackFrame) String() string {
 		fmt.Fprintf(&buf, "? ")
 	}
 	fmt.Fprintf(&buf, "%v ", f.env)
-	fmt.Fprintf(&buf, "ops=%v ", f.operandStack)
+	fmt.Fprintf(&buf, "ops=%v ", f.operands)
 	fmt.Fprintf(&buf, "rets=%v", f.returnValues)
 	return buf.String()
 }
 
 // Runtime represents a virtual machine that can execute Go code.
 type VM struct {
-	frameStack stack[*stackFrame]
-	heap       *Heap
-	output     *bytes.Buffer  // for testing only
-	fileSet    *token.FileSet // optional file set for position info
+	callStack stack[*stackFrame]
+	heap      *Heap
+	output    *bytes.Buffer  // for testing only
+	fileSet   *token.FileSet // optional file set for position info
 }
 
 var panicOnce sync.Once
@@ -100,12 +100,12 @@ func newVM(env Env) *VM {
 		})
 	}
 	vm := &VM{
-		output:     new(bytes.Buffer),
-		frameStack: make(stack[*stackFrame], 0, 16),
-		heap:       newHeap()}
+		output:    new(bytes.Buffer),
+		callStack: make(stack[*stackFrame], 0, 16),
+		heap:      newHeap()}
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
-	vm.frameStack.push(frame)
+	vm.callStack.push(frame)
 
 	// TODO
 	if os.Getenv("GI_IGNORE_PANIC") == "" {
@@ -123,13 +123,13 @@ func (vm *VM) setFileSet(fs *token.FileSet) {
 
 // localEnv returns the current environment from the top stack frame.
 func (vm *VM) localEnv() Env {
-	return vm.frameStack.top().env
+	return vm.callStack.top().env
 }
 
 // returnsEval evaluates the argument and returns the popped value that was pushed onto the operand stack.
 func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 	vm.eval(e)
-	return vm.frameStack.top().pop()
+	return vm.callStack.top().pop()
 }
 
 func (vm *VM) returnsType(e Evaluable) reflect.Type {
@@ -189,7 +189,7 @@ func (vm *VM) pushOperand(v reflect.Value) {
 			fmt.Printf("vm.push: %v\n", v)
 		}
 	}
-	vm.frameStack.top().push(v)
+	vm.callStack.top().push(v)
 }
 
 func (vm *VM) pushNewFrame(e Evaluable) { // typically a FuncDecl or FuncLit
@@ -201,14 +201,14 @@ func (vm *VM) pushNewFrame(e Evaluable) { // typically a FuncDecl or FuncLit
 	env := envPool.Get().(*Environment)
 	env.parent = vm.localEnv()
 	frame.env = env
-	vm.frameStack.push(frame)
+	vm.callStack.push(frame)
 }
 
 func (vm *VM) popFrame() {
 	if trace {
 		fmt.Println("vm.popFrame")
 	}
-	frame := vm.frameStack.pop()
+	frame := vm.callStack.pop()
 
 	// return env to pool
 	env := frame.env.(*Environment)
@@ -220,7 +220,7 @@ func (vm *VM) popFrame() {
 	}
 
 	// reset references
-	frame.operandStack = frame.operandStack[:0]
+	frame.operands = frame.operands[:0]
 	frame.returnValues = frame.returnValues[:0]
 	frame.env = nil
 	frame.creator = nil
@@ -232,19 +232,19 @@ func (vm *VM) fatal(err any) {
 	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)
 	fmt.Fprintln(os.Stderr, "")
 	// dump the callstack
-	for i := len(vm.frameStack) - 1; i >= 0; i-- {
-		frame := vm.frameStack[i]
+	for i := len(vm.callStack) - 1; i >= 0; i-- {
+		frame := vm.callStack[i]
 		fmt.Fprintln(os.Stderr, "[gi]", vm.sourceLocation(frame.creator), frame)
 	}
 	s := structexplorer.NewService("vm", vm)
-	for i, each := range vm.frameStack {
-		s.Explore(fmt.Sprintf("vm.frameStack.%d", i), each, structexplorer.Column(0))
-		s.Explore(fmt.Sprintf("vm.frameStack.%d.env", i), each.env, structexplorer.Column(1))
+	for i, each := range vm.callStack {
+		s.Explore(fmt.Sprintf("vm.callStack.%d", i), each, structexplorer.Column(0))
+		s.Explore(fmt.Sprintf("vm.callStack.%d.env", i), each.env, structexplorer.Column(1))
 		if tableHolder, ok := each.env.(*Environment); ok {
-			s.Explore(fmt.Sprintf("vm.frameStack.%d.env.valueTable", i), tableHolder.valueTable, structexplorer.Column(2))
+			s.Explore(fmt.Sprintf("vm.callStack.%d.env.valueTable", i), tableHolder.valueTable, structexplorer.Column(2))
 		}
-		s.Explore(fmt.Sprintf("vm.frameStack.%d.operandStack", i), each.operandStack, structexplorer.Column(1))
-		s.Explore(fmt.Sprintf("vm.frameStack.%d.returnValues", i), each.returnValues, structexplorer.Column(1))
+		s.Explore(fmt.Sprintf("vm.callStack.%d.operands", i), each.operands, structexplorer.Column(1))
+		s.Explore(fmt.Sprintf("vm.callStack.%d.returnValues", i), each.returnValues, structexplorer.Column(1))
 	}
 	s.Dump("gi-vm-panic.html")
 	panic(err)
@@ -284,11 +284,11 @@ func (vm *VM) sourceLocation(e Evaluable) string {
 }
 
 func (vm *VM) printStack() {
-	if len(vm.frameStack) == 0 {
+	if len(vm.callStack) == 0 {
 		fmt.Println("vm.ops: <empty>")
 		return
 	}
-	frame := vm.frameStack.top()
+	frame := vm.callStack.top()
 	for k, v := range frame.env.(*Environment).valueTable { // TODO hack
 		if v.IsValid() && v.CanInterface() {
 			if v == reflectNil {
@@ -304,8 +304,8 @@ func (vm *VM) printStack() {
 			fmt.Printf("vm.env.%s = %v\n", k, v)
 		}
 	}
-	for i := 0; i < len(frame.operandStack); i++ {
-		v := frame.operandStack[i]
+	for i := 0; i < len(frame.operands); i++ {
+		v := frame.operands[i]
 		if v.IsValid() && v.CanInterface() {
 			if v == reflectNil {
 				fmt.Printf("vm.ops.%d: untyped nil\n", i)

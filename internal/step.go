@@ -109,7 +109,7 @@ func (c *conditionalStep) String() string {
 	if c == nil {
 		return "conditionalStep(<nil>)"
 	}
-	return fmt.Sprintf("%2d: if", c.ID())
+	return fmt.Sprintf("%d: if", c.ID())
 }
 
 func (c *conditionalStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
@@ -130,7 +130,7 @@ func (c *conditionalStep) Take(vm *VM) Step {
 	if c.conditionFlow == nil {
 		return c.next
 	}
-	cond := vm.frameStack.top().pop()
+	cond := vm.callStack.top().pop()
 	if cond.Bool() {
 		return c.next
 	}
@@ -142,7 +142,7 @@ type pushEnvironmentStep struct {
 }
 
 func (p *pushEnvironmentStep) Take(vm *VM) Step {
-	vm.frameStack.top().pushEnv()
+	vm.callStack.top().pushEnv()
 	return p.next
 }
 
@@ -161,7 +161,7 @@ type popEnvironmentStep struct {
 }
 
 func (p *popEnvironmentStep) Take(vm *VM) Step {
-	vm.frameStack.top().popEnv()
+	vm.callStack.top().popEnv()
 	return p.next
 }
 

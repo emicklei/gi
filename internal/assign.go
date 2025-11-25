@@ -21,19 +21,19 @@ func (a AssignStmt) Eval(vm *VM) {
 		each := a.Lhs[i]
 		var v reflect.Value
 		// handle "ok" idiom for map index expressions
-		if len(vm.frameStack.top().operandStack) == 0 {
+		if len(vm.callStack.top().operands) == 0 {
 			if !lastVal.IsValid() {
 				panic("internal error: missing value for assignment")
 			}
 			v = reflect.ValueOf(!lastVal.IsZero())
 		} else {
-			v = vm.frameStack.top().pop()
+			v = vm.callStack.top().pop()
 			lastVal = v
 		}
 		a.apply(each, vm, v)
 	}
 	if len(a.Lhs) < len(a.Rhs) {
-		_ = vm.frameStack.top().pop()
+		_ = vm.callStack.top().pop()
 	}
 }
 
@@ -43,19 +43,19 @@ func (a AssignStmt) Eval2(vm *VM) {
 		each := a.Lhs[i]
 		var v reflect.Value
 		// handle "ok" idiom for map index expressions
-		if len(vm.frameStack.top().operandStack) == 0 {
+		if len(vm.callStack.top().operands) == 0 {
 			if !lastVal.IsValid() {
 				panic("internal error: missing value for assignment")
 			}
 			v = reflect.ValueOf(!lastVal.IsZero())
 		} else {
-			v = vm.frameStack.top().pop()
+			v = vm.callStack.top().pop()
 			lastVal = v
 		}
 		a.apply(each, vm, v)
 	}
 	if len(a.Lhs) < len(a.Rhs) {
-		_ = vm.frameStack.top().pop()
+		_ = vm.callStack.top().pop()
 	}
 }
 

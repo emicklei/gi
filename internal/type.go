@@ -17,12 +17,11 @@ type TypeAssertExpr struct {
 
 func (e TypeAssertExpr) Eval(vm *VM) {
 	if e.Type == nil {
-		val := vm.frameStack.top().pop()
+		val := vm.callStack.top().pop()
 		valType := val.Type()
-		//vm.console(val)
-		//vm.console(valType)
-		vm.pushOperand(reflect.ValueOf(valType))
+		vm.pushOperand(reflect.ValueOf(valType.Name())) // we compare strings
 	}
+	vm.fatal("todo")
 }
 
 func (e TypeAssertExpr) Flow(g *graphBuilder) (head Step) {

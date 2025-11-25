@@ -701,7 +701,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		b.funcStack.top().decl.labelToStmt[s.Label.Name] = ref
 
 	case *ast.BranchStmt:
-		s := BranchStmt{BranchStmt: n}
+		s := BranchStmt{TokPos: n.TokPos, Tok: n.Tok}
 		if n.Label != nil {
 			b.Visit(n.Label)
 			e := b.pop().(Ident)

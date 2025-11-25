@@ -15,7 +15,7 @@ func evalExpr(expr Expr) reflect.Value {
 	head := expr.Flow(g)
 	vm := newVM(newEnvironment(nil))
 	vm.takeAllStartingAt(head)
-	result := vm.frameStack.top().pop()
+	result := vm.callStack.top().pop()
 	return result
 }
 func TestBinaryExprValue_Eval(t *testing.T) {

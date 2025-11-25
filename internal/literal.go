@@ -58,11 +58,11 @@ type CompositeLit struct {
 func (s CompositeLit) Eval(vm *VM) {
 	values := make([]reflect.Value, len(s.Elts))
 	for i := range s.Elts {
-		val := vm.frameStack.top().pop()
+		val := vm.callStack.top().pop()
 		vm.console(val)
 		values[i] = val
 	}
-	typeOrValue := vm.frameStack.top().pop().Interface()
+	typeOrValue := vm.callStack.top().pop().Interface()
 	if inst, ok := typeOrValue.(CanInstantiate); ok {
 		instance := inst.Instantiate(vm, len(values), nil)
 		result := inst.LiteralCompose(instance, values)

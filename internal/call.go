@@ -16,7 +16,7 @@ type CallExpr struct {
 
 func (c CallExpr) Eval(vm *VM) {
 	// function fn is either an external or an interpreted one
-	fn := vm.frameStack.top().pop() // see Flow
+	fn := vm.callStack.top().pop() // see Flow
 
 	switch fn.Kind() {
 	case reflect.Struct:
@@ -45,7 +45,7 @@ func (c CallExpr) Eval(vm *VM) {
 			} else {
 				argType = fn.Type().In(i)
 			}
-			val := vm.frameStack.top().pop()
+			val := vm.callStack.top().pop()
 			if !val.IsValid() || val == untypedNil {
 				args[i] = reflect.New(argType).Elem()
 				continue
@@ -81,7 +81,7 @@ func (c CallExpr) Eval(vm *VM) {
 
 func (c CallExpr) handleTypeSpec(vm *VM, ts TypeSpec) {
 	// do a conversion to the specified type
-	toConvert := vm.frameStack.top().pop()
+	toConvert := vm.callStack.top().pop()
 	rt := vm.returnsType(ts.Type)
 	cv := toConvert.Convert(rt)
 	vm.pushOperand(cv)
@@ -89,7 +89,7 @@ func (c CallExpr) handleTypeSpec(vm *VM, ts TypeSpec) {
 
 func (c CallExpr) handleArrayType(vm *VM, at ArrayType) {
 	// do a conversion to array/slice
-	toConvert := vm.frameStack.top().pop()
+	toConvert := vm.callStack.top().pop()
 	rt := vm.returnsType(at.Elt)
 	length := toConvert.Len()
 	capacity := toConvert.Len()
@@ -115,7 +115,7 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		cleared := c.evalClear(vm)
 		// the argument of clear needs to be replaced
 		if identArg, ok := c.Args[0].(Ident); ok {
-			vm.frameStack.top().env.set(identArg.Name, cleared)
+			vm.callStack.top().env.set(identArg.Name, cleared)
 		} else {
 			vm.fatal("clear argument must be an identifier")
 		}
@@ -133,11 +133,11 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 	// prepare arguments
 	args := make([]reflect.Value, len(c.Args))
 	for i := range c.Args {
-		val := vm.frameStack.top().pop() // first to last, see Flow
+		val := vm.callStack.top().pop() // first to last, see Flow
 		args[i] = val
 	}
 	vm.pushNewFrame(fl)
-	frame := vm.frameStack.top()
+	frame := vm.callStack.top()
 
 	setParametersToFrame(fl.Type, args, vm, frame)
 	setZeroReturnsToFrame(fl.Type, vm, frame)
@@ -198,11 +198,11 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	args := make([]reflect.Value, len(c.Args))
 	// first to last, see Flow
 	for i := range c.Args {
-		val := vm.frameStack.top().pop()
+		val := vm.callStack.top().pop()
 		args[i] = val
 	}
 	vm.pushNewFrame(fd)
-	frame := vm.frameStack.top()
+	frame := vm.callStack.top()
 	setParametersToFrame(fd.Type, args, vm, frame)
 	setZeroReturnsToFrame(fd.Type, vm, frame)
 

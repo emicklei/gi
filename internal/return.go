@@ -25,11 +25,11 @@ func (r ReturnStmt) Eval(vm *VM) {
 	}
 	results := make([]reflect.Value, len(r.Results))
 	for i := range r.Results {
-		val := vm.frameStack.top().pop()
+		val := vm.callStack.top().pop()
 		results[i] = val
 	}
 	// bind result valutes to named results of the function if any
-	fd, ok := vm.frameStack.top().creator.(FuncDecl)
+	fd, ok := vm.callStack.top().creator.(FuncDecl)
 	// TODO has to work for FuncLit as well
 	if ok {
 		ri := 0
@@ -44,9 +44,9 @@ func (r ReturnStmt) Eval(vm *VM) {
 	}
 
 	// set return values for the top frame
-	top := vm.frameStack.top()
+	top := vm.callStack.top()
 	top.returnValues = results
-	vm.frameStack.replaceTop(top)
+	vm.callStack.replaceTop(top)
 }
 
 func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {

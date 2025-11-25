@@ -18,14 +18,14 @@ type BinaryExpr struct {
 
 func (s BinaryExpr) Eval(vm *VM) {
 	// see Flow for the order
-	right := vm.frameStack.top().pop()
+	right := vm.callStack.top().pop()
 	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
 	if right == reflectUndeclared {
 		vm.pushOperand(right)
 		return
 	}
-	left := vm.frameStack.top().pop()
+	left := vm.callStack.top().pop()
 	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
 	if left == reflectUndeclared {
