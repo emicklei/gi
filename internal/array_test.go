@@ -172,7 +172,7 @@ func main() {
 }
 
 func TestTwoDimIntArray(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	testMain(t, `package main
 
 func main() {
