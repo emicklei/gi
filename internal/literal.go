@@ -83,7 +83,7 @@ func (s CompositeLit) Eval(vm *VM) {
 		result := inst.LiteralCompose(instance, values)
 		vm.pushOperand(result)
 	} else {
-		vm.pushOperand(reflect.ValueOf(typeOrValue)) // TODO??
+		vm.fatal("unhandled type")
 	}
 }
 
