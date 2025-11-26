@@ -64,7 +64,6 @@ func (s CompositeLit) Eval(vm *VM) {
 		values := make([]reflect.Value, len(s.Elts))
 		for i := range s.Elts {
 			val := vm.callStack.top().pop()
-			vm.console(val)
 			values[i] = val
 		}
 		vm.pushOperand(reflect.ValueOf(values))
@@ -74,7 +73,6 @@ func (s CompositeLit) Eval(vm *VM) {
 	values := make([]reflect.Value, len(s.Elts))
 	for i := range s.Elts {
 		val := vm.callStack.top().pop()
-		vm.console(val)
 		values[i] = val
 	}
 	typeOrValue := vm.callStack.top().pop().Interface()

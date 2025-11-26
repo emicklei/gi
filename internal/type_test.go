@@ -81,7 +81,7 @@ func main() {
 }
 
 func TestTypeMarshalJSON(t *testing.T) {
-	t.Skip() // AST issue
+	// t.Skip() // AST issue
 	testMain(t, fmt.Sprintf(`package main
 
 import "encoding/json"
@@ -100,7 +100,7 @@ func main() {
 }
 
 func TestTypeUnmarshalJSON(t *testing.T) {
-	t.Skip() // AST issue
+	//t.Skip() // AST issue
 	testMain(t, fmt.Sprintf(`package main
 
 import "encoding/json"

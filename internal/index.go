@@ -43,7 +43,6 @@ func (i IndexExpr) Eval(vm *VM) {
 }
 
 func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
-	vm.printStack()
 	index := vm.callStack.top().pop()
 	target := vm.callStack.top().pop()
 	if target.Kind() == reflect.Pointer {

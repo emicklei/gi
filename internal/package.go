@@ -106,9 +106,19 @@ func (p *Package) writeAST(fileName string) {
 	}()
 	buf := new(bytes.Buffer)
 	spew.Config.DisableMethods = true
-	// only dump the actual values of each var/function in the environment
-	for _, v := range p.Env.Env.(*Environment).valueTable {
-		spew.Fdump(buf, v.Interface())
+	done := make(chan struct{})
+	go func() {
+		// only dump the actual values of each var/function in the environment
+		for _, v := range p.Env.Env.(*Environment).valueTable {
+			spew.Fdump(buf, v.Interface())
+		}
+		done <- struct{}{}
+	}()
+	select {
+	case <-time.After(2 * time.Second):
+		fmt.Println("AST writing took more than 2 seconds, aborting")
+		close(done)
+	case <-done:
 	}
 	os.WriteFile(fileName, buf.Bytes(), 0644)
 }
