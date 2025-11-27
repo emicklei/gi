@@ -330,10 +330,3 @@ func (vm *VM) console(v any) {
 	}
 	fmt.Printf("vm.console: %#v (%T)\n", v, v)
 }
-
-func (vm *VM) iotaValue() int {
-	if vm.declIota == nil {
-		vm.declIota = &Iota{value: 0}
-	}
-	return vm.declIota.value
-}

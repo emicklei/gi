@@ -19,6 +19,7 @@ type CanAssign interface {
 	Define(vm *VM, value reflect.Value)
 }
 
+// TODO only ValueSpec implements CanDeclare
 type CanDeclare interface {
 	// Declare declares the variable in the current environment.
 	// It returns true if the declaration set a valid reflect Value.

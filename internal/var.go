@@ -26,21 +26,29 @@ func (v ValueSpec) CallGraph() Step {
 
 func (v ValueSpec) Declare(vm *VM) bool {
 	if v.Type == nil {
-		for _, idn := range v.Names {
+		for i, idn := range v.Names {
 			var val reflect.Value
-			// check for iota
+			// no operand could mean iota active
 			if len(vm.callStack.top().operands) == 0 {
 				if vm.declIota != nil {
-					val = reflect.ValueOf(vm.iotaValue())
+					val = reflect.ValueOf(vm.declIota.value())
 				} else {
-					return false
+					vm.fatal("todo")
 				}
 			} else {
 				val = vm.callStack.top().pop()
-			}
-			if val == reflectUndeclared {
-				// this happens when the value expression is referencing a undeclared variable
-				return false
+				if val == reflectUndeclared {
+					// this happens when the value expression is referencing an undeclared variable
+					return false
+				}
+				// if itoa was not used but active, fix it
+				if vm.declIota != nil {
+					// TODO this check is not perfect
+					if _, ok := v.Values[i].(*Iota); !ok {
+						vm.declIota.fixedValue = val.Interface().(int)
+						vm.declIota.fixed = true
+					}
+				}
 			}
 			vm.localEnv().set(idn.Name, val)
 		}
@@ -129,11 +137,51 @@ func (v ValueSpec) String() string {
 	return fmt.Sprintf("ValueSpec(len=%d)", len(v.Names))
 }
 
+var _ Expr = new(Iota)
+
+// represents successive untyped integer constants
 type Iota struct {
-	value int
+	pos        token.Pos
+	count      int
+	fixed      bool // set to true when iota value is overridden with explicit value
+	fixedValue int
+}
+
+func (i *Iota) value() int {
+	if i.fixed {
+		return i.fixedValue
+	}
+	return i.count
 }
 
 func (i *Iota) next() int {
-	i.value++
-	return i.value
+	if i.fixed {
+		return i.fixedValue
+	}
+	i.count++
+	return i.count
+}
+func (i *Iota) Eval(vm *VM) {
+	if vm.declIota == nil {
+		vm.declIota = i
+	} else {
+		// replacing?
+		if vm.declIota != i {
+			// copy state
+			i.count = vm.declIota.count + 1
+			vm.declIota = i
+		}
+	}
+	if vm.declIota.fixed {
+		vm.declIota.fixed = false
+	}
+	// use the VM's iota value
+	vm.pushOperand(reflect.ValueOf(vm.declIota.value()))
+}
+func (i *Iota) Flow(g *graphBuilder) (head Step) {
+	g.next(i)
+	return g.current
+}
+func (i *Iota) Pos() token.Pos {
+	return i.pos
 }

@@ -37,7 +37,6 @@ func main() {
 }
 
 func TestIota(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 type state int
