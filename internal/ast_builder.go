@@ -411,6 +411,9 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			b.push(s)
 			break
 		}
+		if trace {
+			fmt.Fprintf(os.Stderr, "no binFunc for key=%s\n", binFuncKey)
+		}
 
 		s := BinaryExpr{OpPos: n.OpPos, Op: n.Op}
 		b.Visit(n.X)
