@@ -83,6 +83,7 @@ func (p *Package) Initialize(vm *VM) error {
 					p.Env.declarations[i] = nil
 					done = false
 				}
+				// TODO: this cannot be inside the for loop
 				// each declare may affect iota
 				if vm.declIota != nil {
 					vm.declIota.next()
