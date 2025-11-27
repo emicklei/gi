@@ -83,6 +83,10 @@ func (p *Package) Initialize(vm *VM) error {
 					p.Env.declarations[i] = nil
 					done = false
 				}
+				// each declare may affect iota
+				if vm.declIota != nil {
+					vm.declIota.next()
+				}
 			}
 		}
 	}

@@ -27,7 +27,17 @@ func (v ValueSpec) CallGraph() Step {
 func (v ValueSpec) Declare(vm *VM) bool {
 	if v.Type == nil {
 		for _, idn := range v.Names {
-			val := vm.callStack.top().pop()
+			var val reflect.Value
+			// check for iota
+			if len(vm.callStack.top().operands) == 0 {
+				if vm.declIota != nil {
+					val = reflect.ValueOf(vm.iotaValue())
+				} else {
+					return false
+				}
+			} else {
+				val = vm.callStack.top().pop()
+			}
 			if val == reflectUndeclared {
 				// this happens when the value expression is referencing a undeclared variable
 				return false
@@ -41,7 +51,7 @@ func (v ValueSpec) Declare(vm *VM) bool {
 	for _, idn := range v.Names {
 		if v.Values != nil {
 			val := vm.callStack.top().pop()
-			if !val.IsValid() {
+			if !val.IsValid() { // TODO check undeclared?
 				return false
 			}
 			if val.Interface() == untypedNil {
@@ -117,4 +127,13 @@ func (v ValueSpec) Pos() token.Pos {
 
 func (v ValueSpec) String() string {
 	return fmt.Sprintf("ValueSpec(len=%d)", len(v.Names))
+}
+
+type Iota struct {
+	value int
+}
+
+func (i *Iota) next() int {
+	i.value++
+	return i.value
 }

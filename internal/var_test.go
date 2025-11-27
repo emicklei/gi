@@ -35,3 +35,24 @@ func main() {
 	print(b,c)
 }`, "12")
 }
+
+func TestIota(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+type state int
+
+const (
+	a = iota
+	b
+	c       = 5
+	d state = iota
+	e
+	f = 1
+	g
+)
+
+func main() {
+	print(a, b, c, d, e, f, g)
+}`, "0153411")
+}

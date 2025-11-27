@@ -15,6 +15,11 @@ type Ident struct {
 }
 
 func (i Ident) Eval(vm *VM) {
+	if i.Name == "iota" {
+		val := vm.iotaValue()
+		vm.pushOperand(reflect.ValueOf(val))
+		return
+	}
 	vm.pushOperand(vm.localEnv().valueLookUp(i.Name))
 }
 

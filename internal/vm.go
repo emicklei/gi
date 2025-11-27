@@ -83,6 +83,7 @@ type VM struct {
 	heap      *Heap
 	output    *bytes.Buffer  // for testing only
 	fileSet   *token.FileSet // optional file set for position info
+	declIota  *Iota
 }
 
 var panicOnce sync.Once
@@ -328,4 +329,11 @@ func (vm *VM) console(v any) {
 		return
 	}
 	fmt.Printf("vm.console: %#v (%T)\n", v, v)
+}
+
+func (vm *VM) iotaValue() int {
+	if vm.declIota == nil {
+		vm.declIota = &Iota{value: 0}
+	}
+	return vm.declIota.value
 }

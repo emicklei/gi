@@ -36,6 +36,8 @@
 | min,max with 3 args | ✅ |
 | min,max with string | ✅ |
 | defer | ✅ |
+| struct json | ✅ |
+| iota | ⬜ |
 | continue | ⬜ |
 | fallthrough | ⬜ |
 | break | ⬜ |
@@ -47,6 +49,5 @@
 | `select` statement | ⬜ |
 | variadic function | ⬜ |
 | recover | ⬜ |
-| struct json | ⬜ |
 | struct xml | ⬜ |
 | type assertion | ⬜ |
