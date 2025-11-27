@@ -311,6 +311,7 @@ func (b BinaryExprValue) ComplexOpComplex(left, right complex128) reflect.Value 
 }
 
 func (b BinaryExprValue) IntOpInt(left int64, right int64) reflect.Value {
+	panic("why")
 	switch b.op {
 	case token.ADD:
 		return reflect.ValueOf(left + right)

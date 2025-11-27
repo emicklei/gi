@@ -55,3 +55,16 @@ func main() {
 	print(a, b, c, d, e, f, g)
 }`, "0153411")
 }
+
+func TestIotaInFunc(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+	const (
+		a = iota
+		b
+	)
+	print( a, b)
+}`, "01")
+}

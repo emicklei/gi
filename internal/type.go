@@ -156,7 +156,12 @@ func (m MapType) Flow(g *graphBuilder) (head Step) {
 func (m MapType) Instantiate(vm *VM, _ int, constructorArgs []reflect.Value) reflect.Value {
 	keyTypeName := mustIdentName(m.Key)
 	valueTypeName := mustIdentName(m.Value)
+	// standard or importer types
 	keyType := vm.localEnv().typeLookUp(keyTypeName)
+	if keyType == nil {
+		// TODO handl custom types as key types
+		keyType = vm.localEnv().valueLookUp(keyTypeName).Type()
+	}
 	valueType := vm.localEnv().typeLookUp(valueTypeName)
 	mapType := reflect.MapOf(keyType, valueType)
 	return reflect.MakeMap(mapType)
