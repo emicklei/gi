@@ -36,6 +36,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 			vm.pushOperand(reflect.ValueOf(hp))
 			return
 		}
+		vm.fatal("todo")
 	}
 
 	v := vm.callStack.top().pop()

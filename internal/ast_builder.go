@@ -387,7 +387,6 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.BasicLit:
 		b.push(BasicLit{BasicLit: n})
 	case *ast.BinaryExpr:
-		// TODO experiment
 		xt := b.goPkg.TypesInfo.TypeOf(n.X)
 		yt := b.goPkg.TypesInfo.TypeOf(n.Y)
 		binFuncKey := fmt.Sprintf("%s%d%s", xt.Underlying().String(), n.Op, yt.Underlying().String())

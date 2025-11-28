@@ -92,7 +92,7 @@ func (s *evaluableStep) String() string {
 	if s == nil {
 		return "evaluableStep(<nil>)"
 	}
-	return fmt.Sprintf("%2d: %v", s.id, s.Evaluable)
+	return fmt.Sprintf("%d: %v", s.id, s.Evaluable)
 }
 
 func (s *evaluableStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
