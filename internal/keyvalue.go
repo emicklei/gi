@@ -30,7 +30,7 @@ func (e KeyValueExpr) Flow(g *graphBuilder) (head Step) {
 		// use as string selector
 		key := BasicLit{BasicLit: &ast.BasicLit{Kind: token.STRING, Value: fmt.Sprintf("%q", k.Name)}}
 		key.Flow(g)
-	case BasicLit:
+	case BasicLit, Expr:
 		e.Key.Flow(g)
 	default:
 		g.fatal(fmt.Sprintf("unhandled key type: %T", e.Key))
