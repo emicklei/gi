@@ -29,3 +29,28 @@ func TestCallGenericByReflect(t *testing.T) {
 		t.Errorf("expected error to be nil, got %v", results[1].Interface())
 	}
 }
+
+func TestConvertStringPointer(t *testing.T) {
+	var c *string
+	ct := reflect.TypeOf(c)
+	if ct.Kind() == reflect.Pointer {
+		t.Log("pointer to", ct.Elem().Kind())
+	}
+
+	var s any = "hello"
+	sPtr := &s
+	rv := reflect.ValueOf(sPtr)
+	if ct.Kind() == reflect.Pointer && rv.Elem().Kind() == reflect.Interface {
+		innerValue := rv.Elem().Elem()
+
+		if innerValue.CanAddr() {
+			ptrToString := innerValue.Addr()
+			t.Log(ptrToString)
+		} else {
+			// If the string inside wasn't addressable, make a new one
+			newPtr := reflect.New(innerValue.Type())
+			newPtr.Elem().Set(innerValue)
+			t.Log("Converted to *string:", newPtr.Interface())
+		}
+	}
+}

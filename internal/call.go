@@ -50,20 +50,22 @@ func (c CallExpr) Eval(vm *VM) {
 				args[i] = reflect.New(argType).Elem()
 				continue
 			}
-			//fmt.Println(fn.Interface())
-			//fmt.Println(fn.Type())
-
 			if hp, ok := isHeapPointer(val); ok {
-				// TODO does it always work?
 				hpv := vm.heap.read(hp)
-				// TODO convert before set to temp?
-				temp := hpv.Interface()
-				val = reflect.ValueOf(&temp)
-				// after the call use the value of temp to write back the heapointer backing value
-				defer func() {
-					vm.heap.write(hp, reflect.ValueOf(temp))
-				}()
-				args[i] = val
+				if hpv.CanAddr() {
+					// TODO
+					args[i] = hpv.Addr()
+				} else {
+					newPtr := reflect.New(hpv.Type())
+					newPtr.Elem().Set(hpv)
+					args[i] = newPtr
+					// after the call use the value of newPtr to write back the heapointer backing value
+					defer func() {
+						vm.console("2nd defer")
+						vm.console(newPtr.Elem().Interface())
+						vm.heap.write(hp, newPtr.Elem())
+					}()
+				}
 			} else {
 				if val.CanConvert(argType) {
 					args[i] = val.Convert(argType)

@@ -598,15 +598,14 @@ func main() {
 }
 
 func TestConvertArgumentPointerType(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 import "flag"
 func main() {
 	var name string
 	flag.StringVar(&name, "name", "World", "a name to say hello to")
 	flag.Parse()
-	print("Hello, %s!\n", name)
-}`, "")
+	print(name)
+}`, "World")
 }
 
 func TestCompileTimeMapKey(t *testing.T) {
