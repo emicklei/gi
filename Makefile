@@ -9,7 +9,7 @@ serial:
 
 clean:
 	cd internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast
-	cd internal && rm -f *.dot *.png *.src *.svg *.ast
+	cd internal && rm -f *.dot *.png *.src *.svg *.ast *panic.html
 
 todo:
 	cd internal && go test -v | grep SKIP
@@ -20,6 +20,7 @@ bench:
 install:
 	cd cmd/gi && go install
 
+# brew install golangci-lint
 lint:
 	golangci-lint run
 
