@@ -20,11 +20,14 @@ bench:
 install:
 	cd cmd/gi && go install
 
+lint:
+	golangci-lint run
+
 # go install golang.org/x/tools/cmd/deadcode@latest
-unused:	
+unused:
 	cd cmd/gi && deadcode .
 
-.PHONY: test clean todo bench install unused examples
+.PHONY: test clean todo bench install unused examples lint
 examples: install
 	cd examples/api_call && go run .
 	# cd examples/externalpkg && gi run .
