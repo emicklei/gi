@@ -80,7 +80,8 @@ The first step is the head of the chain.
 - how to handle returnsType of FuncType? and what if FuncType is using local pkg types?
 - handle omitzero
 - frameStack -> callStack
-
+- unaryfuncs
+- stdtypes is now a two-stage map => make it one big map
 
 ## potential blockers
 - reflect structs can only have exposed fields. for that reason Instance was created but the SDK is not aware of this. For example, fmt.Println might not work correctly with Instance values.
