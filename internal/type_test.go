@@ -2,6 +2,8 @@ package internal
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"testing"
 )
 
@@ -186,4 +188,39 @@ func TestGoFmtFormat(t *testing.T) {
 	}
 	a := Aircraft{Model: "balloon", Price: 3.14}
 	t.Logf("%#v", a)
+}
+
+func TestPrintStderr(t *testing.T) {
+	old := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+	defer func() {
+		w.Close()
+		os.Stderr = old
+	}()
+	print("gi")
+	go func() {
+		out, _ := io.ReadAll(r)
+		t.Log(string(out))
+	}()
+}
+
+func TestCustomTypeAsWriter(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+import "fmt"
+	
+type writer struct {
+	written []byte
+}
+func (w *writer) Write(p []byte) (n int, err error) {
+	w.written = p
+	return len(p),nil
+}
+func main() {
+	w := new(writer)
+	fmt.Fprint(w,"gi")
+	print(string(w.written))
+}`, "gi")
 }
