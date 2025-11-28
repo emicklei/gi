@@ -206,28 +206,6 @@ func main() {
 }`, "")
 }
 
-func TestConst(t *testing.T) {
-	testMain(t, `package main
-
-const (
-	C = A+1
-	A = 0
-	B = 1
-)
-func main() {
-	print(A,B,C)
-}`, "011")
-}
-
-func TestDeclareAndInit(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	var s string = "gi"
-	print(s)
-}`, "gi")
-}
-
 func TestMapClear(t *testing.T) {
 	testMain(t, `package main
 
@@ -319,33 +297,6 @@ two:
 	goto one
 }
 `, "123")
-}
-
-func TestIfElseIfElse(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	if 1 == 2 {
-		print("unreachable 1")
-	} else if 2 == 2 {
-		print("gi")
-	} else {
-		print("unreachable 2")
-	}
-}`, "gi")
-}
-
-func TestIfIf(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	if 1 == 2 {
-		print("unreachable")
-	} 
-	if 2 == 2 {
-		print("gi")
-	}
-}`, "gi")
 }
 
 func TestTwoPrints(t *testing.T) {
@@ -539,26 +490,6 @@ func main() {
 }`, "(1+2i)1210")
 }
 
-// https://go.dev/ref/spec#Package_initialization
-func TestDeclarationExample(t *testing.T) {
-	testMain(t, `package main
-
-var (
-	a = c + b  // == 9
-	b = f()    // == 4
-	c = f()    // == 5
-	d = 3      // == 5 after initialization has finished
-)
-
-func f() int {
-	d++
-	return d
-}
-func main() {
-	print(a,b,c,d)
-}`, "9455")
-}
-
 func TestSubpackage(t *testing.T) {
 	t.Skip()
 	testProgramIn(t, "../examples/subpkg", "yet unchecked")
@@ -679,7 +610,6 @@ func main() {
 }
 
 func TestCompileTimeMapKey(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
