@@ -182,11 +182,11 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 		lhs, rhs := []Expr{}, []Expr{}
 		if iter.yieldKey {
 			lhs = append(lhs, r.Key)
-			rhs = append(rhs, NoExpr{}) // feels hacky
+			rhs = append(rhs, noExpr{}) // feels hacky
 		}
 		if iter.yieldValue {
 			lhs = append(lhs, r.Value)
-			rhs = append(rhs, NoExpr{}) // feels hacky
+			rhs = append(rhs, noExpr{}) // feels hacky
 		}
 		updateKeyValue := AssignStmt{
 			TokPos: r.Pos(),
@@ -205,14 +205,14 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	return
 }
 
-type NoExpr struct{}
+type noExpr struct{}
 
-func (NoExpr) Pos() token.Pos { return token.NoPos }
-func (NoExpr) Eval(vm *VM)    {} // used?
-func (n NoExpr) Flow(g *graphBuilder) (head Step) {
+func (noExpr) Pos() token.Pos { return token.NoPos }
+func (noExpr) Eval(vm *VM)    {} // used?
+func (n noExpr) Flow(g *graphBuilder) (head Step) {
 	return g.current
 }
-func (NoExpr) String() string { return "NoExpr" }
+func (noExpr) String() string { return "NoExpr" }
 
 func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 
@@ -318,7 +318,7 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 		Op:    token.LSS,
 		OpPos: r.ForPos,
 		X:     indexVar,
-		Y:     ReflectLenExpr{X: r.X},
+		Y:     reflectLenExpr{X: r.X},
 	}
 	// index++
 	post := IncDecStmt{
@@ -356,22 +356,22 @@ func (r RangeStmt) String() string {
 
 func (r RangeStmt) stmtStep() Evaluable { return r }
 
-type ReflectLenExpr struct {
+type reflectLenExpr struct {
 	X Expr
 }
 
-func (r ReflectLenExpr) Pos() token.Pos { return r.X.Pos() }
-func (r ReflectLenExpr) Eval(vm *VM) {
+func (r reflectLenExpr) Pos() token.Pos { return r.X.Pos() }
+func (r reflectLenExpr) Eval(vm *VM) {
 	val := vm.callStack.top().pop()
 	vm.callStack.top().push(reflect.ValueOf(val.Len()))
 }
-func (r ReflectLenExpr) Flow(g *graphBuilder) (head Step) {
+func (r reflectLenExpr) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)
 	g.next(r)
 	return
 }
-func (r ReflectLenExpr) String() string {
-	return fmt.Sprintf("ReflectLenExpr(%v)", r.X)
+func (r reflectLenExpr) String() string {
+	return fmt.Sprintf("reflectLenExpr(%v)", r.X)
 }
 
 // rangeIteratorSwitchStep looks at the Kind of the value of X to determine which flow to use.

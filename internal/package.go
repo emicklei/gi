@@ -199,7 +199,6 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 		}()
 	}
 	b := newASTBuilder(goPkg)
-	b.opts = buildOptions{}
 	for _, stx := range goPkg.Syntax {
 		for _, decl := range stx.Decls {
 			b.Visit(decl)
@@ -245,7 +244,7 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	// add noop expressions as arguments; the values will be pushed on the operand stack
 	callArgs := make([]Expr, len(args))
 	for i := range len(args) {
-		callArgs[i] = NoExpr{}
+		callArgs[i] = noExpr{}
 	}
 	// make a CallExpr and reuse its logic to set up the call
 	call := CallExpr{

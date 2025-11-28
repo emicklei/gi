@@ -44,7 +44,7 @@ func (v ValueSpec) Declare(vm *VM) bool {
 				// if itoa was not used but active, fix it
 				if vm.declIota != nil {
 					// TODO this check is not perfect
-					if _, ok := v.Values[i].(*Iota); !ok {
+					if _, ok := v.Values[i].(*iotaExpr); !ok {
 						vm.declIota.fixedValue = val.Interface().(int)
 						vm.declIota.fixed = true
 					}
@@ -137,31 +137,31 @@ func (v ValueSpec) String() string {
 	return fmt.Sprintf("ValueSpec(len=%d)", len(v.Names))
 }
 
-var _ Expr = new(Iota)
+var _ Expr = new(iotaExpr)
 
 // represents successive untyped integer constants
-type Iota struct {
+type iotaExpr struct {
 	pos        token.Pos
 	count      int
 	fixed      bool // set to true when iota value is overridden with explicit value
 	fixedValue int
 }
 
-func (i *Iota) value() int {
+func (i *iotaExpr) value() int {
 	if i.fixed {
 		return i.fixedValue
 	}
 	return i.count
 }
 
-func (i *Iota) next() int {
+func (i *iotaExpr) next() int {
 	if i.fixed {
 		return i.fixedValue
 	}
 	i.count++
 	return i.count
 }
-func (i *Iota) Eval(vm *VM) {
+func (i *iotaExpr) Eval(vm *VM) {
 	if vm.declIota == nil {
 		vm.declIota = i
 	} else {
@@ -178,10 +178,10 @@ func (i *Iota) Eval(vm *VM) {
 	// use the VM's iota value
 	vm.pushOperand(reflect.ValueOf(vm.declIota.value()))
 }
-func (i *Iota) Flow(g *graphBuilder) (head Step) {
+func (i *iotaExpr) Flow(g *graphBuilder) (head Step) {
 	g.next(i)
 	return g.current
 }
-func (i *Iota) Pos() token.Pos {
+func (i *iotaExpr) Pos() token.Pos {
 	return i.pos
 }

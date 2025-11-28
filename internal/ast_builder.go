@@ -17,10 +17,6 @@ import (
 
 var _ ast.Visitor = (*ASTBuilder)(nil)
 
-// TODO used?
-type buildOptions struct {
-}
-
 type funcDeclPair struct {
 	decl    FuncDecl      // the mirror node
 	astDecl *ast.FuncDecl // need this to find index of each block stmt
@@ -29,7 +25,6 @@ type funcDeclPair struct {
 type ASTBuilder struct {
 	stack     []Evaluable
 	env       Env
-	opts      buildOptions
 	goPkg     *packages.Package
 	funcStack stack[funcDeclPair]
 	buildErr  error // capture any error during building
@@ -38,7 +33,7 @@ type ASTBuilder struct {
 func newASTBuilder(goPkg *packages.Package) ASTBuilder {
 	builtins := newBuiltinsEnvironment(nil)
 	pkgenv := newPkgEnvironment(builtins)
-	return ASTBuilder{goPkg: goPkg, env: pkgenv, opts: buildOptions{}}
+	return ASTBuilder{goPkg: goPkg, env: pkgenv}
 }
 
 func (b *ASTBuilder) Err() error { return b.buildErr }
@@ -297,7 +292,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.Ident:
 		// special case for iota
 		if n.Name == "iota" {
-			s := new(Iota)
+			s := new(iotaExpr)
 			s.pos = n.NamePos
 			b.push(s)
 			break

@@ -18,11 +18,11 @@ type KeyValueExpr struct {
 func (e KeyValueExpr) Eval(vm *VM) {
 	key := vm.callStack.top().pop()
 	val := vm.callStack.top().pop()
-	vm.pushOperand(reflect.ValueOf(KeyValue{Key: key, Value: val}))
+	vm.pushOperand(reflect.ValueOf(keyValue{Key: key, Value: val}))
 }
 
 func (e KeyValueExpr) Flow(g *graphBuilder) (head Step) {
-	// Value first so that it ends up on top of the stack
+	// Value first so that key ends up on top of the stack
 	head = e.Value.Flow(g)
 
 	switch k := e.Key.(type) {
@@ -46,11 +46,11 @@ func (e KeyValueExpr) String() string {
 	return fmt.Sprintf("KeyValueExpr(%v,%v)", e.Key, e.Value)
 }
 
-type KeyValue struct {
+type keyValue struct {
 	Key   reflect.Value
 	Value reflect.Value
 }
 
-func (k KeyValue) String() string {
+func (k keyValue) String() string {
 	return fmt.Sprintf("KeyValue(%v,%v)", k.Key, k.Value)
 }

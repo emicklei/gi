@@ -8,8 +8,9 @@ import (
 
 type Field struct {
 	*ast.Field
-	Names []*Ident
-	Type  Expr
+	Names []*Ident // field/method/(type) parameter names; or nil
+	Type  Expr     // field/method/parameter type; or nil
+	// Tag   BasicLit // field tag; or nil
 }
 
 func (l Field) String() string {

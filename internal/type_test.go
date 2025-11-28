@@ -164,7 +164,6 @@ func main() {
 }
 
 func TestFmtFormat(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 import "fmt"
 // import "bytes"
@@ -175,13 +174,14 @@ type Aircraft struct {
 }
 func main() {
 	// var buf bytes.Buffer
-	fmt.Printf("%#v",Aircraft{Model: "balloon", Price: 3.14})
+	fmt.Printf("%#v\n",Aircraft{Model: "balloon", Price: 3.14})
 }`, "")
 }
 func TestGoFmtFormat(t *testing.T) {
 	type Aircraft struct {
-		Model  string
-		Price  float32
+		Model string
+		Price float32
+		//lint:ignore U1000 // unused
 		hidden int
 	}
 	a := Aircraft{Model: "balloon", Price: 3.14}

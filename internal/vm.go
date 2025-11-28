@@ -83,7 +83,7 @@ type VM struct {
 	heap      *Heap
 	output    *bytes.Buffer  // for testing only
 	fileSet   *token.FileSet // optional file set for position info
-	declIota  *Iota
+	declIota  *iotaExpr
 }
 
 var panicOnce sync.Once
@@ -262,8 +262,7 @@ func (vm *VM) takeAllStartingAt(head Step) {
 	here := head
 	for here != nil {
 		if trace {
-			fmt.Print(here)
-			fmt.Printf(" @ %s\n", vm.sourceLocation(here))
+			fmt.Printf("%v @ %s\n", here, vm.sourceLocation(here))
 		}
 		here = here.Take(vm)
 	}

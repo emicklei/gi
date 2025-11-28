@@ -86,6 +86,7 @@ var (
 
 type StructType struct {
 	*ast.StructType
+	Name    string
 	Fields  *FieldList
 	Methods map[string]FuncDecl
 }
@@ -171,7 +172,7 @@ func (m MapType) LiteralCompose(composite reflect.Value, values []reflect.Value)
 		expected(composite, "map") // TODO bug if reached here?
 	}
 	for _, kv := range values {
-		kv := kv.Interface().(KeyValue)
+		kv := kv.Interface().(keyValue)
 		composite.SetMapIndex(kv.Key, kv.Value)
 	}
 	return composite

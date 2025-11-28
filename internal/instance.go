@@ -18,13 +18,13 @@ var instanceType = reflect.TypeOf(&Instance{})
 var _ fmt.Formatter = Instance{}
 
 type Instance struct {
-	Type   StructType
-	fields map[string]reflect.Value
+	structType StructType
+	fields     map[string]reflect.Value
 }
 
 // NewInstance creates a new Instance of the given StructType.
 func NewInstance(vm *VM, t StructType) *Instance {
-	i := &Instance{Type: t,
+	i := &Instance{structType: t,
 		fields: map[string]reflect.Value{},
 	}
 	for _, field := range t.Fields.List {
@@ -36,7 +36,7 @@ func NewInstance(vm *VM, t StructType) *Instance {
 	return i
 }
 func (i *Instance) String() string {
-	return fmt.Sprintf("*Instance(%v)", i.Type)
+	return fmt.Sprintf("*Instance(%v)", i.structType)
 }
 
 func (i *Instance) Select(name string) reflect.Value {
@@ -61,16 +61,16 @@ func (i *Instance) LiteralCompose(composite reflect.Value, values []reflect.Valu
 		return composite
 	}
 	// check first element to decide keyed or not
-	if _, ok := values[0].Interface().(KeyValue); ok {
+	if _, ok := values[0].Interface().(keyValue); ok {
 		for _, each := range values {
-			if kv, ok := each.Interface().(KeyValue); ok {
+			if kv, ok := each.Interface().(keyValue); ok {
 				i.fields[mustString(kv.Key)] = kv.Value
 			}
 		}
 	} else {
 		// unkeyed
 		var fieldNames []string
-		for _, field := range i.Type.Fields.List {
+		for _, field := range i.structType.Fields.List {
 			for _, name := range field.Names {
 				fieldNames = append(fieldNames, name.Name)
 			}
@@ -123,7 +123,7 @@ func (i *Instance) tagFieldName(key string, fieldName string, fieldValue reflect
 		// unexported field
 		return "", false
 	}
-	lit := i.Type.tagForField(fieldName)
+	lit := i.structType.tagForField(fieldName)
 	if lit == nil {
 		return fieldName, true
 	}
@@ -152,7 +152,7 @@ func (i *Instance) tagFieldName(key string, fieldName string, fieldValue reflect
 
 func (i Instance) Format(f fmt.State, verb rune) {
 	var buf bytes.Buffer
-	fmt.Fprint(&buf, "internal.Aircraft{") // TODO
+	fmt.Fprintf(&buf, "%s{", i.structType)
 	c := 0
 	for fieldName, val := range i.fields {
 		if unicode.IsUpper(rune(fieldName[0])) {
