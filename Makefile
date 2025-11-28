@@ -2,7 +2,7 @@ gen:
 	cd cmd/genstdlib && go run .
 
 test:
-	go test -cover ./internal
+	go test -p 16 ./internal
 
 serial:
 	GI_CALL=out.dot GI_AST=test.ast GI_TRACE=1 go test -v -p 1 ./internal
