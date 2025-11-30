@@ -25,6 +25,7 @@ func (v ValueSpec) CallGraph() Step {
 }
 
 func (v ValueSpec) Declare(vm *VM) bool {
+	vm.takeAllStartingAt(v.callGraph)
 	if v.Type == nil {
 		for _, idn := range v.Names {
 			val := vm.callStack.top().pop()
@@ -123,28 +124,20 @@ var _ Expr = new(iotaExpr)
 
 // represents successive untyped integer constants
 type iotaExpr struct {
-	pos        token.Pos
-	count      int
-	fixed      bool // set to true when iota value is overridden with explicit value
-	fixedValue int
+	pos   token.Pos
+	count int
 }
 
-func (i *iotaExpr) value() int {
-	if i.fixed {
-		return i.fixedValue
-	}
-	return i.count
+func (i *iotaExpr) reset() {
+	i.count = 0
 }
 
-func (i *iotaExpr) next() int {
-	if i.fixed {
-		return i.fixedValue
-	}
+func (i *iotaExpr) next() {
 	i.count++
-	return i.count
 }
+
 func (i *iotaExpr) Eval(vm *VM) {
-	vm.pushOperand(reflect.ValueOf(i.value()))
+	vm.pushOperand(reflect.ValueOf(i.count))
 }
 func (i *iotaExpr) Flow(g *graphBuilder) (head Step) {
 	g.next(i)
@@ -154,5 +147,5 @@ func (i *iotaExpr) Pos() token.Pos {
 	return i.pos
 }
 func (i *iotaExpr) String() string {
-	return fmt.Sprintf("iota(%d)", i.value())
+	return fmt.Sprintf("iota(%d)", i.count)
 }

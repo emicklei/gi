@@ -27,7 +27,8 @@ type ASTBuilder struct {
 	env       Env
 	goPkg     *packages.Package
 	funcStack stack[funcDeclPair]
-	buildErr  error // capture any error during building
+	buildErr  error      // capture any error during building
+	constDecl *ConstDecl // current const decl for iota tracking
 }
 
 func newASTBuilder(goPkg *packages.Package) ASTBuilder {
@@ -47,6 +48,9 @@ func (b *ASTBuilder) popEnv() {
 }
 
 func (b *ASTBuilder) push(s Evaluable) {
+	if trace {
+		fmt.Printf("ast.push: %v\n", s)
+	}
 	b.stack = append(b.stack, s)
 }
 
@@ -56,6 +60,9 @@ func (b *ASTBuilder) pop() Evaluable {
 	}
 	top := b.stack[len(b.stack)-1]
 	b.stack = b.stack[0 : len(b.stack)-1]
+	if trace {
+		fmt.Printf("ast.pop: %v\n", top)
+	}
 	return top
 }
 
@@ -292,9 +299,13 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.Ident:
 		// special case for iota
 		if n.Name == "iota" {
-			s := new(iotaExpr)
-			s.pos = n.NamePos
-			b.push(s)
+			// ensure there is an iotaExpr in the current ConstDecl
+			ie := b.constDecl.iotaExpr
+			if ie == nil {
+				ie = &iotaExpr{pos: n.NamePos}
+				b.constDecl.iotaExpr = ie
+			}
+			b.push(ie)
 			break
 		}
 		s := Ident{Name: n.Name}
@@ -387,11 +398,17 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.BasicLit:
 		b.push(newBasicLit(n.ValuePos, basicLitValue(n)))
 	case *ast.BinaryExpr:
-		xt := b.goPkg.TypesInfo.TypeOf(n.X)
-		yt := b.goPkg.TypesInfo.TypeOf(n.Y)
-		fmt.Println("xt.string", xt.String(), "yt.string", yt.String())
-		binFuncKey := fmt.Sprintf("%s%d%s", xt.Underlying().String(), n.Op, yt.Underlying().String())
+		xt, yt := b.goPkg.TypesInfo.TypeOf(n.X), b.goPkg.TypesInfo.TypeOf(n.Y)
+		xs, ys := xt.Underlying().String(), yt.Underlying().String()
+		binFuncKey := fmt.Sprintf("%s%d%s", xs, n.Op, ys)
 		binFunc, ok := binFuncs[binFuncKey]
+		if !ok {
+			// check for untyped
+			xs = strings.TrimPrefix(xs, "untyped ")
+			ys = strings.TrimPrefix(ys, "untyped ")
+			binFuncKey = fmt.Sprintf("%s%d%s", xs, n.Op, ys)
+			binFunc, ok = binFuncs[binFuncKey]
+		}
 		if ok {
 			s := BinaryExpr2{}
 			s.binFunc = binFunc
@@ -564,68 +581,50 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			if len(b.funcStack) > 0 {
 				// inside function, handle iota differently
 				decl := ConstDecl{}
-				var lastIdent *Ident
-				var lastExpr ast.Expr
+				b.constDecl = &decl // set current const decl for iota tracking
+				var lastExpr Expr
 				for _, each := range n.Specs {
 					b.Visit(each)
 					// must be ValueSpec because CONST
 					vs := b.pop().(ValueSpec)
 					if len(vs.Values) == 0 {
-						incExpr := &ast.BinaryExpr{
-							X:     &ast.Ident{Name: lastIdent.Name, NamePos: each.Pos()},
-							Op:    token.ADD,
-							OpPos: each.Pos(),
-							Y:     &ast.BasicLit{Kind: token.INT, Value: "1", ValuePos: each.Pos()},
-						}
-						tv := b.goPkg.TypesInfo.Types[lastExpr]
-						b.goPkg.TypesInfo.Types[incExpr.X] = tv
-						b.goPkg.TypesInfo.Types[incExpr.Y] = tv
-						b.Visit(incExpr)
-						e := b.pop()
-						vs.Values = append(vs.Values, e.(Expr))
-						lastExpr = incExpr
+						vs.Values = append(vs.Values, lastExpr)
 					} else {
-						lastExpr = asValueSpec(each)
+						lastExpr = vs.Values[0]
 					}
-					lastIdent = vs.Names[0]
+					// store call graph in the ValueSpec for initialization
+					g := newGraphBuilder(b.goPkg)
+					vs.callGraph = vs.Flow(g)
 					decl.Specs = append(decl.Specs, vs)
 				}
 				b.push(decl)
+				b.constDecl = nil // clear current const decl
 				break
 			}
 			// set iota for package level const block
-			var lastIdent *Ident
-			var lastExpr ast.Expr
+			// inside function, handle iota differently
+			decl := ConstDecl{}
+			b.constDecl = &decl // set current const decl for iota tracking
+			var lastExpr Expr
 			for _, each := range n.Specs {
 				b.Visit(each)
-				// let the environment know
-				e := b.pop()
-				c := e.(ValueSpec)
-				// no values means repeat last with increment
-				if len(c.Values) == 0 {
-					incExpr := &ast.BinaryExpr{
-						X:     &ast.Ident{Name: lastIdent.Name, NamePos: each.Pos()},
-						Op:    token.ADD,
-						OpPos: each.Pos(),
-						Y:     &ast.BasicLit{Kind: token.INT, Value: "1", ValuePos: each.Pos()},
-					}
-					// register types for BinaryExpr components
-					tv := b.goPkg.TypesInfo.Types[lastExpr]
-					b.goPkg.TypesInfo.Types[incExpr.X] = tv
-					b.goPkg.TypesInfo.Types[incExpr.Y] = tv
-					b.Visit(incExpr)
-					e := b.pop()
-					c.Values = append(c.Values, e.(Expr))
+				// must be ValueSpec because CONST
+				vs := b.pop().(ValueSpec)
+				if len(vs.Values) == 0 {
+					vs.Values = append(vs.Values, lastExpr)
 				} else {
-					lastIdent = c.Names[0]
-					lastExpr = asValueSpec(each)
+					lastExpr = vs.Values[0]
 				}
+				// store call graph in the ValueSpec for initialization
 				g := newGraphBuilder(b.goPkg)
-				c.callGraph = c.Flow(g)
-				b.env.addConstOrVar(c)
-				// add to stack as normal
-				b.push(c)
+				vs.callGraph = vs.Flow(g)
+				decl.Specs = append(decl.Specs, vs)
 			}
+			// store call graph in the ConstDecl for initialization
+			g := newGraphBuilder(b.goPkg)
+			decl.callGraph = decl.Flow(g)
+			b.constDecl = nil // clear current const decl
+			b.env.addConstOrVar(decl)
 		case token.VAR:
 			for _, each := range n.Specs {
 				b.Visit(each)

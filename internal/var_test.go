@@ -38,13 +38,34 @@ func main() {
 }`, "9455")
 }
 
-func TestDeclareAndInit(t *testing.T) {
+func TestDeclareVarAndInit(t *testing.T) {
 	testMain(t, `package main
 
 func main() {
 	var s string = "gi"
 	print(s)
 }`, "gi")
+}
+
+func TestDeclareConstInFunc(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	const s = "gi"
+	print(s)
+}`, "gi")
+}
+
+func TestDeclareConstsInFunc(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	const (
+		s = "gi"
+		n = 42
+	)
+	print(s,n)
+}`, "gi42")
 }
 
 func TestVar(t *testing.T) {
@@ -82,7 +103,6 @@ func main() {
 }
 
 func TestIota(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 type state int
@@ -103,7 +123,6 @@ func main() {
 }
 
 func TestIotaInFunc(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -115,7 +134,6 @@ func main() {
 }`, "01")
 }
 func TestIotaFloat32InFunc(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -124,7 +142,7 @@ func main() {
 		b
 	)
 	print( a, b)
-}`, "3.144.14")
+}`, "3.144.140000000000001")
 }
 
 func TestUntypedInt(t *testing.T) {

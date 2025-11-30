@@ -78,9 +78,9 @@ func (p *Package) Initialize(vm *VM) error {
 		done = true
 		for i, decl := range p.Env.declarations {
 			if decl != nil {
-				vm.takeAllStartingAt(decl.CallGraph())
 				if p.Env.declarations[i].Declare(vm) {
 					p.Env.declarations[i] = nil
+				} else {
 					done = false
 				}
 			}
