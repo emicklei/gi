@@ -385,10 +385,11 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.envSet(ffpkg.Name, reflect.ValueOf(ffpkg))
 	case *ast.BasicLit:
-		b.push(BasicLit{BasicLit: n})
+		b.push(newBasicLit(n.ValuePos, basicLitValue(n)))
 	case *ast.BinaryExpr:
 		xt := b.goPkg.TypesInfo.TypeOf(n.X)
 		yt := b.goPkg.TypesInfo.TypeOf(n.Y)
+		fmt.Println("xt.string", xt.String(), "yt.string", yt.String())
 		binFuncKey := fmt.Sprintf("%s%d%s", xt.Underlying().String(), n.Op, yt.Underlying().String())
 		binFunc, ok := binFuncs[binFuncKey]
 		if ok {
@@ -559,14 +560,80 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.GenDecl:
 		// IMPORT, CONST, TYPE, or VAR
 		switch n.Tok {
-		case token.CONST, token.VAR:
+		case token.CONST:
+			if len(b.funcStack) > 0 {
+				// inside function, handle iota differently
+				decl := ConstDecl{}
+				var lastIdent *Ident
+				var lastExpr ast.Expr
+				for _, each := range n.Specs {
+					b.Visit(each)
+					// must be ValueSpec because CONST
+					vs := b.pop().(ValueSpec)
+					if len(vs.Values) == 0 {
+						incExpr := &ast.BinaryExpr{
+							X:     &ast.Ident{Name: lastIdent.Name, NamePos: each.Pos()},
+							Op:    token.ADD,
+							OpPos: each.Pos(),
+							Y:     &ast.BasicLit{Kind: token.INT, Value: "1", ValuePos: each.Pos()},
+						}
+						tv := b.goPkg.TypesInfo.Types[lastExpr]
+						b.goPkg.TypesInfo.Types[incExpr.X] = tv
+						b.goPkg.TypesInfo.Types[incExpr.Y] = tv
+						b.Visit(incExpr)
+						e := b.pop()
+						vs.Values = append(vs.Values, e.(Expr))
+						lastExpr = incExpr
+					} else {
+						lastExpr = asValueSpec(each)
+					}
+					lastIdent = vs.Names[0]
+					decl.Specs = append(decl.Specs, vs)
+				}
+				b.push(decl)
+				break
+			}
+			// set iota for package level const block
+			var lastIdent *Ident
+			var lastExpr ast.Expr
 			for _, each := range n.Specs {
 				b.Visit(each)
 				// let the environment know
 				e := b.pop()
 				c := e.(ValueSpec)
+				// no values means repeat last with increment
+				if len(c.Values) == 0 {
+					incExpr := &ast.BinaryExpr{
+						X:     &ast.Ident{Name: lastIdent.Name, NamePos: each.Pos()},
+						Op:    token.ADD,
+						OpPos: each.Pos(),
+						Y:     &ast.BasicLit{Kind: token.INT, Value: "1", ValuePos: each.Pos()},
+					}
+					// register types for BinaryExpr components
+					tv := b.goPkg.TypesInfo.Types[lastExpr]
+					b.goPkg.TypesInfo.Types[incExpr.X] = tv
+					b.goPkg.TypesInfo.Types[incExpr.Y] = tv
+					b.Visit(incExpr)
+					e := b.pop()
+					c.Values = append(c.Values, e.(Expr))
+				} else {
+					lastIdent = c.Names[0]
+					lastExpr = asValueSpec(each)
+				}
 				g := newGraphBuilder(b.goPkg)
 				c.callGraph = c.Flow(g)
+				b.env.addConstOrVar(c)
+				// add to stack as normal
+				b.push(c)
+			}
+		case token.VAR:
+			for _, each := range n.Specs {
+				b.Visit(each)
+				e := b.pop()
+				c := e.(ValueSpec)
+				g := newGraphBuilder(b.goPkg)
+				c.callGraph = c.Flow(g)
+				// let the environment know
 				b.env.addConstOrVar(c)
 				// add to stack as normal
 				b.push(c)

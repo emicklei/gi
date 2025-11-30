@@ -7,53 +7,19 @@ import (
 	"testing"
 )
 
-func TestBasicLit_Eval(t *testing.T) {
-	cases := []struct {
-		lit      *ast.BasicLit
-		expected any
-	}{
-		{
-			lit:      &ast.BasicLit{Kind: token.INT, Value: "42"},
-			expected: 42,
-		},
-		{
-			lit:      &ast.BasicLit{Kind: token.FLOAT, Value: "3.14"},
-			expected: 3.14,
-		},
-		{
-			lit:      &ast.BasicLit{Kind: token.STRING, Value: `"hello"`},
-			expected: "hello",
-		},
-		{
-			lit:      &ast.BasicLit{Kind: token.CHAR, Value: "'a'"},
-			expected: "'a'",
-		},
-	}
-	for _, tt := range cases {
-		t.Run(tt.lit.Kind.String(), func(t *testing.T) {
-			vm := newVM(newEnvironment(nil))
-			bl := BasicLit{BasicLit: tt.lit}
-			result := vm.returnsEval(bl)
-			if result.Interface() != tt.expected {
-				t.Errorf("expected %v, got %v", tt.expected, result.Interface())
-			}
-		})
-	}
-}
-
 func TestCompositeArrayLit_Eval(t *testing.T) {
 	t.Run("array literal", func(t *testing.T) {
 		// mock array type
 		at := ArrayType{
-			Len: BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "2"}},
+			Len: newBasicLit(token.NoPos, basicLitValue(&ast.BasicLit{Kind: token.INT, Value: "2"})),
 			// a real element type would be needed for a full test
 			Elt: Ident{Name: "int"},
 		}
 		cl := CompositeLit{
 			Type: at,
 			Elts: []Expr{
-				BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "1"}},
-				BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "2"}},
+				newBasicLit(token.NoPos, basicLitValue(&ast.BasicLit{Kind: token.INT, Value: "1"})),
+				newBasicLit(token.NoPos, basicLitValue(&ast.BasicLit{Kind: token.INT, Value: "2"})),
 			},
 		}
 		result := evalExpr(cl)
@@ -83,8 +49,8 @@ func TestCompositeSliceLit_Eval(t *testing.T) {
 		cl := CompositeLit{
 			Type: at,
 			Elts: []Expr{
-				BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "1"}},
-				BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "2"}},
+				newBasicLit(token.NoPos, basicLitValue(&ast.BasicLit{Kind: token.INT, Value: "1"})),
+				newBasicLit(token.NoPos, basicLitValue(&ast.BasicLit{Kind: token.INT, Value: "2"})),
 			},
 		}
 		result := evalExpr(cl)

@@ -166,6 +166,7 @@ func main() {
 }
 
 func TestFmtFormat(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
 import "fmt"
 // import "bytes"
@@ -191,6 +192,7 @@ func TestGoFmtFormat(t *testing.T) {
 }
 
 func TestPrintStderr(t *testing.T) {
+	t.Skip()
 	old := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stderr = w

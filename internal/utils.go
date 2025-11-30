@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"go/ast"
 	"io"
 	"reflect"
 )
@@ -133,4 +134,22 @@ func format(w io.Writer, verb rune, val any) {
 		formatStr := "%" + string(verb)
 		fmt.Fprintf(w, formatStr, v)
 	}
+}
+
+// Used in ast_builder.go for const iota handling
+func asValueSpec(s ast.Spec) ast.Expr {
+	switch ts := s.(type) {
+	case *ast.ValueSpec:
+		return ts.Values[0]
+	}
+	return nil
+}
+
+// prints types and values
+func console(v any) {
+	if rt, ok := v.(reflect.Type); ok {
+		fmt.Printf("vm.console: type: %s,%v\n", rt.Name(), rt)
+		return
+	}
+	fmt.Printf("vm.console: %#v (%T)\n", v, v)
 }

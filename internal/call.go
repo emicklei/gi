@@ -61,8 +61,6 @@ func (c CallExpr) Eval(vm *VM) {
 					args[i] = newPtr
 					// after the call use the value of newPtr to write back the heapointer backing value
 					defer func() {
-						vm.console("2nd defer")
-						vm.console(newPtr.Elem().Interface())
 						vm.heap.write(hp, newPtr.Elem())
 					}()
 				}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"reflect"
 )
 
 var _ Stmt = SwitchStmt{}
@@ -290,10 +291,5 @@ func (s TypeSwitchStmt) String() string {
 }
 
 func identAsStringLiteral(id Ident) BasicLit {
-	return BasicLit{
-		BasicLit: &ast.BasicLit{
-			Kind:  token.STRING,
-			Value: fmt.Sprintf("%q", id.Name),
-		},
-	}
+	return newBasicLit(token.NoPos, reflect.ValueOf(id.Name))
 }

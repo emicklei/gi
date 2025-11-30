@@ -26,29 +26,11 @@ func (v ValueSpec) CallGraph() Step {
 
 func (v ValueSpec) Declare(vm *VM) bool {
 	if v.Type == nil {
-		for i, idn := range v.Names {
-			var val reflect.Value
-			// no operand could mean iota active
-			if len(vm.callStack.top().operands) == 0 {
-				if vm.declIota != nil {
-					val = reflect.ValueOf(vm.declIota.value())
-				} else {
-					vm.fatal("todo")
-				}
-			} else {
-				val = vm.callStack.top().pop()
-				if val == reflectUndeclared {
-					// this happens when the value expression is referencing an undeclared variable
-					return false
-				}
-				// if itoa was not used but active, fix it
-				if vm.declIota != nil {
-					// TODO this check is not perfect
-					if _, ok := v.Values[i].(*iotaExpr); !ok {
-						vm.declIota.fixedValue = val.Interface().(int)
-						vm.declIota.fixed = true
-					}
-				}
+		for _, idn := range v.Names {
+			val := vm.callStack.top().pop()
+			if val == reflectUndeclared {
+				// this happens when the value expression is referencing an undeclared variable
+				return false
 			}
 			vm.localEnv().set(idn.Name, val)
 		}
@@ -162,21 +144,7 @@ func (i *iotaExpr) next() int {
 	return i.count
 }
 func (i *iotaExpr) Eval(vm *VM) {
-	if vm.declIota == nil {
-		vm.declIota = i
-	} else {
-		// replacing?
-		if vm.declIota != i {
-			// copy state
-			i.count = vm.declIota.count + 1
-			vm.declIota = i
-		}
-	}
-	if vm.declIota.fixed {
-		vm.declIota.fixed = false
-	}
-	// use the VM's iota value
-	vm.pushOperand(reflect.ValueOf(vm.declIota.value()))
+	vm.pushOperand(reflect.ValueOf(i.value()))
 }
 func (i *iotaExpr) Flow(g *graphBuilder) (head Step) {
 	g.next(i)
@@ -184,4 +152,7 @@ func (i *iotaExpr) Flow(g *graphBuilder) (head Step) {
 }
 func (i *iotaExpr) Pos() token.Pos {
 	return i.pos
+}
+func (i *iotaExpr) String() string {
+	return fmt.Sprintf("iota(%d)", i.value())
 }

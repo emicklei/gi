@@ -30,8 +30,8 @@ func (s ExprStmt) Flow(g *graphBuilder) (head Step) {
 var _ Stmt = DeclStmt{}
 
 type DeclStmt struct {
-	*ast.DeclStmt
-	Decl Decl
+	*ast.DeclStmt // TODO
+	Decl          Decl
 }
 
 func (s DeclStmt) Eval(vm *VM) {
@@ -46,6 +46,11 @@ func (s DeclStmt) Flow(g *graphBuilder) (head Step) {
 	}
 	return
 }
+
+// func (s DeclStmt) Pos() token.Pos {
+// 	return s.Decl.Pos()
+// }
+
 func (s DeclStmt) stmtStep() Evaluable { return s }
 
 func (s DeclStmt) String() string {

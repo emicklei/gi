@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"go/types"
 	"reflect"
@@ -218,7 +217,7 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
 	indexVar := Ident{Name: fmt.Sprintf("_index_%d", g.idgen)} // must be unique in env
-	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
+	zeroInt := newBasicLit(r.Pos(), reflect.ValueOf(0))
 	initIndex := AssignStmt{
 		Tok:    token.DEFINE,
 		TokPos: r.Pos(),
@@ -278,7 +277,7 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
 	indexVar := Ident{Name: fmt.Sprintf("_index_%d", g.idgen)} // must be unique in env
-	zeroInt := BasicLit{BasicLit: &ast.BasicLit{Kind: token.INT, Value: "0"}}
+	zeroInt := newBasicLit(r.Pos(), reflect.ValueOf(0))
 	initIndex := AssignStmt{
 		Tok:    token.DEFINE,
 		TokPos: r.Pos(),

@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"go/ast"
+	"go/constant"
 	"go/token"
 	"go/types"
 	"reflect"
@@ -13,28 +14,56 @@ import (
 var _ Expr = BasicLit{}
 
 type BasicLit struct {
-	*ast.BasicLit // TODO copy fields?
+	pos   token.Pos     // literal position
+	value reflect.Value // cached evaluated value
+}
+
+func newBasicLit(pos token.Pos, v reflect.Value) BasicLit {
+	return BasicLit{pos: pos, value: v}
 }
 
 func (s BasicLit) Eval(vm *VM) {
+	vm.pushOperand(s.value)
+}
+
+func basicLitValue(s *ast.BasicLit) reflect.Value {
 	switch s.Kind {
 	case token.INT:
 		i, _ := strconv.Atoi(s.Value)
-		vm.pushOperand(reflect.ValueOf(i))
+		return reflect.ValueOf(i)
 	case token.STRING:
 		unq := strings.Trim(s.Value, "`\"")
-		vm.pushOperand(reflect.ValueOf(unq))
+		return reflect.ValueOf(unq)
 	case token.FLOAT:
 		f, _ := strconv.ParseFloat(s.Value, 64)
-		vm.pushOperand(reflect.ValueOf(f))
+		return reflect.ValueOf(f)
 	case token.CHAR:
 		// a character literal is a rune, which is an alias for int32
-		vm.pushOperand(reflect.ValueOf(s.Value))
+		return reflect.ValueOf(s.Value)
 	case token.IMAG:
 		i, _ := strconv.ParseComplex(s.Value, 128)
-		vm.pushOperand(reflect.ValueOf(i))
+		return reflect.ValueOf(i)
 	default:
-		panic("not implemented: BasicList.Eval:" + s.Kind.String())
+		panic("not implemented: basicLitValue:" + s.Kind.String())
+	}
+}
+
+func basicConstValue(c constant.Value) reflect.Value {
+	switch c.Kind() {
+	case constant.Int:
+		i, _ := strconv.Atoi(c.String())
+		return reflect.ValueOf(i)
+	case constant.String:
+		unq := strings.Trim(c.String(), "`\"")
+		return reflect.ValueOf(unq)
+	case constant.Float:
+		f, _ := strconv.ParseFloat(c.String(), 64)
+		return reflect.ValueOf(f)
+	case constant.Complex:
+		i, _ := strconv.ParseComplex(c.String(), 128)
+		return reflect.ValueOf(i)
+	default:
+		panic("not implemented: basicConstValue:" + c.Kind().String())
 	}
 }
 
@@ -43,8 +72,10 @@ func (s BasicLit) Flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
+func (s BasicLit) Pos() token.Pos { return s.pos }
+
 func (s BasicLit) String() string {
-	return fmt.Sprintf("BasicLit(%v)", s.Value)
+	return fmt.Sprintf("BasicLit(%v)", s.value.Interface())
 }
 
 var _ Flowable = CompositeLit{}

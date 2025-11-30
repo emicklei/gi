@@ -83,7 +83,6 @@ type VM struct {
 	heap      *Heap
 	output    *bytes.Buffer  // for testing only
 	fileSet   *token.FileSet // optional file set for position info
-	declIota  *iotaExpr
 }
 
 var panicOnce sync.Once
@@ -232,11 +231,7 @@ func (vm *VM) popFrame() {
 func (vm *VM) fatal(err any) {
 	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)
 	fmt.Fprintln(os.Stderr, "")
-	// dump the callstack
-	for i := len(vm.callStack) - 1; i >= 0; i-- {
-		frame := vm.callStack[i]
-		fmt.Fprintln(os.Stderr, "[gi]", vm.sourceLocation(frame.creator), frame)
-	}
+	vm.printStack()
 	s := structexplorer.NewService("vm", vm)
 	for i, each := range vm.callStack {
 		s.Explore(fmt.Sprintf("vm.callStack.%d", i), each, structexplorer.Column(0))
@@ -320,12 +315,4 @@ func (vm *VM) printStack() {
 			fmt.Printf("vm.ops.%d: %v\n", i, v)
 		}
 	}
-}
-
-func (vm *VM) console(v any) {
-	if rt, ok := v.(reflect.Type); ok {
-		fmt.Printf("vm.console: type: %s,%v\n", rt.Name(), rt)
-		return
-	}
-	fmt.Printf("vm.console: %#v (%T)\n", v, v)
 }

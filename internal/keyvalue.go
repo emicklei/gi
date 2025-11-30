@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"reflect"
 )
@@ -28,7 +27,7 @@ func (e KeyValueExpr) Flow(g *graphBuilder) (head Step) {
 	switch k := e.Key.(type) {
 	case Ident:
 		// use as string selector
-		key := BasicLit{BasicLit: &ast.BasicLit{Kind: token.STRING, Value: fmt.Sprintf("%q", k.Name)}}
+		key := newBasicLit(e.Colon, reflect.ValueOf(k.Name))
 		key.Flow(g)
 	case BasicLit, Expr:
 		e.Key.Flow(g)

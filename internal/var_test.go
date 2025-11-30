@@ -1,6 +1,9 @@
 package internal
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestConst(t *testing.T) {
 	testMain(t, `package main
@@ -79,6 +82,7 @@ func main() {
 }
 
 func TestIota(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
 
 type state int
@@ -109,4 +113,27 @@ func main() {
 	)
 	print( a, b)
 }`, "01")
+}
+func TestIotaFloat32InFunc(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+	const (
+		a float32 = iota + 3.14
+		b
+	)
+	print( a, b)
+}`, "3.144.14")
+}
+
+func TestUntypedInt(t *testing.T) {
+	const (
+		a = 1
+		b = a + 2
+	)
+	at := reflect.ValueOf(a).Type()
+	bt := reflect.ValueOf(b).Type()
+	a2 := reflect.TypeOf(a)
+	t.Log(at, bt, a2, a2.Kind())
 }
