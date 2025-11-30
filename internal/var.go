@@ -66,35 +66,7 @@ func (v ValueSpec) Declare(vm *VM) bool {
 	return true
 }
 
-func (v ValueSpec) Eval(vm *VM) {
-	typ := vm.returnsType(v.Type)
-	// left to right, see Flow
-	for _, idn := range v.Names {
-		if v.Values != nil {
-			val := vm.callStack.top().pop()
-			if !val.IsValid() {
-				return
-			}
-			if val.Interface() == untypedNil {
-				zv := reflect.Zero(typ)
-				vm.localEnv().set(idn.Name, zv)
-				continue
-			}
-			vm.localEnv().set(idn.Name, val)
-		} else {
-			// if nil then zero
-			if z, ok := v.Type.(CanInstantiate); ok {
-				zv := z.Instantiate(vm, 0, nil)
-				vm.localEnv().set(idn.Name, zv)
-				continue
-			}
-			// zero primitive
-			typ := vm.returnsType(v.Type)
-			zv := reflect.Zero(typ)
-			vm.localEnv().set(idn.Name, zv)
-		}
-	}
-}
+func (v ValueSpec) Eval(vm *VM) {}
 
 func (v ValueSpec) Flow(g *graphBuilder) (head Step) {
 	if v.Values != nil {
