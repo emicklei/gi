@@ -37,7 +37,7 @@
 | min,max with string | ✅ |
 | defer | ✅ |
 | struct json | ✅ |
-| iota | ⬜ |
+| iota | ✅ |
 | continue | ⬜ |
 | fallthrough | ⬜ |
 | break | ⬜ |
