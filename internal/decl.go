@@ -10,7 +10,7 @@ var _ Decl = ConstDecl{}
 
 type ConstDecl struct {
 	Specs     []ValueSpec
-	iotaExpr  *iotaExpr
+	iotaExpr  *iotaExpr // each const block has its independent iota counter
 	callGraph Step
 }
 
