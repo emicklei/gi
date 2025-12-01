@@ -70,7 +70,7 @@ func (g *graphBuilder) nextStep(next Step) {
 		g.current.SetNext(next)
 	} else {
 		if trace {
-			fmt.Printf("fw:%v\n", next)
+			fmt.Printf("fw: %v\n", next)
 		}
 	}
 	g.previous = g.current
