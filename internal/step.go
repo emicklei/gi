@@ -169,7 +169,7 @@ func (p *popEnvironmentStep) String() string {
 	if p == nil {
 		return "popEnvironmentStep(<nil>)"
 	}
-	return fmt.Sprintf("%2d: ~pop env", p.ID())
+	return fmt.Sprintf("%d: ~pop env", p.ID())
 }
 
 func (p *popEnvironmentStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
@@ -202,4 +202,20 @@ func (s *labeledStep) Pos() token.Pos {
 
 func (s *labeledStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	return s.step.traverse(g, s.String(), "next", visited)
+}
+
+type popOperandStep struct {
+	step
+}
+
+func (p *popOperandStep) Take(vm *VM) Step {
+	vm.callStack.top().pop()
+	return p.next
+}
+
+func (p *popOperandStep) String() string {
+	return fmt.Sprintf("%d: ~pop operand", p.ID())
+}
+func (p *popOperandStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return g.Node(strconv.Itoa(p.ID())).Label(p.String())
 }

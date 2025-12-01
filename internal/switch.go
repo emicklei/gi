@@ -184,19 +184,24 @@ func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 		if head == nil {
 			head = assignFlow
 		}
+		// if Assign is not an assignment statement, we need to pop the value from stack
+		// that was pushed by the TypeAssertExpr in the Assign expression
+		if _, ok := s.Assign.(AssignStmt); !ok {
+			g.nextStep(new(popOperandStep))
+		}
 	}
 	gotoLabel := fmt.Sprintf("type-switch-end-%d", g.idgen)
 	gotoStep := g.newLabeledStep(gotoLabel, s.Pos())
 	ref := statementReference{step: gotoStep} // has no ID
 	g.funcStack.top().labelToStmt[gotoLabel] = ref
 
-	nameOfType := Ident{NamePos: s.Pos(), Name: fmt.Sprintf("switch-type-name-%d", g.idgen)}
+	nameOfType := Ident{NamePos: s.Pos(), Name: fmt.Sprintf("_switch-type-name-%d", g.idgen)} // internal name starts with _
 
 	nameOfTypeAssignment := AssignStmt{
 		TokPos: s.SwitchPos,
 		Tok:    token.DEFINE,
 		Lhs:    []Expr{nameOfType},
-		Rhs:    []Expr{noExpr{}},
+		Rhs:    []Expr{noExpr{}}, // no expression because TypeAssertExpr pushes two values
 	}
 	nameOfTypeAssignment.Flow(g)
 

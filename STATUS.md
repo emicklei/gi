@@ -38,10 +38,10 @@
 | defer | ✅ |
 | struct json | ✅ |
 | iota | ✅ |
+| `switch` statement on type | ✅ |
 | continue | ⬜ |
 | fallthrough | ⬜ |
 | break | ⬜ |
-| `switch` statement on type | ⬜ |
 | Interfaces | ⬜ |
 | Non-std Methods | ⬜ |
 | Goroutines `go` | ⬜ |

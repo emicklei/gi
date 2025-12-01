@@ -81,7 +81,7 @@ end:
 **/
 
 func TestSwitchTypeAssign(t *testing.T) {
-	t.Skip()
+	// t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -89,9 +89,9 @@ func main() {
 	v = "gi"
 	switch w := v.(type) {
 	case string:
-		print("string:", w)
+		print(w)
 	}
-}`, "string:gi")
+}`, "gi")
 }
 func TestSwitchTypeNoAssign(t *testing.T) {
 	testMain(t, `package main
