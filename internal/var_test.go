@@ -145,6 +145,18 @@ func main() {
 }`, "3.144.140000000000001")
 }
 
+func TestIotaSkipFirst(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	const (
+		_ = iota
+		a
+	)
+	print(a)
+}`, "1")
+}
+
 func TestUntypedInt(t *testing.T) {
 	const (
 		a = 1
