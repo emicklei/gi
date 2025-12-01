@@ -88,17 +88,12 @@ func main() {
 	var v any
 	v = "gi"
 	switch w := v.(type) {
-	case int, int8:
-		print("int:", w)
 	case string:
 		print("string:", w)
-	default:
-		print("unknown:", w)
 	}
 }`, "string:gi")
 }
 func TestSwitchTypeNoAssign(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {

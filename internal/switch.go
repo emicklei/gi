@@ -146,7 +146,6 @@ var _ Flowable = CaseClause{}
 
 // A CaseClause represents a case of an expression or type switch statement.
 type CaseClause struct {
-	*ast.CaseClause
 	CasePos token.Pos // position of "case" or "default" keyword
 	List    []Expr    // list of expressions; nil means default case
 	Body    []Stmt
@@ -174,8 +173,6 @@ type TypeSwitchStmt struct {
 	Body      *BlockStmt
 }
 
-func (s TypeSwitchStmt) stmtStep() Evaluable { return s }
-
 func (s TypeSwitchStmt) Eval(vm *VM) {}
 
 func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
@@ -183,16 +180,25 @@ func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 		head = s.Init.Flow(g)
 	}
 	if s.Assign != nil {
+		assignFlow := s.Assign.Flow(g)
 		if head == nil {
-			head = s.Assign.Flow(g)
-		} else {
-			_ = s.Assign.Flow(g)
+			head = assignFlow
 		}
 	}
 	gotoLabel := fmt.Sprintf("type-switch-end-%d", g.idgen)
 	gotoStep := g.newLabeledStep(gotoLabel, s.Pos())
 	ref := statementReference{step: gotoStep} // has no ID
 	g.funcStack.top().labelToStmt[gotoLabel] = ref
+
+	nameOfType := Ident{NamePos: s.Pos(), Name: fmt.Sprintf("switch-type-name-%d", g.idgen)}
+
+	nameOfTypeAssignment := AssignStmt{
+		TokPos: s.SwitchPos,
+		Tok:    token.DEFINE,
+		Lhs:    []Expr{nameOfType},
+		Rhs:    []Expr{noExpr{}},
+	}
+	nameOfTypeAssignment.Flow(g)
 
 	for _, stmt := range s.Body.List {
 		clause := stmt.(CaseClause)
@@ -234,7 +240,7 @@ func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 			nextCond = BinaryExpr{
 				Op:    token.EQL,
 				OpPos: clause.Pos(),
-				X:     nil,                                // left,  TODO
+				X:     nameOfType,
 				Y:     identAsStringLiteral(expr.(Ident)), // right is the name of the type
 			}
 
@@ -283,6 +289,8 @@ func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 	}
 	return head
 }
+
+func (s TypeSwitchStmt) stmtStep() Evaluable { return s }
 
 func (s TypeSwitchStmt) Pos() token.Pos { return s.SwitchPos }
 
