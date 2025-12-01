@@ -213,7 +213,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.CaseClause:
-		s := CaseClause{CaseClause: n}
+		s := CaseClause{CasePos: n.Case}
 		for _, expr := range n.List {
 			b.Visit(expr)
 			e := b.pop()
