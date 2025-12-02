@@ -39,6 +39,7 @@
 | struct json | ✅ |
 | iota | ✅ |
 | `switch` statement on type | ✅ |
+| type assertion | ✅ |
 | continue | ⬜ |
 | fallthrough | ⬜ |
 | break | ⬜ |
@@ -50,4 +51,3 @@
 | variadic function | ⬜ |
 | recover | ⬜ |
 | struct xml | ⬜ |
-| type assertion | ⬜ |

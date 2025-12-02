@@ -226,3 +226,13 @@ func main() {
 	print(string(w.written))
 }`, "gi")
 }
+
+func TestTypeAssert(t *testing.T) {
+	testMain(t, `package main
+func main() {
+	var i any
+	i = 42
+	j := i.(int)
+	print(j)
+}`, "42")
+}

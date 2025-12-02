@@ -3,7 +3,6 @@ package internal
 import (
 	"fmt"
 	"go/ast"
-	"go/constant"
 	"go/token"
 	"go/types"
 	"reflect"
@@ -45,25 +44,6 @@ func basicLitValue(s *ast.BasicLit) reflect.Value {
 		return reflect.ValueOf(i)
 	default:
 		panic("not implemented: basicLitValue:" + s.Kind.String())
-	}
-}
-
-func basicConstValue(c constant.Value) reflect.Value {
-	switch c.Kind() {
-	case constant.Int:
-		i, _ := strconv.Atoi(c.String())
-		return reflect.ValueOf(i)
-	case constant.String:
-		unq := strings.Trim(c.String(), "`\"")
-		return reflect.ValueOf(unq)
-	case constant.Float:
-		f, _ := strconv.ParseFloat(c.String(), 64)
-		return reflect.ValueOf(f)
-	case constant.Complex:
-		i, _ := strconv.ParseComplex(c.String(), 128)
-		return reflect.ValueOf(i)
-	default:
-		panic("not implemented: basicConstValue:" + c.Kind().String())
 	}
 }
 
