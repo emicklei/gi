@@ -67,14 +67,14 @@ The first step is the head of the chain.
 - fallthrough cannot be used with a type switch.
 - declTable must be declSlice; the order is important , see TestDeclarationExample
 - clear with a pointer to a var?
-- drop Instance?, use https://stackoverflow.com/questions/57567466/create-a-struct-by-reflection-in-go  this only support Exported fields. Cannot use it.
+- drop StructValues?, use https://stackoverflow.com/questions/57567466/create-a-struct-by-reflection-in-go  this only support Exported fields. Cannot use it.
 - can each Flowable be a step instead decorated by a step?
 - look like ZeroValue can be dropped
 -  make the stats of gobyexample available as a badge in the project with a link to the lastest build step
 - https://img.shields.io/badge/dynamic/json?url=https://github.com/badges/shields/raw/master/package.json&query=$.name&label=piet
 - binaryexpr can be optimized by inspecting type on build time and cache Go function for the expression evaluation
 - same can be done for unary expr?
-. fmt.Println for Instances needs rework
+. fmt.Println for StructValues needs rework
 - symbolstable and typestable can be merged into one
 - github.com/fatih/structtag replace with some SDK pkg?
 - how to handle returnsType of FuncType? and what if FuncType is using local pkg types?
@@ -84,7 +84,7 @@ The first step is the head of the chain.
 - stdtypes is now a two-stage map => make it one big map
 
 ## potential blockers
-- reflect structs can only have exposed fields. for that reason Instance was created but the SDK is not aware of this. For example, fmt.Println might not work correctly with Instance values.
+- reflect structs can only have exposed fields. for that reason StructValues was created but the SDK is not aware of this. For example, fmt.Println might not work correctly with StructValues.
 - stepping happens per go-routine; what to do with the others when controlling one of them?
 
 ## external pkg

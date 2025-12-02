@@ -60,8 +60,8 @@ func (s TypeSpec) Flow(g *graphBuilder) (head Step) {
 func (s TypeSpec) Instantiate(vm *VM, _ int, constructorArgs []reflect.Value) reflect.Value {
 	actualType := vm.returnsEval(s.Type).Interface()
 	if i, ok := actualType.(CanInstantiate); ok {
-		instance := i.Instantiate(vm, 0, constructorArgs)
-		return instance
+		structVal := i.Instantiate(vm, 0, constructorArgs)
+		return structVal
 	}
 	vm.fatal(fmt.Sprintf("expected a CanInstantiate value:%v", s.Type))
 	return reflect.Value{}
@@ -131,7 +131,7 @@ func (s StructType) LiteralCompose(composite reflect.Value, values []reflect.Val
 }
 
 func (s StructType) Instantiate(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
-	return reflect.ValueOf(NewInstance(vm, s))
+	return reflect.ValueOf(NewStructValue(vm, s))
 }
 
 var (

@@ -156,8 +156,8 @@ func (c CallExpr) evalMake(vm *VM) {
 	// 	capacity = int(vm.frameStack.top().pop().Int())
 	// }
 	if ci, ok := typ.Interface().(CanInstantiate); ok {
-		instance := ci.Instantiate(vm, length, nil)
-		vm.pushOperand(instance)
+		structVal := ci.Instantiate(vm, length, nil)
+		vm.pushOperand(structVal)
 		return
 	}
 	vm.fatal(fmt.Sprintf("make: expected a CanInstantiate value:%v", typ))
@@ -174,8 +174,8 @@ func (c CallExpr) evalNew(vm *VM) {
 		return
 	}
 	if ci, ok := typ.(CanInstantiate); ok {
-		instance := ci.Instantiate(vm, 0, nil)
-		vm.pushOperand(instance)
+		structVal := ci.Instantiate(vm, 0, nil)
+		vm.pushOperand(structVal)
 		return
 	}
 	vm.fatal(fmt.Sprintf("new: expected a CanInstantiate value:%v", typ))

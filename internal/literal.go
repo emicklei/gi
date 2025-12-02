@@ -88,8 +88,8 @@ func (s CompositeLit) Eval(vm *VM) {
 	}
 	typeOrValue := vm.callStack.top().pop().Interface()
 	if inst, ok := typeOrValue.(CanInstantiate); ok {
-		instance := inst.Instantiate(vm, len(values), nil)
-		result := inst.LiteralCompose(instance, values)
+		structVal := inst.Instantiate(vm, len(values), nil)
+		result := inst.LiteralCompose(structVal, values)
 		vm.pushOperand(result)
 	} else {
 		vm.fatal("unhandled type")

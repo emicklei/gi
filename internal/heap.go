@@ -34,7 +34,7 @@ func (hp *HeapPointer) UnmarshalJSON(data []byte) error {
 	}
 	deref := hp.EnvRef.valueLookUp(hp.EnvVarName)
 	val := deref.Interface()
-	if i, ok := val.(Instance); ok {
+	if i, ok := val.(StructValue); ok {
 		return i.UnmarshalJSON(data)
 	}
 	return json.Unmarshal(data, &val)

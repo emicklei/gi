@@ -13,7 +13,7 @@ import (
 	"github.com/emicklei/structexplorer"
 )
 
-// framePool is a pool of stackFrame instances for reuse.
+// framePool is a pool of stackFrame values for reuse.
 var framePool = sync.Pool{
 	New: func() any {
 		return &stackFrame{
@@ -139,7 +139,7 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 			return typ
 		}
 		// non-imported user defined type
-		return instanceType
+		return structValueType
 	}
 	if star, ok := e.(StarExpr); ok {
 		nonStarType := vm.returnsType(star.X)
