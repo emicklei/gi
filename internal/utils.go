@@ -6,6 +6,17 @@ import (
 	"reflect"
 )
 
+// pkgIdent = fully (package) qualified (identifying) name
+type pkgIdent struct {
+	path string
+	name string
+}
+
+// NewPackageIdent allow plugins to add bindings.
+func NewPackageIdent(path, name string) pkgIdent {
+	return pkgIdent{path: path, name: name}
+}
+
 // Deprecated
 func expected(value any, expectation string) reflect.Value {
 	panic(fmt.Sprintf("expected %s : %v (%T)", expectation, value, value))

@@ -56,7 +56,7 @@ func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
 		target.Index(int(index.Int())).Set(value)
 		return
 	}
-	expected(target, "map or slice or array")
+	vm.fatal("expected map or slice or array")
 }
 
 func (i IndexExpr) Define(vm *VM, value reflect.Value) {
