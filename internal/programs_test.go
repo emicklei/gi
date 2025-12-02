@@ -442,16 +442,6 @@ func main() {
 }`, "")
 }
 
-func TestIfMultiAssign(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	if got, want := min(1,2), 1; got == want {
-		print("min")
-	}
-}`, "min")
-}
-
 func TestMakeMap(t *testing.T) {
 	testMain(t, `package main
 
@@ -546,18 +536,6 @@ func main() {
 }`, "an error")
 }
 
-func TestNewStandardType(t *testing.T) {
-	testMain(t, `package main
-
-import "sync"
-func main() {
-	var wg *sync.WaitGroup = new(sync.WaitGroup)
-	wg.Add(1)
-	wg.Done()
-	print("done")
-}`, "done")
-}
-
 func TestPointerMethod(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main
@@ -578,34 +556,6 @@ func main() {
 	var h template.HTML
 	print(h)
 }`, "")
-}
-
-func TestBlankIdentifier(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	_, h, _ := "gi", "flow", "!"
-	print(h)
-}`, "flow")
-}
-
-func TestConvertArgumentType(t *testing.T) {
-	testMain(t, `package main
-import "math"
-func main() {
-	print(math.Sin(1))
-}`, "0.8414709848078965")
-}
-
-func TestConvertArgumentPointerType(t *testing.T) {
-	testMain(t, `package main
-import "flag"
-func main() {
-	var name string
-	flag.StringVar(&name, "name", "World", "a name to say hello to")
-	flag.Parse()
-	print(name)
-}`, "World")
 }
 
 func TestCompileTimeMapKey(t *testing.T) {

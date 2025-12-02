@@ -40,12 +40,14 @@ func (i IfStmt) Flow(g *graphBuilder) (head Step) {
 		head = g.current
 	}
 	begin := new(conditionalStep)
+	begin.pos = i.Pos()
 	begin.conditionFlow = i.Cond.Flow(g)
 	g.nextStep(begin)
 
 	// true branch
 	i.Body.Flow(g)
 	pop := new(popEnvironmentStep)
+	pop.pos = i.Body.Pos()
 	g.nextStep(pop)
 
 	// false branch

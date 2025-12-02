@@ -12,6 +12,7 @@ import (
 type step struct {
 	id   int // set by graphBuilder
 	next Step
+	pos  token.Pos
 }
 
 func (s *step) ID() int {
@@ -65,7 +66,7 @@ func (s *step) traverse(g *dot.Graph, label, edge string, visited map[int]dot.No
 }
 
 func (s *step) Pos() token.Pos {
-	return token.NoPos
+	return s.pos
 }
 
 var _ Step = (*evaluableStep)(nil)

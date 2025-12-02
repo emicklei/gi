@@ -18,6 +18,16 @@ func main() {
 }`, "giflow")
 }
 
+func TestIfMultiAssign(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	if got, want := min(1,2), 1; got == want {
+		print("min")
+	}
+}`, "min")
+}
+
 func TestArrayFuncIndexAssign(t *testing.T) {
 	// t.Skip()
 	testMain(t, `package main	
