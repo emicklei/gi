@@ -75,6 +75,14 @@ func (c CallExpr) Eval(vm *VM) {
 					args[i] = val.Convert(argType)
 					continue
 				}
+				if argType.Kind() == reflect.Interface && isPointerToStructValue(val) {
+					md := StructValueMethodDispatcher{
+						vm:  vm,
+						val: val.Interface().(*StructValue),
+					}
+					args[i] = reflect.ValueOf(md)
+					continue
+				}
 				args[i] = val
 			}
 		}
@@ -83,6 +91,22 @@ func (c CallExpr) Eval(vm *VM) {
 	default:
 		vm.fatal(fmt.Sprintf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface()))
 	}
+}
+
+func isPointerToStructValue(v reflect.Value) bool {
+	if v.Kind() != reflect.Pointer {
+		return false
+	}
+	if v.Elem().Kind() != reflect.Struct {
+		return false
+	}
+	if v.Elem().Type().Name() != "StructValue" {
+		return false
+	}
+	if v.Elem().Type().PkgPath() != "github.com/emicklei/gi/internal" {
+		return false
+	}
+	return true
 }
 
 func (c CallExpr) handleTypeSpec(vm *VM, ts TypeSpec) {

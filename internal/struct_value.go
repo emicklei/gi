@@ -36,6 +36,8 @@ func NewStructValue(vm *VM, t StructType) *StructValue {
 	}
 	return i
 }
+
+// TODO must call String method of StructType
 func (i *StructValue) String() string {
 	return fmt.Sprintf("*StructValue(%v)", i.structType)
 }
@@ -175,13 +177,4 @@ func formatFieldValue(w io.Writer, verb rune, val any) {
 		return
 	}
 	format(w, verb, val)
-}
-
-type ioWriter struct {
-	val *StructValue
-}
-
-func (w ioWriter) Write(p []byte) (n int, err error) {
-	// lookup Write method
-	return len(p), nil
 }

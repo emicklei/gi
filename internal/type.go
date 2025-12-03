@@ -87,9 +87,10 @@ var (
 
 type StructType struct {
 	*ast.StructType
-	Name    string
-	Fields  *FieldList
-	Methods map[string]FuncDecl
+	StructPos token.Pos
+	Name      string
+	Fields    *FieldList
+	methods   map[string]FuncDecl
 }
 
 func (s StructType) Eval(vm *VM) {
@@ -103,7 +104,7 @@ func (s StructType) Flow(g *graphBuilder) (head Step) {
 
 func makeStructType(ast *ast.StructType) StructType {
 	return StructType{StructType: ast,
-		Methods: map[string]FuncDecl{},
+		methods: map[string]FuncDecl{},
 	}
 }
 
