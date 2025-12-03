@@ -267,6 +267,21 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		b.Visit(n.X)
 		e := b.pop()
 		s.X = e.(Expr)
+
+		// check type and operator combination for immediate function evaluation
+		xt := b.goPkg.TypesInfo.TypeOf(n.X)
+		xs := xt.Underlying().String()
+		unaryFuncKey := fmt.Sprintf("%s%d", xs, n.Op)
+		unaryFunc, ok := unaryFuncs[unaryFuncKey]
+		if !ok {
+			// check for untyped
+			xs = strings.TrimPrefix(xs, "untyped ")
+			unaryFuncKey = fmt.Sprintf("%s%d", xs, n.Op)
+			unaryFunc, ok = unaryFuncs[unaryFuncKey]
+		}
+		if ok {
+			s.unaryFunc = unaryFunc
+		}
 		b.push(s)
 	case *ast.ValueSpec:
 		s := ValueSpec{}
@@ -411,7 +426,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		if ok {
 			s := BinaryExpr2{}
-			s.binFunc = binFunc
+			s.binaryFunc = binFunc
 			s.OpPos = n.OpPos
 			s.Op = n.Op
 			b.Visit(n.X)

@@ -11,11 +11,11 @@ type BinaryExprFunc func(x, y reflect.Value) reflect.Value
 var _ Flowable = BinaryExpr2{}
 
 type BinaryExpr2 struct {
-	OpPos   token.Pos
-	Op      token.Token
-	X       Expr // left
-	Y       Expr // right
-	binFunc BinaryExprFunc
+	OpPos      token.Pos
+	Op         token.Token
+	X          Expr // left
+	Y          Expr // right
+	binaryFunc BinaryExprFunc
 }
 
 func (b BinaryExpr2) Flow(g *graphBuilder) (head Step) {
@@ -36,7 +36,7 @@ func (b BinaryExpr2) Eval(vm *VM) {
 		vm.pushOperand(x)
 		return
 	}
-	vm.pushOperand(b.binFunc(x, y))
+	vm.pushOperand(b.binaryFunc(x, y))
 }
 
 func (b BinaryExpr2) Pos() token.Pos {
