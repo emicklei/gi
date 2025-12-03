@@ -9,7 +9,7 @@ import (
 
 var _ Evaluable = ChanType{}
 var _ Flowable = ChanType{}
-var _ CanInstantiate = ChanType{}
+var _ CanMake = ChanType{}
 
 type ChanType struct {
 	Begin token.Pos   // position of "chan" keyword or "<-" (whichever comes first)
@@ -25,7 +25,7 @@ func (c ChanType) Flow(g *graphBuilder) (head Step) {
 	g.next(c)
 	return g.current
 }
-func (c ChanType) Instantiate(vm *VM, buffer int, constructorArgs []reflect.Value) reflect.Value {
+func (c ChanType) Make(vm *VM, buffer int, constructorArgs []reflect.Value) reflect.Value {
 	typ := vm.returnsType(c.Value)
 	dir := reflect.ChanDir(c.Dir)
 	ch := reflect.ChanOf(dir, typ)

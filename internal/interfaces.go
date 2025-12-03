@@ -56,10 +56,10 @@ type FieldAssignable interface {
 	Assign(name string, val reflect.Value)
 }
 
-type CanInstantiate interface {
+type CanMake interface {
 	// size can be 0 if not applicable
 	// constructorArgs can be nil if not applicable
-	Instantiate(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value
+	Make(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value
 	CanCompose
 }
 

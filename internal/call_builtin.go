@@ -155,8 +155,8 @@ func (c CallExpr) evalMake(vm *VM) {
 	// if len(c.Args) > 2 {
 	// 	capacity = int(vm.frameStack.top().pop().Int())
 	// }
-	if ci, ok := typ.Interface().(CanInstantiate); ok {
-		structVal := ci.Instantiate(vm, length, nil)
+	if ci, ok := typ.Interface().(CanMake); ok {
+		structVal := ci.Make(vm, length, nil)
 		vm.pushOperand(structVal)
 		return
 	}
@@ -167,16 +167,16 @@ func (c CallExpr) evalNew(vm *VM) {
 	valWithType := vm.callStack.top().pop()
 	typ := valWithType.Interface()
 	if valWithType.Kind() == reflect.Struct {
+		if ts, ok := typ.(TypeSpec); ok {
+			structVal := ts.Make(vm, 0, nil)
+			vm.pushOperand(structVal)
+			return
+		}
 		// typ is an instance of a standard or imported external type
 		rtype := reflect.TypeOf(typ)
 		rval := reflect.New(rtype)
 		vm.pushOperand(rval)
 		return
 	}
-	if ci, ok := typ.(CanInstantiate); ok {
-		structVal := ci.Instantiate(vm, 0, nil)
-		vm.pushOperand(structVal)
-		return
-	}
-	vm.fatal(fmt.Sprintf("new: expected a CanInstantiate value:%v", typ))
+	vm.fatal(fmt.Sprintf("new: expected a CanMake value:%v", typ))
 }

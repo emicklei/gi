@@ -53,8 +53,8 @@ func (v ValueSpec) Declare(vm *VM) bool {
 			vm.localEnv().set(idn.Name, val)
 		} else {
 			// if nil then zero
-			if z, ok := v.Type.(CanInstantiate); ok {
-				zv := z.Instantiate(vm, 0, nil)
+			if z, ok := v.Type.(CanMake); ok {
+				zv := z.Make(vm, 0, nil)
 				vm.localEnv().set(idn.Name, zv)
 				continue
 			}

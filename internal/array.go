@@ -19,7 +19,7 @@ func (a ArrayType) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(a))
 }
 
-func (a ArrayType) Instantiate(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
+func (a ArrayType) Make(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
 	if a.Len != nil {
 		len := vm.returnsEval(a.Len)
 		/// override size from Len expression unless Ellipsis

@@ -87,8 +87,8 @@ func (s CompositeLit) Eval(vm *VM) {
 		values[i] = val
 	}
 	typeOrValue := vm.callStack.top().pop().Interface()
-	if inst, ok := typeOrValue.(CanInstantiate); ok {
-		structVal := inst.Instantiate(vm, len(values), nil)
+	if inst, ok := typeOrValue.(CanMake); ok {
+		structVal := inst.Make(vm, len(values), nil)
 		result := inst.LiteralCompose(structVal, values)
 		vm.pushOperand(result)
 	} else {

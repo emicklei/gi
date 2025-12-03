@@ -65,11 +65,17 @@ func (c CallExpr) Eval(vm *VM) {
 					}()
 				}
 			} else {
+				// need conversion?
+				if argType.Kind() == reflect.Interface && val.Type().Implements(argType) {
+					args[i] = val
+					continue
+				}
+				// reflect convert?
 				if val.CanConvert(argType) {
 					args[i] = val.Convert(argType)
-				} else {
-					args[i] = val
+					continue
 				}
+				args[i] = val
 			}
 		}
 		vals := fn.Call(args)

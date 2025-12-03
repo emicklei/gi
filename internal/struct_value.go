@@ -176,3 +176,12 @@ func formatFieldValue(w io.Writer, verb rune, val any) {
 	}
 	format(w, verb, val)
 }
+
+type ioWriter struct {
+	val *StructValue
+}
+
+func (w ioWriter) Write(p []byte) (n int, err error) {
+	// lookup Write method
+	return len(p), nil
+}

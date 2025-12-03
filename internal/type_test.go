@@ -249,6 +249,17 @@ func main() {
 }`, "42")
 }
 
+func TestTypeAssertOk(t *testing.T) {
+	testMain(t, `package main
+func main() {
+	var i any
+	i = 42
+	if j,ok := i.(int); ok {
+		print(j)
+	}
+}`, "42")
+}
+
 func TestConvertArgumentType(t *testing.T) {
 	testMain(t, `package main
 import "math"
