@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/token"
 	"reflect"
+	"strings"
 )
 
 var _ Expr = CallExpr{}
@@ -76,7 +77,7 @@ func (c CallExpr) Eval(vm *VM) {
 					continue
 				}
 				if argType.Kind() == reflect.Interface && isPointerToStructValue(val) {
-					md := StructValueMethodDispatcher{
+					md := StructValueWrapper{
 						vm:  vm,
 						val: val.Interface().(*StructValue),
 					}
@@ -103,7 +104,8 @@ func isPointerToStructValue(v reflect.Value) bool {
 	if v.Elem().Type().Name() != "StructValue" {
 		return false
 	}
-	if v.Elem().Type().PkgPath() != "github.com/emicklei/gi/internal" {
+	// not exact package match to allow source code forks
+	if !strings.HasSuffix(v.Elem().Type().PkgPath(), "/gi/internal") {
 		return false
 	}
 	return true

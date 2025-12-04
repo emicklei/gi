@@ -204,7 +204,7 @@ func TestGoFmtFormat(t *testing.T) {
 }
 
 func TestPrintStderr(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	old := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stderr = w
@@ -215,7 +215,23 @@ func TestPrintStderr(t *testing.T) {
 	print("gi")
 	go func() {
 		out, _ := io.ReadAll(r)
-		t.Log(string(out))
+		t.Log("logged:", string(out))
+	}()
+}
+
+func TestPrintStdout(t *testing.T) {
+	//t.Skip()
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+	defer func() {
+		w.Close()
+		os.Stdout = old
+	}()
+	print("gi")
+	go func() {
+		out, _ := io.ReadAll(r)
+		t.Log("logged:", string(out))
 	}()
 }
 

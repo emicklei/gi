@@ -87,7 +87,7 @@ type VM struct {
 
 var panicOnce sync.Once
 
-func newVM(env Env) *VM {
+func NewVM(env Env) *VM {
 	// TODO not sure when/if useful outside treerunner
 	if os.Getenv("GI_IGNORE_EXIT") != "" {
 		stdfuncs["os"]["Exit"] = reflect.ValueOf(func(code int) {

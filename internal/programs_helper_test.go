@@ -55,7 +55,7 @@ func parseForDebug(t *testing.T, source string) *VM {
 		fmt.Println("DEBUG:", t.Name())
 	}
 	pkg := buildPackage(t, source)
-	vm := newVM(pkg.Env)
+	vm := NewVM(pkg.Env)
 	vm.setFileSet(pkg.Fset)
 	return vm
 }
@@ -66,7 +66,7 @@ func parseAndWalk(t *testing.T, source string) string {
 		fmt.Println("TEST:", t.Name())
 	}
 	pkg := buildPackage(t, source)
-	vm := newVM(pkg.Env)
+	vm := NewVM(pkg.Env)
 	vm.setFileSet(pkg.Fset)
 	collectPrintOutput(vm)
 

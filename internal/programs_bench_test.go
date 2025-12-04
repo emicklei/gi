@@ -57,7 +57,7 @@ func main() {
 		}
 		b.Run("walk", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				vm := newVM(prog.Env)
+				vm := NewVM(prog.Env)
 				collectPrintOutput(vm)
 				if _, err := CallPackageFunction(prog, "main", nil, vm); err != nil {
 					b.Fatal(err)

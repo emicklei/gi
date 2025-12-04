@@ -218,11 +218,11 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	if optionalVM != nil {
 		vm = optionalVM
 	} else {
-		vm = newVM(pkg.Env)
+		vm = NewVM(pkg.Env)
 		vm.setFileSet(pkg.Fset)
 	}
 	for _, subpkg := range pkg.Env.packageTable {
-		subvm := newVM(subpkg.Env)
+		subvm := NewVM(subpkg.Env)
 		subvm.setFileSet(pkg.Fset)
 		if err := subpkg.Initialize(subvm); err != nil {
 			return nil, fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
