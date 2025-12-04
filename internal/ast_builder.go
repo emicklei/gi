@@ -539,8 +539,12 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		b.popEnv()
 
 		if pe, ok := b.env.(*PkgEnvironment); ok {
-			if n.Name.Name == "init" {
-				pe.addInit(s)
+			if n.Recv != nil {
+				pe.addMethod(s)
+			} else {
+				if n.Name.Name == "init" {
+					pe.addInit(s)
+				}
 			}
 		}
 
@@ -717,6 +721,11 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.Visit(n.Type)
 		e := b.pop().(Expr)
+		if st, ok := e.(StructType); ok {
+			// set the name of the struct type
+			st.Name = s.Name.Name
+			e = st
+		}
 		s.Type = e
 		b.push(s)
 		if s.Name != nil {

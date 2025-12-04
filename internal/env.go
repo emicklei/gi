@@ -27,6 +27,7 @@ type PkgEnvironment struct {
 	Env
 	declarations []CanDeclare
 	inits        []FuncDecl
+	methods      []FuncDecl
 	packageTable map[string]*Package // path -> *Package
 }
 
@@ -45,6 +46,9 @@ func newPkgEnvironment(parent Env) *PkgEnvironment {
 }
 func (p *PkgEnvironment) addInit(f FuncDecl) {
 	p.inits = append(p.inits, f)
+}
+func (p *PkgEnvironment) addMethod(f FuncDecl) {
+	p.methods = append(p.methods, f)
 }
 
 func (p *PkgEnvironment) addConstOrVar(cv CanDeclare) {

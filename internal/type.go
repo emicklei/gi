@@ -86,7 +86,6 @@ var (
 )
 
 type StructType struct {
-	*ast.StructType
 	StructPos token.Pos
 	Name      string
 	Fields    *FieldList
@@ -103,8 +102,9 @@ func (s StructType) Flow(g *graphBuilder) (head Step) {
 }
 
 func makeStructType(ast *ast.StructType) StructType {
-	return StructType{StructType: ast,
-		methods: map[string]FuncDecl{},
+	return StructType{
+		StructPos: ast.Struct,
+		methods:   map[string]FuncDecl{},
 	}
 }
 
@@ -119,8 +119,10 @@ func (s StructType) tagForField(fieldName string) *ast.BasicLit {
 	return nil
 }
 
+func (s StructType) Pos() token.Pos { return s.StructPos }
+
 func (s StructType) String() string {
-	return fmt.Sprintf("StructType(%v)", s.Fields)
+	return fmt.Sprintf("StructType(%s,fields=%d,methods=%d)", s.Name, len(s.Fields.List), len(s.methods))
 }
 
 func (s StructType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {

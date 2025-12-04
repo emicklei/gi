@@ -70,7 +70,14 @@ func (p *Package) Initialize(vm *VM) error {
 		return nil
 	}
 	p.Initialized = true
-	// first run const and vars
+
+	// move methhods to types
+	for _, decl := range p.Env.methods {
+		structType := vm.localEnv().valueLookUp(decl.Recv.List[0].Type.(Ident).Name) // ugly
+		console(decl)
+		console(structType)
+	}
+
 	// try declare all of them until none left
 	// a declare may refer to other unseen declares.
 	done := false

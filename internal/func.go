@@ -14,7 +14,7 @@ type statementReference struct {
 
 type FuncDecl struct {
 	Name *Ident
-	Recv *FieldList // for methods
+	Recv *FieldList // non-nil for methods
 	Body *BlockStmt
 	Type *FuncType
 	// control flow graph
