@@ -721,18 +721,21 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.Visit(n.Type)
 		e := b.pop().(Expr)
+		s.Type = e
 		if st, ok := e.(StructType); ok {
 			// set the name of the struct type
 			st.Name = s.Name.Name
+			b.envSet(s.Name.Name, reflect.ValueOf(st))
 			e = st
-		}
-		s.Type = e
-		b.push(s)
-		if s.Name != nil {
-			b.envSet(s.Name.Name, reflect.ValueOf(s))
 		} else {
-			// what if nil?
+			if s.Name != nil {
+				b.envSet(s.Name.Name, reflect.ValueOf(s)) // TODO: or s.Type ?, LiteralType?
+			} else {
+				// what if nil?
+			}
 		}
+		b.push(s)
+
 	case *ast.StructType:
 		s := makeStructType(n)
 		if n.Fields != nil {

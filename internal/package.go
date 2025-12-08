@@ -74,8 +74,7 @@ func (p *Package) Initialize(vm *VM) error {
 	// move methhods to types
 	for _, decl := range p.Env.methods {
 		structType := vm.localEnv().valueLookUp(decl.Recv.List[0].Type.(Ident).Name) // ugly
-		console(decl)
-		console(structType)
+		structType.Interface().(StructType).addMethod(decl)
 	}
 
 	// try declare all of them until none left

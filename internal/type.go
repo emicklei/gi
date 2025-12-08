@@ -137,6 +137,10 @@ func (s StructType) Make(vm *VM, size int, constructorArgs []reflect.Value) refl
 	return reflect.ValueOf(NewStructValue(vm, s))
 }
 
+func (s StructType) addMethod(decl FuncDecl) {
+	s.methods[decl.Name.Name] = decl
+}
+
 var (
 	_ Flowable = MapType{}
 	_ Expr     = MapType{}

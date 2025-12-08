@@ -164,14 +164,26 @@ func main() {
 }`, "helicopter")
 }
 
-func TestMethod(t *testing.T) {
-	t.Skip()
+func TestMethodNoReceiverRef(t *testing.T) {
 	testMain(t, `package main
 
 func (_ Aircraft) S() string { return "aircraft" } // put before type on purpose
 type Aircraft struct {}
 func main() {
 	print(Aircraft{}.S())
+}`, "aircraft")
+}
+
+func TestMethodAccessingField(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func (a Aircraft) S() string { return a.Model } // put before type on purpose
+type Aircraft struct {
+	Model string
+}
+func main() {
+	print(Aircraft{Model:"heli"}.S())
 }`, "aircraft")
 }
 

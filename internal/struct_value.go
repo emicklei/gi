@@ -46,6 +46,9 @@ func (i *StructValue) Select(name string) reflect.Value {
 	if v, ok := i.fields[name]; ok {
 		return v
 	}
+	if method, ok := i.structType.methods[name]; ok {
+		return reflect.ValueOf(method)
+	}
 	panic("no such field or method: " + name)
 }
 
