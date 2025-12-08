@@ -148,7 +148,7 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 	if sel, ok := e.(SelectorExpr); ok {
 		typ := vm.localEnv().valueLookUp(sel.X.(Ident).Name)
 		val := typ.Interface()
-		if canSelect, ok := val.(FieldSelectable); ok {
+		if canSelect, ok := val.(CanSelect); ok {
 			selVal := canSelect.Select(sel.Sel.Name)
 			return reflect.TypeOf(selVal.Interface())
 		}

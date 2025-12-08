@@ -48,7 +48,8 @@ type CanCompose interface {
 	LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value
 }
 
-type FieldSelectable interface {
+// CanSelect is implemented by types that support selection of fields or methods by name.
+type CanSelect interface {
 	Select(name string) reflect.Value
 }
 
