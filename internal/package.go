@@ -73,7 +73,19 @@ func (p *Package) Initialize(vm *VM) error {
 
 	// move methhods to types
 	for _, decl := range p.Env.methods {
-		structType := vm.localEnv().valueLookUp(decl.Recv.List[0].Type.(Ident).Name) // ugly
+		recvType := decl.Recv.List[0].Type
+		var typeName string
+		switch rt := recvType.(type) {
+		case StarExpr:
+			if ident, ok := rt.X.(Ident); ok {
+				typeName = ident.Name
+			}
+		case Ident:
+			typeName = rt.Name
+		default:
+			return fmt.Errorf("unsupported receiver type in method declaration: %T", recvType)
+		}
+		structType := vm.localEnv().valueLookUp(typeName)
 		structType.Interface().(StructType).addMethod(decl)
 	}
 

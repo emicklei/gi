@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"maps"
 	"reflect"
 	"strconv"
 	"unicode"
@@ -159,7 +160,7 @@ func (i *StructValue) tagFieldName(key string, fieldName string, fieldValue refl
 
 func (i StructValue) Format(f fmt.State, verb rune) {
 	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "%s{", i.structType)
+	fmt.Fprintf(&buf, "%s{", i.structType.Name)
 	c := 0
 	for fieldName, val := range i.fields {
 		if unicode.IsUpper(rune(fieldName[0])) {
@@ -173,6 +174,13 @@ func (i StructValue) Format(f fmt.State, verb rune) {
 	}
 	fmt.Fprint(&buf, "}")
 	f.Write(buf.Bytes())
+}
+
+func (i StructValue) clone() StructValue {
+	return StructValue{
+		structType: i.structType,
+		fields:     maps.Clone(i.fields),
+	}
 }
 
 func formatFieldValue(w io.Writer, verb rune, val any) {

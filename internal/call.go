@@ -246,7 +246,15 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	// if method, set receiver in env
 	if fd.Recv != nil {
 		recvName := fd.Recv.List[0].Names[0].Name
-		frame.env.set(recvName, receiver)
+		// check pointer receiver
+		if _, ok := fd.Recv.List[0].Type.(StarExpr); ok {
+			frame.env.set(recvName, receiver)
+		} else {
+			// put a copy of the value
+			clone := receiver.Interface().(*StructValue).clone()
+			console(clone)
+			frame.env.set(recvName, reflect.ValueOf(clone))
+		}
 	}
 
 	setParametersToFrame(fd.Type, args, vm, frame)
