@@ -175,7 +175,6 @@ func main() {
 }
 
 func TestMethodAccessingField(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func (a Aircraft) S() string { return a.Model } // put before type on purpose
@@ -184,7 +183,41 @@ type Aircraft struct {
 }
 func main() {
 	print(Aircraft{Model:"heli"}.S())
-}`, "aircraft")
+}`, "heli")
+}
+
+func TestMethodAccessingFieldWithArgument(t *testing.T) {
+	testMain(t, `package main
+
+func (a Aircraft) S(prefix string) string { return prefix + a.Model } // put before type on purpose
+type Aircraft struct {
+	Model string
+}
+func main() {
+	print(Aircraft{Model:"heli"}.S("prefix-"))
+}`, "prefix-heli")
+}
+
+func TestPointerMethodAccessingFieldWithArgument(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+type Aircraft struct {
+	Model string
+}
+func (a *Aircraft) change(model string) { a.Model = model }
+func changeModel(a *Aircraft, model string) { a.Model = model }
+func nochangeModel(a Aircraft, model string) { a.Model = model }
+
+func main() {
+	a := Aircraft{Model:"airplane"}
+	a.change("heli")
+	print(a.Model)
+	changeModel(&a, "jet")
+	print(a.Model)
+	nochangeModel(a, "rocket")
+	print(a.Model)
+}`, "helijetjet")
 }
 
 func TestFmtFormat(t *testing.T) {

@@ -50,7 +50,7 @@ func (s SelectorExpr) Assign(vm *VM, val reflect.Value) {
 	if !recv.IsValid() {
 		vm.fatal("cannot assign to invalid selector receiver")
 	}
-	rec, ok := recv.Interface().(FieldSelectable)
+	rec, ok := recv.Interface().(CanSelect)
 	if ok {
 		sel := rec.Select(s.Sel.Name)
 		if !sel.IsValid() {
@@ -76,11 +76,17 @@ func (s SelectorExpr) Eval(vm *VM) {
 		vm.pushOperand(recv)
 		return
 	}
-	rec, ok := recv.Interface().(FieldSelectable)
+	rec, ok := recv.Interface().(CanSelect)
 	if ok {
+		// can be field or method
 		sel := rec.Select(s.Sel.Name)
-		if !sel.IsValid() {
+		if !sel.IsValid() { // is this possible? TODO
 			vm.fatal(fmt.Sprintf("field %s not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
+		}
+		// check for method
+		if _, ok := sel.Interface().(FuncDecl); ok {
+			// method value so push receiver as first argument
+			vm.pushOperand(recv)
 		}
 		vm.pushOperand(sel)
 		return

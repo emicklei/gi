@@ -224,8 +224,15 @@ func setParametersToFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *sta
 	}
 }
 
+// TODO deduplicate with handleFuncLit
 func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
-	// TODO deduplicate with handleFuncLit
+	// if method then take receiver from the stack
+	var receiver reflect.Value
+	if fd.Recv != nil {
+		receiver = vm.callStack.top().pop()
+		// need to wait for a frame to set the receiver in env
+	}
+
 	// prepare arguments
 	args := make([]reflect.Value, len(c.Args))
 	// first to last, see Flow
@@ -235,6 +242,13 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	}
 	vm.pushNewFrame(fd)
 	frame := vm.callStack.top()
+
+	// if method, set receiver in env
+	if fd.Recv != nil {
+		recvName := fd.Recv.List[0].Names[0].Name
+		frame.env.set(recvName, receiver)
+	}
+
 	setParametersToFrame(fd.Type, args, vm, frame)
 	setZeroReturnsToFrame(fd.Type, vm, frame)
 

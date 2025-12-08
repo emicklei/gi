@@ -42,6 +42,7 @@ func (i *StructValue) String() string {
 	return fmt.Sprintf("*StructValue(%v)", i.structType)
 }
 
+// TODO maybe return extra bool for ok?
 func (i *StructValue) Select(name string) reflect.Value {
 	if v, ok := i.fields[name]; ok {
 		return v
