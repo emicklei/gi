@@ -31,7 +31,11 @@ func basicLitValue(s *ast.BasicLit) reflect.Value {
 		i, _ := strconv.Atoi(s.Value)
 		return reflect.ValueOf(i)
 	case token.STRING:
-		unq := strings.Trim(s.Value, "`\"")
+		unq, err := strconv.Unquote(s.Value)
+		if err != nil {
+			// fallback for raw strings or edge cases
+			unq = strings.Trim(s.Value, "`\"")
+		}
 		return reflect.ValueOf(unq)
 	case token.FLOAT:
 		f, _ := strconv.ParseFloat(s.Value, 64)
