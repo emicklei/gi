@@ -259,7 +259,6 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 		} else {
 			// put a copy of the value
 			clone := receiver.Interface().(*StructValue).clone()
-			console(clone)
 			frame.env.set(recvName, reflect.ValueOf(clone))
 		}
 	}
