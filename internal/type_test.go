@@ -217,7 +217,6 @@ func main() {
 }
 
 func TestPointerFunctionWritingFieldWithArgument(t *testing.T) {
-	//t.Skip()
 	testMain(t, `package main
 
 type Aircraft struct {
@@ -265,7 +264,6 @@ func main() {
 }
 
 func TestFmtFormat(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 import "fmt"
 // import "bytes"

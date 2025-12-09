@@ -33,8 +33,10 @@ func (c CallExpr) Eval(vm *VM) {
 			c.handleArrayType(vm, f)
 		case TypeSpec:
 			c.handleTypeSpec(vm, f)
+		case reflect.Method:
+			c.handleReflectMethod(vm, f)
 		default:
-			vm.fatal(fmt.Sprintf("expected FuncDecl,FuncLit or builtinFunc, got %T", fn.Interface()))
+			vm.fatal(fmt.Sprintf("unexpected %T", fn.Interface()))
 		}
 	case reflect.Func:
 		args := make([]reflect.Value, len(c.Args))
@@ -109,6 +111,24 @@ func isPointerToStructValue(v reflect.Value) bool {
 		return false
 	}
 	return true
+}
+
+func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
+	// Get the receiver (the value the method is called on)
+	receiver := vm.callStack.top().pop()
+
+	// Prepare arguments: receiver + method args
+	args := make([]reflect.Value, len(c.Args)+1)
+	args[0] = receiver // First arg is always the receiver
+
+	for i := range c.Args {
+		val := vm.callStack.top().pop() // first to last, see Flow
+		args[i+1] = val
+	}
+
+	// Call the method using rm.Func
+	vals := rm.Func.Call(args)
+	pushCallResults(vm, vals)
 }
 
 func (c CallExpr) handleTypeSpec(vm *VM, ts TypeSpec) {

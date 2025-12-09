@@ -536,7 +536,7 @@ func main() {
 }`, "an error")
 }
 
-func TestPointerMethod(t *testing.T) {
+func TestPointerMethodWithFunctionLiteralArgument(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main
 
@@ -544,6 +544,17 @@ import "sync"
 func main() {
 	var wg sync.WaitGroup
 	wg.Go(func(){})
+	print("done")
+}`, "done")
+}
+
+func TestPointerMethod(t *testing.T) {
+	testMain(t, `package main
+
+import "sync"
+func main() {
+	var wg sync.WaitGroup
+	wg.Wait()
 	print("done")
 }`, "done")
 }

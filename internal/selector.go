@@ -113,14 +113,21 @@ func (s SelectorExpr) Eval(vm *VM) {
 
 	meth := recv.MethodByName(s.Sel.Name)
 	if !meth.IsValid() {
-		// TODO not correct
-		val := recv.Interface()
-		pval := &val
-		pvaltype := reflect.ValueOf(pval)
-
-		pmeth, ok := pvaltype.Type().MethodByName(s.Sel.Name)
+		recvType := recv.Type()
+		ptrRecvType := reflect.PointerTo(recvType)
+		pmeth, ok := ptrRecvType.MethodByName(s.Sel.Name)
 		if ok {
 			meth = reflect.ValueOf(pmeth)
+			// push pointer to recv as first argument
+			if recv.CanAddr() {
+				recv = recv.Addr()
+			} else {
+				// Create a new pointer to a copy
+				ptr := reflect.New(recv.Type())
+				ptr.Elem().Set(recv)
+				recv = ptr
+			}
+			vm.pushOperand(recv)
 			vm.pushOperand(meth)
 			return
 		}

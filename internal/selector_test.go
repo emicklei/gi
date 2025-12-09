@@ -13,8 +13,8 @@ func TestPointerMethodWaitGroup(t *testing.T) {
 	meth, ok := twg.MethodByName("Go")
 	t.Log(meth, ok)
 
-	rwg := reflect.ValueOf(&wg)
-	ptwg := rwg.Type()
+	ptwg := reflect.PointerTo(twg)
+
 	meth, ok = ptwg.MethodByName("Go")
 	t.Log(meth, ok)
 
