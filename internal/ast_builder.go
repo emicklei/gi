@@ -362,7 +362,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		// check for standard package
 		if symbolTable := stdfuncs[unq]; symbolTable != nil {
-			p := StandardPackage{
+			p := SDKPackage{
 				Name:        pkgName,
 				PkgPath:     unq,
 				symbolTable: symbolTable,
@@ -377,7 +377,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		// check for imported external package
 		if symbols := importedPkgs[unq]; symbols != nil {
-			p := ExternalPackage{StandardPackage: StandardPackage{
+			p := ExternalPackage{SDKPackage: SDKPackage{
 				Name:        pkgName,
 				PkgPath:     unq,
 				symbolTable: symbols,

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go/token"
 	"reflect"
-	"strings"
 )
 
 var _ Expr = CallExpr{}
@@ -94,23 +93,6 @@ func (c CallExpr) Eval(vm *VM) {
 	default:
 		vm.fatal(fmt.Sprintf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface()))
 	}
-}
-
-func isPointerToStructValue(v reflect.Value) bool {
-	if v.Kind() != reflect.Pointer {
-		return false
-	}
-	if v.Elem().Kind() != reflect.Struct {
-		return false
-	}
-	if v.Elem().Type().Name() != "StructValue" {
-		return false
-	}
-	// not exact package match to allow source code forks
-	if !strings.HasSuffix(v.Elem().Type().PkgPath(), "/gi/internal") {
-		return false
-	}
-	return true
 }
 
 func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
@@ -258,6 +240,11 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	// first to last, see Flow
 	for i := range c.Args {
 		val := vm.callStack.top().pop()
+		// check for value/pointer mismatch
+		// TODO
+		// expectedType := fd.Type.Params.List[i].Type
+		// console(expectedType)
+		// console(val)
 		args[i] = val
 	}
 	vm.pushNewFrame(fd)

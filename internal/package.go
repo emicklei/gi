@@ -23,7 +23,7 @@ func RegisterPackage(pkgPath string, symbols map[string]reflect.Value) {
 	importedPkgs[pkgPath] = symbols
 }
 
-type StandardPackage struct {
+type SDKPackage struct {
 	Name    string
 	PkgPath string
 	// TODO currently separate tables for types and other symbols
@@ -31,7 +31,7 @@ type StandardPackage struct {
 	typesTable  map[string]reflect.Value // not reflect.Type to make Select work uniformly
 }
 
-func (p StandardPackage) Select(name string) reflect.Value {
+func (p SDKPackage) Select(name string) reflect.Value {
 	v, ok := p.symbolTable[name]
 	if !ok {
 		t, ok := p.typesTable[name]
@@ -42,19 +42,18 @@ func (p StandardPackage) Select(name string) reflect.Value {
 	}
 	return v
 }
-func (p StandardPackage) String() string {
-	return fmt.Sprintf("StandardPackage(%s,%s)", p.Name, p.PkgPath)
+func (p SDKPackage) String() string {
+	return fmt.Sprintf("SDKPackage(%s,%s)", p.Name, p.PkgPath)
 }
 
 type ExternalPackage struct {
-	StandardPackage
+	SDKPackage
 }
 
 func (p ExternalPackage) String() string {
 	return fmt.Sprintf("ExternalPackage(%s,%s)", p.Name, p.PkgPath)
 }
 
-// TODO rename to LocalPackage?
 type Package struct {
 	*packages.Package // TODO look for actual data used here
 	Env               *PkgEnvironment
@@ -88,6 +87,7 @@ func (p *Package) Initialize(vm *VM) error {
 		structType := vm.localEnv().valueLookUp(typeName)
 		structType.Interface().(StructType).addMethod(decl)
 	}
+	clear(p.Env.methods)
 
 	// try declare all of them until none left
 	// a declare may refer to other unseen declares.
@@ -104,6 +104,8 @@ func (p *Package) Initialize(vm *VM) error {
 			}
 		}
 	}
+	clear(p.Env.declarations)
+
 	// then run all inits
 	for _, each := range p.Env.inits {
 		// TODO clean up
@@ -113,6 +115,8 @@ func (p *Package) Initialize(vm *VM) error {
 		}
 		call.handleFuncDecl(vm, each)
 	}
+	clear(p.Env.inits)
+
 	return nil
 }
 

@@ -11,7 +11,7 @@ clean:
 	cd internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast
 	cd internal && rm -f *.dot *.png *.src *.svg *.ast *panic.html
 
-todo:
+skip:
 	cd internal && go test -v | grep SKIP
 
 bench:
