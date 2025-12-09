@@ -42,8 +42,9 @@ func (c CallExpr) Eval(vm *VM) {
 		// first to last, see Flow
 		for i := range len(c.Args) {
 			var argType reflect.Type
-			if fn.Type().IsVariadic() {
-				argType = fn.Type().In(0)
+			if fn.Type().IsVariadic() && i >= fn.Type().NumIn()-1 {
+				// last arg is variadic
+				argType = fn.Type().In(fn.Type().NumIn() - 1)
 			} else {
 				argType = fn.Type().In(i)
 			}

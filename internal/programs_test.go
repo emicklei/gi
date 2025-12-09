@@ -579,3 +579,12 @@ func main() {
 	print(m["one"])
 }`, "1")
 }
+
+func TestPrintfNumber(t *testing.T) {
+	testMain(t, `package main
+import "fmt"
+func main() {
+	i := 1
+	fmt.Printf("Count: %d\n", i)
+}`, "")
+}
