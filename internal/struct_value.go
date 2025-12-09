@@ -17,7 +17,7 @@ import (
 
 var structValueType = reflect.TypeOf(&StructValue{})
 
-var _ fmt.Formatter = StructValue{}
+var _ fmt.Formatter = &StructValue{}
 
 // StructValue represents an instance of an interpreted struct.
 type StructValue struct {
@@ -159,7 +159,7 @@ func (i *StructValue) tagFieldName(key string, fieldName string, fieldValue refl
 	return jsonTag.Name, true
 }
 
-func (i StructValue) Format(f fmt.State, verb rune) {
+func (i *StructValue) Format(f fmt.State, verb rune) {
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "%s{", i.structType.Name)
 	c := 0
@@ -177,8 +177,8 @@ func (i StructValue) Format(f fmt.State, verb rune) {
 	f.Write(buf.Bytes())
 }
 
-func (i StructValue) clone() StructValue {
-	return StructValue{
+func (i *StructValue) clone() *StructValue {
+	return &StructValue{
 		structType: i.structType,
 		fields:     maps.Clone(i.fields),
 	}

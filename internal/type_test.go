@@ -175,7 +175,6 @@ func main() {
 }
 
 func TestMethodAccessingField(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func (a Aircraft) S() string { return a.Model } // put before type on purpose
