@@ -42,7 +42,6 @@ func main(){
 }
 
 func TestVariadicFunction(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func sum(nums ...int) int {

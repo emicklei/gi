@@ -200,7 +200,6 @@ func main() {
 }
 
 func TestNonPointerMethodWritingFieldWithArgument(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 type Aircraft struct {
@@ -231,7 +230,6 @@ func main() {
 }
 
 func TestPointerMethodWritingFieldWithArgument(t *testing.T) {
-	//t.Skip()
 	testMain(t, `package main
 
 type Aircraft struct {
@@ -247,7 +245,6 @@ func main() {
 }
 
 func TestNonPointerFunctionWritingFieldWithArgument(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 type Aircraft struct {

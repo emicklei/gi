@@ -170,6 +170,9 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 		fn := func() {}
 		return reflect.TypeOf(fn)
 	}
+	if e, ok := e.(Ellipsis); ok {
+		return vm.returnsType(e.Elt)
+	}
 	vm.fatal(fmt.Sprintf("unhandled returnsType for %v (%T)", e, e))
 	return nil
 }

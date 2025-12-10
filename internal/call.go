@@ -227,6 +227,19 @@ func setParametersToFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *sta
 	}
 }
 
+func paramType(fields *FieldList, index int) Expr {
+	count := 0
+	for _, field := range fields.List {
+		for range field.Names {
+			if count == index {
+				return field.Type
+			}
+			count++
+		}
+	}
+	return nil
+}
+
 // TODO deduplicate with handleFuncLit
 func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	// if method then take receiver from the stack
@@ -241,12 +254,40 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	// first to last, see Flow
 	for i := range c.Args {
 		val := vm.callStack.top().pop()
-		// check for value/pointer mismatch
-		// TODO
-		// expectedType := fd.Type.Params.List[i].Type
-		// console(expectedType)
-		// console(val)
-		args[i] = val
+		expectedType := paramType(fd.Type.Params, i)
+		if isEllipsis(expectedType) {
+			// consume remaining as slice
+			vals := make([]reflect.Value, len(c.Args)-i)
+			vals[0] = val
+			for j := 1; j < len(vals); j++ {
+				vals[j] = vm.callStack.top().pop()
+			}
+			elemType := vm.returnsType(expectedType)
+			sliceType := reflect.SliceOf(elemType)
+			sliceVal := reflect.MakeSlice(sliceType, len(vals), len(vals))
+			for k := 0; k < len(vals); k++ {
+				// TODO can also require dereferencing
+				sliceVal.Index(k).Set(vals[k])
+			}
+			args[i] = sliceVal
+			break
+		} else {
+			// check for value/pointer mismatch TODO
+			// console(expectedType)
+			// console(val)
+			// console(val.Kind() == reflect.Pointer)
+			// console(isPointerExpr(expectedType))
+			if val.Kind() == reflect.Pointer {
+				if isStructValue(val) {
+					if !isPointerExpr(expectedType) {
+						// need to dereference
+						clone := val.Interface().(*StructValue).clone()
+						val = reflect.ValueOf(clone)
+					}
+				}
+			}
+			args[i] = val
+		}
 	}
 	vm.pushNewFrame(fd)
 	frame := vm.callStack.top()
@@ -255,7 +296,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	if fd.Recv != nil {
 		recvName := fd.Recv.List[0].Names[0].Name
 		// check pointer receiver
-		if _, ok := fd.Recv.List[0].Type.(StarExpr); ok {
+		if isPointerExpr(fd.Recv.List[0].Type) {
 			frame.env.set(recvName, receiver)
 		} else {
 			// put a copy of the value
@@ -282,6 +323,20 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	vals := frame.returnValues
 	vm.popFrame()
 	pushCallResults(vm, vals)
+}
+
+func isEllipsis(t Expr) bool {
+	_, ok := t.(Ellipsis)
+	return ok
+}
+func isStructValue(v reflect.Value) bool {
+	_, ok := v.Interface().(*StructValue)
+	return ok
+}
+
+func isPointerExpr(e Expr) bool {
+	_, ok := e.(StarExpr)
+	return ok
 }
 
 func (c CallExpr) Flow(g *graphBuilder) (head Step) {
