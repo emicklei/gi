@@ -538,14 +538,15 @@ func main() {
 
 func TestPointerMethodWithFunctionLiteralArgument(t *testing.T) {
 	t.Skip()
-	testMain(t, `package main
+	testMain(t, `ackage main
 
 import "sync"
+
 func main() {
 	var wg sync.WaitGroup
-	wg.Go(func(){})
+	wg.Go(func() { print("gi") })
 	print("done")
-}`, "done")
+}`, "donegi")
 }
 
 func TestPointerMethod(t *testing.T) {

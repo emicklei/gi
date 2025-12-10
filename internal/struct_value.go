@@ -122,8 +122,20 @@ func (i *StructValue) UnmarshalJSON(data []byte) error {
 }
 
 func (i *StructValue) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
-	// TODO
-	return nil
+	start.Name.Local = i.structType.Name
+	if err := enc.EncodeToken(start); err != nil {
+		return err
+	}
+	for fieldName, val := range i.fields {
+		tagName, ok := i.tagFieldName("xml", fieldName, val)
+		if ok {
+			elem := xml.StartElement{Name: xml.Name{Local: tagName}}
+			if err := enc.EncodeElement(val.Interface(), elem); err != nil {
+				return err
+			}
+		}
+	}
+	return enc.EncodeToken(start.End())
 }
 
 // tagFieldName returns the name of the field as it should appear in JSON.

@@ -134,7 +134,6 @@ func main() {
 		"`{\"model\":\"helicopter\"}`"), "helicopter")
 }
 func TestTypeMarshalXML(t *testing.T) {
-	t.Skip()
 	testMain(t, fmt.Sprintf(`package main
 
 import "encoding/xml"
@@ -187,7 +186,6 @@ func main() {
 }
 
 func TestMethodReadingFieldWithArgument(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func (a Aircraft) S(prefix string) string { return prefix + a.Model } // put before type on purpose
