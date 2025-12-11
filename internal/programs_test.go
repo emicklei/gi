@@ -464,6 +464,29 @@ func main() {
 }`, "0")
 }
 
+func TestNestedRecover(t *testing.T) {
+	// this fails because funcStack only has FuncDecl, not FuncLit, need Interface here
+	t.Skip()
+	testMain(t, `package main
+
+func catchthrow() {
+	defer func() {
+		r := recover().(string)
+		print(r)
+		panic(r + "-caught")
+	}()
+	panic("hi")
+}
+
+func main() {
+	defer func() {
+		r := recover()
+		print(r)
+	}()
+	catchthrow()
+}`, "hi caught")
+}
+
 func TestImaginary(t *testing.T) {
 	testMain(t, `package main
 const (
@@ -531,6 +554,25 @@ func main() {
 	err2Msg := err2.Error()
 	print(err2Msg)
 }`, "an error")
+}
+
+func TestGotoInFunctionLiteral(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+	f := func() {
+		a := 1
+	label:
+		a++
+		if a < 3 {
+			goto label
+		}
+		print(a)
+	}
+	f()
+}
+`, "3")
 }
 
 func TestPointerMethodWithFunctionLiteralArgument(t *testing.T) {

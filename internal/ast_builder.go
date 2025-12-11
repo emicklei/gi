@@ -179,7 +179,8 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.FuncLit:
 		b.pushEnv()
 		defer b.popEnv()
-		s := FuncLit{FuncLit: n}
+		// create pointer to FuncLit to allow modification later both at build and runtime
+		s := new(FuncLit)
 		if n.Type != nil {
 			b.Visit(n.Type)
 			e := b.pop().(FuncType)

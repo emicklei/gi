@@ -126,23 +126,25 @@ func (s CompositeLit) String() string {
 	return fmt.Sprintf("CompositeLit(%v,%v)", s.Type, s.Elts)
 }
 
-var _ Expr = FuncLit{}
+var _ Expr = &FuncLit{}
 
 type FuncLit struct {
-	*ast.FuncLit
-	Type      *FuncType
-	Body      *BlockStmt // TODO not sure what to do when Body and/or Type is nil
-	callGraph Step
+	Type           *FuncType
+	Body           *BlockStmt // TODO not sure what to do when Body and/or Type is nil
+	callGraph      Step
+	hasRecoverCall bool
 }
 
-func (s FuncLit) Eval(vm *VM) {
+func (s *FuncLit) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(s))
 }
 
-func (s FuncLit) Flow(g *graphBuilder) (head Step) {
+func (s *FuncLit) Flow(g *graphBuilder) (head Step) {
 	g.next(s)
 	return g.current
 }
+
+func (s *FuncLit) Pos() token.Pos { return s.Type.Pos() }
 
 func (s FuncLit) String() string {
 	return fmt.Sprintf("FuncLit(%v,%v)", s.Type, s.Body)

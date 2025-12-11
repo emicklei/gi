@@ -204,7 +204,7 @@ func (vm *VM) pushOperand(v reflect.Value) {
 	vm.callStack.top().push(v)
 }
 
-func (vm *VM) pushNewFrame(e Evaluable) { // typically a FuncDecl or FuncLit
+func (vm *VM) pushNewFrame(e Evaluable) { // typically a *FuncDecl or *FuncLit
 	if trace {
 		fmt.Println("vm.pushNewFrame:", e)
 	}

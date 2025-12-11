@@ -26,9 +26,9 @@ type FuncDecl struct {
 	hasRecoverCall bool
 }
 
-func (f FuncDecl) Eval(vm *VM) {} // noop
+func (f *FuncDecl) Eval(vm *VM) {} // noop
 
-func (f FuncDecl) Flow(g *graphBuilder) (head Step) {
+func (f *FuncDecl) Flow(g *graphBuilder) (head Step) {
 	head = g.current
 	if f.Body != nil {
 		g.funcStack.push(f)

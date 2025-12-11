@@ -24,8 +24,6 @@ func (c CallExpr) Eval(vm *VM) {
 		// order by frequency of use
 		case builtinFunc:
 			c.handleBuiltinFunc(vm, f)
-		case FuncLit:
-			c.handleFuncLit(vm, f)
 		case ArrayType:
 			c.handleArrayType(vm, f)
 		case TypeSpec:
@@ -33,13 +31,16 @@ func (c CallExpr) Eval(vm *VM) {
 		case reflect.Method:
 			c.handleReflectMethod(vm, f)
 		default:
-			vm.fatal(fmt.Sprintf("unexpected %T", fn.Interface()))
+			vm.fatal(fmt.Sprintf("struct unexpected %T", fn.Interface()))
 		}
 	case reflect.Pointer:
-		if f, ok := fn.Interface().(*FuncDecl); ok {
+		switch f := fn.Interface().(type) {
+		case *FuncDecl:
 			c.handleFuncDecl(vm, f)
-		} else {
-			vm.fatal(fmt.Sprintf("unexpected %T", fn.Interface()))
+		case *FuncLit:
+			c.handleFuncLit(vm, f)
+		default:
+			vm.fatal(fmt.Sprintf("pointer unexpected %T", fn.Interface()))
 		}
 	case reflect.Func:
 		args := make([]reflect.Value, len(c.Args))
@@ -169,7 +170,7 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 	}
 }
 
-func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
+func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	// TODO deduplicate with handleFuncDecl
 	// prepare arguments
 	args := make([]reflect.Value, len(c.Args))
@@ -182,6 +183,15 @@ func (c CallExpr) handleFuncLit(vm *VM, fl FuncLit) {
 
 	setParametersToFrame(fl.Type, args, vm, frame)
 	setZeroReturnsToFrame(fl.Type, vm, frame)
+
+	if fl.hasRecoverCall {
+		defer func() {
+			r := recover()
+			// temporary store it in the special variable in the parent env
+			frame.env.getParent().set(internalVarName("recover", 0), reflect.ValueOf(r))
+			frame.takeDeferList(vm)
+		}()
+	}
 
 	// we already have the call graph in FuncLit
 	vm.takeAllStartingAt(fl.callGraph)
