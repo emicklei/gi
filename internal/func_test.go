@@ -29,7 +29,7 @@ func main() {
 }
 
 func TestNamedReturn(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	testMain(t, `package main
 		
 func f() (result int) {

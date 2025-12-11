@@ -236,7 +236,7 @@ func main() {
 }`, "Mon, 02 Jan 2006 15:04:05 MST")
 }
 
-func TestJSONMarshal(t *testing.T) {
+func TestJSONMarshalString(t *testing.T) {
 	testMain(t, `package main
 
 import "encoding/json"
@@ -454,13 +454,12 @@ func main() {
 }
 
 func TestRecover(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	testMain(t, `package main
 
 func main() {
 	defer func() {
-		r := recover()
-		print(r)
+		print(recover())
 	}()
 	panic("0")
 }`, "0")
@@ -481,7 +480,6 @@ func main() {
 }
 
 func TestSubpackage(t *testing.T) {
-	t.Skip()
 	testProgramIn(t, "../examples/subpkg", "yet unchecked")
 }
 

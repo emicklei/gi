@@ -106,3 +106,8 @@ The first step is the head of the chain.
 
   d = 2, c = 1
 
+
+# debugging 
+
+- https://github.com/dbaumgarten/yodk/blob/v0.1.13/pkg/debug/handler.go#L23
+- https://github.com/xhd2015/dlv-mcp
