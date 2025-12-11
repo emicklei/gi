@@ -18,7 +18,7 @@ import (
 var _ ast.Visitor = (*ASTBuilder)(nil)
 
 type funcDeclPair struct {
-	decl    FuncDecl      // the mirror node
+	decl    *FuncDecl     // the mirror node
 	astDecl *ast.FuncDecl // need this to find index of each block stmt
 }
 
@@ -70,7 +70,7 @@ func (b *ASTBuilder) envSet(name string, value reflect.Value) {
 	b.env.set(name, value)
 }
 
-func (b *ASTBuilder) pushFuncDecl(f FuncDecl, a *ast.FuncDecl) {
+func (b *ASTBuilder) pushFuncDecl(f *FuncDecl, a *ast.FuncDecl) {
 	b.funcStack.push(funcDeclPair{decl: f, astDecl: a})
 }
 func (b *ASTBuilder) popFuncDecl() {
@@ -455,6 +455,10 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		b.Visit(n.Fun)
 		e := b.pop()
 		s.Fun = e.(Expr)
+		if isRecoverCall(s.Fun) {
+			// mark current function as having a recover call
+			b.funcStack.top().decl.hasRecoverCall = true
+		}
 		for _, arg := range n.Args {
 			b.Visit(arg)
 			e := b.pop()
@@ -504,7 +508,8 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.FuncDecl:
 		// any declarations inside the function scope
 		b.pushEnv()
-		s := FuncDecl{
+		// create pointer to FuncDecl to allow modification later both at build and runtime
+		s := &FuncDecl{
 			labelToStmt: make(map[string]statementReference),
 			fileSet:     b.goPkg.Fset}
 		b.pushFuncDecl(s, n)

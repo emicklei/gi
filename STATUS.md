@@ -40,14 +40,15 @@
 | iota | ✅ |
 | `switch` statement on type | ✅ |
 | type assertion | ✅ |
+| recover | ✅ |
+| Non-std Methods | ✅ |
+| variadic function | ✅ |
+| struct xml write | ✅ |
+| struct xml read | ⬜ |
 | continue | ⬜ |
 | fallthrough | ⬜ |
 | break | ⬜ |
 | Interfaces | ⬜ |
-| Non-std Methods | ⬜ |
 | Goroutines `go` | ⬜ |
 | Channels `chan` | ⬜ |
 | `select` statement | ⬜ |
-| variadic function | ⬜ |
-| recover | ⬜ |
-| struct xml | ⬜ |

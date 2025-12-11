@@ -24,8 +24,6 @@ func (c CallExpr) Eval(vm *VM) {
 		// order by frequency of use
 		case builtinFunc:
 			c.handleBuiltinFunc(vm, f)
-		case FuncDecl:
-			c.handleFuncDecl(vm, f)
 		case FuncLit:
 			c.handleFuncLit(vm, f)
 		case ArrayType:
@@ -35,6 +33,12 @@ func (c CallExpr) Eval(vm *VM) {
 		case reflect.Method:
 			c.handleReflectMethod(vm, f)
 		default:
+			vm.fatal(fmt.Sprintf("unexpected %T", fn.Interface()))
+		}
+	case reflect.Pointer:
+		if f, ok := fn.Interface().(*FuncDecl); ok {
+			c.handleFuncDecl(vm, f)
+		} else {
 			vm.fatal(fmt.Sprintf("unexpected %T", fn.Interface()))
 		}
 	case reflect.Func:
@@ -158,6 +162,8 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		c.evalMin(vm)
 	case "max":
 		c.evalMax(vm)
+	case "recover":
+		c.evalRecover(vm)
 	default:
 		vm.fatal("unknown builtin function: " + bf.name)
 	}
@@ -241,7 +247,7 @@ func paramType(fields *FieldList, index int) Expr {
 }
 
 // TODO deduplicate with handleFuncLit
-func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
+func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	// if method then take receiver from the stack
 	var receiver reflect.Value
 	if fd.Recv != nil {
@@ -272,11 +278,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 			args[i] = sliceVal
 			break
 		} else {
-			// check for value/pointer mismatch TODO
-			// console(expectedType)
-			// console(val)
-			// console(val.Kind() == reflect.Pointer)
-			// console(isPointerExpr(expectedType))
+			// check for value/pointer mismatch
 			if val.Kind() == reflect.Pointer {
 				if isStructValue(val) {
 					if !isPointerExpr(expectedType) {
@@ -308,16 +310,19 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd FuncDecl) {
 	setParametersToFrame(fd.Type, args, vm, frame)
 	setZeroReturnsToFrame(fd.Type, vm, frame)
 
+	if fd.hasRecoverCall {
+		defer func() {
+			r := recover()
+			// temporary store it in the special variable in the parent env
+			frame.env.getParent().set(internalVarName("recover", 0), reflect.ValueOf(r))
+			frame.takeDeferList(vm)
+		}()
+	}
+
 	// when stepping we the call graph in FuncDecl
 	vm.takeAllStartingAt(fd.callGraph)
 
-	// run defer list
-	for i := len(frame.deferList) - 1; i >= 0; i-- {
-		invocation := frame.deferList[i]
-		frame.env = invocation.env
-		// put env in place
-		vm.takeAllStartingAt(invocation.flow)
-	}
+	frame.takeDeferList(vm)
 
 	// take values before popping frame
 	vals := frame.returnValues

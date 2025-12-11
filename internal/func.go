@@ -20,9 +20,10 @@ type FuncDecl struct {
 	// control flow graph
 	callGraph Step
 	// goto targets
-	labelToStmt map[string]statementReference
+	labelToStmt map[string]statementReference // TODO lazy initialization
 	// for source access of any statement/expression within this function
-	fileSet *token.FileSet
+	fileSet        *token.FileSet
+	hasRecoverCall bool
 }
 
 func (f FuncDecl) Eval(vm *VM) {} // noop
@@ -94,4 +95,11 @@ func (e Ellipsis) Flow(g *graphBuilder) (head Step) {
 type funcInvocation struct {
 	flow Step
 	env  Env
+}
+
+func isRecoverCall(expr Expr) bool {
+	if ident, ok := expr.(Ident); ok {
+		return ident.Name == "recover"
+	}
+	return false
 }

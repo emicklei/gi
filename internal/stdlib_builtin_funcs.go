@@ -156,12 +156,13 @@ var builtinsMap = map[string]reflect.Value{
 	"uintptr": reflect.ValueOf(func(i uint) uintptr { return uintptr(i) }),
 
 	// built-in functions implemented as builtinFunc
-	"delete": reflect.ValueOf(builtinFunc{name: "delete"}),
-	"min":    reflect.ValueOf(builtinFunc{name: "min"}),
-	"max":    reflect.ValueOf(builtinFunc{name: "max"}),
-	"append": reflect.ValueOf(builtinFunc{name: "append"}),
-	"clear":  reflect.ValueOf(builtinFunc{name: "clear"}),
-	"make":   reflect.ValueOf(builtinFunc{name: "make"}),
-	"new":    reflect.ValueOf(builtinFunc{name: "new"}),
-	"copy":   reflect.ValueOf(builtinFunc{name: "copy"}),
+	"delete":  reflect.ValueOf(builtinFunc{name: "delete"}),
+	"min":     reflect.ValueOf(builtinFunc{name: "min"}),
+	"max":     reflect.ValueOf(builtinFunc{name: "max"}),
+	"append":  reflect.ValueOf(builtinFunc{name: "append"}),
+	"clear":   reflect.ValueOf(builtinFunc{name: "clear"}),
+	"make":    reflect.ValueOf(builtinFunc{name: "make"}),
+	"new":     reflect.ValueOf(builtinFunc{name: "new"}),
+	"copy":    reflect.ValueOf(builtinFunc{name: "copy"}),
+	"recover": reflect.ValueOf(builtinFunc{name: "recover"}),
 }

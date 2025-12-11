@@ -89,7 +89,7 @@ type StructType struct {
 	StructPos token.Pos
 	Name      string
 	Fields    *FieldList
-	methods   map[string]FuncDecl
+	methods   map[string]*FuncDecl
 }
 
 func (s StructType) Eval(vm *VM) {
@@ -104,7 +104,7 @@ func (s StructType) Flow(g *graphBuilder) (head Step) {
 func makeStructType(ast *ast.StructType) StructType {
 	return StructType{
 		StructPos: ast.Struct,
-		methods:   map[string]FuncDecl{},
+		methods:   map[string]*FuncDecl{},
 	}
 }
 
@@ -137,7 +137,7 @@ func (s StructType) Make(vm *VM, size int, constructorArgs []reflect.Value) refl
 	return reflect.ValueOf(NewStructValue(vm, s))
 }
 
-func (s StructType) addMethod(decl FuncDecl) {
+func (s StructType) addMethod(decl *FuncDecl) {
 	s.methods[decl.Name.Name] = decl
 }
 

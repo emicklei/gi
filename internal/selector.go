@@ -84,7 +84,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 			vm.fatal(fmt.Sprintf("field %s not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
 		}
 		// check for method
-		if _, ok := sel.Interface().(FuncDecl); ok {
+		if _, ok := sel.Interface().(*FuncDecl); ok {
 			// method value so push receiver as first argument
 			vm.pushOperand(recv)
 		}

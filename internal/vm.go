@@ -61,6 +61,15 @@ func (f *stackFrame) popEnv() {
 	envPool.Put(child)
 }
 
+func (f *stackFrame) takeDeferList(vm *VM) {
+	for i := len(f.deferList) - 1; i >= 0; i-- {
+		invocation := f.deferList[i]
+		f.env = invocation.env
+		// put env in place
+		vm.takeAllStartingAt(invocation.flow)
+	}
+}
+
 func (f *stackFrame) String() string {
 	if f == nil {
 		return "stackFrame(<nil>)"

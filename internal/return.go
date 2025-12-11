@@ -29,7 +29,7 @@ func (r ReturnStmt) Eval(vm *VM) {
 		results[i] = val
 	}
 	// bind result valutes to named results of the function if any
-	fd, ok := vm.callStack.top().creator.(FuncDecl)
+	fd, ok := vm.callStack.top().creator.(*FuncDecl)
 	// TODO has to work for FuncLit as well
 	if ok {
 		ri := 0

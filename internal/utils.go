@@ -154,3 +154,7 @@ func console(v any) {
 	}
 	fmt.Printf("console: %#v (%T)\n", v, v)
 }
+
+func internalVarName(meaning string, seq int) string {
+	return fmt.Sprintf("_%s_%d", meaning, seq)
+}

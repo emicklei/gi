@@ -26,8 +26,8 @@ type Env interface {
 type PkgEnvironment struct {
 	Env
 	declarations []CanDeclare
-	inits        []FuncDecl
-	methods      []FuncDecl
+	inits        []*FuncDecl
+	methods      []*FuncDecl
 	packageTable map[string]*Package // path -> *Package
 }
 
@@ -44,10 +44,10 @@ func newPkgEnvironment(parent Env) *PkgEnvironment {
 		packageTable: map[string]*Package{},
 	}
 }
-func (p *PkgEnvironment) addInit(f FuncDecl) {
+func (p *PkgEnvironment) addInit(f *FuncDecl) {
 	p.inits = append(p.inits, f)
 }
-func (p *PkgEnvironment) addMethod(f FuncDecl) {
+func (p *PkgEnvironment) addMethod(f *FuncDecl) {
 	p.methods = append(p.methods, f)
 }
 

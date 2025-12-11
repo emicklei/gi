@@ -156,7 +156,7 @@ func (p *Package) writeCallGraph(fileName string) {
 	// for each function in the package create a subgraph
 	values := p.Env.Env.(*Environment).valueTable
 	for k, v := range values {
-		if funDecl, ok := v.Interface().(FuncDecl); ok {
+		if funDecl, ok := v.Interface().(*FuncDecl); ok {
 			if funDecl.callGraph == nil {
 				continue
 			}
@@ -272,12 +272,12 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	for i := len(args) - 1; i >= 0; i-- {
 		vm.pushOperand(reflect.ValueOf(args[i]))
 	}
-	call.handleFuncDecl(vm, fun.Interface().(FuncDecl))
+	call.handleFuncDecl(vm, fun.Interface().(*FuncDecl))
 
 	// collect non-reflection return values
 	top := vm.callStack.top()
 	vals := []any{}
-	results := fun.Interface().(FuncDecl).Type.Results
+	results := fun.Interface().(*FuncDecl).Type.Results
 	if results != nil {
 		for _, field := range results.List {
 			if field.Names != nil {
