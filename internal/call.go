@@ -184,7 +184,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	setParametersToFrame(fl.Type, args, vm, frame)
 	setZeroReturnsToFrame(fl.Type, vm, frame)
 
-	if fl.hasRecoverCall {
+	if fl.HasRecoverCall() {
 		defer func() {
 			r := recover()
 			// temporary store it in the special variable in the parent env
@@ -320,7 +320,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	setParametersToFrame(fd.Type, args, vm, frame)
 	setZeroReturnsToFrame(fd.Type, vm, frame)
 
-	if fd.hasRecoverCall {
+	if fd.HasRecoverCall() {
 		defer func() {
 			r := recover()
 			// temporary store it in the special variable in the parent env

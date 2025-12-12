@@ -38,6 +38,9 @@ func (f *FuncDecl) Flow(g *graphBuilder) (head Step) {
 	return
 }
 
+func (f *FuncDecl) SetHasRecoverCall(bool) { f.hasRecoverCall = true }
+func (f *FuncDecl) HasRecoverCall() bool   { return f.hasRecoverCall }
+
 func (f FuncDecl) Pos() token.Pos { return f.Type.Pos() }
 
 func (f FuncDecl) String() string {

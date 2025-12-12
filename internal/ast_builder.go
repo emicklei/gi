@@ -179,8 +179,13 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.FuncLit:
 		b.pushEnv()
 		defer b.popEnv()
-		// create pointer to FuncLit to allow modification later both at build and runtime
+		// create pointer to FuncLit to allow modification later at buildtime
 		s := new(FuncLit)
+
+		// TODO
+		//b.pushFuncDecl(s, n)
+		//defer b.popFuncDecl()
+
 		if n.Type != nil {
 			b.Visit(n.Type)
 			e := b.pop().(FuncType)
@@ -458,7 +463,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Fun = e.(Expr)
 		if isRecoverCall(s.Fun) {
 			// mark current function as having a recover call
-			b.funcStack.top().decl.hasRecoverCall = true
+			b.funcStack.top().decl.SetHasRecoverCall(true)
 		}
 		for _, arg := range n.Args {
 			b.Visit(arg)
@@ -509,7 +514,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.FuncDecl:
 		// any declarations inside the function scope
 		b.pushEnv()
-		// create pointer to FuncDecl to allow modification later both at build and runtime
+		// create pointer to FuncDecl to allow modification later at buildtime
 		s := &FuncDecl{
 			labelToStmt: make(map[string]statementReference),
 			fileSet:     b.goPkg.Fset}

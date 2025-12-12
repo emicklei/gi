@@ -135,17 +135,20 @@ type FuncLit struct {
 	hasRecoverCall bool
 }
 
-func (s *FuncLit) Eval(vm *VM) {
-	vm.pushOperand(reflect.ValueOf(s))
+func (f FuncLit) Eval(vm *VM) {
+	vm.pushOperand(reflect.ValueOf(f))
 }
 
-func (s *FuncLit) Flow(g *graphBuilder) (head Step) {
-	g.next(s)
+func (f *FuncLit) Flow(g *graphBuilder) (head Step) {
+	g.next(f)
 	return g.current
 }
 
-func (s *FuncLit) Pos() token.Pos { return s.Type.Pos() }
+func (f *FuncLit) Pos() token.Pos { return f.Type.Pos() }
 
-func (s FuncLit) String() string {
-	return fmt.Sprintf("FuncLit(%v,%v)", s.Type, s.Body)
+func (f *FuncLit) SetHasRecoverCall(bool) { f.hasRecoverCall = true }
+func (f *FuncLit) HasRecoverCall() bool   { return f.hasRecoverCall }
+
+func (f FuncLit) String() string {
+	return fmt.Sprintf("FuncLit(%v,%v)", f.Type, f.Body)
 }

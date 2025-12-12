@@ -90,3 +90,9 @@ type StepTaker interface {
 type Traverseable interface {
 	Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node
 }
+
+// FuncDecl and FuncLit implement this
+type Func interface {
+	SetHasRecoverCall(bool)
+	HasRecoverCall() bool
+}
