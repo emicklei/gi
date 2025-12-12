@@ -22,3 +22,7 @@ func (s *stack[T]) pop() T {
 func (s *stack[T]) top() T {
 	return (*s)[len(*s)-1]
 }
+
+func (s *stack[T]) underTop() T {
+	return (*s)[len(*s)-2]
+}

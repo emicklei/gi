@@ -18,8 +18,8 @@ import (
 var _ ast.Visitor = (*ASTBuilder)(nil)
 
 type funcDeclPair struct {
-	decl    *FuncDecl     // the mirror node
-	astDecl *ast.FuncDecl // need this to find index of each block stmt
+	fn       Func
+	bodyList []ast.Stmt // need this to find index of each block stmt
 }
 
 type ASTBuilder struct {
@@ -70,10 +70,10 @@ func (b *ASTBuilder) envSet(name string, value reflect.Value) {
 	b.env.set(name, value)
 }
 
-func (b *ASTBuilder) pushFuncDecl(f *FuncDecl, a *ast.FuncDecl) {
-	b.funcStack.push(funcDeclPair{decl: f, astDecl: a})
+func (b *ASTBuilder) pushFunc(fn Func, stmtList []ast.Stmt) {
+	b.funcStack.push(funcDeclPair{fn: fn, bodyList: stmtList})
 }
-func (b *ASTBuilder) popFuncDecl() {
+func (b *ASTBuilder) popFunc() {
 	b.funcStack.pop()
 }
 
@@ -182,9 +182,8 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		// create pointer to FuncLit to allow modification later at buildtime
 		s := new(FuncLit)
 
-		// TODO
-		//b.pushFuncDecl(s, n)
-		//defer b.popFuncDecl()
+		b.pushFunc(s, n.Body.List)
+		defer b.popFunc()
 
 		if n.Type != nil {
 			b.Visit(n.Type)
@@ -462,8 +461,8 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		e := b.pop()
 		s.Fun = e.(Expr)
 		if isRecoverCall(s.Fun) {
-			// mark current function as having a recover call
-			b.funcStack.top().decl.SetHasRecoverCall(true)
+			// mark enclosing function as having a recover call
+			b.funcStack.underTop().fn.SetHasRecoverCall(true)
 		}
 		for _, arg := range n.Args {
 			b.Visit(arg)
@@ -518,8 +517,10 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s := &FuncDecl{
 			labelToStmt: make(map[string]statementReference),
 			fileSet:     b.goPkg.Fset}
-		b.pushFuncDecl(s, n)
-		defer b.popFuncDecl()
+
+		b.pushFunc(s, n.Body.List)
+		defer b.popFunc()
+
 		if n.Recv != nil {
 			b.Visit(n.Recv)
 			e := b.pop()
@@ -802,12 +803,12 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		// elsewhere and not set a labeledStep now.
 
 		// add label -> statement by index mapping in current function
-		index := slices.Index(b.funcStack.top().astDecl.Body.List, ast.Stmt(n))
+		index := slices.Index(b.funcStack.top().bodyList, ast.Stmt(n))
 		refStep := new(labeledStep)
 		refStep.label = s.Label.Name
 		refStep.pos = s.Pos()
 		ref := statementReference{index: index, step: refStep} // has no ID
-		b.funcStack.top().decl.labelToStmt[s.Label.Name] = ref
+		b.funcStack.top().fn.PutGotoReference(s.Label.Name, ref)
 
 	case *ast.BranchStmt:
 		s := BranchStmt{TokPos: n.TokPos, Tok: n.Tok}

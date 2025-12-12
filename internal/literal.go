@@ -125,30 +125,3 @@ func (s CompositeLit) Pos() token.Pos { return s.Lbrace }
 func (s CompositeLit) String() string {
 	return fmt.Sprintf("CompositeLit(%v,%v)", s.Type, s.Elts)
 }
-
-var _ Expr = &FuncLit{}
-
-type FuncLit struct {
-	Type           *FuncType
-	Body           *BlockStmt // TODO not sure what to do when Body and/or Type is nil
-	callGraph      Step
-	hasRecoverCall bool
-}
-
-func (f FuncLit) Eval(vm *VM) {
-	vm.pushOperand(reflect.ValueOf(f))
-}
-
-func (f *FuncLit) Flow(g *graphBuilder) (head Step) {
-	g.next(f)
-	return g.current
-}
-
-func (f *FuncLit) Pos() token.Pos { return f.Type.Pos() }
-
-func (f *FuncLit) SetHasRecoverCall(bool) { f.hasRecoverCall = true }
-func (f *FuncLit) HasRecoverCall() bool   { return f.hasRecoverCall }
-
-func (f FuncLit) String() string {
-	return fmt.Sprintf("FuncLit(%v,%v)", f.Type, f.Body)
-}

@@ -95,4 +95,5 @@ type Traverseable interface {
 type Func interface {
 	SetHasRecoverCall(bool)
 	HasRecoverCall() bool
+	PutGotoReference(label string, ref statementReference)
 }

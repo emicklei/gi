@@ -15,7 +15,7 @@ type CallExpr struct {
 }
 
 func (c CallExpr) Eval(vm *VM) {
-	// function fn is either an external or an interpreted one
+	// function fn is either a compiled or an interpreted one
 	fn := vm.callStack.top().pop() // see Flow
 
 	switch fn.Kind() {

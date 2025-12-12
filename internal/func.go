@@ -40,6 +40,9 @@ func (f *FuncDecl) Flow(g *graphBuilder) (head Step) {
 
 func (f *FuncDecl) SetHasRecoverCall(bool) { f.hasRecoverCall = true }
 func (f *FuncDecl) HasRecoverCall() bool   { return f.hasRecoverCall }
+func (f *FuncDecl) PutGotoReference(label string, ref statementReference) {
+	f.labelToStmt[label] = ref
+}
 
 func (f FuncDecl) Pos() token.Pos { return f.Type.Pos() }
 
@@ -105,4 +108,36 @@ func isRecoverCall(expr Expr) bool {
 		return ident.Name == "recover"
 	}
 	return false
+}
+
+var _ Expr = &FuncLit{}
+
+type FuncLit struct {
+	Type      *FuncType
+	Body      *BlockStmt // TODO not sure what to do when Body and/or Type is nil
+	callGraph Step
+	// goto targets
+	labelToStmt    map[string]statementReference // TODO lazy initialization
+	hasRecoverCall bool
+}
+
+func (f *FuncLit) Eval(vm *VM) {
+	vm.pushOperand(reflect.ValueOf(f))
+}
+
+func (f *FuncLit) Flow(g *graphBuilder) (head Step) {
+	g.next(f)
+	return g.current
+}
+
+func (f *FuncLit) Pos() token.Pos { return f.Type.Pos() }
+
+func (f *FuncLit) SetHasRecoverCall(bool) { f.hasRecoverCall = true }
+func (f *FuncLit) HasRecoverCall() bool   { return f.hasRecoverCall }
+func (f *FuncLit) PutGotoReference(label string, ref statementReference) {
+	f.labelToStmt[label] = ref
+}
+
+func (f *FuncLit) String() string {
+	return fmt.Sprintf("FuncLit(%v,%v)", f.Type, f.Body)
 }
