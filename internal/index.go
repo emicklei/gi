@@ -22,24 +22,21 @@ func (i IndexExpr) Eval(vm *VM) {
 	}
 	index := vm.callStack.top().pop()
 	target := vm.callStack.top().pop()
-	if target.Kind() == reflect.Ptr {
+	if target.Kind() == reflect.Pointer {
 		target = target.Elem()
 	}
-	if target.Kind() == reflect.Map {
+	switch target.Kind() {
+	case reflect.Map:
 		v := target.MapIndex(index)
 		vm.pushOperand(v)
-		return
-	}
-	if target.Kind() == reflect.Slice || target.Kind() == reflect.Array {
+	case reflect.Slice, reflect.Array:
 		vm.pushOperand(target.Index(int(index.Int())))
-		return
-	}
-	if target.Kind() == reflect.String {
+	case reflect.String:
 		v := reflect.ValueOf(target.String()[int(index.Int())])
 		vm.pushOperand(v)
-		return
+	default:
+		vm.fatal(fmt.Sprintf("expected string,map,slice or array, got %s", target.Kind()))
 	}
-	vm.fatal(fmt.Sprintf("expected map or slice or array, got %s", target.Kind()))
 }
 
 func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
@@ -48,15 +45,14 @@ func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
 	if target.Kind() == reflect.Pointer {
 		target = target.Elem()
 	}
-	if target.Kind() == reflect.Map {
+	switch target.Kind() {
+	case reflect.Map:
 		target.SetMapIndex(index, value)
-		return
-	}
-	if target.Kind() == reflect.Slice || target.Kind() == reflect.Array {
+	case reflect.Slice, reflect.Array:
 		target.Index(int(index.Int())).Set(value)
-		return
+	default:
+		vm.fatal("expected map or slice or array")
 	}
-	vm.fatal("expected map or slice or array")
 }
 
 func (i IndexExpr) Define(vm *VM, value reflect.Value) {

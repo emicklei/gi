@@ -322,10 +322,11 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 
 	if fd.HasRecoverCall() {
 		defer func() {
-			r := recover()
-			// temporary store it in the special variable in the parent env
-			frame.env.getParent().set(internalVarName("recover", 0), reflect.ValueOf(r))
-			frame.takeDeferList(vm)
+			if r := recover(); r != nil {
+				// temporary store it in the special variable in the parent env
+				frame.env.getParent().set(internalVarName("recover", 0), reflect.ValueOf(r))
+				frame.takeDeferList(vm)
+			}
 		}()
 	}
 

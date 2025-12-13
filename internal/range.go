@@ -157,7 +157,7 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g) // again on the stack
 
 	// create the iterator
-	localVarName := fmt.Sprintf("_mapIter_%d", g.idgen)
+	localVarName := internalVarName("mapIter", g.idgen)
 	init := new(rangeMapIteratorInitStep)
 	init.pos = r.Pos()
 	init.localVarName = localVarName
@@ -216,7 +216,7 @@ func (noExpr) String() string { return "NoExpr" }
 func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
-	indexVar := Ident{Name: fmt.Sprintf("_index_%d", g.idgen)} // must be unique in env
+	indexVar := Ident{Name: internalVarName("index", g.idgen)}
 	zeroInt := newBasicLit(r.Pos(), reflect.ValueOf(0))
 	initIndex := AssignStmt{
 		Tok:    token.DEFINE,
@@ -276,7 +276,7 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
-	indexVar := Ident{Name: fmt.Sprintf("_index_%d", g.idgen)} // must be unique in env
+	indexVar := Ident{Name: internalVarName("index", g.idgen)}
 	zeroInt := newBasicLit(r.Pos(), reflect.ValueOf(0))
 	initIndex := AssignStmt{
 		Tok:    token.DEFINE,
@@ -402,7 +402,9 @@ func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
 		}
 		vm.pushOperand(reflect.ValueOf(runeSlice))
 		return i.sliceOrArrayFlow.Take(vm)
-	case reflect.Func: // func(yield func(V) bool): //iter.Seq[V any]:
+	case reflect.Func:
+		// TODO
+		// func(yield func(V) bool): //iter.Seq[V any]:
 		//return i.funcFlow.Take(vm)
 		fallthrough
 	default:

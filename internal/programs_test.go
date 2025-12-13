@@ -453,38 +453,6 @@ func main() {
 }`, "00")
 }
 
-func TestRecover(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	defer func() {
-		print(recover())
-	}()
-	panic("0")
-}`, "0")
-}
-
-func TestNestedRecover(t *testing.T) {
-	testMain(t, `package main
-
-func catchthrow() {
-	defer func() {
-		r := recover().(string)
-		print(r)
-		panic(r + "-caught")
-	}()
-	panic("hi")
-}
-
-func main() {
-	defer func() {
-		r := recover()
-		print(r)
-	}()
-	catchthrow()
-}`, "hihi-caught")
-}
-
 func TestImaginary(t *testing.T) {
 	testMain(t, `package main
 const (

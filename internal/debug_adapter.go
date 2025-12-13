@@ -47,10 +47,6 @@ func (d *debugDriver) launch() error { return nil }
 func (ds *debugSession) send(message dap.Message) {}
 func (ds *debugSession) doContinue()              {}
 
-// -----------------------------------------------------------------------
-// Request Handlers
-//
-
 func (ds *debugSession) onInitializeRequest(request *dap.InitializeRequest) {
 	response := &dap.InitializeResponse{}
 	response.Response = *newResponse(request.Seq, request.Command)
@@ -96,6 +92,7 @@ func (ds *debugSession) onInitializeRequest(request *dap.InitializeRequest) {
 }
 
 func (ds *debugSession) onLaunchRequest(request *dap.LaunchRequest) {
+	ds.send(newErrorResponse(request.Seq, request.Command, "LaunchRequest is not yet supported"))
 }
 
 func (ds *debugSession) onAttachRequest(request *dap.AttachRequest) {
@@ -103,6 +100,7 @@ func (ds *debugSession) onAttachRequest(request *dap.AttachRequest) {
 }
 
 func (ds *debugSession) onDisconnectRequest(request *dap.DisconnectRequest) {
+	ds.send(newErrorResponse(request.Seq, request.Command, "DisconnectRequest is not yet supported"))
 }
 
 func (ds *debugSession) onTerminateRequest(request *dap.TerminateRequest) {
@@ -161,12 +159,15 @@ func (ds *debugSession) onPauseRequest(request *dap.PauseRequest) {
 }
 
 func (ds *debugSession) onStackTraceRequest(request *dap.StackTraceRequest) {
+	ds.send(newErrorResponse(request.Seq, request.Command, "StackTraceRequest is not yet supported"))
 }
 
 func (ds *debugSession) onScopesRequest(request *dap.ScopesRequest) {
+	ds.send(newErrorResponse(request.Seq, request.Command, "ScopesRequest is not yet supported"))
 }
 
 func (ds *debugSession) onVariablesRequest(request *dap.VariablesRequest) {
+	ds.send(newErrorResponse(request.Seq, request.Command, "VariablesRequest is not yet supported"))
 }
 
 func (ds *debugSession) onSetVariableRequest(request *dap.SetVariableRequest) {
@@ -182,7 +183,7 @@ func (ds *debugSession) onSourceRequest(request *dap.SourceRequest) {
 }
 
 func (ds *debugSession) onThreadsRequest(request *dap.ThreadsRequest) {
-
+	ds.send(newErrorResponse(request.Seq, request.Command, "ThreadsRequest is not yet supported"))
 }
 
 func (ds *debugSession) onTerminateThreadsRequest(request *dap.TerminateThreadsRequest) {
