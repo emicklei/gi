@@ -513,9 +513,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		// any declarations inside the function scope
 		b.pushEnv()
 		// create pointer to FuncDecl to allow modification later at buildtime
-		s := &FuncDecl{
-			labelToStmt: make(map[string]statementReference),
-			fileSet:     b.goPkg.Fset}
+		s := &FuncDecl{fileSet: b.goPkg.Fset}
 
 		b.pushFunc(s, n.Body.List)
 		defer b.popFunc()

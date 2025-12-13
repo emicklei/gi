@@ -74,7 +74,7 @@ func (s LabeledStmt) Flow(g *graphBuilder) (head Step) {
 	head = s.Stmt.Flow(g)
 	// get statement reference and update its step
 	fd := g.funcStack.top()
-	ref := fd.labelToStmt[s.Label.Name]
+	ref := fd.GotoReference(s.Label.Name)
 	ref.step.SetNext(head)
 	return
 }
@@ -111,10 +111,7 @@ func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
 		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.Label.Name), s.Pos())
 		g.nextStep(head)
 		fd := g.funcStack.top()
-		ref, ok := fd.labelToStmt[s.Label.Name]
-		if !ok {
-			panic(fmt.Sprintf("undefined label: %s", s.Label.Name))
-		}
+		ref := fd.GotoReference(s.Label.Name)
 		head.SetNext(ref.step)
 		// branch ends the current flow
 		g.current = nil

@@ -34,10 +34,17 @@ func (hp *HeapPointer) UnmarshalJSON(data []byte) error {
 	}
 	deref := hp.EnvRef.valueLookUp(hp.EnvVarName)
 	val := deref.Interface()
-	if i, ok := val.(StructValue); ok {
+	if i, ok := val.(*StructValue); ok {
 		return i.UnmarshalJSON(data)
 	}
-	return json.Unmarshal(data, &val)
+	// For standard types, we need to update the value in the environment
+	ptr := reflect.New(deref.Type())
+	ptr.Elem().Set(deref)
+	if err := json.Unmarshal(data, ptr.Interface()); err != nil {
+		return err
+	}
+	hp.EnvRef.set(hp.EnvVarName, ptr.Elem())
+	return nil
 }
 
 // String formats the HeapPointer to look like a real pointer address.

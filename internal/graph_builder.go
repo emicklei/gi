@@ -15,7 +15,7 @@ type graphBuilder struct {
 	goPkg     *packages.Package // for type information
 	previous  Step              // the previous step before current; or nil
 	current   Step              // the current step to attach the next step to; or nil
-	funcStack stack[*FuncDecl]  // to keep track of current function for branch statements
+	funcStack stack[Func]       // to keep track of current function for branch statements
 }
 
 func newGraphBuilder(goPkg *packages.Package) *graphBuilder {

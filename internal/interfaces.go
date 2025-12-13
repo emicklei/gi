@@ -96,4 +96,5 @@ type Func interface {
 	SetHasRecoverCall(bool)
 	HasRecoverCall() bool
 	PutGotoReference(label string, ref statementReference)
+	GotoReference(label string) statementReference
 }

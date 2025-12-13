@@ -41,7 +41,13 @@ func (f *FuncDecl) Flow(g *graphBuilder) (head Step) {
 func (f *FuncDecl) SetHasRecoverCall(bool) { f.hasRecoverCall = true }
 func (f *FuncDecl) HasRecoverCall() bool   { return f.hasRecoverCall }
 func (f *FuncDecl) PutGotoReference(label string, ref statementReference) {
+	if f.labelToStmt == nil {
+		f.labelToStmt = make(map[string]statementReference)
+	}
 	f.labelToStmt[label] = ref
+}
+func (f *FuncDecl) GotoReference(label string) statementReference {
+	return f.labelToStmt[label]
 }
 
 func (f FuncDecl) Pos() token.Pos { return f.Type.Pos() }
@@ -135,9 +141,14 @@ func (f *FuncLit) Pos() token.Pos { return f.Type.Pos() }
 func (f *FuncLit) SetHasRecoverCall(bool) { f.hasRecoverCall = true }
 func (f *FuncLit) HasRecoverCall() bool   { return f.hasRecoverCall }
 func (f *FuncLit) PutGotoReference(label string, ref statementReference) {
+	if f.labelToStmt == nil {
+		f.labelToStmt = make(map[string]statementReference)
+	}
 	f.labelToStmt[label] = ref
 }
-
+func (f *FuncLit) GotoReference(label string) statementReference {
+	return f.labelToStmt[label]
+}
 func (f *FuncLit) String() string {
 	return fmt.Sprintf("FuncLit(%v,%v)", f.Type, f.Body)
 }

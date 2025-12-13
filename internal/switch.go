@@ -48,7 +48,7 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 	gotoLabel := fmt.Sprintf("switch-end-%d", g.idgen)
 	gotoStep := g.newLabeledStep(gotoLabel, s.Pos())
 	ref := statementReference{step: gotoStep} // has no ID
-	g.funcStack.top().labelToStmt[gotoLabel] = ref
+	g.funcStack.top().PutGotoReference(gotoLabel, ref)
 
 	for _, stmt := range s.Body.List {
 		clause := stmt.(CaseClause)
@@ -193,7 +193,7 @@ func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 	gotoLabel := fmt.Sprintf("type-switch-end-%d", g.idgen)
 	gotoStep := g.newLabeledStep(gotoLabel, s.Pos())
 	ref := statementReference{step: gotoStep} // has no ID
-	g.funcStack.top().labelToStmt[gotoLabel] = ref
+	g.funcStack.top().PutGotoReference(gotoLabel, ref)
 
 	nameOfType := Ident{NamePos: s.Pos(), Name: fmt.Sprintf("_switch-type-name-%d", g.idgen)} // internal name starts with _
 
