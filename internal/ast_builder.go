@@ -309,7 +309,6 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			}
 		}
 		b.push(s)
-
 	case *ast.ExprStmt:
 		s := ExprStmt{ExprStmt: n}
 		b.Visit(n.X)
@@ -562,7 +561,6 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 
 		// register in current env
 		b.envSet(n.Name.Name, reflect.ValueOf(s))
-
 	case *ast.FuncType:
 		s := FuncType{FuncPos: n.Func}
 		if n.TypeParams != nil {
@@ -747,7 +745,6 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			}
 		}
 		b.push(s)
-
 	case *ast.StructType:
 		s := makeStructType(n)
 		if n.Fields != nil {
@@ -809,7 +806,6 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		refStep.pos = s.Pos()
 		ref := statementReference{index: index, step: refStep} // has no ID
 		b.funcStack.top().fn.PutGotoReference(s.Label.Name, ref)
-
 	case *ast.BranchStmt:
 		s := BranchStmt{TokPos: n.TokPos, Tok: n.Tok}
 		if n.Label != nil {

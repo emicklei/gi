@@ -465,8 +465,6 @@ func main() {
 }
 
 func TestNestedRecover(t *testing.T) {
-	// this fails because funcStack only has FuncDecl, not FuncLit, need Interface here
-	t.Skip()
 	testMain(t, `package main
 
 func catchthrow() {
@@ -484,7 +482,7 @@ func main() {
 		print(r)
 	}()
 	catchthrow()
-}`, "hi caught")
+}`, "hihi-caught")
 }
 
 func TestImaginary(t *testing.T) {

@@ -15,6 +15,7 @@ type Env interface {
 	typeLookUp(name string) reflect.Type
 	valueOwnerOf(name string) Env
 	set(name string, value reflect.Value)
+	unset(name string)
 	newChild() Env
 	depth() int
 	getParent() Env
@@ -163,6 +164,9 @@ func (e *Environment) set(name string, value reflect.Value) {
 			fmt.Println(e, name, "=", value)
 		}
 	}
+}
+func (e *Environment) unset(name string) {
+	delete(e.valueTable, name)
 }
 
 func (e *Environment) addConstOrVar(cv CanDeclare) {}

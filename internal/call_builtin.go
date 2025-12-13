@@ -185,7 +185,6 @@ func (c CallExpr) evalRecover(vm *VM) {
 	recoverVarName := internalVarName("recover", 0)
 	env := vm.localEnv().valueOwnerOf(recoverVarName)
 	val := env.valueLookUp(recoverVarName)
-	// remove it from the environment
-	env.set(recoverVarName, reflectNil)
+	env.unset(recoverVarName)
 	vm.pushOperand(val)
 }
