@@ -35,18 +35,20 @@ func (i IfStmt) Flow(g *graphBuilder) (head Step) {
 		head = i.Init.Flow(g)
 	}
 	// condition can have its own assigments
-	g.nextStep(new(pushEnvironmentStep))
+	push := new(pushEnvironmentStep) // TODO constructor with pos
+	push.pos = i.Pos()
+	g.nextStep(push)
 	if head == nil {
 		head = g.current
 	}
-	begin := new(conditionalStep)
+	begin := new(conditionalStep) // TODO constructor with pos
 	begin.pos = i.Pos()
 	begin.conditionFlow = i.Cond.Flow(g)
 	g.nextStep(begin)
 
 	// true branch
 	i.Body.Flow(g)
-	pop := new(popEnvironmentStep)
+	pop := new(popEnvironmentStep) // TODO constructor with pos
 	pop.pos = i.Body.Pos()
 	g.nextStep(pop)
 

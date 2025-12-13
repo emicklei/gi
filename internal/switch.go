@@ -195,7 +195,7 @@ func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 	ref := statementReference{step: gotoStep} // has no ID
 	g.funcStack.top().PutGotoReference(gotoLabel, ref)
 
-	nameOfType := Ident{NamePos: s.Pos(), Name: fmt.Sprintf("_switch-type-name-%d", g.idgen)} // internal name starts with _
+	nameOfType := Ident{NamePos: s.Pos(), Name: fmt.Sprintf("_switch-type-name-%d", g.idgen)} // internal name starts with _ intervalVarName TODO
 
 	nameOfTypeAssignment := AssignStmt{
 		TokPos: s.SwitchPos,

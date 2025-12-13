@@ -2,23 +2,25 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
+	"go/token"
 )
 
 var _ Stmt = ForStmt{}
 
 type ForStmt struct {
-	*ast.ForStmt
-	Init Stmt
-	Cond Expr
-	Post Stmt
-	Body *BlockStmt
+	ForPos token.Pos
+	Init   Stmt
+	Cond   Expr
+	Post   Stmt
+	Body   *BlockStmt
 }
 
 func (f ForStmt) Eval(vm *VM) {} // noop
 
 func (f ForStmt) Flow(g *graphBuilder) (head Step) {
-	head = new(pushEnvironmentStep)
+	push := new(pushEnvironmentStep) // TODO constructor with pos
+	push.pos = f.Pos()
+	head = push
 	g.nextStep(head)
 	if f.Init != nil {
 		f.Init.Flow(g)
@@ -39,6 +41,10 @@ func (f ForStmt) Flow(g *graphBuilder) (head Step) {
 	begin.elseFlow = pop
 	g.current = pop
 	return
+}
+
+func (f ForStmt) Pos() token.Pos {
+	return f.ForPos
 }
 
 func (f ForStmt) stmtStep() Evaluable { return f }

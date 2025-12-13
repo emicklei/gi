@@ -183,7 +183,7 @@ func (b BlockStmt) Flow(g *graphBuilder) (head Step) {
 		}
 		_ = stmt.Flow(g)
 	}
-	return head
+	return
 }
 
 func (b BlockStmt) stmtStep() Evaluable { return b }

@@ -197,7 +197,9 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		// store call graph in the FuncLit
 		g := newGraphBuilder(b.goPkg)
+		g.funcStack.push(s)
 		s.callGraph = s.Body.Flow(g)
+		g.funcStack.pop()
 
 		b.push(s)
 	case *ast.SwitchStmt:
@@ -246,7 +248,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.X = e.(Expr)
 		b.push(s)
 	case *ast.ForStmt:
-		s := ForStmt{ForStmt: n}
+		s := ForStmt{ForPos: n.Pos()}
 		if n.Init != nil {
 			b.Visit(n.Init)
 			e := b.pop()
