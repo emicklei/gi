@@ -142,6 +142,14 @@ type pushEnvironmentStep struct {
 	step
 }
 
+func newPushEnvironmentStep(pos token.Pos) *pushEnvironmentStep {
+	return &pushEnvironmentStep{
+		step: step{
+			pos: pos,
+		},
+	}
+}
+
 func (p *pushEnvironmentStep) Take(vm *VM) Step {
 	vm.callStack.top().pushEnv()
 	return p.next
@@ -159,6 +167,14 @@ func (p *pushEnvironmentStep) Traverse(g *dot.Graph, visited map[int]dot.Node) d
 
 type popEnvironmentStep struct {
 	step
+}
+
+func newPopEnvironmentStep(pos token.Pos) *popEnvironmentStep {
+	return &popEnvironmentStep{
+		step: step{
+			pos: pos,
+		},
+	}
 }
 
 func (p *popEnvironmentStep) Take(vm *VM) Step {
@@ -188,7 +204,6 @@ func (r *returnStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 type labeledStep struct {
 	step
 	label string
-	pos   token.Pos
 }
 
 func (s *labeledStep) String() string {
@@ -196,9 +211,6 @@ func (s *labeledStep) String() string {
 		return "labeledStep(<nil>)"
 	}
 	return fmt.Sprintf("%2d: %v", s.id, s.label)
-}
-func (s *labeledStep) Pos() token.Pos {
-	return s.pos
 }
 
 func (s *labeledStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {

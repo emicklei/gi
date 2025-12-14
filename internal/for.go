@@ -37,7 +37,7 @@ func (f ForStmt) Flow(g *graphBuilder) (head Step) {
 	if f.Cond != nil {
 		g.nextStep(begin.conditionFlow)
 	}
-	pop := new(popEnvironmentStep)
+	pop := newPopEnvironmentStep(f.Body.Pos())
 	begin.elseFlow = pop
 	g.current = pop
 	return
