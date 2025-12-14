@@ -14,35 +14,35 @@ type KeyValueExpr struct {
 	Value Expr
 }
 
-func (e KeyValueExpr) Eval(vm *VM) {
+func (k KeyValueExpr) Eval(vm *VM) {
 	key := vm.callStack.top().pop()
 	val := vm.callStack.top().pop()
 	vm.pushOperand(reflect.ValueOf(keyValue{Key: key, Value: val}))
 }
 
-func (e KeyValueExpr) Flow(g *graphBuilder) (head Step) {
+func (k KeyValueExpr) Flow(g *graphBuilder) (head Step) {
 	// Value first so that key ends up on top of the stack
-	head = e.Value.Flow(g)
+	head = k.Value.Flow(g)
 
-	switch k := e.Key.(type) {
+	switch kv := k.Key.(type) {
 	case Ident:
 		// use as string selector
-		key := newBasicLit(e.Colon, reflect.ValueOf(k.Name))
+		key := newBasicLit(k.Colon, reflect.ValueOf(kv.Name))
 		key.Flow(g)
 	case BasicLit, Expr:
-		e.Key.Flow(g)
+		k.Key.Flow(g)
 	default:
-		g.fatal(fmt.Sprintf("unhandled key type: %T", e.Key))
+		g.fatal(fmt.Sprintf("unhandled key type: %T", k.Key))
 	}
 
-	g.next(e)
+	g.next(k)
 	return head
 }
 
-func (e KeyValueExpr) Pos() token.Pos { return e.Colon }
+func (k KeyValueExpr) Pos() token.Pos { return k.Colon }
 
-func (e KeyValueExpr) String() string {
-	return fmt.Sprintf("KeyValueExpr(%v,%v)", e.Key, e.Value)
+func (k KeyValueExpr) String() string {
+	return fmt.Sprintf("KeyValueExpr(%v,%v)", k.Key, k.Value)
 }
 
 type keyValue struct {

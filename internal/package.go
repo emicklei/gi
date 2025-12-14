@@ -70,7 +70,7 @@ func (p *Package) Initialize(vm *VM) error {
 	}
 	p.Initialized = true
 
-	// move methhods to types
+	// move methods to types
 	for _, decl := range p.Env.methods {
 		recvType := decl.Recv.List[0].Type
 		var typeName string

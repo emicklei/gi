@@ -21,8 +21,8 @@ func newBasicLit(pos token.Pos, v reflect.Value) BasicLit {
 	return BasicLit{pos: pos, value: v}
 }
 
-func (s BasicLit) Eval(vm *VM) {
-	vm.pushOperand(s.value)
+func (b BasicLit) Eval(vm *VM) {
+	vm.pushOperand(b.value)
 }
 
 func basicLitValue(s *ast.BasicLit) reflect.Value {
@@ -51,15 +51,15 @@ func basicLitValue(s *ast.BasicLit) reflect.Value {
 	}
 }
 
-func (s BasicLit) Flow(g *graphBuilder) (head Step) {
-	g.next(s)
+func (b BasicLit) Flow(g *graphBuilder) (head Step) {
+	g.next(b)
 	return g.current
 }
 
-func (s BasicLit) Pos() token.Pos { return s.pos }
+func (b BasicLit) Pos() token.Pos { return b.pos }
 
-func (s BasicLit) String() string {
-	return fmt.Sprintf("BasicLit(%v)", s.value.Interface())
+func (b BasicLit) String() string {
+	return fmt.Sprintf("BasicLit(%v)", b.value.Interface())
 }
 
 var _ Flowable = CompositeLit{}
@@ -72,12 +72,12 @@ type CompositeLit struct {
 	Elts       []Expr     // list of composite elements; or nil
 }
 
-func (s CompositeLit) Eval(vm *VM) {
+func (c CompositeLit) Eval(vm *VM) {
 
 	// if Type is not present, we put all values on the stack as is
-	if s.Type == nil {
-		values := make([]reflect.Value, len(s.Elts))
-		for i := range s.Elts {
+	if c.Type == nil {
+		values := make([]reflect.Value, len(c.Elts))
+		for i := range c.Elts {
 			val := vm.callStack.top().pop()
 			values[i] = val
 		}
@@ -85,8 +85,8 @@ func (s CompositeLit) Eval(vm *VM) {
 		return
 	}
 
-	values := make([]reflect.Value, len(s.Elts))
-	for i := range s.Elts {
+	values := make([]reflect.Value, len(c.Elts))
+	for i := range c.Elts {
 		val := vm.callStack.top().pop()
 		values[i] = val
 	}
@@ -100,28 +100,28 @@ func (s CompositeLit) Eval(vm *VM) {
 	}
 }
 
-func (s CompositeLit) Flow(g *graphBuilder) (head Step) {
-	if s.Type != nil {
-		head = s.Type.Flow(g)
+func (c CompositeLit) Flow(g *graphBuilder) (head Step) {
+	if c.Type != nil {
+		head = c.Type.Flow(g)
 	}
 	// reverse order to have the first element on top of the stack
-	for i := len(s.Elts) - 1; i >= 0; i-- {
-		eltFlow := s.Elts[i].Flow(g)
-		if i == len(s.Elts)-1 {
+	for i := len(c.Elts) - 1; i >= 0; i-- {
+		eltFlow := c.Elts[i].Flow(g)
+		if i == len(c.Elts)-1 {
 			if head == nil {
 				head = eltFlow
 			}
 		}
 	}
-	g.next(s)
+	g.next(c)
 	if head == nil {
 		head = g.current
 	}
 	return
 }
 
-func (s CompositeLit) Pos() token.Pos { return s.Lbrace }
+func (c CompositeLit) Pos() token.Pos { return c.Lbrace }
 
-func (s CompositeLit) String() string {
-	return fmt.Sprintf("CompositeLit(%v,%v)", s.Type, s.Elts)
+func (c CompositeLit) String() string {
+	return fmt.Sprintf("CompositeLit(%v,%v)", c.Type, c.Elts)
 }

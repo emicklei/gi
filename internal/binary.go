@@ -16,7 +16,7 @@ type BinaryExpr struct {
 	Y     Expr        // right
 }
 
-func (s BinaryExpr) Eval(vm *VM) {
+func (b BinaryExpr) Eval(vm *VM) {
 	// see Flow for the order
 	right := vm.callStack.top().pop()
 	// propagate undeclared value. this happens when the expression is
@@ -34,25 +34,25 @@ func (s BinaryExpr) Eval(vm *VM) {
 	}
 	v := BinaryExprValue{
 		left:  left,
-		op:    s.Op,
+		op:    b.Op,
 		right: right,
 	}
 	vm.pushOperand(v.Eval())
 }
 
-func (s BinaryExpr) Flow(g *graphBuilder) (head Step) {
-	head = s.X.Flow(g)
-	s.Y.Flow(g)
-	g.next(s)
+func (b BinaryExpr) Flow(g *graphBuilder) (head Step) {
+	head = b.X.Flow(g)
+	b.Y.Flow(g)
+	g.next(b)
 	return head
 }
 
-func (s BinaryExpr) String() string {
-	return fmt.Sprintf("BinaryExpr(%v %v %v)", s.X, s.Op, s.Y)
+func (b BinaryExpr) String() string {
+	return fmt.Sprintf("BinaryExpr(%v %v %v)", b.X, b.Op, b.Y)
 }
 
-func (s BinaryExpr) Pos() token.Pos {
-	return s.OpPos
+func (b BinaryExpr) Pos() token.Pos {
+	return b.OpPos
 }
 
 type BinaryExprValue struct {
