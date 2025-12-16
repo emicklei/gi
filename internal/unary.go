@@ -21,7 +21,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 	// TODO handle duplicate code (stack work)
 
 	if u.unaryFunc != nil {
-		v := vm.callStack.top().pop() // x value
+		v := vm.popOperand() // x value
 
 		// propagate undeclared value. this happens when the expression is
 		// used in a package variable or constant declaration
@@ -39,7 +39,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 	if u.Op == token.AND {
 		if ident, ok := u.X.(Ident); ok {
 			// Pop the value that was already pushed by the identifier evaluation
-			_ = vm.callStack.top().pop()
+			_ = vm.popOperand()
 			// Create a heap pointer that references the environment variable
 			env := vm.localEnv().valueOwnerOf(ident.Name)
 			if env != nil {
@@ -51,7 +51,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 			}
 		}
 		if _, ok := u.X.(CompositeLit); ok {
-			v := vm.callStack.top().pop()
+			v := vm.popOperand()
 			hp := vm.heap.allocHeapValue(v)
 			vm.pushOperand(reflect.ValueOf(hp))
 			return
@@ -59,7 +59,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 		vm.fatal("UnaryExpr.Eval todo")
 	}
 
-	v := vm.callStack.top().pop()
+	v := vm.popOperand()
 	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
 	if v == reflectUndeclared {

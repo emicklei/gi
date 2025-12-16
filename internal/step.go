@@ -131,7 +131,7 @@ func (c *conditionalStep) Take(vm *VM) Step {
 	if c.conditionFlow == nil {
 		return c.next
 	}
-	cond := vm.callStack.top().pop()
+	cond := vm.popOperand()
 	if cond.Bool() {
 		return c.next
 	}
@@ -151,7 +151,7 @@ func newPushEnvironmentStep(pos token.Pos) *pushEnvironmentStep {
 }
 
 func (p *pushEnvironmentStep) Take(vm *VM) Step {
-	vm.callStack.top().pushEnv()
+	vm.currentFrame.pushEnv()
 	return p.next
 }
 
@@ -178,7 +178,7 @@ func newPopEnvironmentStep(pos token.Pos) *popEnvironmentStep {
 }
 
 func (p *popEnvironmentStep) Take(vm *VM) Step {
-	vm.callStack.top().popEnv()
+	vm.currentFrame.popEnv()
 	return p.next
 }
 
@@ -222,7 +222,7 @@ type popOperandStep struct {
 }
 
 func (p *popOperandStep) Take(vm *VM) Step {
-	vm.callStack.top().pop()
+	vm.popOperand()
 	return p.next
 }
 

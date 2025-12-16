@@ -288,7 +288,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		if ok {
 			s.unaryFunc = unaryFunc
-		}
+		} // else use Eval switch
 		b.push(s)
 	case *ast.ValueSpec:
 		s := ValueSpec{}

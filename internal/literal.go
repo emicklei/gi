@@ -78,7 +78,7 @@ func (c CompositeLit) Eval(vm *VM) {
 	if c.Type == nil {
 		values := make([]reflect.Value, len(c.Elts))
 		for i := range c.Elts {
-			val := vm.callStack.top().pop()
+			val := vm.popOperand()
 			values[i] = val
 		}
 		vm.pushOperand(reflect.ValueOf(values))
@@ -87,10 +87,10 @@ func (c CompositeLit) Eval(vm *VM) {
 
 	values := make([]reflect.Value, len(c.Elts))
 	for i := range c.Elts {
-		val := vm.callStack.top().pop()
+		val := vm.popOperand()
 		values[i] = val
 	}
-	typeOrValue := vm.callStack.top().pop().Interface()
+	typeOrValue := vm.popOperand().Interface()
 	if inst, ok := typeOrValue.(CanMake); ok {
 		structVal := inst.Make(vm, len(values), nil)
 		result := inst.LiteralCompose(structVal, values)

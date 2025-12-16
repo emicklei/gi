@@ -25,11 +25,11 @@ func (r ReturnStmt) Eval(vm *VM) {
 	}
 	results := make([]reflect.Value, len(r.Results))
 	for i := range r.Results {
-		val := vm.callStack.top().pop()
+		val := vm.popOperand()
 		results[i] = val
 	}
 	// bind result valutes to named results of the function if any
-	fd, ok := vm.callStack.top().creator.(*FuncDecl)
+	fd, ok := vm.currentFrame.creator.(*FuncDecl)
 	// TODO has to work for FuncLit as well
 	if ok {
 		ri := 0
@@ -46,9 +46,7 @@ func (r ReturnStmt) Eval(vm *VM) {
 	// set return values for the top frame
 	// TODO the CallExpr must put it on the stack instead
 	// because of defer statements
-	top := vm.callStack.top()
-	top.returnValues = results
-	vm.callStack.replaceTop(top)
+	vm.currentFrame.returnValues = results
 }
 
 func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {

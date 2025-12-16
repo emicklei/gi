@@ -16,7 +16,7 @@ type CallExpr struct {
 
 func (c CallExpr) Eval(vm *VM) {
 	// function fn is either a compiled or an interpreted one
-	fn := vm.callStack.top().pop() // see Flow
+	fn := vm.popOperand() // see Flow
 
 	switch fn.Kind() {
 	case reflect.Struct:
@@ -53,7 +53,7 @@ func (c CallExpr) Eval(vm *VM) {
 			} else {
 				argType = fn.Type().In(i)
 			}
-			val := vm.callStack.top().pop()
+			val := vm.popOperand()
 			if !val.IsValid() || val == untypedNil {
 				args[i] = reflect.New(argType).Elem()
 				continue
@@ -103,14 +103,14 @@ func (c CallExpr) Eval(vm *VM) {
 
 func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
 	// Get the receiver (the value the method is called on)
-	receiver := vm.callStack.top().pop()
+	receiver := vm.popOperand()
 
 	// Prepare arguments: receiver + method args
 	args := make([]reflect.Value, len(c.Args)+1)
 	args[0] = receiver // First arg is always the receiver
 
 	for i := range c.Args {
-		val := vm.callStack.top().pop() // first to last, see Flow
+		val := vm.popOperand() // first to last, see Flow
 		args[i+1] = val
 	}
 
@@ -121,7 +121,7 @@ func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
 
 func (c CallExpr) handleTypeSpec(vm *VM, ts TypeSpec) {
 	// do a conversion to the specified type
-	toConvert := vm.callStack.top().pop()
+	toConvert := vm.popOperand()
 	rt := vm.returnsType(ts.Type)
 	cv := toConvert.Convert(rt)
 	vm.pushOperand(cv)
@@ -129,7 +129,7 @@ func (c CallExpr) handleTypeSpec(vm *VM, ts TypeSpec) {
 
 func (c CallExpr) handleArrayType(vm *VM, at ArrayType) {
 	// do a conversion to array/slice
-	toConvert := vm.callStack.top().pop()
+	toConvert := vm.popOperand()
 	rt := vm.returnsType(at.Elt)
 	length := toConvert.Len()
 	capacity := toConvert.Len()
@@ -155,7 +155,7 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		cleared := c.evalClear(vm)
 		// the argument of clear needs to be replaced
 		if identArg, ok := c.Args[0].(Ident); ok {
-			vm.callStack.top().env.set(identArg.Name, cleared)
+			vm.localEnv().set(identArg.Name, cleared)
 		} else {
 			vm.fatal("clear argument must be an identifier")
 		}
@@ -175,11 +175,11 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	// prepare arguments
 	args := make([]reflect.Value, len(c.Args))
 	for i := range c.Args {
-		val := vm.callStack.top().pop() // first to last, see Flow
+		val := vm.popOperand() // first to last, see Flow
 		args[i] = val
 	}
 	vm.pushNewFrame(fl)
-	frame := vm.callStack.top()
+	frame := vm.currentFrame
 
 	setParametersToFrame(fl.Type, args, vm, frame)
 	setZeroReturnsToFrame(fl.Type, vm, frame)
@@ -246,7 +246,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	// if method then take receiver from the stack
 	var receiver reflect.Value
 	if fd.Recv != nil {
-		receiver = vm.callStack.top().pop()
+		receiver = vm.popOperand()
 		// need to wait for a frame to set the receiver in env
 	}
 
@@ -254,14 +254,14 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	args := make([]reflect.Value, len(c.Args))
 	// first to last, see Flow
 	for i := range c.Args {
-		val := vm.callStack.top().pop()
+		val := vm.popOperand()
 		expectedType := fieldTypeExpr(fd.Type.Params, i)
 		if isEllipsis(expectedType) {
 			// consume remaining as slice
 			vals := make([]reflect.Value, len(c.Args)-i)
 			vals[0] = val
 			for j := 1; j < len(vals); j++ {
-				vals[j] = vm.callStack.top().pop()
+				vals[j] = vm.popOperand()
 			}
 			elemType := vm.returnsType(expectedType)
 			sliceType := reflect.SliceOf(elemType)
@@ -287,7 +287,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 		}
 	}
 	vm.pushNewFrame(fd)
-	frame := vm.callStack.top()
+	frame := vm.currentFrame
 
 	// if method, set receiver in env
 	if fd.Recv != nil {

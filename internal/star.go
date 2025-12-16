@@ -15,7 +15,7 @@ type StarExpr struct {
 }
 
 func (s StarExpr) Eval(vm *VM) {
-	v := vm.callStack.top().pop()
+	v := vm.popOperand()
 	// Check if this is a heap pointer
 	if hp, ok := v.Interface().(*HeapPointer); ok {
 		// Dereference from heap

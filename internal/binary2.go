@@ -26,12 +26,12 @@ func (b BinaryExpr2) Flow(g *graphBuilder) (head Step) {
 }
 
 func (b BinaryExpr2) Eval(vm *VM) {
-	y := vm.callStack.top().pop()
+	y := vm.popOperand()
 	if y == reflectUndeclared {
 		vm.pushOperand(y)
 		return
 	}
-	x := vm.callStack.top().pop()
+	x := vm.popOperand()
 	if x == reflectUndeclared {
 		vm.pushOperand(x)
 		return

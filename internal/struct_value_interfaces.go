@@ -20,8 +20,8 @@ func (d StructValueWrapper) Write(b []byte) (n int, err error) {
 	d.vm.pushOperand(reflect.ValueOf(b))
 	d.vm.takeAllStartingAt(decl.callGraph)
 	// pop results
-	reflectErr := d.vm.callStack.top().pop()
-	reflectN := d.vm.callStack.top().pop()
+	reflectErr := d.vm.popOperand()
+	reflectN := d.vm.popOperand()
 	// unreflect
 	return int(reflectN.Int()), reflectErr.Interface().(error)
 }

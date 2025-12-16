@@ -22,19 +22,19 @@ func (a AssignStmt) Eval(vm *VM) {
 		each := a.Lhs[i]
 		var v reflect.Value
 		// handle "ok" idiom for map index expressions
-		if len(vm.callStack.top().operands) == 0 {
+		if len(vm.currentFrame.operands) == 0 {
 			if !lastVal.IsValid() {
 				panic("internal error: missing value for assignment")
 			}
 			v = reflect.ValueOf(!lastVal.IsZero())
 		} else {
-			v = vm.callStack.top().pop()
+			v = vm.popOperand()
 			lastVal = v
 		}
 		a.apply(each, vm, v)
 	}
 	if len(a.Lhs) < len(a.Rhs) {
-		_ = vm.callStack.top().pop()
+		_ = vm.popOperand()
 	}
 }
 

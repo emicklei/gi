@@ -20,8 +20,8 @@ type SwitchStmt struct {
 func (s SwitchStmt) stmtStep() Evaluable { return s }
 
 func (s SwitchStmt) Eval(vm *VM) {
-	vm.callStack.top().pushEnv()
-	defer vm.callStack.top().popEnv()
+	vm.currentFrame.pushEnv()
+	defer vm.currentFrame.popEnv()
 	if s.Init != nil {
 		vm.eval(s.Init.stmtStep())
 	}

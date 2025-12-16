@@ -143,7 +143,7 @@ type DeferStmt struct {
 }
 
 func (d DeferStmt) Eval(vm *VM) {
-	frame := vm.callStack.top()
+	frame := vm.currentFrame
 	invocation := funcInvocation{
 		flow: d.callGraph,
 		env:  frame.env.(*Environment).clone(), // TODO promote to interface?

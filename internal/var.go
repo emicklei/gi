@@ -28,7 +28,7 @@ func (v ValueSpec) Declare(vm *VM) bool {
 	vm.takeAllStartingAt(v.callGraph)
 	if v.Type == nil {
 		for _, idn := range v.Names {
-			val := vm.callStack.top().pop()
+			val := vm.popOperand()
 			if val == reflectUndeclared {
 				// this happens when the value expression is referencing an undeclared variable
 				return false
@@ -41,7 +41,7 @@ func (v ValueSpec) Declare(vm *VM) bool {
 	// left to right, see Flow
 	for _, idn := range v.Names {
 		if v.Values != nil {
-			val := vm.callStack.top().pop()
+			val := vm.popOperand()
 			if !val.IsValid() { // TODO check undeclared?
 				return false
 			}

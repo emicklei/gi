@@ -17,7 +17,7 @@ type TypeAssertExpr struct {
 
 func (e TypeAssertExpr) Eval(vm *VM) {
 	if e.Type == nil {
-		val := vm.callStack.top().pop()
+		val := vm.popOperand()
 		valType := val.Type()
 		vm.pushOperand(reflect.ValueOf(valType.Name())) // we compare strings
 		// need the value for the assignment

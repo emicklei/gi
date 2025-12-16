@@ -275,7 +275,7 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	call.handleFuncDecl(vm, fun.Interface().(*FuncDecl))
 
 	// collect non-reflection return values
-	top := vm.callStack.top()
+	top := vm.currentFrame
 	vals := []any{}
 	results := fun.Interface().(*FuncDecl).Type.Results
 	if results != nil {

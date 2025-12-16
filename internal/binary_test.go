@@ -12,7 +12,7 @@ func evalExpr(expr Expr) reflect.Value {
 	head := expr.Flow(g)
 	vm := NewVM(newEnvironment(nil))
 	vm.takeAllStartingAt(head)
-	result := vm.callStack.top().pop()
+	result := vm.popOperand()
 	return result
 }
 

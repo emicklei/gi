@@ -15,8 +15,8 @@ type KeyValueExpr struct {
 }
 
 func (k KeyValueExpr) Eval(vm *VM) {
-	key := vm.callStack.top().pop()
-	val := vm.callStack.top().pop()
+	key := vm.popOperand()
+	val := vm.popOperand()
 	vm.pushOperand(reflect.ValueOf(keyValue{Key: key, Value: val}))
 }
 

@@ -88,10 +88,11 @@ func (f *stackFrame) String() string {
 
 // Runtime represents a virtual machine that can execute Go code.
 type VM struct {
-	callStack stack[*stackFrame]
-	heap      *Heap
-	output    *bytes.Buffer  // for testing only
-	fileSet   *token.FileSet // optional file set for position info
+	callStack    stack[*stackFrame]
+	currentFrame *stackFrame // optimization
+	heap         *Heap
+	output       *bytes.Buffer  // for testing only
+	fileSet      *token.FileSet // optional file set for position info
 }
 
 var panicOnce sync.Once
@@ -115,6 +116,7 @@ func NewVM(env Env) *VM {
 	frame := framePool.Get().(*stackFrame)
 	frame.env = env
 	vm.callStack.push(frame)
+	vm.currentFrame = frame
 
 	// TODO
 	if os.Getenv("GI_IGNORE_PANIC") != "" {
@@ -132,13 +134,13 @@ func (vm *VM) setFileSet(fs *token.FileSet) {
 
 // localEnv returns the current environment from the top stack frame.
 func (vm *VM) localEnv() Env {
-	return vm.callStack.top().env
+	return vm.currentFrame.env
 }
 
 // returnsEval evaluates the argument and returns the popped value that was pushed onto the operand stack.
 func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 	vm.eval(e)
-	return vm.callStack.top().pop()
+	return vm.popOperand()
 }
 
 func (vm *VM) returnsType(e Evaluable) reflect.Type {
@@ -201,7 +203,16 @@ func (vm *VM) pushOperand(v reflect.Value) {
 			fmt.Printf("vm.push: %v\n", v)
 		}
 	}
-	vm.callStack.top().push(v)
+	vm.currentFrame.push(v)
+}
+
+// popOperand pops a value from the operand stack.
+func (vm *VM) popOperand() reflect.Value {
+	val := vm.currentFrame.pop()
+	if trace {
+		// fmt.Printf("vm.pop: %v\n", val)
+	}
+	return val
 }
 
 func (vm *VM) pushNewFrame(e Evaluable) { // typically a *FuncDecl or *FuncLit
@@ -214,6 +225,7 @@ func (vm *VM) pushNewFrame(e Evaluable) { // typically a *FuncDecl or *FuncLit
 	env.parent = vm.localEnv()
 	frame.env = env
 	vm.callStack.push(frame)
+	vm.currentFrame = frame
 }
 
 func (vm *VM) popFrame() {
@@ -221,6 +233,11 @@ func (vm *VM) popFrame() {
 		fmt.Println("vm.popFrame")
 	}
 	frame := vm.callStack.pop()
+	if len(vm.callStack) > 0 {
+		vm.currentFrame = vm.callStack.top()
+	} else {
+		vm.currentFrame = nil
+	}
 
 	// return env to pool
 	env := frame.env.(*Environment)
@@ -295,7 +312,7 @@ func (vm *VM) printStack() {
 		fmt.Println("vm.ops: <empty>")
 		return
 	}
-	frame := vm.callStack.top()
+	frame := vm.currentFrame
 	for k, v := range frame.env.(*Environment).valueTable { // TODO hack
 		if v.IsValid() && v.CanInterface() {
 			if v == reflectNil {

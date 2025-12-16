@@ -24,7 +24,7 @@ func (i IncDecStmt) Flow(g *graphBuilder) (head Step) {
 }
 
 func (i IncDecStmt) Eval(vm *VM) {
-	val := vm.callStack.top().pop()
+	val := vm.popOperand()
 	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
 	if val == reflectUndeclared {
