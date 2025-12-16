@@ -80,9 +80,6 @@ func (s SelectorExpr) Eval(vm *VM) {
 	if ok {
 		// can be field or method
 		sel := rec.Select(s.Sel.Name)
-		if !sel.IsValid() { // is this possible? TODO
-			vm.fatal(fmt.Sprintf("field %s not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
-		}
 		// check for method
 		if _, ok := sel.Interface().(*FuncDecl); ok {
 			// method value so push receiver as first argument

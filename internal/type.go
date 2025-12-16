@@ -176,9 +176,6 @@ func (m MapType) Make(vm *VM, _ int, constructorArgs []reflect.Value) reflect.Va
 	return reflect.MakeMap(mapType)
 }
 func (m MapType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
-	if composite.Kind() != reflect.Map {
-		expected(composite, "map") // TODO bug if reached here?
-	}
 	for _, kv := range values {
 		kv := kv.Interface().(keyValue)
 		composite.SetMapIndex(kv.Key, kv.Value)

@@ -158,3 +158,16 @@ func console(v any) {
 func internalVarName(meaning string, seq int) string {
 	return fmt.Sprintf("_%s_%d", meaning, seq)
 }
+
+func fieldTypeExpr(fields *FieldList, index int) Expr {
+	count := 0
+	for _, field := range fields.List {
+		for range field.Names {
+			if count == index {
+				return field.Type
+			}
+			count++
+		}
+	}
+	return nil
+}

@@ -783,7 +783,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Index = e.(Expr)
 		b.push(s)
 	case *ast.LabeledStmt:
-		s := LabeledStmt{LabeledStmt: n}
+		s := LabeledStmt{ColonPos: n.Pos()}
 		if n.Label != nil {
 			b.Visit(n.Label)
 			e := b.pop().(Ident)

@@ -62,8 +62,9 @@ func (s DeclStmt) String() string {
 // https://go.dev/ref/spec#Label_scopes
 type LabeledStmt struct {
 	*ast.LabeledStmt
-	Label *Ident
-	Stmt  Stmt
+	ColonPos token.Pos
+	Label    *Ident
+	Stmt     Stmt
 }
 
 func (s LabeledStmt) Eval(vm *VM) {
@@ -78,6 +79,8 @@ func (s LabeledStmt) Flow(g *graphBuilder) (head Step) {
 	ref.step.SetNext(head)
 	return
 }
+
+func (s LabeledStmt) Pos() token.Pos { return s.Label.Pos() }
 
 func (s LabeledStmt) String() string {
 	return fmt.Sprintf("LabeledStmt(%v,%v)", s.Label, s.Stmt)

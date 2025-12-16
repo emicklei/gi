@@ -39,7 +39,7 @@ func NewStructValue(vm *VM, t StructType) *StructValue {
 	return i
 }
 
-// TODO must call String method of StructType
+// TODO must call String method of StructType if present and if not use default behavior
 func (i *StructValue) String() string {
 	return fmt.Sprintf("*StructValue(%v)", i.structType)
 }

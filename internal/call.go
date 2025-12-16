@@ -214,12 +214,10 @@ func setZeroReturnsToFrame(ft *FuncType, vm *VM, frame *stackFrame) {
 	if ft.Results == nil {
 		return
 	}
-	r := 0
 	for _, field := range ft.Results.List {
 		for _, name := range field.Names {
-			val := reflect.Zero(vm.returnsType(field.Type)) // TODO use gopkg?
+			val := reflect.Zero(vm.returnsType(field.Type)) // TODO put types from gopkg in Field?
 			frame.env.set(name.Name, val)
-			r++
 		}
 	}
 }
@@ -235,25 +233,12 @@ func setParametersToFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *sta
 			val := args[p]
 			if val.Interface() == untypedNil {
 				// create a zero value of the expected type
-				val = reflect.Zero(vm.returnsType(field.Type)) // TODO use gopkg?
+				val = reflect.Zero(vm.returnsType(field.Type)) // TODO put types from gopkg in Field?
 			}
 			frame.env.set(name.Name, val)
 			p++
 		}
 	}
-}
-
-func paramType(fields *FieldList, index int) Expr {
-	count := 0
-	for _, field := range fields.List {
-		for range field.Names {
-			if count == index {
-				return field.Type
-			}
-			count++
-		}
-	}
-	return nil
 }
 
 // TODO deduplicate with handleFuncLit
@@ -270,7 +255,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	// first to last, see Flow
 	for i := range c.Args {
 		val := vm.callStack.top().pop()
-		expectedType := paramType(fd.Type.Params, i)
+		expectedType := fieldTypeExpr(fd.Type.Params, i)
 		if isEllipsis(expectedType) {
 			// consume remaining as slice
 			vals := make([]reflect.Value, len(c.Args)-i)

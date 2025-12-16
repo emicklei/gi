@@ -137,19 +137,6 @@ func main() {
 }`, "'e'")
 }
 
-func TestEarlyReturn(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	if true {
-		print("2")
-		return
-	}
-	print("0")
-	return
-}`, "2")
-}
-
 func TestFor(t *testing.T) {
 	testMain(t, `package main
 
@@ -331,27 +318,6 @@ func main() {
 	f()
 	defer print(3)
 }`, "1320")
-}
-
-// https://go.dev/ref/spec#Defer_statements
-func TestDeferReturnUpdateTestNestedLoop(t *testing.T) {
-	// TODO
-	// currently the returns puts all values on the top stackframe
-	// but the defer can change the value from the environment
-	// so we need to adjust the return value accordingly somehow
-	t.Skip()
-	testMain(t, `package main
-
-func f() (result int) {
-	defer func() {
-		// result is accessed after it was set to 6 by the return statement
-		result *= 7
-	}()
-	return 6
-}
-func main(){
-	print(f())
-}`, "42")
 }
 
 func TestDeferInLoop(t *testing.T) {

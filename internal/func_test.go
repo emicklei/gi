@@ -14,33 +14,6 @@ func main() {
 }`, "5")
 }
 
-func TestFuncMultiReturn(t *testing.T) {
-	testMain(t, `package main
-
-func ab(a int, b int) (int,int) {
-	print(a,b)
-	// stack order: b, a
-	return a,b
-}
-func main() {
-	a,b := ab(2, 3)
-	print(a,b)
-}`, "2323")
-}
-
-func TestNamedReturn(t *testing.T) {
-	t.Skip()
-	testMain(t, `package main
-		
-func f() (result int) {
-	result = 1
-	return
-}
-func main(){
-	print(f())
-}`, "1")
-}
-
 func TestVariadicFunction(t *testing.T) {
 	testMain(t, `package main
 

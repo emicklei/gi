@@ -34,7 +34,6 @@ func (r RangeStmt) Eval(vm *VM) {} // noop
 //
 // All four flows converge to a done step.
 // The last 3 subflows are transformed into a ForStmt that uses a hidden index variable.
-// TODO fix position info
 func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
 	head = r.X.Flow(g)
 	switcher := new(rangeIteratorSwitchStep)

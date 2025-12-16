@@ -83,6 +83,7 @@ The first step is the head of the chain.
 - unaryfuncs
 - stdtypes is now a two-stage map => make it one big map
 - generics: https://ehabterra.github.io/ast-extracting-generic-function-signatures
+- should the unnamed results of a function be named?
 
 ## potential blockers
 - reflect structs can only have exposed fields. for that reason StructValues was created but the SDK is not aware of this. For example, fmt.Println might not work correctly with StructValues.

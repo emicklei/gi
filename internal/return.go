@@ -44,6 +44,8 @@ func (r ReturnStmt) Eval(vm *VM) {
 	}
 
 	// set return values for the top frame
+	// TODO the CallExpr must put it on the stack instead
+	// because of defer statements
 	top := vm.callStack.top()
 	top.returnValues = results
 	vm.callStack.replaceTop(top)
