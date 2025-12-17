@@ -134,7 +134,7 @@ func TestRune(t *testing.T) {
 
 func main() {
 	print('e')
-}`, "'e'")
+}`, "101")
 }
 
 func TestFor(t *testing.T) {
