@@ -38,6 +38,21 @@ func main() {
 }`, "gi")
 }
 
+func TestTypeAliasConstIota(t *testing.T) {
+	testMain(t, `package main
+
+type Count int
+
+const (
+	Zero Count = iota
+	One
+)
+
+func main() {
+	print(Zero, One)
+}`, "01")
+}
+
 func TestMap(t *testing.T) {
 	testMain(t, `package main
 
@@ -66,6 +81,16 @@ func main() {
 	delete(m, "a")
 	print(len(m))
 }`, "1")
+}
+func TestCustomTypeMapKey(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+type Count int
+func main() {
+	one := Count(1)
+	m := map[Count]int{one:1}
+	print(len(m),m[one])
+}`, "11")
 }
 
 func TestNewType(t *testing.T) {

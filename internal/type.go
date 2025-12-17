@@ -169,7 +169,7 @@ func (m MapType) Make(vm *VM, _ int, constructorArgs []reflect.Value) reflect.Va
 	keyType := vm.localEnv().typeLookUp(keyTypeName)
 	if keyType == nil {
 		// TODO handl custom types as key types
-		keyType = vm.localEnv().valueLookUp(keyTypeName).Type()
+		keyType = structValueType
 	}
 	valueType := vm.localEnv().typeLookUp(valueTypeName)
 	mapType := reflect.MapOf(keyType, valueType)
