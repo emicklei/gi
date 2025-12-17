@@ -126,8 +126,8 @@ func TestBasicLitValue(t *testing.T) {
 		{
 			name:     "char",
 			lit:      &ast.BasicLit{Kind: token.CHAR, Value: "'a'"},
-			wantKind: reflect.String,
-			want:     "'a'",
+			wantKind: reflect.Int32,
+			want:     int32(97),
 		},
 		{
 			name:     "imag",
@@ -141,10 +141,10 @@ func TestBasicLitValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := basicLitValue(tt.lit)
 			if got.Kind() != tt.wantKind {
-				t.Errorf("basicLitValue() kind = %v, want %v", got.Kind(), tt.wantKind)
+				t.Errorf("basicLitValue() kind = %v (%T), want %v (%T)", got.Kind(), got.Kind(), tt.wantKind, tt.wantKind)
 			}
 			if got.Interface() != tt.want {
-				t.Errorf("basicLitValue() = %v, want %v", got.Interface(), tt.want)
+				t.Errorf("basicLitValue() = %v (%T), want %v (%T)", got.Interface(), got.Interface(), tt.want, tt.want)
 			}
 		})
 	}

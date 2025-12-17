@@ -42,7 +42,7 @@ func basicLitValue(s *ast.BasicLit) reflect.Value {
 		return reflect.ValueOf(f)
 	case token.CHAR:
 		// a character literal is a rune, which is an alias for int32
-		return reflect.ValueOf(s.Value)
+		return reflect.ValueOf([]rune(s.Value[1 : len(s.Value)-1])[0])
 	case token.IMAG:
 		i, _ := strconv.ParseComplex(s.Value, 128)
 		return reflect.ValueOf(i)
