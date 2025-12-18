@@ -194,7 +194,7 @@ func (vm *VM) pushOperand(v reflect.Value) {
 		if v.IsValid() && v.CanInterface() {
 			if v == reflectNil {
 				fmt.Printf("vm.push: untyped nil\n")
-			} else if v == reflectUndeclared {
+			} else if isUndeclared(v) {
 				fmt.Printf("vm.push: undeclared\n")
 			} else {
 				fmt.Printf("vm.push: %v (%T)\n", v.Interface(), v.Interface())
@@ -319,7 +319,7 @@ func (vm *VM) printStack() {
 				fmt.Printf("vm.env[%s]: untyped nil\n", k)
 				continue
 			}
-			if v == reflectUndeclared {
+			if isUndeclared(v) {
 				fmt.Printf("vm.env[%s]: undeclared value\n", k)
 				continue
 			}
@@ -335,7 +335,7 @@ func (vm *VM) printStack() {
 				fmt.Printf("vm.ops.%d: untyped nil\n", i)
 				continue
 			}
-			if v == reflectUndeclared {
+			if isUndeclared(v) {
 				fmt.Printf("vm.ops.%d: undeclared value\n", i)
 				continue
 			}

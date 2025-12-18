@@ -128,12 +128,17 @@ func (p *Package) writeAST(fileName string) {
 	}()
 	buf := new(bytes.Buffer)
 	spew.Config.DisableMethods = true
-	spew.Config.MaxDepth = 4 // TODO see if this is enough
+	spew.Config.MaxDepth = 6 // TODO see if this is enough
 	done := make(chan struct{})
 	go func() {
 		// only dump the actual values of each var/function in the environment
 		for _, v := range p.Env.Env.(*Environment).valueTable {
-			spew.Fdump(buf, v.Interface())
+			// skip SDKPackage
+			val := v.Interface()
+			if _, ok := val.(SDKPackage); ok {
+				continue
+			}
+			spew.Fdump(buf, val)
 		}
 		done <- struct{}{}
 	}()

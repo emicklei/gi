@@ -25,7 +25,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 
 		// propagate undeclared value. this happens when the expression is
 		// used in a package variable or constant declaration
-		if v == reflectUndeclared {
+		if isUndeclared(v) {
 			vm.pushOperand(v)
 			return
 		}
@@ -62,7 +62,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 	v := vm.popOperand()
 	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
-	if v == reflectUndeclared {
+	if isUndeclared(v) {
 		vm.pushOperand(v)
 		return
 	}

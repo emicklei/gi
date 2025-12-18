@@ -35,7 +35,7 @@ func (r ReturnStmt) Eval(vm *VM) {
 		ri := 0
 		for _, fields := range fd.Type.Results.List {
 			for _, name := range fields.Names {
-				if name != nil && name.Name != "_" {
+				if name.Name != "_" {
 					vm.localEnv().set(name.Name, results[ri])
 				}
 				ri++

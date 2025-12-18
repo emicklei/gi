@@ -62,9 +62,11 @@ func parseForDebug(t *testing.T, source string) *VM {
 
 func parseAndWalk(t *testing.T, source string) string {
 	t.Helper()
-	if trace {
-		fmt.Println("TEST:", t.Name())
-	}
+	defer func() {
+		if trace {
+			fmt.Println("TESTED:", t.Name())
+		}
+	}()
 	pkg := buildPackage(t, source)
 	vm := NewVM(pkg.Env)
 	vm.setFileSet(pkg.Fset)

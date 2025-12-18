@@ -88,6 +88,7 @@ The first step is the head of the chain.
 ## potential blockers
 - reflect structs can only have exposed fields. for that reason StructValues was created but the SDK is not aware of this. For example, fmt.Println might not work correctly with StructValues.
 - stepping happens per go-routine; what to do with the others when controlling one of them?
+- should undeclared know the looked-up name and use it later in the flow?  Price is Selector, not Value.
 
 ## external pkg
 - if a program imports external packages then a new `gi` is created using additional generated sources that will setup all exported functions,consts and vars to the environment. this technique is also applied in `varvoy`.

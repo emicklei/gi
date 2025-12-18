@@ -64,7 +64,7 @@ func (s TypeSpec) Make(vm *VM, _ int, constructorArgs []reflect.Value) reflect.V
 		return structVal
 	}
 	vm.fatal(fmt.Sprintf("expected a CanInstantiate value:%v", s.Type))
-	return reflect.Value{}
+	return reflectNil
 }
 
 func (s TypeSpec) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
@@ -108,7 +108,7 @@ func makeStructType(ast *ast.StructType) StructType {
 	}
 }
 
-func (s StructType) tagForField(fieldName string) *ast.BasicLit {
+func (s StructType) tagForField(fieldName string) *string {
 	for _, field := range s.Fields.List {
 		for _, name := range field.Names {
 			if name.Name == fieldName {

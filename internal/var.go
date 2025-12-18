@@ -6,6 +6,27 @@ import (
 	"reflect"
 )
 
+type Undeclared struct {
+	Name string
+}
+
+func newUndeclared(name string) reflect.Value {
+	return reflect.ValueOf(Undeclared{Name: name})
+}
+func isUndeclared(v reflect.Value) bool {
+	if !v.IsValid() {
+		return false
+	}
+	if v == reflectUndeclared {
+		return true
+	}
+	_, ok := v.Interface().(Undeclared)
+	return ok
+}
+func (u Undeclared) String() string {
+	return fmt.Sprintf("Undeclared(%s)", u.Name)
+}
+
 var _ Decl = ValueSpec{}
 var _ CanDeclare = ValueSpec{}
 
@@ -29,7 +50,7 @@ func (v ValueSpec) Declare(vm *VM) bool {
 	if v.Type == nil {
 		for _, idn := range v.Names {
 			val := vm.popOperand()
-			if val == reflectUndeclared {
+			if isUndeclared(val) {
 				// this happens when the value expression is referencing an undeclared variable
 				return false
 			}

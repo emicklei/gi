@@ -24,11 +24,9 @@ func (k KeyValueExpr) Flow(g *graphBuilder) (head Step) {
 	// Value first so that key ends up on top of the stack
 	head = k.Value.Flow(g)
 
-	switch kv := k.Key.(type) {
+	switch k.Key.(type) {
 	case Ident:
-		// use as string selector
-		key := newBasicLit(k.Colon, reflect.ValueOf(kv.Name))
-		key.Flow(g)
+		k.Key.Flow(g)
 	case BasicLit, Expr:
 		k.Key.Flow(g)
 	default:

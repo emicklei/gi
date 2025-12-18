@@ -71,7 +71,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 	if hp, ok := recv.Interface().(*HeapPointer); ok {
 		recv = vm.heap.read(hp)
 	}
-	if recv == reflectUndeclared {
+	if isUndeclared(recv) {
 		// propagate invalid value
 		vm.pushOperand(recv)
 		return

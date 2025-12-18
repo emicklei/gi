@@ -148,7 +148,7 @@ func (i *StructValue) tagFieldName(key string, fieldName string, fieldValue refl
 	if lit == nil {
 		return fieldName, true
 	}
-	unquoted, err := strconv.Unquote(lit.Value)
+	unquoted, err := strconv.Unquote(*lit)
 	if err != nil {
 		return fieldName, false
 	}

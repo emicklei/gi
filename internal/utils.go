@@ -23,17 +23,16 @@ func expected(value any, expectation string) reflect.Value {
 }
 
 func mustString(v reflect.Value) string {
-	if !v.IsValid() {
-		panic("value not valid as string")
-	}
-	if !v.CanInterface() {
-		panic("cannot get interface for string")
-	}
 	s, ok := v.Interface().(string)
-	if !ok {
-		panic(fmt.Sprintf("expected string but got %T", v.Interface()))
+	if ok {
+		return s
 	}
-	return s
+	u, ok := v.Interface().(Undeclared)
+	if ok {
+		return u.Name
+	}
+	panic(fmt.Sprintf("expected string or undeclaredbut got %T", v.Interface()))
+	return ""
 }
 
 func mustIdentName(e Expr) string {

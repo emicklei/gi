@@ -60,9 +60,6 @@ func (b *ASTBuilder) pop() Evaluable {
 	}
 	top := b.stack[len(b.stack)-1]
 	b.stack = b.stack[0 : len(b.stack)-1]
-	if trace {
-		fmt.Printf("ast.pop: %v\n", top)
-	}
 	return top
 }
 
@@ -582,7 +579,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.FieldList:
-		s := FieldList{FieldList: n}
+		s := FieldList{OpeningPos: n.Opening}
 		for _, field := range n.List {
 			b.Visit(field)
 			e := b.pop()
@@ -591,7 +588,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.Field:
-		s := Field{Field: n}
+		s := Field{}
 		for _, name := range n.Names {
 			b.Visit(name)
 			e := b.pop()
@@ -601,7 +598,12 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		b.Visit(n.Type)
 		e := b.pop()
 		s.Type = e.(Expr)
-		// TODO tag, comment
+		if n.Tag != nil {
+			b.Visit(n.Tag)
+			e := b.pop().(BasicLit)
+			v := e.value.Interface().(string)
+			s.Tag = &v
+		}
 		b.push(s)
 	case *ast.GenDecl:
 		// IMPORT, CONST, TYPE, or VAR

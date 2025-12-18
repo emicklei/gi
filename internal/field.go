@@ -2,16 +2,17 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
+	"go/token"
 	"strings"
 )
 
 type Field struct {
-	*ast.Field
 	Names []*Ident // field/method/(type) parameter names; or nil
 	Type  Expr     // field/method/parameter type; or nil
-	// Tag   BasicLit // field tag; or nil
+	Tag   *string  // field tag; or nil
 }
+
+func (l Field) Pos() token.Pos { return token.NoPos } // TODO
 
 func (l Field) String() string {
 	return fmt.Sprintf("Field(%v,%v)", l.Names, l.Type)
@@ -19,9 +20,11 @@ func (l Field) String() string {
 func (l Field) Eval(vm *VM) {}
 
 type FieldList struct {
-	*ast.FieldList
-	List []*Field
+	OpeningPos token.Pos
+	List       []*Field
 }
+
+func (l FieldList) Pos() token.Pos { return l.OpeningPos }
 
 func (l FieldList) String() string {
 	names := []string{}

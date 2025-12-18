@@ -21,14 +21,14 @@ func (b BinaryExpr) Eval(vm *VM) {
 	right := vm.popOperand()
 	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
-	if right == reflectUndeclared {
+	if isUndeclared(right) {
 		vm.pushOperand(right)
 		return
 	}
 	left := vm.popOperand()
 	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration
-	if left == reflectUndeclared {
+	if isUndeclared(left) {
 		vm.pushOperand(left)
 		return
 	}
