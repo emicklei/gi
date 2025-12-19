@@ -14,6 +14,7 @@ import (
 )
 
 var dir = flag.String("dir", ".", "directory to run gi on")
+var urlprefix = flag.String("urlprefix", "", "URL prefix for navigating to source file")
 var dry = flag.Bool("dry", false, "dry run - do not run")
 var report = flag.String("report", "treerunner-report.json", "generate report for the run summary")
 var skip = flag.String("skip", "", "comma-separated list of directories to skip")
@@ -31,6 +32,9 @@ func main() {
 	filepath.WalkDir(*dir, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() && path != "." {
 			rr := runReport{}
+			if *urlprefix != "" {
+				rr.URL = fmt.Sprintf("%s/%s", strings.TrimRight(*urlprefix, "/"), path)
+			}
 			if slices.Contains(pathsToSkip, path) {
 				fmt.Printf("skipping directory: %s\n", path)
 				rr.Skipped = true
@@ -67,6 +71,7 @@ type runReport struct {
 	Pass    bool   `json:"success"`
 	Error   string `json:"error,omitempty"`
 	Skipped bool   `json:"skipped,omitempty"`
+	URL     string `json:"url,omitempty"`
 }
 
 func generateReport(wr walkReport) {

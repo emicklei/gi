@@ -41,4 +41,4 @@ gobyexample:
 	cd cmd/treerunner && go install
 	if [ ! -d "gobyexample" ]; then git clone https://github.com/mmcgrana/gobyexample; fi	
 	mkdir -p gobyexample/examples/output
-	cd gobyexample/examples && GI_IGNORE_PANIC=1 GI_IGNORE_EXIT=1 treerunner -report output/treerunner-report.json -skip "line-filters" .
+	cd gobyexample/examples && GI_IGNORE_PANIC=1 GI_IGNORE_EXIT=1 treerunner -report output/treerunner-report.json -skip "line-filters" -urlprefix "https://github.com/mmcgrana/gobyexample/tree/master/examples" .
