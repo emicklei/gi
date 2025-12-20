@@ -67,9 +67,9 @@ func (s TypeSpec) Make(vm *VM, _ int, constructorArgs []reflect.Value) reflect.V
 	return reflectNil
 }
 
-func (s TypeSpec) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
+func (s TypeSpec) LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	if c, ok := s.Type.(CanCompose); ok {
-		return c.LiteralCompose(composite, values)
+		return c.LiteralCompose(vm, composite, values)
 	}
 	return expected(s.Type, "a CanCompose value")
 }
@@ -125,12 +125,12 @@ func (s StructType) String() string {
 	return fmt.Sprintf("StructType(%s,fields=%d,methods=%d)", s.Name, len(s.Fields.List), len(s.methods))
 }
 
-func (s StructType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
+func (s StructType) LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	i, ok := composite.Interface().(CanCompose)
 	if !ok {
 		expected(composite, "CanCompose")
 	}
-	return i.LiteralCompose(composite, values)
+	return i.LiteralCompose(vm, composite, values)
 }
 
 func (s StructType) Make(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
@@ -175,10 +175,17 @@ func (m MapType) Make(vm *VM, _ int, constructorArgs []reflect.Value) reflect.Va
 	mapType := reflect.MapOf(keyType, valueType)
 	return reflect.MakeMap(mapType)
 }
-func (m MapType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
+func (m MapType) LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	for _, kv := range values {
 		kv := kv.Interface().(keyValue)
-		composite.SetMapIndex(kv.Key, kv.Value)
+		k := kv.Key
+		// check for ident
+		if ik, ok := k.Interface().(Ident); ok {
+			// Ident.Eval
+			k = vm.localEnv().valueLookUp(ik.Name)
+		}
+		v := kv.Value
+		composite.SetMapIndex(k, v)
 	}
 	return composite
 }

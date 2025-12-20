@@ -118,7 +118,6 @@ func main() {
 }
 
 func TestTypeMarshalJSON(t *testing.T) {
-	t.Skip() // Model is Ident, not BasicLit
 	testMain(t, fmt.Sprintf(`package main
 
 import "encoding/json"
@@ -137,7 +136,6 @@ func main() {
 }
 
 func TestTypeUnmarshalJSON(t *testing.T) {
-	t.Skip() // Undeclared issue
 	testMain(t, fmt.Sprintf(`package main
 
 import "encoding/json"
@@ -159,7 +157,6 @@ func main() {
 		"`{\"model\":\"helicopter\"}`"), "helicopter")
 }
 func TestTypeMarshalXML(t *testing.T) {
-	t.Skip() // Undeclared issue
 	testMain(t, fmt.Sprintf(`package main
 
 import "encoding/xml"
@@ -297,7 +294,6 @@ func main() {
 }
 
 func TestSameVarAndField(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 type Aircraft struct {model string}

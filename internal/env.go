@@ -129,7 +129,7 @@ func (e *Environment) valueLookUp(name string) reflect.Value {
 			return v
 		}
 		if current.parent == nil {
-			return newUndeclared(name)
+			return reflectUndeclared
 		}
 		// Continue iteration if parent is also an *Environment
 		if env, ok := current.parent.(*Environment); ok {
@@ -139,7 +139,7 @@ func (e *Environment) valueLookUp(name string) reflect.Value {
 			return current.parent.valueLookUp(name)
 		}
 	}
-	return newUndeclared(name)
+	return reflectUndeclared
 }
 
 func (e *Environment) typeLookUp(name string) reflect.Type {

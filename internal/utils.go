@@ -27,12 +27,11 @@ func mustString(v reflect.Value) string {
 	if ok {
 		return s
 	}
-	u, ok := v.Interface().(Undeclared)
+	i, ok := v.Interface().(Ident)
 	if ok {
-		return u.Name
+		return i.Name
 	}
 	panic(fmt.Sprintf("expected string or undeclaredbut got %T", v.Interface()))
-	return ""
 }
 
 func mustIdentName(e Expr) string {

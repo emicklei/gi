@@ -8,7 +8,6 @@ import (
 	"io"
 	"maps"
 	"reflect"
-	"strconv"
 	"strings"
 	"unicode"
 
@@ -18,6 +17,7 @@ import (
 var structValueType = reflect.TypeOf(&StructValue{})
 
 var _ fmt.Formatter = &StructValue{}
+var _ CanCompose = &StructValue{}
 
 // StructValue represents an instance of an interpreted struct.
 type StructValue struct {
@@ -65,7 +65,7 @@ func (i *StructValue) Assign(fieldName string, val reflect.Value) {
 }
 
 // composite is (a reflect on) an StructValue
-func (i *StructValue) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
+func (i *StructValue) LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	if len(values) == 0 {
 		return composite
 	}
@@ -138,6 +138,7 @@ func (i *StructValue) MarshalXML(enc *xml.Encoder, start xml.StartElement) error
 	return enc.EncodeToken(start.End())
 }
 
+// TODO cache tagFieldName results in StructType
 // tagFieldName returns the name of the field as it should appear in JSON.
 func (i *StructValue) tagFieldName(key string, fieldName string, fieldValue reflect.Value) (string, bool) {
 	if !unicode.IsUpper(rune(fieldName[0])) {
@@ -148,10 +149,7 @@ func (i *StructValue) tagFieldName(key string, fieldName string, fieldValue refl
 	if lit == nil {
 		return fieldName, true
 	}
-	unquoted, err := strconv.Unquote(*lit)
-	if err != nil {
-		return fieldName, false
-	}
+	unquoted := *lit
 	tags, err := structtag.Parse(unquoted)
 	if err != nil {
 		return fieldName, false
@@ -163,7 +161,7 @@ func (i *StructValue) tagFieldName(key string, fieldName string, fieldValue refl
 	if jsonTag.Name == "-" {
 		return "", false
 	}
-	if jsonTag.HasOption("omitempty") {
+	if jsonTag.HasOption("omitempty") || jsonTag.HasOption("omitzero") {
 		if fieldValue.IsZero() {
 			return "", false
 		}

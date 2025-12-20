@@ -195,7 +195,7 @@ func (vm *VM) pushOperand(v reflect.Value) {
 			if v == reflectNil {
 				fmt.Printf("vm.push: untyped nil\n")
 			} else if isUndeclared(v) {
-				fmt.Printf("vm.push: undeclared\n")
+				fmt.Printf("vm.push: %v\n", v)
 			} else {
 				fmt.Printf("vm.push: %v (%T)\n", v.Interface(), v.Interface())
 			}

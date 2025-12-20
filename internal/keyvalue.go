@@ -24,11 +24,12 @@ func (k KeyValueExpr) Flow(g *graphBuilder) (head Step) {
 	// Value first so that key ends up on top of the stack
 	head = k.Value.Flow(g)
 
-	switch k.Key.(type) {
+	switch v := k.Key.(type) {
 	case Ident:
-		k.Key.Flow(g)
+		// wrap so that we can evaluate it properly
+		identKey{Ident: v}.Flow(g)
 	case BasicLit, Expr:
-		k.Key.Flow(g)
+		v.Flow(g)
 	default:
 		g.fatal(fmt.Sprintf("unhandled key type: %T", k.Key))
 	}
@@ -41,6 +42,24 @@ func (k KeyValueExpr) Pos() token.Pos { return k.Colon }
 
 func (k KeyValueExpr) String() string {
 	return fmt.Sprintf("KeyValueExpr(%v,%v)", k.Key, k.Value)
+}
+
+// identKey is a wrapper to evaluate struct keys that are selectors.
+type identKey struct {
+	Ident Ident
+}
+
+func (i identKey) Eval(vm *VM) {
+	vm.pushOperand(reflect.ValueOf(i.Ident))
+}
+func (i identKey) Flow(g *graphBuilder) (head Step) {
+	g.next(i)
+	return g.current
+}
+func (i identKey) Pos() token.Pos { return i.Ident.Pos() }
+
+func (i identKey) String() string {
+	return fmt.Sprintf("identKey(%v)", i.Ident)
 }
 
 type keyValue struct {

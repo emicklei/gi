@@ -45,7 +45,7 @@ type Stmt interface {
 }
 
 type CanCompose interface {
-	LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value
+	LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value
 }
 
 // CanSelect is implemented by types that support selection of fields or methods by name.

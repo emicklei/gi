@@ -6,25 +6,11 @@ import (
 	"reflect"
 )
 
-type Undeclared struct {
-	Name string
-}
-
-func newUndeclared(name string) reflect.Value {
-	return reflect.ValueOf(Undeclared{Name: name})
-}
 func isUndeclared(v reflect.Value) bool {
 	if !v.IsValid() {
 		return false
 	}
-	if v == reflectUndeclared {
-		return true
-	}
-	_, ok := v.Interface().(Undeclared)
-	return ok
-}
-func (u Undeclared) String() string {
-	return fmt.Sprintf("Undeclared(%s)", u.Name)
+	return v == reflectUndeclared
 }
 
 var _ Decl = ValueSpec{}

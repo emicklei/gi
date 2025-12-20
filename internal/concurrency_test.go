@@ -45,7 +45,6 @@ func TestMakeChanIntWriteRead(t *testing.T) {
 }
 
 func TestMakeChanUserWriteRead(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 	type User struct{Name string}
 	func main() {

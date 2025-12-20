@@ -52,7 +52,7 @@ func (a ArrayType) String() string {
 }
 
 // composite is (a reflect on) a Go array or slice
-func (a ArrayType) LiteralCompose(composite reflect.Value, values []reflect.Value) reflect.Value {
+func (a ArrayType) LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	if len(values) == 0 {
 		return composite
 	}
@@ -64,7 +64,7 @@ func (a ArrayType) LiteralCompose(composite reflect.Value, values []reflect.Valu
 		if elementType.Kind() == reflect.Array {
 			composingElem := a.Elt.(CanCompose)
 			elemValues := v.Interface().([]reflect.Value)
-			composingElem.LiteralCompose(composite.Index(i), elemValues)
+			composingElem.LiteralCompose(vm, composite.Index(i), elemValues)
 			continue
 		}
 
