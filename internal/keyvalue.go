@@ -24,15 +24,12 @@ func (k KeyValueExpr) Flow(g *graphBuilder) (head Step) {
 	// Value first so that key ends up on top of the stack
 	head = k.Value.Flow(g)
 
-	switch v := k.Key.(type) {
-	case Ident:
+	key := k.Key
+	if id, ok := key.(Ident); ok {
 		// wrap so that we can evaluate it properly
-		identKey{Ident: v}.Flow(g)
-	case BasicLit, Expr:
-		v.Flow(g)
-	default:
-		g.fatal(fmt.Sprintf("unhandled key type: %T", k.Key))
+		key = identKey{Ident: id}
 	}
+	key.Flow(g)
 
 	g.next(k)
 	return head
