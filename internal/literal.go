@@ -28,8 +28,8 @@ func (b BasicLit) Eval(vm *VM) {
 func basicLitValue(s *ast.BasicLit) reflect.Value {
 	switch s.Kind {
 	case token.INT:
-		i, _ := strconv.Atoi(s.Value)
-		return reflect.ValueOf(i)
+		i, _ := strconv.ParseInt(s.Value, 0, 64)
+		return reflect.ValueOf(int(i))
 	case token.STRING:
 		unq, err := strconv.Unquote(s.Value)
 		if err != nil {
@@ -59,7 +59,7 @@ func (b BasicLit) Flow(g *graphBuilder) (head Step) {
 func (b BasicLit) Pos() token.Pos { return b.pos }
 
 func (b BasicLit) String() string {
-	return fmt.Sprintf("BasicLit(%v)", b.value.Interface())
+	return fmt.Sprintf("BasicLit(%s,%v)", b.value.Kind(), b.value.Interface())
 }
 
 var _ Flowable = CompositeLit{}

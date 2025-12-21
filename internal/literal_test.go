@@ -100,6 +100,12 @@ func TestBasicLitValue(t *testing.T) {
 			want:     42,
 		},
 		{
+			name:     "octal",
+			lit:      &ast.BasicLit{Kind: token.INT, Value: "0600"},
+			wantKind: reflect.Int,
+			want:     384,
+		},
+		{
 			name:     "string",
 			lit:      &ast.BasicLit{Kind: token.STRING, Value: "\"hello\""},
 			wantKind: reflect.String,
