@@ -17,19 +17,17 @@ import (
 var framePool = sync.Pool{
 	New: func() any {
 		return &stackFrame{
-			operands:     make([]reflect.Value, 0, 8),
-			returnValues: make([]reflect.Value, 0, 2),
+			operands: make([]reflect.Value, 0, 8),
 		}
 	},
 }
 
 // stackFrame represents a single frame in the VM's function call stack.
 type stackFrame struct {
-	creator      Evaluable // typically a FuncDecl or FuncLit
-	env          Env       // current environment with name->value mapping
-	operands     []reflect.Value
-	returnValues []reflect.Value
-	deferList    []funcInvocation
+	creator   Evaluable // typically a FuncDecl or FuncLit
+	env       Env       // current environment with name->value mapping
+	operands  []reflect.Value
+	deferList []funcInvocation
 }
 
 // push adds a value onto the operand stack.
@@ -87,7 +85,6 @@ func (f *stackFrame) String() string {
 	}
 	fmt.Fprintf(&buf, "%v ", f.env)
 	fmt.Fprintf(&buf, "ops=%v ", f.operands)
-	fmt.Fprintf(&buf, "rets=%v", f.returnValues)
 	return buf.String()
 }
 
@@ -255,7 +252,6 @@ func (vm *VM) popFrame() {
 
 	// reset references
 	frame.operands = frame.operands[:0]
-	frame.returnValues = frame.returnValues[:0]
 	frame.env = nil
 	frame.creator = nil
 	frame.deferList = frame.deferList[:0]
@@ -274,7 +270,6 @@ func (vm *VM) fatal(err any) {
 			s.Explore(fmt.Sprintf("vm.callStack.%d.env.valueTable", i), tableHolder.valueTable, structexplorer.Column(2))
 		}
 		s.Explore(fmt.Sprintf("vm.callStack.%d.operands", i), each.operands, structexplorer.Column(1))
-		s.Explore(fmt.Sprintf("vm.callStack.%d.returnValues", i), each.returnValues, structexplorer.Column(1))
 	}
 	s.Dump("gi-vm-panic.html")
 	panic(err)
