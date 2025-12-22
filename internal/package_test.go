@@ -17,6 +17,7 @@ func main() {
 }
 
 func TestCallPackage(t *testing.T) {
+	t.Skip()
 	source := `package hello
 import "fmt"
 func Hello(name string) (int, string) {

@@ -71,7 +71,6 @@ func TestDeferReturnUpdateTestNestedLoop(t *testing.T) {
 	// currently the returns puts all values on the top stackframe
 	// but the defer can change the value from the environment
 	// so we need to adjust the return value accordingly somehow
-	t.Skip()
 	testMain(t, `package main
 
 func f() (result int) {

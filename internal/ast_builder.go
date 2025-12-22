@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"log/slog"
 	"os"
 	"path"
 	"path/filepath"
@@ -170,7 +171,12 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			s.Call = e.(Expr)
 			// store call graph in the DeferStmt
 			g := newGraphBuilder(b.goPkg)
-			s.callGraph = s.Call.Flow(g)
+			if ce, ok := s.Call.(CallExpr); ok {
+				s.callGraph = ce.deferFlow(g)
+			} else {
+				slog.Warn("defer statement call is not a CallExpr")
+				s.callGraph = s.Call.Flow(g)
+			}
 		}
 		b.push(s)
 	case *ast.FuncLit:

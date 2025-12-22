@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"reflect"
 )
 
 var _ Stmt = ExprStmt{}
@@ -144,9 +145,18 @@ type DeferStmt struct {
 
 func (d DeferStmt) Eval(vm *VM) {
 	frame := vm.currentFrame
+	// create a new env and copy the current argument values
+	env := frame.env.newChild() // TODO needed?
+	call := d.Call.(CallExpr)
+	vals := make([]reflect.Value, len(call.Args))
+	for i, arg := range call.Args { // TODO variadic
+		vals[i] = vm.returnsEval(arg)
+	}
+	frame.env.markSharedReferenced()
 	invocation := funcInvocation{
-		flow: d.callGraph,
-		env:  frame.env.(*Environment).clone(), // TODO promote to interface?
+		flow:      d.callGraph,
+		env:       env,
+		arguments: vals,
 	}
 	frame.deferList = append(frame.deferList, invocation)
 }

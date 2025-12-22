@@ -52,7 +52,9 @@ func (f *FuncDecl) GotoReference(label string) statementReference {
 func (f *FuncDecl) Results() *FieldList {
 	return f.Type.Results
 }
-
+func (f *FuncDecl) Params() *FieldList {
+	return f.Type.Params
+}
 func (f FuncDecl) Pos() token.Pos { return f.Type.Pos() }
 
 func (f FuncDecl) String() string {
@@ -108,8 +110,9 @@ func (e Ellipsis) Flow(g *graphBuilder) (head Step) {
 // funcInvocation represents a function call instance with its own environment.
 // this used to handle defer statements properly.
 type funcInvocation struct {
-	flow Step
-	env  Env
+	flow      Step
+	env       Env
+	arguments []reflect.Value
 }
 
 func isRecoverCall(expr Expr) bool {
@@ -154,6 +157,9 @@ func (f *FuncLit) GotoReference(label string) statementReference {
 }
 func (f *FuncLit) Results() *FieldList {
 	return f.Type.Results
+}
+func (f *FuncLit) Params() *FieldList {
+	return f.Type.Params
 }
 func (f *FuncLit) String() string {
 	return fmt.Sprintf("FuncLit(%v,%v)", f.Type, f.Body)

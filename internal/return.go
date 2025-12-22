@@ -28,7 +28,8 @@ func (r ReturnStmt) Eval(vm *VM) {
 		i := 0
 		for _, fields := range fd.Results().List {
 			for _, name := range fields.Names {
-				vm.localEnv().set(name.Name, results[i])
+				owner := vm.currentFrame.env.valueOwnerOf(name.Name)
+				owner.set(name.Name, results[i])
 				i++
 			}
 		}

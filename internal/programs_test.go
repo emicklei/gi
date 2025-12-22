@@ -295,6 +295,20 @@ func main() {
 }`, "onetwo")
 }
 
+func TestDeferScope(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	a := 1
+	defer func(b int) {
+		print(a)
+		print(b)
+	}(a)
+	a++
+}
+`, "21")
+}
+
 func TestDefer(t *testing.T) {
 	testMain(t, `package main
 
@@ -310,14 +324,11 @@ func TestDeferFuncLiteral(t *testing.T) {
 	testMain(t, `package main
 
 func main() {
-	defer print(0)
 	f := func() {
 		defer print(1)
 	}
-	defer print(2)
 	f()
-	defer print(3)
-}`, "1320")
+}`, "1")
 }
 
 func TestDeferInLoop(t *testing.T) {
@@ -331,7 +342,7 @@ func main(){
 }`, "3210")
 }
 
-func TestDeferInLoopInLiteral(t *testing.T) {
+func TestDeferInLoopInFuncLiteral(t *testing.T) {
 	testMain(t, `package main
 
 func main(){

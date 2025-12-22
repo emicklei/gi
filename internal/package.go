@@ -282,15 +282,14 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	// collect non-reflection return values
 	top := vm.currentFrame
 	vals := []any{}
-	results := fun.Interface().(*FuncDecl).Type.Results
+	results := fun.Interface().(Func).Results()
 	if results != nil {
 		for _, field := range results.List {
 			if field.Names != nil {
-				for range len(field.Names) {
-					vals = append(vals, top.pop().Interface())
+				for _, name := range field.Names {
+					val := top.env.valueLookUp(name.Name)
+					vals = append(vals, val.Interface())
 				}
-			} else { // unnamed results
-				vals = append(vals, top.pop().Interface())
 			}
 		}
 	}

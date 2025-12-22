@@ -64,8 +64,13 @@ func (f *stackFrame) popEnv() {
 func (f *stackFrame) takeDeferList(vm *VM) {
 	for i := len(f.deferList) - 1; i >= 0; i-- {
 		invocation := f.deferList[i]
-		f.env = invocation.env
-		// put env in place
+		// TODO
+		// f.env = invocation.env
+		// push all argumentValues as operands on the stack
+		// make sure first value is on top of the operand stack
+		for i := len(invocation.arguments) - 1; i >= 0; i-- {
+			vm.pushOperand(invocation.arguments[i])
+		}
 		vm.takeAllStartingAt(invocation.flow)
 	}
 }

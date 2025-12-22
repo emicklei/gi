@@ -98,4 +98,5 @@ type Func interface {
 	PutGotoReference(label string, ref statementReference)
 	GotoReference(label string) statementReference
 	Results() *FieldList
+	Params() *FieldList
 }

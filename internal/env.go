@@ -21,7 +21,9 @@ type Env interface {
 	getParent() Env
 	addConstOrVar(cv CanDeclare)
 	rootPackageEnv() *PkgEnvironment
-	markContainsHeapPointer()
+	// if marked, this env has references that escape to the heap
+	// or is used by funcInvocation in a defer statement
+	markSharedReferenced()
 }
 
 type PkgEnvironment struct {
@@ -77,7 +79,7 @@ func (p *PkgEnvironment) String() string {
 func (p *PkgEnvironment) newChild() Env {
 	return newEnvironment(p)
 }
-func (p *PkgEnvironment) markContainsHeapPointer() {}
+func (p *PkgEnvironment) markSharedReferenced() {}
 
 var envPool = sync.Pool{
 	New: func() any {
@@ -188,7 +190,7 @@ func (e *Environment) rootPackageEnv() *PkgEnvironment {
 	return e.parent.rootPackageEnv()
 }
 
-func (e *Environment) markContainsHeapPointer() {
+func (e *Environment) markSharedReferenced() {
 	e.hasHeapPointer = true
 }
 

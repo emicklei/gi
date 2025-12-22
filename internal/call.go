@@ -196,13 +196,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	// we already have the call graph in FuncLit
 	vm.takeAllStartingAt(fl.callGraph)
 
-	// run defer list
-	for i := len(frame.deferList) - 1; i >= 0; i-- {
-		invocation := frame.deferList[i]
-		// put env in place
-		frame.env = invocation.env
-		vm.takeAllStartingAt(invocation.flow)
-	}
+	frame.takeDeferList(vm)
 
 	// take values before popping frame
 	vals := []reflect.Value{} // todo size it
@@ -323,7 +317,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 		}()
 	}
 
-	// when stepping we the call graph in FuncDecl
+	// take all steps from the call graph in FuncDecl
 	vm.takeAllStartingAt(fd.callGraph)
 
 	frame.takeDeferList(vm)
@@ -368,7 +362,16 @@ func (c CallExpr) Flow(g *graphBuilder) (head Step) {
 		c.Args[i].Flow(g)
 	}
 	funFlow := c.Fun.Flow(g)
-	if head == nil { // could be only a function with no args
+	if head == nil { // must be a function with no args
+		head = funFlow
+	}
+	g.next(c)
+	return head
+}
+
+func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {
+	funFlow := c.Fun.Flow(g)
+	if head == nil { // must be a function with no args
 		head = funFlow
 	}
 	g.next(c)
