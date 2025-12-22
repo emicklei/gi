@@ -501,7 +501,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.ReturnStmt:
-		s := ReturnStmt{ReturnStmt: n}
+		s := ReturnStmt{ReturnPos: n.Pos()}
 		for _, r := range n.Results {
 			b.Visit(r)
 			e := b.pop()
@@ -575,6 +575,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			b.Visit(n.Results)
 			e := b.pop()
 			f := e.(FieldList)
+			f.ensureNamedFields("result")
 			s.Results = &f
 		}
 		b.push(s)

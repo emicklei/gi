@@ -29,8 +29,17 @@ func main() {
 }`, "2323")
 }
 
+func TestUnnamedReturn(t *testing.T) {
+	testMain(t, `package main
+		
+func f() int { return 1 }
+func main(){
+	g := func() int { return 2 }
+	print(f(),g())
+}`, "12")
+}
+
 func TestNamedReturn(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 		
 func f() (result int) {
@@ -38,12 +47,12 @@ func f() (result int) {
 	return
 }
 func main(){
-	print(f())
-}`, "1")
+	g := func() (result int) { result = 2 ; return  }
+	print(f(),g())
+}`, "12")
 }
 
 func TestNamedEllipsisReturn(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 		
 func f() (result1, result2 int) {

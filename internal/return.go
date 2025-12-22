@@ -2,21 +2,15 @@ package internal
 
 import (
 	"fmt"
-	"go/ast"
+	"go/token"
 	"reflect"
 )
 
 var _ Stmt = ReturnStmt{}
 
 type ReturnStmt struct {
-	*ast.ReturnStmt
-	Results []Expr
-}
-
-func (r ReturnStmt) stmtStep() Evaluable { return r }
-
-func (r ReturnStmt) String() string {
-	return fmt.Sprintf("return(len=%d)", len(r.Results))
+	ReturnPos token.Pos
+	Results   []Expr
 }
 
 func (r ReturnStmt) Eval(vm *VM) {
@@ -28,25 +22,19 @@ func (r ReturnStmt) Eval(vm *VM) {
 		val := vm.popOperand()
 		results[i] = val
 	}
-	// bind result valutes to named results of the function if any
-	fd, ok := vm.currentFrame.creator.(*FuncDecl)
-	// TODO has to work for FuncLit as well
+	// bind result values to named results of the function if any
+	fd, ok := vm.currentFrame.creator.(Func)
 	if ok {
-		ri := 0
-		for _, fields := range fd.Type.Results.List {
+		i := 0
+		for _, fields := range fd.Results().List {
 			for _, name := range fields.Names {
-				if name.Name != "_" {
-					vm.localEnv().set(name.Name, results[ri])
-				}
-				ri++
+				vm.localEnv().set(name.Name, results[i])
+				i++
 			}
 		}
+	} else {
+		vm.fatal("creator not set")
 	}
-
-	// set return values for the top frame
-	// TODO the CallExpr must put it on the stack instead
-	// because of defer statements
-	vm.currentFrame.returnValues = results
 }
 
 func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {
@@ -69,4 +57,14 @@ func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {
 	// no next step after return
 	g.current = nil
 	return
+}
+
+func (r ReturnStmt) Pos() token.Pos {
+	return r.ReturnPos
+}
+
+func (r ReturnStmt) stmtStep() Evaluable { return r }
+
+func (r ReturnStmt) String() string {
+	return fmt.Sprintf("return(len=%d)", len(r.Results))
 }

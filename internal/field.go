@@ -24,6 +24,14 @@ type FieldList struct {
 	List       []*Field
 }
 
+func (l FieldList) ensureNamedFields(meaning string) {
+	for i, field := range l.List {
+		if len(field.Names) == 0 {
+			field.Names = []*Ident{{NamePos: l.Pos(), Name: internalVarName(meaning, i)}}
+		}
+	}
+}
+
 func (l FieldList) Pos() token.Pos { return l.OpeningPos }
 
 func (l FieldList) String() string {

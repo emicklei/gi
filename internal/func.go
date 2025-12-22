@@ -49,6 +49,9 @@ func (f *FuncDecl) PutGotoReference(label string, ref statementReference) {
 func (f *FuncDecl) GotoReference(label string) statementReference {
 	return f.labelToStmt[label]
 }
+func (f *FuncDecl) Results() *FieldList {
+	return f.Type.Results
+}
 
 func (f FuncDecl) Pos() token.Pos { return f.Type.Pos() }
 
@@ -148,6 +151,9 @@ func (f *FuncLit) PutGotoReference(label string, ref statementReference) {
 }
 func (f *FuncLit) GotoReference(label string) statementReference {
 	return f.labelToStmt[label]
+}
+func (f *FuncLit) Results() *FieldList {
+	return f.Type.Results
 }
 func (f *FuncLit) String() string {
 	return fmt.Sprintf("FuncLit(%v,%v)", f.Type, f.Body)

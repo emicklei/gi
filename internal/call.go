@@ -205,7 +205,15 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	}
 
 	// take values before popping frame
-	vals := frame.returnValues
+	vals := []reflect.Value{} // todo size it
+	if fl.Type.Results != nil {
+		for _, field := range fl.Results().List {
+			for _, name := range field.Names {
+				val := frame.env.valueLookUp(name.Name)
+				vals = append(vals, val)
+			}
+		}
+	}
 	vm.popFrame()
 	pushCallResults(vm, vals)
 }
@@ -321,7 +329,16 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	frame.takeDeferList(vm)
 
 	// take values before popping frame
-	vals := frame.returnValues
+	vals := []reflect.Value{} // todo size it
+	if fd.Type.Results != nil {
+		for _, field := range fd.Results().List {
+			for _, name := range field.Names {
+				val := frame.env.valueLookUp(name.Name)
+				vals = append(vals, val)
+			}
+		}
+	}
+
 	vm.popFrame()
 	pushCallResults(vm, vals)
 }

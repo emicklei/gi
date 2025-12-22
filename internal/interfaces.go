@@ -97,4 +97,5 @@ type Func interface {
 	HasRecoverCall() bool
 	PutGotoReference(label string, ref statementReference)
 	GotoReference(label string) statementReference
+	Results() *FieldList
 }
