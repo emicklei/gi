@@ -284,13 +284,9 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	vals := []any{}
 	results := fun.Interface().(Func).Results()
 	if results != nil {
-		for _, field := range results.List {
-			if field.Names != nil {
-				for _, name := range field.Names {
-					val := top.env.valueLookUp(name.Name)
-					vals = append(vals, val.Interface())
-				}
-			}
+		for range len(results.List) {
+			val := top.pop()
+			vals = append(vals, val.Interface())
 		}
 	}
 	return vals, nil
