@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"maps"
 	"os"
 	"reflect"
 	"sync"
@@ -192,12 +191,4 @@ func (e *Environment) rootPackageEnv() *PkgEnvironment {
 
 func (e *Environment) markSharedReferenced() {
 	e.hasHeapPointer = true
-}
-
-// clone creates new environment sharing the parent and cloning the value table.
-func (e *Environment) clone() *Environment {
-	return &Environment{
-		parent:     e.parent,
-		valueTable: maps.Clone(e.valueTable),
-	}
 }

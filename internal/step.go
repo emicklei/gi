@@ -232,20 +232,3 @@ func (p *popOperandStep) String() string {
 func (p *popOperandStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	return g.Node(strconv.Itoa(p.ID())).Label(p.String())
 }
-
-func findStepWithEvaluable(s Step, e Evaluable) Step {
-	here := s
-	for here != nil {
-		es, ok := here.(*evaluableStep)
-		if !ok {
-			here = here.Next()
-			continue
-		}
-		if e.Pos() == es.Evaluable.Pos() { // reliable?
-			console(here)
-			return here
-		}
-		here = here.Next()
-	}
-	return nil
-}

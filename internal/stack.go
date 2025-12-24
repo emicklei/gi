@@ -7,11 +7,6 @@ func (s *stack[T]) push(f T) {
 }
 
 // pre: stack not empty
-func (s *stack[T]) replaceTop(t T) {
-	(*s)[len(*s)-1] = t
-}
-
-// pre: stack not empty
 func (s *stack[T]) pop() T {
 	f := (*s)[len(*s)-1]
 	*s = (*s)[:len(*s)-1]
