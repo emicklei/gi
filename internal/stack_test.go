@@ -17,6 +17,10 @@ func TestStack(t *testing.T) {
 	if got, want := s.underTop(), "a"; got != want {
 		t.Errorf("got [%v] want [%v]", got, want)
 	}
+	if got, want := s.pop(), "b"; got != want {
+		t.Errorf("got [%v] want [%v]", got, want)
+	}
+	s.push("c")
 	if got, want := s.top(), "c"; got != want {
 		t.Errorf("got [%v] want [%v]", got, want)
 	}
