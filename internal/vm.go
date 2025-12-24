@@ -24,10 +24,10 @@ var framePool = sync.Pool{
 
 // stackFrame represents a single frame in the VM's function call stack.
 type stackFrame struct {
-	creator   Evaluable // typically a FuncDecl or FuncLit
-	env       Env       // current environment with name->value mapping
-	operands  []reflect.Value
-	deferList []funcInvocation
+	creator  Func // typically a *FuncDecl or *FuncLit
+	env      Env  // current environment with name->value mapping
+	operands []reflect.Value
+	defers   []funcInvocation
 }
 
 // push adds a value onto the operand stack.
@@ -60,11 +60,9 @@ func (f *stackFrame) popEnv() {
 }
 
 func (f *stackFrame) takeDeferList(vm *VM) {
-	for i := len(f.deferList) - 1; i >= 0; i-- {
-		invocation := f.deferList[i]
-		// TODO
-		// f.env = invocation.env
-		// push all argumentValues as operands on the stack
+	for i := len(f.defers) - 1; i >= 0; i-- {
+		invocation := f.defers[i]
+		// push all argument values as operands on the stack
 		// make sure first value is on top of the operand stack
 		for i := len(invocation.arguments) - 1; i >= 0; i-- {
 			vm.pushOperand(invocation.arguments[i])
@@ -217,12 +215,12 @@ func (vm *VM) popOperand() reflect.Value {
 	return val
 }
 
-func (vm *VM) pushNewFrame(e Evaluable) { // typically a *FuncDecl or *FuncLit
+func (vm *VM) pushNewFrame(f Func) {
 	if trace {
-		fmt.Println("vm.pushNewFrame:", e)
+		fmt.Println("vm.pushNewFrame:", f)
 	}
 	frame := framePool.Get().(*stackFrame)
-	frame.creator = e
+	frame.creator = f
 	env := envPool.Get().(*Environment)
 	env.parent = vm.localEnv()
 	frame.env = env
@@ -254,7 +252,7 @@ func (vm *VM) popFrame() {
 	frame.operands = frame.operands[:0]
 	frame.env = nil
 	frame.creator = nil
-	frame.deferList = frame.deferList[:0]
+	frame.defers = frame.defers[:0]
 	framePool.Put(frame)
 }
 

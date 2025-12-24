@@ -158,7 +158,7 @@ func (d DeferStmt) Eval(vm *VM) {
 		env:       env,
 		arguments: vals,
 	}
-	frame.deferList = append(frame.deferList, invocation)
+	frame.defers = append(frame.defers, invocation)
 }
 
 func (d DeferStmt) Flow(g *graphBuilder) (head Step) {

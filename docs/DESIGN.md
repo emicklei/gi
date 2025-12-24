@@ -114,3 +114,25 @@ The first step is the head of the chain.
 
 - https://github.com/dbaumgarten/yodk/blob/v0.1.13/pkg/debug/handler.go#L23
 - https://github.com/xhd2015/dlv-mcp
+
+## structure building phases
+
+- parsing Go source
+- building mirror AST
+- building flow graphs
+
+## environment
+
+Environment is to hold values with a scoped name.
+Environments can be part of a hierarchical structure; the root environment is typically a `PackageEnvironment`. Through the current StackFrame, values are looked up using its environment.
+
+## defer
+Both function declarations and function literals must handle deferred statements. Because the call of such a statement must capture any function arguments before executing it, a `funcInvocation` is created and added to the list of `defers` field in `*FuncDecl` or `*FuncLit` at ASRT building time.
+
+```lang:go
+type funcInvocation struct {
+	flow      Step
+	env       Env
+	arguments []reflect.Value
+}
+```
