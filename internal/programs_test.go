@@ -570,3 +570,19 @@ func main() {
 	fmt.Printf("Count: %d\n", i)
 }`, "")
 }
+
+// https://stackoverflow.com/questions/67601236/run-tests-programmatically-in-go
+func TestTest(t *testing.T) {
+	testMain(t, `package main
+import "testing"
+
+func TestSomething(t *testing.T) {
+	t.Log("This is a test")
+	print("test ran")
+}
+func main() {
+	t := new(testing.T)
+	TestSomething(t)
+}
+`, "test ran")
+}

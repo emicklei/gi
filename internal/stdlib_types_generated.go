@@ -86,12 +86,14 @@ import (
 	i111 "strings"
 	i112 "sync"
 	i113 "sync/atomic"
-	i114 "text/scanner"
-	i115 "text/tabwriter"
-	i116 "text/template"
-	i117 "text/template/parse"
-	i118 "time"
-	i119 "unicode"
+	i114 "testing"
+	i116 "testing/quick"
+	i119 "text/scanner"
+	i120 "text/tabwriter"
+	i121 "text/template"
+	i122 "text/template/parse"
+	i123 "time"
+	i124 "unicode"
 )
 
 // stdtypes maps package paths to their exported types as reflect.Value not reflect.Type
@@ -677,59 +679,79 @@ func init() {
 		"Uintptr": makeReflect[i113.Uintptr](),
 		"Value": makeReflect[i113.Value](),
 	}
+	stdtypes["testing"] = map[string]reflect.Value{
+		"B": makeReflect[i114.B](),
+		"BenchmarkResult": makeReflect[i114.BenchmarkResult](),
+		"Cover": makeReflect[i114.Cover](),
+		"CoverBlock": makeReflect[i114.CoverBlock](),
+		"F": makeReflect[i114.F](),
+		"InternalBenchmark": makeReflect[i114.InternalBenchmark](),
+		"InternalExample": makeReflect[i114.InternalExample](),
+		"InternalFuzzTarget": makeReflect[i114.InternalFuzzTarget](),
+		"InternalTest": makeReflect[i114.InternalTest](),
+		"M": makeReflect[i114.M](),
+		"PB": makeReflect[i114.PB](),
+		"T": makeReflect[i114.T](),
+	}
+	stdtypes["testing/quick"] = map[string]reflect.Value{
+		"CheckEqualError": makeReflect[i116.CheckEqualError](),
+		"CheckError": makeReflect[i116.CheckError](),
+		"Config": makeReflect[i116.Config](),
+		"SetupError": makeReflect[i116.SetupError](),
+	}
 	stdtypes["text/scanner"] = map[string]reflect.Value{
-		"Position": makeReflect[i114.Position](),
-		"Scanner": makeReflect[i114.Scanner](),
+		"Position": makeReflect[i119.Position](),
+		"Scanner": makeReflect[i119.Scanner](),
 	}
 	stdtypes["text/tabwriter"] = map[string]reflect.Value{
-		"Writer": makeReflect[i115.Writer](),
+		"Writer": makeReflect[i120.Writer](),
 	}
 	stdtypes["text/template"] = map[string]reflect.Value{
-		"ExecError": makeReflect[i116.ExecError](),
-		"Template": makeReflect[i116.Template](),
+		"ExecError": makeReflect[i121.ExecError](),
+		"Template": makeReflect[i121.Template](),
 	}
 	stdtypes["text/template/parse"] = map[string]reflect.Value{
-		"ActionNode": makeReflect[i117.ActionNode](),
-		"BoolNode": makeReflect[i117.BoolNode](),
-		"BranchNode": makeReflect[i117.BranchNode](),
-		"BreakNode": makeReflect[i117.BreakNode](),
-		"ChainNode": makeReflect[i117.ChainNode](),
-		"CommandNode": makeReflect[i117.CommandNode](),
-		"CommentNode": makeReflect[i117.CommentNode](),
-		"ContinueNode": makeReflect[i117.ContinueNode](),
-		"DotNode": makeReflect[i117.DotNode](),
-		"FieldNode": makeReflect[i117.FieldNode](),
-		"IdentifierNode": makeReflect[i117.IdentifierNode](),
-		"IfNode": makeReflect[i117.IfNode](),
-		"ListNode": makeReflect[i117.ListNode](),
-		"Mode": makeReflect[i117.Mode](),
-		"NilNode": makeReflect[i117.NilNode](),
-		"NodeType": makeReflect[i117.NodeType](),
-		"NumberNode": makeReflect[i117.NumberNode](),
-		"PipeNode": makeReflect[i117.PipeNode](),
-		"Pos": makeReflect[i117.Pos](),
-		"RangeNode": makeReflect[i117.RangeNode](),
-		"StringNode": makeReflect[i117.StringNode](),
-		"TemplateNode": makeReflect[i117.TemplateNode](),
-		"TextNode": makeReflect[i117.TextNode](),
-		"Tree": makeReflect[i117.Tree](),
-		"VariableNode": makeReflect[i117.VariableNode](),
-		"WithNode": makeReflect[i117.WithNode](),
+		"ActionNode": makeReflect[i122.ActionNode](),
+		"BoolNode": makeReflect[i122.BoolNode](),
+		"BranchNode": makeReflect[i122.BranchNode](),
+		"BreakNode": makeReflect[i122.BreakNode](),
+		"ChainNode": makeReflect[i122.ChainNode](),
+		"CommandNode": makeReflect[i122.CommandNode](),
+		"CommentNode": makeReflect[i122.CommentNode](),
+		"ContinueNode": makeReflect[i122.ContinueNode](),
+		"DotNode": makeReflect[i122.DotNode](),
+		"FieldNode": makeReflect[i122.FieldNode](),
+		"IdentifierNode": makeReflect[i122.IdentifierNode](),
+		"IfNode": makeReflect[i122.IfNode](),
+		"ListNode": makeReflect[i122.ListNode](),
+		"Mode": makeReflect[i122.Mode](),
+		"NilNode": makeReflect[i122.NilNode](),
+		"NodeType": makeReflect[i122.NodeType](),
+		"NumberNode": makeReflect[i122.NumberNode](),
+		"PipeNode": makeReflect[i122.PipeNode](),
+		"Pos": makeReflect[i122.Pos](),
+		"RangeNode": makeReflect[i122.RangeNode](),
+		"StringNode": makeReflect[i122.StringNode](),
+		"TemplateNode": makeReflect[i122.TemplateNode](),
+		"TextNode": makeReflect[i122.TextNode](),
+		"Tree": makeReflect[i122.Tree](),
+		"VariableNode": makeReflect[i122.VariableNode](),
+		"WithNode": makeReflect[i122.WithNode](),
 	}
 	stdtypes["time"] = map[string]reflect.Value{
-		"Duration": makeReflect[i118.Duration](),
-		"Location": makeReflect[i118.Location](),
-		"Month": makeReflect[i118.Month](),
-		"ParseError": makeReflect[i118.ParseError](),
-		"Ticker": makeReflect[i118.Ticker](),
-		"Time": makeReflect[i118.Time](),
-		"Timer": makeReflect[i118.Timer](),
-		"Weekday": makeReflect[i118.Weekday](),
+		"Duration": makeReflect[i123.Duration](),
+		"Location": makeReflect[i123.Location](),
+		"Month": makeReflect[i123.Month](),
+		"ParseError": makeReflect[i123.ParseError](),
+		"Ticker": makeReflect[i123.Ticker](),
+		"Time": makeReflect[i123.Time](),
+		"Timer": makeReflect[i123.Timer](),
+		"Weekday": makeReflect[i123.Weekday](),
 	}
 	stdtypes["unicode"] = map[string]reflect.Value{
-		"CaseRange": makeReflect[i119.CaseRange](),
-		"Range16": makeReflect[i119.Range16](),
-		"Range32": makeReflect[i119.Range32](),
-		"RangeTable": makeReflect[i119.RangeTable](),
+		"CaseRange": makeReflect[i124.CaseRange](),
+		"Range16": makeReflect[i124.Range16](),
+		"Range32": makeReflect[i124.Range32](),
+		"RangeTable": makeReflect[i124.RangeTable](),
 	}
 }

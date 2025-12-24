@@ -19,7 +19,6 @@ var excludedPackages = []string{
 	"debug",
 	"reflect",
 	"runtime",
-	"testing",
 	"go",
 	"syscall",
 }
