@@ -6,88 +6,28 @@ import "reflect"
 var builtinTypesMap = map[string]reflect.Type{}
 
 func init() {
-	{
-		var v bool
-		builtinTypesMap["bool"] = reflect.TypeOf(v)
-	}
-	{
-		var v any
-		builtinTypesMap["any"] = reflect.TypeOf(&v).Elem()
-	}
-	{
-		var v byte
-		builtinTypesMap["byte"] = reflect.TypeOf(v)
-	}
-	{
-		var v complex128
-		builtinTypesMap["complex128"] = reflect.TypeOf(v)
-	}
-	{
-		var v complex64
-		builtinTypesMap["complex64"] = reflect.TypeOf(v)
-	}
-	{
-		var v error
-		builtinTypesMap["error"] = reflect.TypeOf(&v).Elem()
-	}
-	{
-		var v float32
-		builtinTypesMap["float32"] = reflect.TypeOf(v)
-	}
-	{
-		var v float64
-		builtinTypesMap["float64"] = reflect.TypeOf(v)
-	}
-	{
-		var v int
-		builtinTypesMap["int"] = reflect.TypeOf(v)
-	}
-	{
-		var v int8
-		builtinTypesMap["int8"] = reflect.TypeOf(v)
-	}
-	{
-		var v int16
-		builtinTypesMap["int16"] = reflect.TypeOf(v)
-	}
-	{
-		var v int32
-		builtinTypesMap["int32"] = reflect.TypeOf(v)
-	}
-	{
-		var v int64
-		builtinTypesMap["int64"] = reflect.TypeOf(v)
-	}
-	{
-		var v rune
-		builtinTypesMap["rune"] = reflect.TypeOf(v)
-	}
-	{
-		var v string
-		builtinTypesMap["string"] = reflect.TypeOf(v)
-	}
-	{
-		var v uint
-		builtinTypesMap["uint"] = reflect.TypeOf(v)
-	}
-	{
-		var v uint8
-		builtinTypesMap["uint8"] = reflect.TypeOf(v)
-	}
-	{
-		var v uint16
-		builtinTypesMap["uint16"] = reflect.TypeOf(v)
-	}
-	{
-		var v uint32
-		builtinTypesMap["uint32"] = reflect.TypeOf(v)
-	}
-	{
-		var v uint64
-		builtinTypesMap["uint64"] = reflect.TypeOf(v)
-	}
-	{
-		var v uintptr
-		builtinTypesMap["uintptr"] = reflect.TypeOf(v)
-	}
+	builtinTypesMap["bool"] = reflect.TypeFor[bool]()
+	builtinTypesMap["byte"] = reflect.TypeFor[byte]()
+	builtinTypesMap["complex128"] = reflect.TypeFor[complex128]()
+	builtinTypesMap["complex64"] = reflect.TypeFor[complex64]()
+	builtinTypesMap["float32"] = reflect.TypeFor[float32]()
+	builtinTypesMap["float64"] = reflect.TypeFor[float64]()
+	builtinTypesMap["int"] = reflect.TypeFor[int]()
+	builtinTypesMap["int8"] = reflect.TypeFor[int8]()
+	builtinTypesMap["int16"] = reflect.TypeFor[int16]()
+	builtinTypesMap["int32"] = reflect.TypeFor[int32]()
+	builtinTypesMap["int64"] = reflect.TypeFor[int64]()
+	builtinTypesMap["rune"] = reflect.TypeFor[rune]()
+	builtinTypesMap["string"] = reflect.TypeFor[string]()
+	builtinTypesMap["uint"] = reflect.TypeFor[uint]()
+	builtinTypesMap["uint8"] = reflect.TypeFor[uint8]()
+	builtinTypesMap["uint16"] = reflect.TypeFor[uint16]()
+	builtinTypesMap["uint32"] = reflect.TypeFor[uint32]()
+	builtinTypesMap["uint64"] = reflect.TypeFor[uint64]()
+	builtinTypesMap["uintptr"] = reflect.TypeFor[uintptr]()
+
+	var v any
+	builtinTypesMap["any"] = reflect.TypeOf(&v).Elem()
+	var e error
+	builtinTypesMap["error"] = reflect.TypeOf(&e).Elem()
 }

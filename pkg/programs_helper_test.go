@@ -38,9 +38,9 @@ func collectPrintOutput(vm *VM) {
 					io.WriteString(vm.output, s)
 					continue
 				} else if a == undeclaredNil {
-					fmt.Fprintf(vm.output, "<nil>")
+					fmt.Fprintf(vm.output, "(0x0,0x0)")
 				} else if a == untypedNil {
-					fmt.Fprintf(vm.output, "<nil>")
+					fmt.Fprintf(vm.output, "(0x0,0x0)")
 				} else {
 					fmt.Fprintf(vm.output, "%v", a)
 				}
@@ -70,7 +70,7 @@ func parseAndWalk(t *testing.T, source string) string {
 		exec.Command("dot", "-Tsvg", "-o", gidot+".svg", gidot).Run()
 
 		// create ast dump for debugging
-		pkg.writeAST(fmt.Sprintf("testgraphs/%s.ast", t.Name()))
+		pkg.writeAST(fmt.Sprintf("internal/testgraphs/%s.ast", t.Name()))
 	}
 	if _, err := CallPackageFunction(pkg, "main", nil, vm); err != nil {
 		t.Fatal(err)

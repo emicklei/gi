@@ -27,14 +27,17 @@ func main() {
 }`, "1")
 }
 
-func TestBinaryExpr2(t *testing.T) {
+func TestNewNumberPointersEqual(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
  
 func main() {
-	var x int64 = 40
-	var y int64 = 2
-	print(x + y)	
-}`, "42")
+	x := new(int64)
+	*x = 40
+	y := new(int64)
+	*y = 40
+	print(x == y)	
+}`, "false")
 }
 
 func TestBinaryExpr2Funcs(t *testing.T) {

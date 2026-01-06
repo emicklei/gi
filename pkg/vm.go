@@ -98,12 +98,13 @@ type VM struct {
 var panicOnce sync.Once
 
 func NewVM(env Env) *VM {
-	// TODO not sure when/if useful outside treerunner
+	// TODO remove
 	if os.Getenv("GI_IGNORE_EXIT") != "" {
 		stdfuncs["os"]["Exit"] = reflect.ValueOf(func(code int) {
 			fmt.Fprintf(os.Stderr, "[gi] os.Exit called with code %d\n", code)
 		})
 	}
+	// TODO remove
 	if os.Getenv("GI_IGNORE_PANIC") != "" {
 		builtinsMap["panic"] = reflect.ValueOf(func(why any) {
 			fmt.Fprintf(os.Stderr, "[gi] panic called with %v\n", why)
@@ -118,7 +119,7 @@ func NewVM(env Env) *VM {
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
 
-	// TODO
+	// TODO remove
 	if os.Getenv("GI_IGNORE_PANIC") != "" {
 		panicOnce.Do(func() {
 			builtinsMap["panic"] = reflect.ValueOf(vm.fatal)
@@ -126,6 +127,18 @@ func NewVM(env Env) *VM {
 	}
 
 	return vm
+}
+
+// OnPanic sets the function to be called when panic is invoked in the interpreted code.
+// The mapped panic is not called.
+func OnPanic(f func(any)) {
+	builtinsMap["panic"] = reflect.ValueOf(f)
+}
+
+// OnOsExit sets the function to be called when os.Exit is invoked in the interpreted code.
+// The mapped os.Exit is not called.
+func OnOsExit(f func(int)) {
+	stdfuncs["os"]["Exit"] = reflect.ValueOf(f)
 }
 
 func (vm *VM) setFileSet(fs *token.FileSet) {

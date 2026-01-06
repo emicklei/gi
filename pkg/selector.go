@@ -38,7 +38,7 @@ func (s SelectorExpr) Assign(vm *VM, val reflect.Value) {
 		}
 		// TODO missing case?
 
-		vm.fatal(fmt.Sprintf("cannot assign to field %s for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
+		vm.fatal(fmt.Sprintf("cannot assign to field %v for receiver: %v (%T)", s, recv.Interface(), recv.Interface()))
 		return
 	}
 	recv := vm.returnsEval(s.X)

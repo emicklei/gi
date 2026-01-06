@@ -9,11 +9,14 @@ import (
 var _ Flowable = BinaryExpr{}
 var _ Expr = BinaryExpr{}
 
+type BinaryExprFunc func(x, y reflect.Value) reflect.Value
+
 type BinaryExpr struct {
-	OpPos token.Pos   // position of Op
-	Op    token.Token // operator
-	X     Expr        // left
-	Y     Expr        // right
+	OpPos      token.Pos      // position of Op
+	Op         token.Token    // operator
+	X          Expr           // left
+	Y          Expr           // right
+	binaryFunc BinaryExprFunc // only set for known (types,operator) combinations
 }
 
 func (b BinaryExpr) Eval(vm *VM) {
@@ -32,12 +35,17 @@ func (b BinaryExpr) Eval(vm *VM) {
 		vm.pushOperand(left)
 		return
 	}
-	v := BinaryExprValue{
+	// if set then use the precompiled function
+	if b.binaryFunc != nil {
+		vm.pushOperand(b.binaryFunc(left, right))
+		return
+	}
+	v := binaryExprValue{
 		left:  left,
 		op:    b.Op,
 		right: right,
 	}
-	vm.pushOperand(v.Eval())
+	vm.pushOperand(v.eval())
 }
 
 func (b BinaryExpr) Flow(g *graphBuilder) (head Step) {
@@ -55,13 +63,13 @@ func (b BinaryExpr) Pos() token.Pos {
 	return b.OpPos
 }
 
-type BinaryExprValue struct {
+type binaryExprValue struct {
 	left  reflect.Value
 	op    token.Token
 	right reflect.Value
 }
 
-func (b BinaryExprValue) Eval() reflect.Value {
+func (b binaryExprValue) eval() reflect.Value {
 	switch b.left.Kind() {
 	case reflect.Int:
 		res := b.IntEval(b.left.Int())
@@ -142,7 +150,7 @@ func (b BinaryExprValue) Eval() reflect.Value {
 	panic("not implemented: BinaryExprValue.Eval:" + b.left.Kind().String())
 }
 
-func (b BinaryExprValue) UntypedNilEval(left reflect.Value) reflect.Value {
+func (b binaryExprValue) UntypedNilEval(left reflect.Value) reflect.Value {
 	// duplicated code from InterfaceEval
 	// left is a struct
 	rightIsNil := b.right == reflectNil || b.right.IsNil()
@@ -168,7 +176,7 @@ func (b BinaryExprValue) UntypedNilEval(left reflect.Value) reflect.Value {
 	}
 }
 
-func (b BinaryExprValue) InterfaceEval(left reflect.Value) reflect.Value {
+func (b binaryExprValue) InterfaceEval(left reflect.Value) reflect.Value {
 	leftIsNil := left == reflectNil || left.IsNil()
 	rightIsNil := b.right == reflectNil || b.right.IsNil()
 	switch b.op {
@@ -189,7 +197,7 @@ func (b BinaryExprValue) InterfaceEval(left reflect.Value) reflect.Value {
 	panic("not implemented: BinaryExprValue.InterfaceEval:" + b.right.Kind().String())
 }
 
-func (b BinaryExprValue) PointerEval(left reflect.Value) reflect.Value {
+func (b binaryExprValue) PointerEval(left reflect.Value) reflect.Value {
 	switch b.op {
 	case token.EQL:
 		if left.Interface() == untypedNil && b.right.Interface() == untypedNil {
@@ -212,7 +220,7 @@ func (b BinaryExprValue) PointerEval(left reflect.Value) reflect.Value {
 	panic("not implemented: BinaryExprValue.PointerEval:" + b.right.Kind().String())
 }
 
-func (b BinaryExprValue) BoolEval(left bool) reflect.Value {
+func (b binaryExprValue) BoolEval(left bool) reflect.Value {
 	switch b.op {
 	case token.LAND:
 		return reflect.ValueOf(left && b.right.Bool())
@@ -226,7 +234,7 @@ func (b BinaryExprValue) BoolEval(left bool) reflect.Value {
 	panic("not implemented: BinaryExprValue.BoolEval:" + b.right.Kind().String())
 }
 
-func (b BinaryExprValue) StringEval(left string) reflect.Value {
+func (b binaryExprValue) StringEval(left string) reflect.Value {
 	switch b.op {
 	case token.ADD:
 		return reflect.ValueOf(left + b.right.String())
@@ -246,7 +254,7 @@ func (b BinaryExprValue) StringEval(left string) reflect.Value {
 	panic("not implemented: BinaryExprValue.StringEval:" + b.right.Kind().String())
 }
 
-func (b BinaryExprValue) IntEval(left int64) reflect.Value {
+func (b binaryExprValue) IntEval(left int64) reflect.Value {
 	switch b.right.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return b.IntOpInt(left, b.right.Int())
@@ -258,7 +266,7 @@ func (b BinaryExprValue) IntEval(left int64) reflect.Value {
 	panic("not implemented: BinaryExprValue.IntEval:" + b.right.Kind().String())
 }
 
-func (b BinaryExprValue) UIntEval(left uint64) reflect.Value {
+func (b binaryExprValue) UIntEval(left uint64) reflect.Value {
 	switch b.right.Kind() {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return b.UIntOpUInt(left, b.right.Uint())
@@ -266,7 +274,7 @@ func (b BinaryExprValue) UIntEval(left uint64) reflect.Value {
 	panic("not implemented: BinaryExprValue.UIntEval:" + b.right.Kind().String())
 }
 
-func (b BinaryExprValue) FloatEval(left float64) reflect.Value {
+func (b binaryExprValue) FloatEval(left float64) reflect.Value {
 	switch b.right.Kind() {
 	case reflect.Float32, reflect.Float64:
 		return b.FloatOpFloat(left, b.right.Float())
@@ -276,7 +284,7 @@ func (b BinaryExprValue) FloatEval(left float64) reflect.Value {
 	panic("not implemented: BinaryExprValue.FloatEval:" + b.right.Kind().String())
 }
 
-func (b BinaryExprValue) FloatOpFloat(left float64, right float64) reflect.Value {
+func (b binaryExprValue) FloatOpFloat(left float64, right float64) reflect.Value {
 	switch b.op {
 	case token.ADD:
 		return reflect.ValueOf(left + right)
@@ -302,7 +310,7 @@ func (b BinaryExprValue) FloatOpFloat(left float64, right float64) reflect.Value
 	panic("not implemented: BinaryExprValue.FloatOpFloat:" + b.op.String())
 }
 
-func (b BinaryExprValue) ComplexOpComplex(left, right complex128) reflect.Value {
+func (b binaryExprValue) ComplexOpComplex(left, right complex128) reflect.Value {
 	switch b.op {
 	case token.ADD:
 		return reflect.ValueOf(left + right)
@@ -310,7 +318,7 @@ func (b BinaryExprValue) ComplexOpComplex(left, right complex128) reflect.Value 
 	panic("not implemented: BinaryExprValue.ComplexOpComplex:" + b.op.String())
 }
 
-func (b BinaryExprValue) IntOpInt(left int64, right int64) reflect.Value {
+func (b binaryExprValue) IntOpInt(left int64, right int64) reflect.Value {
 	switch b.op {
 	case token.ADD:
 		return reflect.ValueOf(left + right)
@@ -352,7 +360,7 @@ func (b BinaryExprValue) IntOpInt(left int64, right int64) reflect.Value {
 	panic("not implemented: BinaryExprValue.IntOpInt:" + b.op.String())
 }
 
-func (b BinaryExprValue) UIntOpUInt(left uint64, right uint64) reflect.Value {
+func (b binaryExprValue) UIntOpUInt(left uint64, right uint64) reflect.Value {
 	switch b.op {
 	case token.ADD:
 		return reflect.ValueOf(left + right)

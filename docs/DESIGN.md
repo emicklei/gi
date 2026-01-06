@@ -137,3 +137,11 @@ type funcInvocation struct {
 	arguments []reflect.Value
 }
 ```
+
+## not all idents are the same
+
+- new(int)
+- int(0)
+- var i int
+- case int: 
+- j := i.(int)

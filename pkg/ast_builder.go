@@ -422,6 +422,15 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.BasicLit:
 		b.push(newBasicLit(n.ValuePos, basicLitValue(n)))
 	case *ast.BinaryExpr:
+		s := BinaryExpr{OpPos: n.OpPos, Op: n.Op}
+		b.Visit(n.X)
+		e := b.pop()
+		s.X = e.(Expr)
+		b.Visit(n.Y)
+		e = b.pop()
+		s.Y = e.(Expr)
+
+		// check type and operator combination for immediate function evaluation
 		xt, yt := b.goPkg.TypesInfo.TypeOf(n.X), b.goPkg.TypesInfo.TypeOf(n.Y)
 		xs, ys := xt.Underlying().String(), yt.Underlying().String()
 		binFuncKey := fmt.Sprintf("%s%d%s", xs, n.Op, ys)
@@ -434,30 +443,8 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			binFunc, ok = binFuncs[binFuncKey]
 		}
 		if ok {
-			s := BinaryExpr2{}
 			s.binaryFunc = binFunc
-			s.OpPos = n.OpPos
-			s.Op = n.Op
-			b.Visit(n.X)
-			e := b.pop()
-			s.X = e.(Expr)
-			b.Visit(n.Y)
-			e = b.pop()
-			s.Y = e.(Expr)
-			b.push(s)
-			break
 		}
-		if trace {
-			fmt.Fprintf(os.Stderr, "no binFunc for key=%s\n", binFuncKey)
-		}
-
-		s := BinaryExpr{OpPos: n.OpPos, Op: n.Op}
-		b.Visit(n.X)
-		e := b.pop()
-		s.X = e.(Expr)
-		b.Visit(n.Y)
-		e = b.pop()
-		s.Y = e.(Expr)
 		b.push(s)
 	case *ast.CallExpr:
 		s := CallExpr{Lparen: n.Lparen}

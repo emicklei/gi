@@ -128,7 +128,7 @@ func (p *Package) writeAST(fileName string) {
 	}()
 	buf := new(bytes.Buffer)
 	spew.Config.DisableMethods = true
-	spew.Config.MaxDepth = 6 // TODO see if this is enough
+	spew.Config.MaxDepth = 7 // TODO see if this is enough
 	done := make(chan struct{})
 	go func() {
 		// only dump the actual values of each var/function in the environment

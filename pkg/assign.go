@@ -50,47 +50,47 @@ func (a AssignStmt) apply(each Expr, vm *VM, v reflect.Value) {
 		target.Assign(vm, v)
 	case token.ADD_ASSIGN: // +=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.ADD, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.ADD, right: v}.eval()
 		target.Assign(vm, result)
 	case token.SUB_ASSIGN: // -=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.SUB, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.SUB, right: v}.eval()
 		target.Assign(vm, result)
 	case token.MUL_ASSIGN: // *=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.MUL, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.MUL, right: v}.eval()
 		target.Assign(vm, result)
 	case token.QUO_ASSIGN: // /=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.QUO, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.QUO, right: v}.eval()
 		target.Assign(vm, result)
 	case token.REM_ASSIGN: // %=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.REM, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.REM, right: v}.eval()
 		target.Assign(vm, result)
 	case token.AND_ASSIGN: // &=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.AND, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.AND, right: v}.eval()
 		target.Assign(vm, result)
 	case token.OR_ASSIGN: // |=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.OR, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.OR, right: v}.eval()
 		target.Assign(vm, result)
 	case token.XOR_ASSIGN: // ^=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.XOR, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.XOR, right: v}.eval()
 		target.Assign(vm, result)
 	case token.SHL_ASSIGN: // <<=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.SHL, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.SHL, right: v}.eval()
 		target.Assign(vm, result)
 	case token.SHR_ASSIGN: // >>=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.SHR, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.SHR, right: v}.eval()
 		target.Assign(vm, result)
 	case token.AND_NOT_ASSIGN: // &^=
 		current := vm.returnsEval(each)
-		result := BinaryExprValue{left: current, op: token.AND_NOT, right: v}.Eval()
+		result := binaryExprValue{left: current, op: token.AND_NOT, right: v}.eval()
 		target.Assign(vm, result)
 	default:
 		panic("unsupported assignment " + a.Tok.String())

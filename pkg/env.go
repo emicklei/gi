@@ -152,14 +152,23 @@ func (e *Environment) typeLookUp(name string) reflect.Type {
 }
 
 func (e *Environment) valueOwnerOf(name string) Env {
-	_, ok := e.valueTable[name]
-	if !ok {
-		if e.parent == nil {
+	current := e
+	for current != nil {
+		if _, ok := current.valueTable[name]; ok {
+			return current
+		}
+		if current.parent == nil {
 			return nil
 		}
-		return e.parent.valueOwnerOf(name)
+		// Continue iteration if parent is also an *Environment
+		if env, ok := current.parent.(*Environment); ok {
+			current = env
+		} else {
+			// Parent is a different Env implementation, delegate to it
+			return current.parent.valueOwnerOf(name)
+		}
 	}
-	return e
+	return nil
 }
 
 func (e *Environment) set(name string, value reflect.Value) {

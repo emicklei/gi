@@ -85,6 +85,7 @@ var (
 	_ Expr     = StructType{}
 )
 
+// StructType represents a struct type definition that is interpreted (IType).
 type StructType struct {
 	StructPos token.Pos
 	Name      string
@@ -122,7 +123,11 @@ func (s StructType) tagForField(fieldName string) *string {
 func (s StructType) Pos() token.Pos { return s.StructPos }
 
 func (s StructType) String() string {
-	return fmt.Sprintf("StructType(%s,fields=%d,methods=%d)", s.Name, len(s.Fields.List), len(s.methods))
+	n := s.Name
+	if n == "" {
+		n = "<anonymous>"
+	}
+	return fmt.Sprintf("StructType(%s,fields=%v,methods=%d)", n, s.Fields, len(s.methods))
 }
 
 func (s StructType) LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {

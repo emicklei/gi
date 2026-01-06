@@ -22,6 +22,11 @@ func reflectCondition(b bool) reflect.Value {
 	return reflectFalse
 }
 
+type conversionFunc struct {
+	name      string
+	funcValue reflect.Value
+}
+
 // https://pkg.go.dev/builtin
 var builtinsMap = map[string]reflect.Value{
 	"byte": reflect.ValueOf(func(i int) byte { return byte(i) }), // alias for uint8
@@ -46,7 +51,6 @@ var builtinsMap = map[string]reflect.Value{
 		}
 		return a.(*complex64)
 	}),
-	"false":   reflect.ValueOf(false), // not presented as Literal
 	"float32": reflect.ValueOf(func(f float64) float32 { return float32(f) }),
 	"*float32": reflect.ValueOf(func(a any) *float32 {
 		if a == untypedNil {
@@ -75,6 +79,7 @@ var builtinsMap = map[string]reflect.Value{
 		}
 		return a.(*int16)
 	}),
+	// TODO need toInt32
 	"int32": reflect.ValueOf(func(i int) int32 { return int32(i) }),
 	"*int32": reflect.ValueOf(func(a any) *int32 {
 		if a == untypedNil {
@@ -82,7 +87,9 @@ var builtinsMap = map[string]reflect.Value{
 		}
 		return a.(*int32)
 	}),
-	"int64": reflect.ValueOf(toInt64),
+	// TODO
+	"int64_": reflect.ValueOf(conversionFunc{name: "int64", funcValue: reflect.ValueOf(toInt64)}),
+	"int64":  reflect.ValueOf(toInt64),
 	"*int64": reflect.ValueOf(func(a any) *int64 {
 		if a == untypedNil {
 			return (*int64)(nil)
@@ -98,7 +105,6 @@ var builtinsMap = map[string]reflect.Value{
 	}),
 	"imag":    reflect.ValueOf(func(c complex128) float64 { return imag(c) }),
 	"len":     reflect.ValueOf(func(v any) int { return reflect.ValueOf(v).Len() }),
-	"nil":     reflectNil,
 	"panic":   reflect.ValueOf(func(v any) { panic(v) }),
 	"print":   reflect.ValueOf(func(args ...any) { fmt.Print(args...) }),
 	"println": reflect.ValueOf(func(args ...any) { fmt.Println(args...) }),
@@ -117,7 +123,6 @@ var builtinsMap = map[string]reflect.Value{
 		}
 		return a.(*string)
 	}),
-	"true": reflect.ValueOf(true), // not presented as Literal
 	"uint": reflect.ValueOf(func(i int) uint { return uint(i) }),
 	"*uint": reflect.ValueOf(func(a any) *uint {
 		if a == untypedNil {
@@ -165,4 +170,9 @@ var builtinsMap = map[string]reflect.Value{
 	"new":     reflect.ValueOf(builtinFunc{name: "new"}),
 	"copy":    reflect.ValueOf(builtinFunc{name: "copy"}),
 	"recover": reflect.ValueOf(builtinFunc{name: "recover"}),
+
+	// built-in values implemented as reflect.Value
+	"true":  reflect.ValueOf(true), // not presented as Literal
+	"nil":   reflectNil,
+	"false": reflect.ValueOf(false), // not presented as Literal
 }

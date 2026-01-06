@@ -82,7 +82,7 @@ func main() {
 	print(len(m))
 }`, "1")
 }
-func TestCustomTypeMapKey(t *testing.T) {
+func TestITypeMapKey(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main
 type Count int
@@ -184,6 +184,20 @@ func main() {
 	heli := &Aircraft{Model:"helicopter"}
 	print(heli.Model)
 }`, "helicopter")
+}
+
+func TestNewIType(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+type Aircraft struct {
+	Model string
+}
+func main() {
+	heli := new(Aircraft)
+	heli.Model = "heli"
+	print(heli.Model)
+}`, "heli")
 }
 
 func TestMethodNoReceiverRef(t *testing.T) {
@@ -318,7 +332,7 @@ func TestGoFmtFormat(t *testing.T) {
 	t.Logf("%#v", a)
 }
 
-func TestCustomTypeAsWriter(t *testing.T) {
+func TestITypeAsWriter(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main
 
@@ -376,4 +390,15 @@ func main() {
 	flag.Parse()
 	print(name)
 }`, "World")
+}
+
+func TestNewNumber(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+ 
+func main() {
+	x := new(int64)
+	*x = 40
+	print(*x)	
+}`, "40")
 }

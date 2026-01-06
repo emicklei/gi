@@ -88,7 +88,7 @@ func (c CallExpr) evalMin(vm *VM) {
 	if len(c.Args) == 2 {
 		right := vm.popOperand() // first to last, see Flow
 		left := vm.popOperand()
-		less := BinaryExprValue{op: token.LSS, left: left, right: right}.Eval()
+		less := binaryExprValue{op: token.LSS, left: left, right: right}.eval()
 		if less.Bool() {
 			result = left
 		} else {
@@ -99,13 +99,13 @@ func (c CallExpr) evalMin(vm *VM) {
 		third := vm.popOperand()
 		second := vm.popOperand()
 		first := vm.popOperand()
-		less := BinaryExprValue{op: token.LSS, left: first, right: second}.Eval()
+		less := binaryExprValue{op: token.LSS, left: first, right: second}.eval()
 		if less.Bool() {
 			result = first
 		} else {
 			result = second
 		}
-		less = BinaryExprValue{op: token.LSS, left: result, right: third}.Eval()
+		less = binaryExprValue{op: token.LSS, left: result, right: third}.eval()
 		if !less.Bool() {
 			result = third
 		}
@@ -118,7 +118,7 @@ func (c CallExpr) evalMax(vm *VM) {
 	if len(c.Args) == 2 {
 		right := vm.popOperand() // first to last, see Flow
 		left := vm.popOperand()
-		less := BinaryExprValue{op: token.LSS, left: left, right: right}.Eval()
+		less := binaryExprValue{op: token.LSS, left: left, right: right}.eval()
 		if less.Bool() {
 			result = right
 		} else {
@@ -129,13 +129,13 @@ func (c CallExpr) evalMax(vm *VM) {
 		third := vm.popOperand()
 		second := vm.popOperand()
 		first := vm.popOperand()
-		less := BinaryExprValue{op: token.LSS, left: first, right: second}.Eval()
+		less := binaryExprValue{op: token.LSS, left: first, right: second}.eval()
 		if less.Bool() {
 			result = second
 		} else {
 			result = first
 		}
-		less = BinaryExprValue{op: token.LSS, left: result, right: third}.Eval()
+		less = binaryExprValue{op: token.LSS, left: result, right: third}.eval()
 		if less.Bool() {
 			result = third
 		}
@@ -166,19 +166,27 @@ func (c CallExpr) evalMake(vm *VM) {
 func (c CallExpr) evalNew(vm *VM) {
 	valWithType := vm.popOperand()
 	typ := valWithType.Interface()
+	if bi, ok := typ.(conversionFunc); ok {
+		// check for builtin types with same name
+		if bt, ok := builtinTypesMap[bi.name]; ok {
+			rtype := reflect.TypeOf(bt)
+			rval := reflect.New(rtype)
+			vm.pushOperand(rval)
+			return
+		}
+	}
 	if valWithType.Kind() == reflect.Struct {
 		if ts, ok := typ.(TypeSpec); ok {
 			structVal := ts.Make(vm, 0, nil)
 			vm.pushOperand(structVal)
 			return
 		}
-		// typ is an instance of a standard or imported external type
-		rtype := reflect.TypeOf(typ)
-		rval := reflect.New(rtype)
-		vm.pushOperand(rval)
-		return
+
 	}
-	vm.fatal(fmt.Sprintf("new: expected a CanMake value:%v", typ))
+	// typ is an instance of a standard or imported external type
+	rtype := reflect.TypeOf(typ)
+	rval := reflect.New(rtype)
+	vm.pushOperand(rval)
 }
 
 func (c CallExpr) evalRecover(vm *VM) {

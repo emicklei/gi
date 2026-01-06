@@ -485,7 +485,7 @@ func TestNilError(t *testing.T) {
 func main() {
 	var err error = nil
 	print(err)
-}`, "<nil>")
+}`, "(0x0,0x0)")
 }
 
 func TestError(t *testing.T) {
@@ -585,4 +585,23 @@ func main() {
 	TestSomething(t)
 }
 `, "test ran")
+}
+
+func TestIdentRoles(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+	i1 := new(int)
+	i2 := int(0)
+	var i3 int
+	var i4 any = 0
+	i5 := i4.(int)
+	switch i4.(type) {
+	case int:
+	case *int:
+	}
+	print(*i1, i2, i3, i5)
+}
+`, "0000")
 }
