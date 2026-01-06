@@ -18,11 +18,11 @@ The interpreter is composed of several key components that work together to mana
 
 ### 2. Program Representation
 
-- **Builder:** The `internal/step_builder.go` component takes the source AST and constructs an internal representation of the program. This involves creating the necessary data structures for execution and a call graph using `internal/graph_builder.go`.
+- **Builder:** The `pkg/step_builder.go` component takes the source AST and constructs an pkg representation of the program. This involves creating the necessary data structures for execution and a call graph using `pkg/graph_builder.go`.
 
 ### 3. The Virtual Machine (VM)
 
-- **Engine:** The core of the interpreter is the Virtual Machine (VM), located in `internal/vm.go`. The VM is responsible for driving the execution of the program.
+- **Engine:** The core of the interpreter is the Virtual Machine (VM), located in `pkg/vm.go`. The VM is responsible for driving the execution of the program.
 - **Execution Loop:** It operates on a step-by-step basis, processing one statement or expression at a time. This design is fundamental to allowing features like step-through debugging.
 
 ### 4. State Management
@@ -47,7 +47,7 @@ The interpretation process for various language constructs is handled by dedicat
 
 ## External Code and Built-ins
 
-- **Standard Library & External Packages:** Code from packages outside the main program (standard library, `go.mod` dependencies) is not interpreted directly. Instead, Gi uses Go's `reflect` package to interact with these compiled packages, allowing the interpreted program to call their functions and use their types. The `internal/stdlib_generated.go` file likely contains pre-generated wrappers for standard library functions.
+- **Standard Library & External Packages:** Code from packages outside the main program (standard library, `go.mod` dependencies) is not interpreted directly. Instead, Gi uses Go's `reflect` package to interact with these compiled packages, allowing the interpreted program to call their functions and use their types. The `pkg/stdlib_generated.go` file likely contains pre-generated wrappers for standard library functions.
 - **Built-in Functions (`builtins.go`):** Go's built-in functions (e.g., `len`, `cap`, `append`) are implemented natively within the interpreter to ensure correct and efficient behavior.
 
 
@@ -84,6 +84,7 @@ The first step is the head of the chain.
 - stdtypes is now a two-stage map => make it one big map
 - generics: https://ehabterra.github.io/ast-extracting-generic-function-signatures
 - should the unnamed results of a function be named?
+- put generated code in generated package
 
 ## potential blockers
 - reflect structs can only have exposed fields. for that reason StructValues was created but the SDK is not aware of this. For example, fmt.Println might not work correctly with StructValues.

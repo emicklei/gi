@@ -53,7 +53,7 @@ func main() {
 				// Use forward slashes for package paths
 				packagePath := filepath.ToSlash(relPath)
 				if !strings.HasPrefix(packagePath, "cmd/") {
-					if !strings.Contains(packagePath, "internal") {
+					if !strings.Contains(packagePath, "pkg") {
 						fmt.Printf(`"%s",`+"\n", packagePath)
 					}
 				}

@@ -1,21 +1,21 @@
 gen:
 	cd cmd/genstdlib && go run .
 
-test:
-	go test -p 16 ./internal
+test: clean examples
+	go test -p 16 ./pkg
 
 serial:
-	GI_CALL=out.dot GI_AST=test.ast GI_TRACE=1 go test -v -p 1 ./internal
+	GI_CALL=out.dot GI_AST=test.ast GI_TRACE=1 go test -v -p 1 ./pkg
 
 clean:
-	cd internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast
-	cd internal && rm -f *.dot *.png *.src *.svg *.ast *panic.html
+	cd pkg/internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast
+	cd pkg && rm -f *.dot *.png *.src *.svg *.ast *panic.html
 
 skip:
-	cd internal && go test -v | grep SKIP
+	cd pkg && go test -v | grep SKIP
 
 bench:
-	go test -benchmem -bench=. ./internal
+	go test -benchmem -bench=. ./pkg
 
 install:
 	cd cmd/gi && go install

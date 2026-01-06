@@ -33,7 +33,7 @@ go.work.sum
 .vscode
 
 *.dot
-internal/testgraphs/*.png
+pkg/testgraphs/*.png
 *.src
 *.svg
 PERF.md
