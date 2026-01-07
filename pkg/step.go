@@ -12,7 +12,7 @@ import (
 type step struct {
 	id   int // set by graphBuilder
 	next Step
-	pos  token.Pos
+	//pos  token.Pos
 }
 
 func (s *step) ID() int {
@@ -66,7 +66,7 @@ func (s *step) traverse(g *dot.Graph, label, edge string, visited map[int]dot.No
 }
 
 func (s *step) Pos() token.Pos {
-	return s.pos
+	return token.NoPos
 }
 
 var _ Step = (*evaluableStep)(nil)
@@ -106,13 +106,6 @@ type conditionalStep struct {
 	elseFlow      Step
 }
 
-func (c *conditionalStep) String() string {
-	if c == nil {
-		return "conditionalStep(<nil>)"
-	}
-	return fmt.Sprintf("%d: if", c.ID())
-}
-
 func (c *conditionalStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	c.conditionFlow.Traverse(g, visited)
 	me := c.step.traverse(g, c.String(), "true", visited)
@@ -138,16 +131,28 @@ func (c *conditionalStep) Take(vm *VM) Step {
 	return c.elseFlow
 }
 
+func (c *conditionalStep) Pos() token.Pos {
+	return c.conditionFlow.Pos()
+}
+
+func (c *conditionalStep) String() string {
+	if c == nil {
+		return "conditionalStep(<nil>)"
+	}
+	return fmt.Sprintf("%d: if", c.ID())
+}
+
 type pushEnvironmentStep struct {
 	step
+	pos token.Pos
+}
+
+func (p *pushEnvironmentStep) Pos() token.Pos {
+	return p.pos
 }
 
 func newPushEnvironmentStep(pos token.Pos) *pushEnvironmentStep {
-	return &pushEnvironmentStep{
-		step: step{
-			pos: pos,
-		},
-	}
+	return &pushEnvironmentStep{pos: pos}
 }
 
 func (p *pushEnvironmentStep) Take(vm *VM) Step {
@@ -167,14 +172,15 @@ func (p *pushEnvironmentStep) Traverse(g *dot.Graph, visited map[int]dot.Node) d
 
 type popEnvironmentStep struct {
 	step
+	pos token.Pos
+}
+
+func (p *popEnvironmentStep) Pos() token.Pos {
+	return p.pos
 }
 
 func newPopEnvironmentStep(pos token.Pos) *popEnvironmentStep {
-	return &popEnvironmentStep{
-		step: step{
-			pos: pos,
-		},
-	}
+	return &popEnvironmentStep{pos: pos}
 }
 
 func (p *popEnvironmentStep) Take(vm *VM) Step {
@@ -204,6 +210,11 @@ func (r *returnStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 type labeledStep struct {
 	step
 	label string
+	pos   token.Pos
+}
+
+func (s *labeledStep) Pos() token.Pos {
+	return s.pos
 }
 
 func (s *labeledStep) String() string {
@@ -219,6 +230,11 @@ func (s *labeledStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node 
 
 type popOperandStep struct {
 	step
+	pos token.Pos
+}
+
+func (p *popOperandStep) Pos() token.Pos {
+	return p.pos
 }
 
 func (p *popOperandStep) Take(vm *VM) Step {

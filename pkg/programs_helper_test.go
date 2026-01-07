@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path"
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -64,13 +65,20 @@ func parseAndWalk(t *testing.T, source string) string {
 	if trace {
 		// create dot graph for debugging
 		os.WriteFile(fmt.Sprintf("internal/testgraphs/%s.src", t.Name()), []byte(source), 0644)
-		gidot := fmt.Sprintf("internal/testgraphs/%s.dot", t.Name())
-		pkg.writeCallGraph(gidot)
+		dotFileName := fmt.Sprintf("internal/testgraphs/%s.dot", t.Name())
+		pkg.writeCallGraph(dotFileName)
 		// will fail in pipeline without graphviz installed
-		exec.Command("dot", "-Tsvg", "-o", gidot+".svg", gidot).Run()
+		exec.Command("dot", "-Tsvg", "-o", dotFileName+".svg", dotFileName).Run()
+		os.Remove(dotFileName)
 
-		// create ast dump for debugging
-		pkg.writeAST(fmt.Sprintf("internal/testgraphs/%s.ast", t.Name()))
+		// create ast dump for debugging, requires test to set attribute(s)
+		astFileName := fmt.Sprintf("internal/testgraphs/%s", t.Name())
+		if getAttr(t, "ast") == "true" {
+			pkg.writeAST(astFileName + ".ast")
+		}
+		if getAttr(t, "go.ast") == "true" {
+			writeGoAST(astFileName+".go.ast", pkg.Package)
+		}
 	}
 	if _, err := CallPackageFunction(pkg, "main", nil, vm); err != nil {
 		t.Fatal(err)
@@ -78,7 +86,20 @@ func parseAndWalk(t *testing.T, source string) string {
 	return vm.output.String()
 }
 
-func testProgramIn(t *testing.T, dir string, wantFuncOrString any) {
+// Per-test attribute storage
+var testAttrs = sync.Map{}
+
+func setAttr(t *testing.T, key string, val any) {
+	t.Helper()
+	testAttrs.Store(fmt.Sprintf("%p.%s", t, key), val)
+}
+func getAttr(t *testing.T, key string) any {
+	t.Helper()
+	v, _ := testAttrs.Load(fmt.Sprintf("%p.%s", t, key))
+	return v
+}
+
+func testProgramIn(t *testing.T, dir string, _ any) {
 	// cannot be parallel because of os.Chdir
 	t.Helper()
 	cwd, _ := os.Getwd()

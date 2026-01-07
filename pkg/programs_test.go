@@ -589,6 +589,7 @@ func main() {
 
 func TestIdentRoles(t *testing.T) {
 	t.Skip()
+	setAttr(t, "go.ast", "true")
 	testMain(t, `package main
 
 func main() {

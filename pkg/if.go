@@ -40,8 +40,7 @@ func (i IfStmt) Flow(g *graphBuilder) (head Step) {
 	if head == nil {
 		head = g.current
 	}
-	begin := new(conditionalStep) // TODO constructor with pos
-	begin.pos = i.Pos()
+	begin := new(conditionalStep)
 	begin.conditionFlow = i.Cond.Flow(g)
 	g.nextStep(begin)
 

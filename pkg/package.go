@@ -128,8 +128,8 @@ func (p *Package) writeAST(fileName string) {
 	}()
 	buf := new(bytes.Buffer)
 	spew.Config.DisableMethods = true
-	spew.Config.MaxDepth = 7 // TODO see if this is enough
-	done := make(chan struct{})
+	spew.Config.MaxDepth = 8 // TODO see if this is enough
+	done := make(chan bool)
 	go func() {
 		// only dump the actual values of each var/function in the environment
 		for _, v := range p.Env.Env.(*Environment).valueTable {
@@ -140,11 +140,34 @@ func (p *Package) writeAST(fileName string) {
 			}
 			spew.Fdump(buf, val)
 		}
-		done <- struct{}{}
+		done <- true
 	}()
 	select {
 	case <-time.After(2 * time.Second):
 		fmt.Println("AST writing took more than 2 seconds, aborting")
+		close(done)
+	case <-done:
+	}
+	os.WriteFile(fileName, buf.Bytes(), 0644)
+}
+
+func writeGoAST(fileName string, goPkg *packages.Package) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("SPEW: failed to write Go AST file", r)
+		}
+	}()
+	buf := new(bytes.Buffer)
+	spew.Config.DisableMethods = true
+	spew.Config.MaxDepth = 8 // TODO see if this is enough
+	done := make(chan bool)
+	go func() {
+		spew.Fdump(buf, goPkg)
+		done <- true
+	}()
+	select {
+	case <-time.After(2 * time.Second):
+		fmt.Println("Go AST writing took more than 2 seconds, aborting")
 		close(done)
 	case <-done:
 	}
@@ -219,6 +242,9 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 		defer func() {
 			fmt.Printf("pkg.build(%s) took %v\n", goPkg.PkgPath, time.Since(now))
 		}()
+		if astFilename := os.Getenv("GI_AST"); astFilename != "" {
+			writeGoAST(astFilename+".pkg", goPkg)
+		}
 	}
 	b := newASTBuilder(goPkg)
 	for _, stx := range goPkg.Syntax {
