@@ -453,7 +453,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Fun = e.(Expr)
 		if isRecoverCall(s.Fun) {
 			// mark enclosing function as having a recover call
-			b.funcStack.underTop().fn.SetHasRecoverCall(true)
+			b.funcStack.underTop().fn.setHasRecoverCall(true)
 		}
 		for _, arg := range n.Args {
 			b.Visit(arg)
@@ -801,7 +801,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		refStep.label = s.Label.Name
 		refStep.pos = s.Pos()
 		ref := statementReference{index: index, step: refStep} // has no ID
-		b.funcStack.top().fn.PutGotoReference(s.Label.Name, ref)
+		b.funcStack.top().fn.putGotoReference(s.Label.Name, ref)
 	case *ast.BranchStmt:
 		s := BranchStmt{TokPos: n.TokPos, Tok: n.Tok}
 		if n.Label != nil {

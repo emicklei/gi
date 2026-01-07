@@ -308,7 +308,7 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	// collect non-reflection return values
 	top := vm.currentFrame
 	vals := []any{}
-	results := fun.Interface().(Func).Results()
+	results := fun.Interface().(Func).results()
 	if results != nil {
 		for range len(results.List) {
 			val := top.pop()

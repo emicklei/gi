@@ -22,8 +22,8 @@ type FuncDecl struct {
 	// goto targets
 	labelToStmt map[string]statementReference // TODO lazy initialization
 	// for source access of any statement/expression within this function
-	fileSet        *token.FileSet
-	hasRecoverCall bool
+	fileSet      *token.FileSet
+	callsRecover bool
 }
 
 func (f *FuncDecl) Eval(vm *VM) {} // noop
@@ -38,21 +38,21 @@ func (f *FuncDecl) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-func (f *FuncDecl) SetHasRecoverCall(bool) { f.hasRecoverCall = true }
-func (f *FuncDecl) HasRecoverCall() bool   { return f.hasRecoverCall }
-func (f *FuncDecl) PutGotoReference(label string, ref statementReference) {
+func (f *FuncDecl) setHasRecoverCall(bool) { f.callsRecover = true }
+func (f *FuncDecl) hasRecoverCall() bool   { return f.callsRecover }
+func (f *FuncDecl) putGotoReference(label string, ref statementReference) {
 	if f.labelToStmt == nil {
 		f.labelToStmt = make(map[string]statementReference)
 	}
 	f.labelToStmt[label] = ref
 }
-func (f *FuncDecl) GotoReference(label string) statementReference {
+func (f *FuncDecl) gotoReference(label string) statementReference {
 	return f.labelToStmt[label]
 }
-func (f *FuncDecl) Results() *FieldList {
+func (f *FuncDecl) results() *FieldList {
 	return f.Type.Results
 }
-func (f *FuncDecl) Params() *FieldList {
+func (f *FuncDecl) params() *FieldList {
 	return f.Type.Params
 }
 func (f FuncDecl) Pos() token.Pos { return f.Type.Pos() }
@@ -129,8 +129,8 @@ type FuncLit struct {
 	Body      *BlockStmt // TODO not sure what to do when Body and/or Type is nil
 	callGraph Step
 	// goto targets
-	labelToStmt    map[string]statementReference // TODO lazy initialization
-	hasRecoverCall bool
+	labelToStmt  map[string]statementReference // TODO lazy initialization
+	callsRecover bool
 }
 
 func (f *FuncLit) Eval(vm *VM) {
@@ -144,21 +144,21 @@ func (f *FuncLit) flow(g *graphBuilder) (head Step) {
 
 func (f *FuncLit) Pos() token.Pos { return f.Type.Pos() }
 
-func (f *FuncLit) SetHasRecoverCall(bool) { f.hasRecoverCall = true }
-func (f *FuncLit) HasRecoverCall() bool   { return f.hasRecoverCall }
-func (f *FuncLit) PutGotoReference(label string, ref statementReference) {
+func (f *FuncLit) setHasRecoverCall(bool) { f.callsRecover = true }
+func (f *FuncLit) hasRecoverCall() bool   { return f.callsRecover }
+func (f *FuncLit) putGotoReference(label string, ref statementReference) {
 	if f.labelToStmt == nil {
 		f.labelToStmt = make(map[string]statementReference)
 	}
 	f.labelToStmt[label] = ref
 }
-func (f *FuncLit) GotoReference(label string) statementReference {
+func (f *FuncLit) gotoReference(label string) statementReference {
 	return f.labelToStmt[label]
 }
-func (f *FuncLit) Results() *FieldList {
+func (f *FuncLit) results() *FieldList {
 	return f.Type.Results
 }
-func (f *FuncLit) Params() *FieldList {
+func (f *FuncLit) params() *FieldList {
 	return f.Type.Params
 }
 func (f *FuncLit) String() string {

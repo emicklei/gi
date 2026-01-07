@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"fmt"
 	"go/token"
 	"reflect"
 
@@ -70,6 +71,7 @@ type Decl interface {
 }
 
 type Step interface {
+	fmt.Stringer
 	Evaluable
 	StepTaker
 	Traverseable
@@ -79,8 +81,6 @@ type Step interface {
 	SetNext(s Step)
 	ID() int
 	SetID(id int)
-
-	String() string
 }
 
 type StepTaker interface {
@@ -93,10 +93,10 @@ type Traverseable interface {
 
 // FuncDecl and FuncLit implement this
 type Func interface {
-	SetHasRecoverCall(bool)
-	HasRecoverCall() bool
-	PutGotoReference(label string, ref statementReference)
-	GotoReference(label string) statementReference
-	Results() *FieldList
-	Params() *FieldList
+	setHasRecoverCall(bool)
+	hasRecoverCall() bool
+	putGotoReference(label string, ref statementReference)
+	gotoReference(label string) statementReference
+	results() *FieldList
+	params() *FieldList
 }

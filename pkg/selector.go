@@ -14,7 +14,7 @@ type SelectorExpr struct {
 	X Expr
 }
 
-func (s SelectorExpr) Define(vm *VM, val reflect.Value) {}
+func (s SelectorExpr) define(vm *VM, val reflect.Value) {}
 
 func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 	if idn, ok := s.X.(Ident); ok {

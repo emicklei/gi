@@ -26,7 +26,7 @@ func (r ReturnStmt) Eval(vm *VM) {
 	fd, ok := vm.currentFrame.creator.(Func)
 	if ok {
 		i := 0
-		for _, fields := range fd.Results().List {
+		for _, fields := range fd.results().List {
 			for _, name := range fields.Names {
 				owner := vm.currentFrame.env.valueOwnerOf(name.Name)
 				owner.set(name.Name, results[i])

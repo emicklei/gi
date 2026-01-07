@@ -184,7 +184,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	setParametersToFrame(fl.Type, args, vm, frame)
 	setZeroReturnsToFrame(fl.Type, vm, frame)
 
-	if fl.HasRecoverCall() {
+	if fl.hasRecoverCall() {
 		defer func() {
 			r := recover()
 			// temporary store it in the special variable in the parent env
@@ -201,7 +201,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	// take values before popping frame
 	vals := []reflect.Value{} // todo size it
 	if fl.Type.Results != nil {
-		for _, field := range fl.Results().List {
+		for _, field := range fl.results().List {
 			for _, name := range field.Names {
 				val := frame.env.valueLookUp(name.Name)
 				vals = append(vals, val)
@@ -307,7 +307,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	setParametersToFrame(fd.Type, args, vm, frame)
 	setZeroReturnsToFrame(fd.Type, vm, frame)
 
-	if fd.HasRecoverCall() {
+	if fd.hasRecoverCall() {
 		defer func() {
 			if r := recover(); r != nil {
 				// temporary store it in the special variable in the parent env
@@ -325,7 +325,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	// take values before popping frame
 	vals := []reflect.Value{} // todo size it
 	if fd.Type.Results != nil {
-		for _, field := range fd.Results().List {
+		for _, field := range fd.results().List {
 			for _, name := range field.Names {
 				val := frame.env.valueLookUp(name.Name)
 				vals = append(vals, val)
