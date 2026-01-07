@@ -48,6 +48,11 @@ func TestUnaries(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.op, func(t *testing.T) {
 			t.Parallel()
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("panic occurred: %s: %v", tt.src, r)
+				}
+			}()
 			src := fmt.Sprintf(`
 			package main
 

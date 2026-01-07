@@ -5,23 +5,6 @@ import (
 	"reflect"
 )
 
-var (
-	untypedNil        any
-	reflectNil        = reflect.ValueOf(untypedNil)
-	undeclaredNil     = struct{}{}
-	reflectUndeclared = reflect.ValueOf(undeclaredNil)
-	reflectTrue       = reflect.ValueOf(true)
-	reflectFalse      = reflect.ValueOf(false)
-)
-
-// reflectCondition converts a boolean to shared reflect.Value.
-func reflectCondition(b bool) reflect.Value {
-	if b {
-		return reflectTrue
-	}
-	return reflectFalse
-}
-
 type conversionFunc struct {
 	name      string
 	funcValue reflect.Value
@@ -98,7 +81,7 @@ var builtinsMap = map[string]reflect.Value{
 	}),
 
 	// TEMP
-	"*int64": builtinTypesMap2["int64"],
+	"*int64": builtins["int64"],
 
 	"int8": reflect.ValueOf(func(i int) int8 { return int8(i) }),
 	"*int8": reflect.ValueOf(func(a any) *int8 {

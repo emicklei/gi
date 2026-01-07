@@ -28,8 +28,8 @@ type astBuilder struct {
 }
 
 func newASTBuilder(goPkg *packages.Package) astBuilder {
-	builtins := newBuiltinsEnvironment(nil)
-	pkgenv := newPkgEnvironment(builtins)
+	builtinEnv := newBuiltinsEnvironment(nil)
+	pkgenv := newPkgEnvironment(builtinEnv)
 	return astBuilder{goPkg: goPkg, env: pkgenv}
 }
 

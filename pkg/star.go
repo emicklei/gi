@@ -22,7 +22,7 @@ func (s StarExpr) Eval(vm *VM) {
 		vm.pushOperand(vm.heap.read(hp))
 		return
 	}
-	// (*int64)(nil)
+	// needed?
 	if v.Kind() == reflect.Func {
 		if idn, ok := s.X.(Ident); ok {
 			v = vm.localEnv().valueLookUp("*" + idn.Name)
@@ -30,12 +30,13 @@ func (s StarExpr) Eval(vm *VM) {
 			return
 		}
 	}
+	// (*int64)(nil)
 	if v.Kind() == reflect.Struct {
-		vm.fatal("needed?")
-		if blt, ok := v.Interface().(builtinType); ok {
-			ptrVal := blt.ptrConvertFunc.Call([]reflect.Value{v})[0]
-			vm.pushOperand(ptrVal.Elem())
+		if _, ok := v.Interface().(builtinType); ok {
+			vm.pushOperand(v)
 			return
+		} else {
+			vm.fatal(fmt.Sprintf("unhandled struct type: %v", v))
 		}
 	}
 

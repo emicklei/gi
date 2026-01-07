@@ -36,7 +36,7 @@ type PkgEnvironment struct {
 func newBuiltinsEnvironment(parent Env) Env {
 	return &Environment{
 		parent:     parent,
-		valueTable: builtinsMap,
+		valueTable: builtins,
 	}
 }
 
@@ -144,11 +144,11 @@ func (e *Environment) valueLookUp(name string) reflect.Value {
 }
 
 func (e *Environment) typeLookUp(name string) reflect.Type {
-	v, ok := builtinTypesMap[name]
+	v, ok := builtins[name]
 	if !ok {
 		return nil
 	}
-	return v
+	return v.Interface().(builtinType).typ
 }
 
 func (e *Environment) valueOwnerOf(name string) Env {

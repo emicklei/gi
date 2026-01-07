@@ -166,15 +166,6 @@ func (c CallExpr) evalMake(vm *VM) {
 func (c CallExpr) evalNew(vm *VM) {
 	valWithType := vm.popOperand()
 	typ := valWithType.Interface()
-	if bi, ok := typ.(conversionFunc); ok {
-		// check for builtin types with same name
-		if bt, ok := builtinTypesMap[bi.name]; ok {
-			rtype := reflect.TypeOf(bt)
-			rval := reflect.New(rtype)
-			vm.pushOperand(rval)
-			return
-		}
-	}
 	if valWithType.Kind() == reflect.Struct {
 		if ts, ok := typ.(TypeSpec); ok {
 			structVal := ts.makeValue(vm, 0, nil)

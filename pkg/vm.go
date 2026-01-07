@@ -146,9 +146,9 @@ func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 
 func (vm *VM) returnsType(e Evaluable) reflect.Type {
 	if id, ok := e.(Ident); ok {
-		typ, ok := builtinTypesMap[id.Name]
+		typ, ok := builtins[id.Name]
 		if ok {
-			return typ
+			return typ.Interface().(builtinType).typ
 		}
 		// non-imported user defined type
 		return structValueType
