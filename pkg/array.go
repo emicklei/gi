@@ -19,7 +19,7 @@ func (a ArrayType) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(a))
 }
 
-func (a ArrayType) Make(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
+func (a ArrayType) makeValue(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
 	if a.Len != nil {
 		len := vm.returnsEval(a.Len)
 		/// override size from Len expression unless Ellipsis
@@ -52,7 +52,7 @@ func (a ArrayType) String() string {
 }
 
 // composite is (a reflect on) a Go array or slice
-func (a ArrayType) LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
+func (a ArrayType) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	if len(values) == 0 {
 		return composite
 	}
@@ -64,7 +64,7 @@ func (a ArrayType) LiteralCompose(vm *VM, composite reflect.Value, values []refl
 		if elementType.Kind() == reflect.Array {
 			composingElem := a.Elt.(CanCompose)
 			elemValues := v.Interface().([]reflect.Value)
-			composingElem.LiteralCompose(vm, composite.Index(i), elemValues)
+			composingElem.literalCompose(vm, composite.Index(i), elemValues)
 			continue
 		}
 

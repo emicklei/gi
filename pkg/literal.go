@@ -92,8 +92,8 @@ func (c CompositeLit) Eval(vm *VM) {
 	}
 	typeOrValue := vm.popOperand().Interface()
 	if inst, ok := typeOrValue.(CanMake); ok {
-		structVal := inst.Make(vm, len(values), nil)
-		result := inst.LiteralCompose(vm, structVal, values)
+		structVal := inst.makeValue(vm, len(values), nil)
+		result := inst.literalCompose(vm, structVal, values)
 		vm.pushOperand(result)
 	} else {
 		vm.fatal("unhandled type")

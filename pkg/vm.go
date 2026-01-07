@@ -161,7 +161,7 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 		typ := vm.localEnv().valueLookUp(sel.X.(Ident).Name)
 		val := typ.Interface()
 		if canSelect, ok := val.(CanSelect); ok {
-			selVal := canSelect.Select(sel.Sel.Name)
+			selVal := canSelect.selectFieldOrMethod(sel.Sel.Name)
 			return reflect.TypeOf(selVal.Interface())
 		}
 		pkgType := stdtypes[sel.X.(Ident).Name][sel.Sel.Name]

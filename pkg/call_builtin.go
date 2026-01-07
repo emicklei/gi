@@ -156,7 +156,7 @@ func (c CallExpr) evalMake(vm *VM) {
 	// 	capacity = int(vm.frameStack.top().pop().Int())
 	// }
 	if ci, ok := typ.Interface().(CanMake); ok {
-		structVal := ci.Make(vm, length, nil)
+		structVal := ci.makeValue(vm, length, nil)
 		vm.pushOperand(structVal)
 		return
 	}
@@ -177,7 +177,7 @@ func (c CallExpr) evalNew(vm *VM) {
 	}
 	if valWithType.Kind() == reflect.Struct {
 		if ts, ok := typ.(TypeSpec); ok {
-			structVal := ts.Make(vm, 0, nil)
+			structVal := ts.makeValue(vm, 0, nil)
 			vm.pushOperand(structVal)
 			return
 		}

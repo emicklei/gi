@@ -45,7 +45,7 @@ func (i *StructValue) String() string {
 }
 
 // TODO maybe return extra bool for ok?
-func (i *StructValue) Select(name string) reflect.Value {
+func (i *StructValue) selectFieldOrMethod(name string) reflect.Value {
 	if v, ok := i.fields[name]; ok {
 		return v
 	}
@@ -65,7 +65,7 @@ func (i *StructValue) fieldAssign(fieldName string, val reflect.Value) {
 }
 
 // composite is (a reflect on) an StructValue
-func (i *StructValue) LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
+func (i *StructValue) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	if len(values) == 0 {
 		return composite
 	}

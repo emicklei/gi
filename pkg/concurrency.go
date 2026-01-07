@@ -25,13 +25,13 @@ func (c ChanType) flow(g *graphBuilder) (head Step) {
 	g.next(c)
 	return g.current
 }
-func (c ChanType) Make(vm *VM, buffer int, constructorArgs []reflect.Value) reflect.Value {
+func (c ChanType) makeValue(vm *VM, buffer int, constructorArgs []reflect.Value) reflect.Value {
 	typ := vm.returnsType(c.Value)
 	dir := reflect.ChanDir(c.Dir)
 	ch := reflect.ChanOf(dir, typ)
 	return reflect.MakeChan(ch, int(buffer))
 }
-func (c ChanType) LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
+func (c ChanType) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	// TODO
 	return composite
 }

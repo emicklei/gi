@@ -45,12 +45,12 @@ type Stmt interface {
 }
 
 type CanCompose interface {
-	LiteralCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value
+	literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value
 }
 
 // CanSelect is implemented by types that support selection of fields or methods by name.
 type CanSelect interface {
-	Select(name string) reflect.Value
+	selectFieldOrMethod(name string) reflect.Value
 }
 
 type FieldAssignable interface {
@@ -60,7 +60,7 @@ type FieldAssignable interface {
 type CanMake interface {
 	// size can be 0 if not applicable
 	// constructorArgs can be nil if not applicable
-	Make(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value
+	makeValue(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value
 	CanCompose
 }
 

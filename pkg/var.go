@@ -61,7 +61,7 @@ func (v ValueSpec) declare(vm *VM) bool {
 		} else {
 			// if nil then zero
 			if z, ok := v.Type.(CanMake); ok {
-				zv := z.Make(vm, 0, nil)
+				zv := z.makeValue(vm, 0, nil)
 				vm.localEnv().set(idn.Name, zv)
 				continue
 			}

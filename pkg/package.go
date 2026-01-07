@@ -31,7 +31,7 @@ type SDKPackage struct {
 	typesTable  map[string]reflect.Value // not reflect.Type to make Select work uniformly
 }
 
-func (p SDKPackage) Select(name string) reflect.Value {
+func (p SDKPackage) selectFieldOrMethod(name string) reflect.Value {
 	v, ok := p.symbolTable[name]
 	if !ok {
 		t, ok := p.typesTable[name]
@@ -60,7 +60,7 @@ type Package struct {
 	Initialized       bool
 }
 
-func (p *Package) Select(name string) reflect.Value {
+func (p *Package) selectFieldOrMethod(name string) reflect.Value {
 	return p.Env.valueLookUp(name)
 }
 
