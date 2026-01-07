@@ -9,8 +9,6 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-
-	"github.com/emicklei/structexplorer"
 )
 
 // framePool is a pool of stackFrame values for reuse.
@@ -95,18 +93,14 @@ type VM struct {
 	fileSet      *token.FileSet // optional file set for position info
 }
 
-var panicOnce sync.Once
-
 func NewVM(env Env) *VM {
-	// TODO remove
 	if os.Getenv("GI_IGNORE_EXIT") != "" {
-		stdfuncs["os"]["Exit"] = reflect.ValueOf(func(code int) {
+		OnOsExit(func(code int) {
 			fmt.Fprintf(os.Stderr, "[gi] os.Exit called with code %d\n", code)
 		})
 	}
-	// TODO remove
 	if os.Getenv("GI_IGNORE_PANIC") != "" {
-		builtinsMap["panic"] = reflect.ValueOf(func(why any) {
+		OnPanic(func(why any) {
 			fmt.Fprintf(os.Stderr, "[gi] panic called with %v\n", why)
 		})
 	}
@@ -118,26 +112,20 @@ func NewVM(env Env) *VM {
 	frame.env = env
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
-
-	// TODO remove
-	if os.Getenv("GI_IGNORE_PANIC") != "" {
-		panicOnce.Do(func() {
-			builtinsMap["panic"] = reflect.ValueOf(vm.fatal)
-		})
-	}
-
 	return vm
 }
 
 // OnPanic sets the function to be called when panic is invoked in the interpreted code.
-// The mapped panic is not called.
+// The Go SDK panic is not called.
 func OnPanic(f func(any)) {
+	// TODO make this thread-safe
 	builtinsMap["panic"] = reflect.ValueOf(f)
 }
 
 // OnOsExit sets the function to be called when os.Exit is invoked in the interpreted code.
-// The mapped os.Exit is not called.
+// The Go SDK os.Exit is not called.
 func OnOsExit(f func(int)) {
+	// TODO make this thread-safe
 	stdfuncs["os"]["Exit"] = reflect.ValueOf(f)
 }
 
@@ -221,11 +209,7 @@ func (vm *VM) pushOperand(v reflect.Value) {
 
 // popOperand pops a value from the operand stack.
 func (vm *VM) popOperand() reflect.Value {
-	val := vm.currentFrame.pop()
-	if trace {
-		// fmt.Printf("vm.pop: %v\n", val)
-	}
-	return val
+	return vm.currentFrame.pop()
 }
 
 func (vm *VM) pushNewFrame(f Func) {
@@ -273,16 +257,6 @@ func (vm *VM) fatal(err any) {
 	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)
 	fmt.Fprintln(os.Stderr, "")
 	vm.printStack()
-	s := structexplorer.NewService("vm", vm)
-	for i, each := range vm.callStack {
-		s.Explore(fmt.Sprintf("vm.callStack.%d", i), each, structexplorer.Column(0))
-		s.Explore(fmt.Sprintf("vm.callStack.%d.env", i), each.env, structexplorer.Column(1))
-		if tableHolder, ok := each.env.(*Environment); ok {
-			s.Explore(fmt.Sprintf("vm.callStack.%d.env.valueTable", i), tableHolder.valueTable, structexplorer.Column(2))
-		}
-		s.Explore(fmt.Sprintf("vm.callStack.%d.operands", i), each.operands, structexplorer.Column(1))
-	}
-	s.Dump("gi-vm-panic.html")
 	panic(err)
 }
 
