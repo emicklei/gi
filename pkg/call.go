@@ -24,6 +24,8 @@ func (c CallExpr) Eval(vm *VM) {
 		// order by frequency of use
 		case builtinFunc:
 			c.handleBuiltinFunc(vm, f)
+		case builtinType:
+			c.handleBuiltinType(vm, f)
 		case ArrayType:
 			c.handleArrayType(vm, f)
 		case TypeSpec:
@@ -99,6 +101,16 @@ func (c CallExpr) Eval(vm *VM) {
 	default:
 		vm.fatal(fmt.Sprintf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface()))
 	}
+}
+
+func (c CallExpr) handleBuiltinType(vm *VM, blt builtinType) {
+	arg := vm.popOperand()
+	if arg == reflectNil {
+		pushCallResults(vm, []reflect.Value{blt.prtZeroValue})
+		return
+	}
+	vals := blt.convertFunc.Call([]reflect.Value{arg})
+	pushCallResults(vm, vals)
 }
 
 func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
@@ -318,7 +330,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	}
 
 	// take all steps from the call graph in FuncDecl
-	vm.takeAllStartingAt(fd.callGraph)
+	vm.takeAllStartingAt(fd.graph)
 
 	frame.takeDeferList(vm)
 

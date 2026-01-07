@@ -18,7 +18,7 @@ func (d StructValueWrapper) Write(b []byte) (n int, err error) {
 	}
 	// push arguments
 	d.vm.pushOperand(reflect.ValueOf(b))
-	d.vm.takeAllStartingAt(decl.callGraph)
+	d.vm.takeAllStartingAt(decl.graph)
 	// pop results
 	reflectErr := d.vm.popOperand()
 	reflectN := d.vm.popOperand()

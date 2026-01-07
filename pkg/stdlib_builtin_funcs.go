@@ -90,12 +90,16 @@ var builtinsMap = map[string]reflect.Value{
 	// TODO
 	"int64_": reflect.ValueOf(conversionFunc{name: "int64", funcValue: reflect.ValueOf(toInt64)}),
 	"int64":  reflect.ValueOf(toInt64),
-	"*int64": reflect.ValueOf(func(a any) *int64 {
+	"*int64_": reflect.ValueOf(func(a any) *int64 {
 		if a == untypedNil {
 			return (*int64)(nil)
 		}
 		return a.(*int64)
 	}),
+
+	// TEMP
+	"*int64": builtinTypesMap2["int64"],
+
 	"int8": reflect.ValueOf(func(i int) int8 { return int8(i) }),
 	"*int8": reflect.ValueOf(func(a any) *int8 {
 		if a == untypedNil {

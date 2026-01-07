@@ -602,7 +602,9 @@ func main() {
 	case int:
 	case *int:
 	}
-	print(*i1, i2, i3, i5)
+	i6 := (int)(0)
+	i7 := (*int)(nil)
+	print(*i1, i2, i3, i5, i6, i7)
 }
-`, "0000")
+`, "000000x0")
 }

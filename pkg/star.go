@@ -30,6 +30,15 @@ func (s StarExpr) Eval(vm *VM) {
 			return
 		}
 	}
+	if v.Kind() == reflect.Struct {
+		vm.fatal("needed?")
+		if blt, ok := v.Interface().(builtinType); ok {
+			ptrVal := blt.ptrConvertFunc.Call([]reflect.Value{v})[0]
+			vm.pushOperand(ptrVal.Elem())
+			return
+		}
+	}
+
 	// Regular pointer dereference - validate it's a pointer
 	if v.Kind() != reflect.Pointer {
 		vm.fatal(fmt.Sprintf("cannot dereference non-pointer type: %v", v.Kind()))

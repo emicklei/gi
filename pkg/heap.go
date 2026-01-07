@@ -20,7 +20,7 @@ func newHeap() *Heap {
 
 // HeapPointer represents a pointer to a value stored in the VM's heap.
 // This is used to handle pointer escape analysis - when a local variable's
-// address is taken, it needs to survive beyond its scope.
+// address is taken, it needs to survive beyond its scope (in gi terms: environment).
 type HeapPointer struct {
 	Addr       uintptr      // unique address in the heap
 	Type       reflect.Type // type of the pointed-to value

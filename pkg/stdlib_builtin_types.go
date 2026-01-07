@@ -30,4 +30,31 @@ func init() {
 	builtinTypesMap["any"] = reflect.TypeOf(&v).Elem()
 	var e error
 	builtinTypesMap["error"] = reflect.TypeOf(&e).Elem()
+
+	//
+}
+
+var builtinTypesMap2 = map[string]reflect.Value{
+	"bool": reflect.ValueOf(builtinType{
+		typ:            reflect.TypeFor[bool](),
+		convertFunc:    reflect.ValueOf(toBool),
+		ptrConvertFunc: reflect.ValueOf(toPtrBool),
+	}),
+	"int64": reflect.ValueOf(builtinType{
+		typ:            reflect.TypeFor[int64](),
+		prtZeroValue:   reflect.ValueOf((*int64)(nil)),
+		convertFunc:    reflect.ValueOf(toInt64),
+		ptrConvertFunc: reflect.ValueOf(toPtrInt64),
+	}),
+}
+
+type builtinType struct {
+	// actual type in Go SDK
+	typ reflect.Type
+	// e.g. (*int64)(nil)
+	prtZeroValue reflect.Value
+	// need to store reflect.Value otherwise type info is lost
+	convertFunc reflect.Value
+	// TODO not sure if needed
+	ptrConvertFunc reflect.Value
 }

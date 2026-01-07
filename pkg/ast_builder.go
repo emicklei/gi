@@ -16,14 +16,9 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-var _ ast.Visitor = (*ASTBuilder)(nil)
+var _ ast.Visitor = (*astBuilder)(nil)
 
-type funcDeclPair struct {
-	fn       Func
-	bodyList []ast.Stmt // need this to find index of each block stmt
-}
-
-type ASTBuilder struct {
+type astBuilder struct {
 	stack     []Evaluable
 	env       Env
 	goPkg     *packages.Package
@@ -32,30 +27,30 @@ type ASTBuilder struct {
 	constDecl *ConstDecl // current const decl for iota tracking
 }
 
-func newASTBuilder(goPkg *packages.Package) ASTBuilder {
+func newASTBuilder(goPkg *packages.Package) astBuilder {
 	builtins := newBuiltinsEnvironment(nil)
 	pkgenv := newPkgEnvironment(builtins)
-	return ASTBuilder{goPkg: goPkg, env: pkgenv}
+	return astBuilder{goPkg: goPkg, env: pkgenv}
 }
 
-func (b *ASTBuilder) Err() error { return b.buildErr }
+func (b *astBuilder) Err() error { return b.buildErr }
 
-func (b *ASTBuilder) pushEnv() {
+func (b *astBuilder) pushEnv() {
 	b.env = b.env.newChild()
 }
 
-func (b *ASTBuilder) popEnv() {
+func (b *astBuilder) popEnv() {
 	b.env = b.env.getParent()
 }
 
-func (b *ASTBuilder) push(s Evaluable) {
+func (b *astBuilder) push(s Evaluable) {
 	if trace {
 		fmt.Printf("ast.push: %v\n", s)
 	}
 	b.stack = append(b.stack, s)
 }
 
-func (b *ASTBuilder) pop() Evaluable {
+func (b *astBuilder) pop() Evaluable {
 	if len(b.stack) == 0 {
 		panic("builder.stack is empty")
 	}
@@ -64,19 +59,19 @@ func (b *ASTBuilder) pop() Evaluable {
 	return top
 }
 
-func (b *ASTBuilder) envSet(name string, value reflect.Value) {
+func (b *astBuilder) envSet(name string, value reflect.Value) {
 	b.env.set(name, value)
 }
 
-func (b *ASTBuilder) pushFunc(fn Func, stmtList []ast.Stmt) {
+func (b *astBuilder) pushFunc(fn Func, stmtList []ast.Stmt) {
 	b.funcStack.push(funcDeclPair{fn: fn, bodyList: stmtList})
 }
-func (b *ASTBuilder) popFunc() {
+func (b *astBuilder) popFunc() {
 	b.funcStack.pop()
 }
 
 // Visit implements the ast.Visitor interface
-func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
+func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 
 	case *ast.TypeAssertExpr:
@@ -206,7 +201,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 
 		b.push(s)
 	case *ast.SwitchStmt:
-		s := SwitchStmt{SwitchStmt: n}
+		s := SwitchStmt{SwitchPos: n.Switch}
 		if n.Init != nil {
 			b.Visit(n.Init)
 			s.Init = b.pop().(Stmt)
@@ -299,7 +294,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 			b.Visit(each)
 			e := b.pop()
 			i := e.(Ident)
-			s.Names = append(s.Names, &i)
+			s.Names = append(s.Names, i)
 		}
 		if n.Type != nil {
 			b.Visit(n.Type)
@@ -534,7 +529,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 
 		// store call graph in the FuncDecl
 		g := newGraphBuilder(b.goPkg)
-		s.callGraph = s.flow(g)
+		s.graph = s.flow(g)
 
 		// leave the function scope
 		b.popEnv()
@@ -791,7 +786,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		b.push(s)
 
 		// TODO
-		// here we are created a step that actually should happen
+		// here we are creating a step that actually should happen
 		// when building the flow. So perhaps we need to store the statementReference
 		// elsewhere and not set a labeledStep now.
 

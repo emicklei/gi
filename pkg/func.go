@@ -7,6 +7,11 @@ import (
 	"reflect"
 )
 
+type funcDeclPair struct {
+	fn       Func
+	bodyList []ast.Stmt // need this to find index of each block stmt
+}
+
 type statementReference struct {
 	step  Step
 	index int
@@ -18,9 +23,9 @@ type FuncDecl struct {
 	Body *BlockStmt
 	Type *FuncType
 	// control flow graph
-	callGraph Step
+	graph Step
 	// goto targets
-	labelToStmt map[string]statementReference // TODO lazy initialization
+	labelToStmt map[string]statementReference
 	// for source access of any statement/expression within this function
 	fileSet      *token.FileSet
 	callsRecover bool

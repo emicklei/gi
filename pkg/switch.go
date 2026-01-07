@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"reflect"
 )
@@ -11,10 +10,10 @@ var _ Stmt = SwitchStmt{}
 
 // A SwitchStmt represents an expression switch statement.
 type SwitchStmt struct {
-	*ast.SwitchStmt
-	Init Stmt // initialization statement; or nil
-	Tag  Expr // tag expression; or nil
-	Body BlockStmt
+	SwitchPos token.Pos
+	Init      Stmt // initialization statement; or nil
+	Tag       Expr // tag expression; or nil
+	Body      BlockStmt
 }
 
 func (s SwitchStmt) stmtStep() Evaluable { return s }
@@ -29,9 +28,6 @@ func (s SwitchStmt) Eval(vm *VM) {
 		vm.eval(s.Tag)
 	}
 	vm.eval(s.Body)
-}
-func (s SwitchStmt) String() string {
-	return fmt.Sprintf("SwitchStmt(%v,%v,%v)", s.Init, s.Tag, s.Body)
 }
 
 func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
@@ -141,6 +137,11 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 	}
 	return head
 }
+
+func (s SwitchStmt) String() string {
+	return fmt.Sprintf("SwitchStmt(%v,%v,%v)", s.Init, s.Tag, s.Body)
+}
+func (s SwitchStmt) Pos() token.Pos { return s.SwitchPos }
 
 var _ Flowable = CaseClause{}
 

@@ -18,8 +18,6 @@ func (i Ident) Eval(vm *VM) {
 	vm.pushOperand(vm.localEnv().valueLookUp(i.Name))
 }
 
-func (i Ident) Assignable(vm *VM) CanAssign { return i }
-
 func (i Ident) assign(vm *VM, value reflect.Value) {
 	if i.Name == "_" {
 		return

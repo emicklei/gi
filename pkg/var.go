@@ -19,7 +19,7 @@ var _ CanDeclare = ValueSpec{}
 // Const or Var declaration
 type ValueSpec struct {
 	NamePos token.Pos
-	Names   []*Ident
+	Names   []Ident
 	Type    Expr
 	Values  []Expr
 	graph   Step
