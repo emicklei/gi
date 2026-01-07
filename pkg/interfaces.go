@@ -16,7 +16,7 @@ type CanAssign interface {
 	// =
 	assign(vm *VM, value reflect.Value)
 	// :=
-	Define(vm *VM, value reflect.Value)
+	define(vm *VM, value reflect.Value)
 }
 
 // TODO only ValueSpec implements CanDeclare

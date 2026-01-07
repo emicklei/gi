@@ -27,7 +27,7 @@ func (i Ident) assign(vm *VM, value reflect.Value) {
 	owner := vm.localEnv().valueOwnerOf(i.Name)
 	owner.set(i.Name, value)
 }
-func (i Ident) Define(vm *VM, value reflect.Value) {
+func (i Ident) define(vm *VM, value reflect.Value) {
 	vm.localEnv().set(i.Name, value)
 }
 

@@ -45,7 +45,7 @@ func (a AssignStmt) apply(each Expr, vm *VM, v reflect.Value) {
 	}
 	switch a.Tok {
 	case token.DEFINE: // :=
-		target.Define(vm, v)
+		target.define(vm, v)
 	case token.ASSIGN: // =
 		target.assign(vm, v)
 	case token.ADD_ASSIGN: // +=

@@ -55,7 +55,7 @@ func (i IndexExpr) assign(vm *VM, value reflect.Value) {
 	}
 }
 
-func (i IndexExpr) Define(vm *VM, value reflect.Value) {
+func (i IndexExpr) define(vm *VM, value reflect.Value) {
 	vm.fatal("not yet implemented: IndexExpr.Define")
 }
 

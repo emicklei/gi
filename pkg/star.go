@@ -61,7 +61,7 @@ func (s StarExpr) assign(vm *VM, value reflect.Value) {
 	v.Elem().Set(value)
 }
 
-func (s StarExpr) Define(vm *VM, value reflect.Value) {
+func (s StarExpr) define(vm *VM, value reflect.Value) {
 	// Define through a pointer doesn't make sense in Go
 	// This would be like *p := value, which is invalid syntax
 	vm.fatal("cannot use := with pointer dereference")
