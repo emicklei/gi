@@ -34,15 +34,15 @@ func (s SwitchStmt) String() string {
 	return fmt.Sprintf("SwitchStmt(%v,%v,%v)", s.Init, s.Tag, s.Body)
 }
 
-func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
+func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 	if s.Init != nil {
-		head = s.Init.Flow(g)
+		head = s.Init.flow(g)
 	}
 	if s.Tag != nil {
 		if head == nil {
-			head = s.Tag.Flow(g)
+			head = s.Tag.flow(g)
 		} else {
-			_ = s.Tag.Flow(g)
+			_ = s.Tag.flow(g)
 		}
 	}
 	gotoLabel := fmt.Sprintf("switch-end-%d", g.idgen)
@@ -65,13 +65,13 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 			list := append(clause.Body, gotoEnd)
 			for i, stmt := range list {
 				if i == 0 {
-					first := stmt.Flow(g)
+					first := stmt.flow(g)
 					if head == nil {
 						head = first
 					}
 					continue
 				}
-				_ = stmt.Flow(g)
+				_ = stmt.flow(g)
 			}
 			// switch clause ends here
 			g.current = nil
@@ -129,7 +129,7 @@ func (s SwitchStmt) Flow(g *graphBuilder) (head Step) {
 			Cond:  cond,
 			Body:  &BlockStmt{List: list},
 		}
-		whenFlow := when.Flow(g)
+		whenFlow := when.flow(g)
 		if head == nil {
 			head = whenFlow
 		}
@@ -153,7 +153,7 @@ type CaseClause struct {
 
 func (c CaseClause) Eval(vm *VM) {}
 
-func (c CaseClause) Flow(g *graphBuilder) (head Step) {
+func (c CaseClause) flow(g *graphBuilder) (head Step) {
 	// no flow for case clause itself
 	return nil
 }
@@ -175,12 +175,12 @@ type TypeSwitchStmt struct {
 
 func (s TypeSwitchStmt) Eval(vm *VM) {}
 
-func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
+func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 	if s.Init != nil {
-		head = s.Init.Flow(g)
+		head = s.Init.flow(g)
 	}
 	if s.Assign != nil {
-		assignFlow := s.Assign.Flow(g)
+		assignFlow := s.Assign.flow(g)
 		if head == nil {
 			head = assignFlow
 		}
@@ -203,7 +203,7 @@ func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 		Lhs:    []Expr{nameOfType},
 		Rhs:    []Expr{noExpr{}}, // no expression because TypeAssertExpr pushes two values
 	}
-	nameOfTypeAssignment.Flow(g)
+	nameOfTypeAssignment.flow(g)
 
 	for _, stmt := range s.Body.List {
 		clause := stmt.(CaseClause)
@@ -220,13 +220,13 @@ func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 			list := append(clause.Body, gotoEnd)
 			for i, stmt := range list {
 				if i == 0 {
-					first := stmt.Flow(g)
+					first := stmt.flow(g)
 					if head == nil {
 						head = first
 					}
 					continue
 				}
-				_ = stmt.Flow(g)
+				_ = stmt.flow(g)
 			}
 			// switch clause ends here
 			g.current = nil
@@ -282,7 +282,7 @@ func (s TypeSwitchStmt) Flow(g *graphBuilder) (head Step) {
 			Cond:  cond,
 			Body:  &BlockStmt{List: list},
 		}
-		whenFlow := when.Flow(g)
+		whenFlow := when.flow(g)
 		if head == nil {
 			head = whenFlow
 		}

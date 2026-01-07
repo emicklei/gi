@@ -20,16 +20,16 @@ func (k KeyValueExpr) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(keyValue{Key: key, Value: val}))
 }
 
-func (k KeyValueExpr) Flow(g *graphBuilder) (head Step) {
+func (k KeyValueExpr) flow(g *graphBuilder) (head Step) {
 	// Value first so that key ends up on top of the stack
-	head = k.Value.Flow(g)
+	head = k.Value.flow(g)
 
 	key := k.Key
 	if id, ok := key.(Ident); ok {
 		// wrap so that we can evaluate it properly
 		key = identKey{Ident: id}
 	}
-	key.Flow(g)
+	key.flow(g)
 
 	g.next(k)
 	return head
@@ -49,7 +49,7 @@ type identKey struct {
 func (i identKey) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(i.Ident))
 }
-func (i identKey) Flow(g *graphBuilder) (head Step) {
+func (i identKey) flow(g *graphBuilder) (head Step) {
 	g.next(i)
 	return g.current
 }

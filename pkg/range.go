@@ -34,8 +34,8 @@ func (r RangeStmt) Eval(vm *VM) {} // noop
 //
 // All four flows converge to a done step.
 // The last 3 subflows are transformed into a ForStmt that uses a hidden index variable.
-func (r RangeStmt) Flow(g *graphBuilder) (head Step) {
-	head = r.X.Flow(g)
+func (r RangeStmt) flow(g *graphBuilder) (head Step) {
+	head = r.X.flow(g)
 	switcher := new(rangeIteratorSwitchStep)
 	g.nextStep(switcher)
 	// all flows converge to this done step
@@ -84,15 +84,15 @@ type rangeMapIteratorInitStep struct {
 	pos          token.Pos
 }
 
-func (r *rangeMapIteratorInitStep) Take(vm *VM) Step {
+func (r *rangeMapIteratorInitStep) take(vm *VM) Step {
 	rangeable := vm.popOperand()
 	iter := rangeable.MapRange()
 	vm.localEnv().set(r.localVarName, reflect.ValueOf(iter))
 	return r.next
 }
 
-func (r *rangeMapIteratorInitStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	return r.step.traverse(g, r.step.StringWith("map-iterator-init"), "next", visited)
+func (r *rangeMapIteratorInitStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-init"), "next", visited)
 }
 
 func (r *rangeMapIteratorInitStep) Pos() token.Pos {
@@ -114,7 +114,7 @@ type rangeMapIteratorNextStep struct {
 	pos                  token.Pos
 }
 
-func (r *rangeMapIteratorNextStep) Take(vm *VM) Step {
+func (r *rangeMapIteratorNextStep) take(vm *VM) Step {
 	iterator := vm.localEnv().valueLookUp(r.localVarName).Interface().(*reflect.MapIter)
 	if iterator.Next() {
 		// first value then key to match assignment order
@@ -129,12 +129,12 @@ func (r *rangeMapIteratorNextStep) Take(vm *VM) Step {
 	return r.next
 }
 
-func (r *rangeMapIteratorNextStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	me := r.step.traverse(g, r.step.StringWith("map-iterator-next"), "next", visited)
+func (r *rangeMapIteratorNextStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	me := r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-next"), "next", visited)
 	if r.bodyFlow != nil {
 		// no edge if visited before
 		if _, ok := visited[r.bodyFlow.ID()]; !ok {
-			bodyNode := r.bodyFlow.Traverse(g, visited)
+			bodyNode := r.bodyFlow.traverse(g, visited)
 			me.Edge(bodyNode, "body")
 		}
 	}
@@ -153,7 +153,7 @@ func (r *rangeMapIteratorNextStep) String() string {
 }
 
 func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
-	head = r.X.Flow(g) // again on the stack
+	head = r.X.flow(g) // again on the stack
 
 	// create the iterator
 	localVarName := internalVarName("mapIter", g.idgen)
@@ -192,11 +192,11 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 			Lhs:    lhs,
 			Rhs:    rhs,
 		}
-		bodyFlow := updateKeyValue.Flow(g)
+		bodyFlow := updateKeyValue.flow(g)
 		iter.bodyFlow = bodyFlow
-		r.Body.Flow(g)
+		r.Body.flow(g)
 	} else {
-		iter.bodyFlow = r.Body.Flow(g)
+		iter.bodyFlow = r.Body.flow(g)
 	}
 	g.nextStep(iter) // back to iterator
 	g.current = iter
@@ -207,7 +207,7 @@ type noExpr struct{}
 
 func (noExpr) Pos() token.Pos { return token.NoPos }
 func (noExpr) Eval(vm *VM)    {} // used?
-func (n noExpr) Flow(g *graphBuilder) (head Step) {
+func (n noExpr) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 func (noExpr) String() string { return "NoExpr" }
@@ -269,7 +269,7 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 		Post: post,
 		Body: body,
 	}
-	return forstmt.Flow(g)
+	return forstmt.flow(g)
 }
 
 func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
@@ -343,7 +343,7 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 		Post: post,
 		Body: body,
 	}
-	return forstmt.Flow(g)
+	return forstmt.flow(g)
 }
 
 func (r RangeStmt) Pos() token.Pos { return r.ForPos }
@@ -363,8 +363,8 @@ func (r reflectLenExpr) Eval(vm *VM) {
 	val := vm.popOperand()
 	vm.pushOperand(reflect.ValueOf(val.Len()))
 }
-func (r reflectLenExpr) Flow(g *graphBuilder) (head Step) {
-	head = r.X.Flow(g)
+func (r reflectLenExpr) flow(g *graphBuilder) (head Step) {
+	head = r.X.flow(g)
 	g.next(r)
 	return
 }
@@ -380,18 +380,18 @@ type rangeIteratorSwitchStep struct {
 	intFlow          Step
 }
 
-func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
+func (i *rangeIteratorSwitchStep) take(vm *VM) Step {
 	rangeable := vm.popOperand()
 	if rangeable.Kind() == reflect.Ptr {
 		rangeable = rangeable.Elem()
 	}
 	switch rangeable.Kind() {
 	case reflect.Map:
-		return i.mapFlow.Take(vm)
+		return i.mapFlow.take(vm)
 	case reflect.Slice, reflect.Array:
-		return i.sliceOrArrayFlow.Take(vm)
+		return i.sliceOrArrayFlow.take(vm)
 	case reflect.Int:
-		return i.intFlow.Take(vm)
+		return i.intFlow.take(vm)
 	case reflect.String:
 		// iterate over runes
 		str := rangeable.String()
@@ -400,36 +400,36 @@ func (i *rangeIteratorSwitchStep) Take(vm *VM) Step {
 			runeSlice = append(runeSlice, r)
 		}
 		vm.pushOperand(reflect.ValueOf(runeSlice))
-		return i.sliceOrArrayFlow.Take(vm)
+		return i.sliceOrArrayFlow.take(vm)
 	case reflect.Func:
 		// TODO
 		// func(yield func(V) bool): //iter.Seq[V any]:
-		//return i.funcFlow.Take(vm)
+		//return i.funcFlow.take(vm)
 		fallthrough
 	default:
 		panic(fmt.Sprintf("cannot range over type %v", rangeable.Type()))
 	}
 }
-func (i *rangeIteratorSwitchStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	me := i.step.traverse(g, i.step.StringWith("switch-iterator"), "next", visited)
+func (i *rangeIteratorSwitchStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	me := i.step.traverseWithLabel(g, i.step.StringWith("switch-iterator"), "next", visited)
 	if i.mapFlow != nil {
 		// no edge if visited before
 		if _, ok := visited[i.mapFlow.ID()]; !ok {
-			mapNode := i.mapFlow.Traverse(g, visited)
+			mapNode := i.mapFlow.traverse(g, visited)
 			me.Edge(mapNode, "map")
 		}
 	}
 	if i.sliceOrArrayFlow != nil {
 		// no edge if visited before
 		if _, ok := visited[i.sliceOrArrayFlow.ID()]; !ok {
-			sliceOrArrayNode := i.sliceOrArrayFlow.Traverse(g, visited)
+			sliceOrArrayNode := i.sliceOrArrayFlow.traverse(g, visited)
 			me.Edge(sliceOrArrayNode, "sliceOrArray")
 		}
 	}
 	if i.intFlow != nil {
 		// no edge if visited before
 		if _, ok := visited[i.intFlow.ID()]; !ok {
-			intNode := i.intFlow.Traverse(g, visited)
+			intNode := i.intFlow.traverse(g, visited)
 			me.Edge(intNode, "int")
 		}
 	}

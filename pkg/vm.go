@@ -273,7 +273,7 @@ func (vm *VM) takeAllStartingAt(head Step) {
 		if trace {
 			fmt.Printf("%v @ %s\n", here, vm.sourceLocation(here))
 		}
-		here = here.Take(vm)
+		here = here.take(vm)
 	}
 }
 

@@ -96,7 +96,7 @@ func (p *Package) Initialize(vm *VM) error {
 		done = true
 		for i, decl := range p.Env.declarations {
 			if decl != nil {
-				if p.Env.declarations[i].Declare(vm) {
+				if p.Env.declarations[i].declare(vm) {
 					p.Env.declarations[i] = nil
 				} else {
 					done = false
@@ -190,7 +190,7 @@ func (p *Package) writeCallGraph(fileName string) {
 			}
 			sub := g.Subgraph(k, dot.ClusterOption{})
 			visited := map[int]dot.Node{}
-			funDecl.callGraph.Traverse(sub, visited)
+			funDecl.callGraph.traverse(sub, visited)
 		}
 	}
 	os.WriteFile(fileName, []byte(g.String()), 0644)

@@ -40,7 +40,7 @@ func (a ArrayType) Make(vm *VM, size int, constructorArgs []reflect.Value) refle
 	}
 }
 
-func (a ArrayType) Flow(g *graphBuilder) (head Step) {
+func (a ArrayType) flow(g *graphBuilder) (head Step) {
 	g.next(a)
 	return g.current
 }
@@ -120,16 +120,16 @@ func (s SliceExpr) Eval(vm *VM) {
 	vm.pushOperand(result)
 }
 
-func (s SliceExpr) Flow(g *graphBuilder) (head Step) {
-	head = s.X.Flow(g)
+func (s SliceExpr) flow(g *graphBuilder) (head Step) {
+	head = s.X.flow(g)
 	if s.Low != nil {
-		s.Low.Flow(g)
+		s.Low.flow(g)
 	}
 	if s.High != nil {
-		s.High.Flow(g)
+		s.High.flow(g)
 	}
 	if s.Max != nil {
-		s.Max.Flow(g)
+		s.Max.flow(g)
 	}
 	g.next(s)
 	return

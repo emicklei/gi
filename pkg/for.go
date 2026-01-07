@@ -17,22 +17,22 @@ type ForStmt struct {
 
 func (f ForStmt) Eval(vm *VM) {} // noop
 
-func (f ForStmt) Flow(g *graphBuilder) (head Step) {
+func (f ForStmt) flow(g *graphBuilder) (head Step) {
 	push := new(pushEnvironmentStep) // TODO constructor with pos
 	push.pos = f.Pos()
 	head = push
 	g.nextStep(head)
 	if f.Init != nil {
-		f.Init.Flow(g)
+		f.Init.flow(g)
 	}
 	begin := new(conditionalStep)
 	if f.Cond != nil {
-		begin.conditionFlow = f.Cond.Flow(g)
+		begin.conditionFlow = f.Cond.flow(g)
 	}
 	g.nextStep(begin)
-	f.Body.Flow(g)
+	f.Body.flow(g)
 	if f.Post != nil {
-		f.Post.Flow(g)
+		f.Post.flow(g)
 	}
 	if f.Cond != nil {
 		g.nextStep(begin.conditionFlow)

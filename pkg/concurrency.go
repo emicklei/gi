@@ -21,7 +21,7 @@ type ChanType struct {
 func (c ChanType) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(c))
 }
-func (c ChanType) Flow(g *graphBuilder) (head Step) {
+func (c ChanType) flow(g *graphBuilder) (head Step) {
 	g.next(c)
 	return g.current
 }
@@ -58,9 +58,9 @@ func (s SendStmt) Eval(vm *VM) {
 	ch.Send(val)
 }
 
-func (s SendStmt) Flow(g *graphBuilder) (head Step) {
-	head = s.Chan.Flow(g)
-	s.Value.Flow(g)
+func (s SendStmt) flow(g *graphBuilder) (head Step) {
+	head = s.Chan.flow(g)
+	s.Value.flow(g)
 	g.next(s)
 	return head
 }

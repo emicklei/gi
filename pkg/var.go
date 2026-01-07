@@ -18,21 +18,21 @@ var _ CanDeclare = ValueSpec{}
 
 // Const or Var declaration
 type ValueSpec struct {
-	NamePos   token.Pos
-	Names     []*Ident
-	Type      Expr
-	Values    []Expr
-	callGraph Step
+	NamePos token.Pos
+	Names   []*Ident
+	Type    Expr
+	Values  []Expr
+	graph   Step
 }
 
 func (v ValueSpec) declStep() CanDeclare { return v }
 
-func (v ValueSpec) CallGraph() Step {
-	return v.callGraph
+func (v ValueSpec) callGraph() Step {
+	return v.graph
 }
 
-func (v ValueSpec) Declare(vm *VM) bool {
-	vm.takeAllStartingAt(v.callGraph)
+func (v ValueSpec) declare(vm *VM) bool {
+	vm.takeAllStartingAt(v.graph)
 	if v.Type == nil {
 		for _, idn := range v.Names {
 			val := vm.popOperand()
@@ -75,11 +75,11 @@ func (v ValueSpec) Declare(vm *VM) bool {
 
 func (v ValueSpec) Eval(vm *VM) {}
 
-func (v ValueSpec) Flow(g *graphBuilder) (head Step) {
+func (v ValueSpec) flow(g *graphBuilder) (head Step) {
 	if v.Values != nil {
 		// reverse the order to have first value on top of stack
 		for i := len(v.Values) - 1; i >= 0; i-- {
-			valFlow := v.Values[i].Flow(g)
+			valFlow := v.Values[i].flow(g)
 			if i == len(v.Values)-1 {
 				head = valFlow
 			}
@@ -118,7 +118,7 @@ func (i *iotaExpr) next() {
 func (i *iotaExpr) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(i.count))
 }
-func (i *iotaExpr) Flow(g *graphBuilder) (head Step) {
+func (i *iotaExpr) flow(g *graphBuilder) (head Step) {
 	g.next(i)
 	return g.current
 }

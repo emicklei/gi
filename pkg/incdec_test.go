@@ -34,7 +34,7 @@ func TestIncDec(t *testing.T) {
 				X:   x,
 			}
 			g := newGraphBuilder(nil)
-			head := n.Flow(g)
+			head := n.flow(g)
 			vm.takeAllStartingAt(head)
 
 			v := vm.localEnv().valueLookUp("x")

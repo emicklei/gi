@@ -44,22 +44,22 @@ func (s *step) SetNext(n Step) {
 
 func (s *step) Eval(vm *VM) {}
 
-func (s *step) Take(vm *VM) Step {
+func (s *step) take(vm *VM) Step {
 	return s.next
 }
 
-func (s *step) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	return s.traverse(g, s.String(), "next", visited)
+func (s *step) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return s.traverseWithLabel(g, s.String(), "next", visited)
 }
 
-func (s *step) traverse(g *dot.Graph, label, edge string, visited map[int]dot.Node) dot.Node {
+func (s *step) traverseWithLabel(g *dot.Graph, label, edge string, visited map[int]dot.Node) dot.Node {
 	if n, ok := visited[s.id]; ok {
 		return n
 	}
 	n := g.Node(strconv.Itoa(s.ID())).Label(label)
 	visited[s.id] = n
 	if s.next != nil {
-		nextN := s.next.Traverse(g, visited)
+		nextN := s.next.traverse(g, visited)
 		n.Edge(nextN, edge)
 	}
 	return n
@@ -80,7 +80,7 @@ func (s *evaluableStep) Eval(vm *VM) {
 	s.Evaluable.Eval(vm)
 }
 
-func (s *evaluableStep) Take(vm *VM) Step {
+func (s *evaluableStep) take(vm *VM) Step {
 	s.Evaluable.Eval(vm)
 	return s.next
 }
@@ -96,8 +96,8 @@ func (s *evaluableStep) String() string {
 	return fmt.Sprintf("%d: %v", s.id, s.Evaluable)
 }
 
-func (s *evaluableStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	return s.traverse(g, s.String(), "next", visited)
+func (s *evaluableStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return s.traverseWithLabel(g, s.String(), "next", visited)
 }
 
 type conditionalStep struct {
@@ -106,21 +106,21 @@ type conditionalStep struct {
 	elseFlow      Step
 }
 
-func (c *conditionalStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	c.conditionFlow.Traverse(g, visited)
-	me := c.step.traverse(g, c.String(), "true", visited)
+func (c *conditionalStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	c.conditionFlow.traverse(g, visited)
+	me := c.step.traverseWithLabel(g, c.String(), "true", visited)
 	if c.elseFlow != nil {
 		// no edge if visited before
 		if _, ok := visited[c.elseFlow.ID()]; ok {
 			return me
 		}
-		falseN := c.elseFlow.Traverse(g, visited)
+		falseN := c.elseFlow.traverse(g, visited)
 		me.Edge(falseN, "false")
 	}
 	return me
 }
 
-func (c *conditionalStep) Take(vm *VM) Step {
+func (c *conditionalStep) take(vm *VM) Step {
 	if c.conditionFlow == nil {
 		return c.next
 	}
@@ -155,7 +155,7 @@ func newPushEnvironmentStep(pos token.Pos) *pushEnvironmentStep {
 	return &pushEnvironmentStep{pos: pos}
 }
 
-func (p *pushEnvironmentStep) Take(vm *VM) Step {
+func (p *pushEnvironmentStep) take(vm *VM) Step {
 	vm.currentFrame.pushEnv()
 	return p.next
 }
@@ -166,8 +166,8 @@ func (p *pushEnvironmentStep) String() string {
 	}
 	return fmt.Sprintf("%d: ~push env", p.ID())
 }
-func (p *pushEnvironmentStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	return p.step.traverse(g, p.String(), "next", visited)
+func (p *pushEnvironmentStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return p.step.traverseWithLabel(g, p.String(), "next", visited)
 }
 
 type popEnvironmentStep struct {
@@ -183,7 +183,7 @@ func newPopEnvironmentStep(pos token.Pos) *popEnvironmentStep {
 	return &popEnvironmentStep{pos: pos}
 }
 
-func (p *popEnvironmentStep) Take(vm *VM) Step {
+func (p *popEnvironmentStep) take(vm *VM) Step {
 	vm.currentFrame.popEnv()
 	return p.next
 }
@@ -195,15 +195,15 @@ func (p *popEnvironmentStep) String() string {
 	return fmt.Sprintf("%d: ~pop env", p.ID())
 }
 
-func (p *popEnvironmentStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	return p.step.traverse(g, p.String(), "next", visited)
+func (p *popEnvironmentStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return p.step.traverseWithLabel(g, p.String(), "next", visited)
 }
 
 type returnStep struct {
 	evaluableStep
 }
 
-func (r *returnStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (r *returnStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	return g.Node(strconv.Itoa(r.evaluableStep.ID())).Label(r.String())
 }
 
@@ -224,8 +224,8 @@ func (s *labeledStep) String() string {
 	return fmt.Sprintf("%2d: %v", s.id, s.label)
 }
 
-func (s *labeledStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	return s.step.traverse(g, s.String(), "next", visited)
+func (s *labeledStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+	return s.step.traverseWithLabel(g, s.String(), "next", visited)
 }
 
 type popOperandStep struct {
@@ -237,7 +237,7 @@ func (p *popOperandStep) Pos() token.Pos {
 	return p.pos
 }
 
-func (p *popOperandStep) Take(vm *VM) Step {
+func (p *popOperandStep) take(vm *VM) Step {
 	vm.popOperand()
 	return p.next
 }
@@ -245,6 +245,6 @@ func (p *popOperandStep) Take(vm *VM) Step {
 func (p *popOperandStep) String() string {
 	return fmt.Sprintf("%d: ~pop operand", p.ID())
 }
-func (p *popOperandStep) Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
+func (p *popOperandStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
 	return g.Node(strconv.Itoa(p.ID())).Label(p.String())
 }

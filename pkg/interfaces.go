@@ -14,7 +14,7 @@ type Evaluable interface {
 
 type CanAssign interface {
 	// =
-	Assign(vm *VM, value reflect.Value)
+	assign(vm *VM, value reflect.Value)
 	// :=
 	Define(vm *VM, value reflect.Value)
 }
@@ -23,8 +23,8 @@ type CanAssign interface {
 type CanDeclare interface {
 	// Declare declares the variable in the current environment.
 	// It returns true if the declaration set a valid reflect Value.
-	Declare(vm *VM) bool
-	CallGraph() Step
+	declare(vm *VM) bool
+	callGraph() Step
 }
 
 type Expr interface {
@@ -33,9 +33,9 @@ type Expr interface {
 }
 
 type Flowable interface {
-	// Flow builds the control flow graph using the provided grapher.
-	// Head is the entry point to that call flow graph.
-	Flow(g *graphBuilder) (head Step)
+	// flow builds the control flow graph using the provided grapher.
+	// head is the entry point to that call flow graph.
+	flow(g *graphBuilder) (head Step)
 }
 
 // All statement nodes implement the Stmt interface.
@@ -54,7 +54,7 @@ type CanSelect interface {
 }
 
 type FieldAssignable interface {
-	Assign(name string, val reflect.Value)
+	fieldAssign(name string, val reflect.Value)
 }
 
 type CanMake interface {
@@ -84,11 +84,11 @@ type Step interface {
 }
 
 type StepTaker interface {
-	Take(vm *VM) Step
+	take(vm *VM) Step
 }
 
 type Traverseable interface {
-	Traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node
+	traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node
 }
 
 // FuncDecl and FuncLit implement this

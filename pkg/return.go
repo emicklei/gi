@@ -38,15 +38,15 @@ func (r ReturnStmt) Eval(vm *VM) {
 	}
 }
 
-func (r ReturnStmt) Flow(g *graphBuilder) (head Step) {
+func (r ReturnStmt) flow(g *graphBuilder) (head Step) {
 	// reverse order to keep Eval correct
 	for i := len(r.Results) - 1; i >= 0; i-- {
 		each := r.Results[i]
 		if i == len(r.Results)-1 {
-			head = each.Flow(g)
+			head = each.flow(g)
 			continue
 		}
-		each.Flow(g)
+		each.flow(g)
 	}
 	ret := new(returnStep)
 	ret.Evaluable = r

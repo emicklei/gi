@@ -25,8 +25,8 @@ func (e TypeAssertExpr) Eval(vm *VM) {
 	}
 }
 
-func (e TypeAssertExpr) Flow(g *graphBuilder) (head Step) {
-	head = e.X.Flow(g)
+func (e TypeAssertExpr) flow(g *graphBuilder) (head Step) {
+	head = e.X.flow(g)
 	g.next(e)
 	return
 }
@@ -52,7 +52,7 @@ func (s TypeSpec) Eval(vm *VM) {
 	vm.localEnv().set(s.Name.Name, actualType) // use the spec itself as value
 }
 
-func (s TypeSpec) Flow(g *graphBuilder) (head Step) {
+func (s TypeSpec) flow(g *graphBuilder) (head Step) {
 	g.next(s)
 	return g.current
 }
@@ -97,7 +97,7 @@ func (s StructType) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(s))
 }
 
-func (s StructType) Flow(g *graphBuilder) (head Step) {
+func (s StructType) flow(g *graphBuilder) (head Step) {
 	g.next(s)
 	return g.current
 }
@@ -162,7 +162,7 @@ func (m MapType) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(m))
 }
 
-func (m MapType) Flow(g *graphBuilder) (head Step) {
+func (m MapType) flow(g *graphBuilder) (head Step) {
 	g.next(m)
 	return g.current
 }

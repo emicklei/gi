@@ -51,7 +51,7 @@ func basicLitValue(s *ast.BasicLit) reflect.Value {
 	}
 }
 
-func (b BasicLit) Flow(g *graphBuilder) (head Step) {
+func (b BasicLit) flow(g *graphBuilder) (head Step) {
 	g.next(b)
 	return g.current
 }
@@ -100,13 +100,13 @@ func (c CompositeLit) Eval(vm *VM) {
 	}
 }
 
-func (c CompositeLit) Flow(g *graphBuilder) (head Step) {
+func (c CompositeLit) flow(g *graphBuilder) (head Step) {
 	if c.Type != nil {
-		head = c.Type.Flow(g)
+		head = c.Type.flow(g)
 	}
 	// reverse order to have the first element on top of the stack
 	for i := len(c.Elts) - 1; i >= 0; i-- {
-		eltFlow := c.Elts[i].Flow(g)
+		eltFlow := c.Elts[i].flow(g)
 		if i == len(c.Elts)-1 {
 			if head == nil {
 				head = eltFlow

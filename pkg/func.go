@@ -28,11 +28,11 @@ type FuncDecl struct {
 
 func (f *FuncDecl) Eval(vm *VM) {} // noop
 
-func (f *FuncDecl) Flow(g *graphBuilder) (head Step) {
+func (f *FuncDecl) flow(g *graphBuilder) (head Step) {
 	head = g.current
 	if f.Body != nil {
 		g.funcStack.push(f)
-		head = f.Body.Flow(g)
+		head = f.Body.flow(g)
 		g.funcStack.pop()
 	}
 	return
@@ -72,7 +72,7 @@ type FuncType struct {
 
 func (t FuncType) Eval(vm *VM) {}
 
-func (t FuncType) Flow(g *graphBuilder) (head Step) {
+func (t FuncType) flow(g *graphBuilder) (head Step) {
 	// TODO
 	return g.current
 }
@@ -97,9 +97,9 @@ func (e Ellipsis) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(e))
 }
 
-func (e Ellipsis) Flow(g *graphBuilder) (head Step) {
+func (e Ellipsis) flow(g *graphBuilder) (head Step) {
 	if e.Elt != nil {
-		head = e.Elt.Flow(g)
+		head = e.Elt.flow(g)
 	} else {
 		g.next(e)
 		return g.current
@@ -137,7 +137,7 @@ func (f *FuncLit) Eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(f))
 }
 
-func (f *FuncLit) Flow(g *graphBuilder) (head Step) {
+func (f *FuncLit) flow(g *graphBuilder) (head Step) {
 	g.next(f)
 	return g.current
 }

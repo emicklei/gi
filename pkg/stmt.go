@@ -24,8 +24,8 @@ func (s ExprStmt) String() string {
 	return fmt.Sprintf("ExprStmt(%v)", s.X)
 }
 
-func (s ExprStmt) Flow(g *graphBuilder) (head Step) {
-	return s.X.Flow(g)
+func (s ExprStmt) flow(g *graphBuilder) (head Step) {
+	return s.X.flow(g)
 }
 
 var _ Stmt = DeclStmt{}
@@ -36,11 +36,11 @@ type DeclStmt struct {
 }
 
 func (s DeclStmt) Eval(vm *VM) {
-	s.Decl.declStep().Declare(vm)
+	s.Decl.declStep().declare(vm)
 }
 
-func (s DeclStmt) Flow(g *graphBuilder) (head Step) {
-	head = s.Decl.Flow(g)
+func (s DeclStmt) flow(g *graphBuilder) (head Step) {
+	head = s.Decl.flow(g)
 	g.next(s)
 	if head == nil {
 		head = g.current
@@ -72,8 +72,8 @@ func (s LabeledStmt) Eval(vm *VM) {
 	vm.eval(s.Stmt.stmtStep())
 }
 
-func (s LabeledStmt) Flow(g *graphBuilder) (head Step) {
-	head = s.Stmt.Flow(g)
+func (s LabeledStmt) flow(g *graphBuilder) (head Step) {
+	head = s.Stmt.flow(g)
 	// get statement reference and update its step
 	fd := g.funcStack.top()
 	ref := fd.GotoReference(s.Label.Name)
@@ -109,7 +109,7 @@ func (s BranchStmt) Eval(vm *VM) {
 	}
 }
 
-func (s BranchStmt) Flow(g *graphBuilder) (head Step) {
+func (s BranchStmt) flow(g *graphBuilder) (head Step) {
 	switch s.Tok {
 	case token.GOTO:
 		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.Label.Name), s.Pos())
@@ -161,7 +161,7 @@ func (d DeferStmt) Eval(vm *VM) {
 	frame.defers = append(frame.defers, invocation)
 }
 
-func (d DeferStmt) Flow(g *graphBuilder) (head Step) {
+func (d DeferStmt) flow(g *graphBuilder) (head Step) {
 	g.next(d)
 	return g.current
 }
@@ -187,14 +187,14 @@ func (b BlockStmt) Eval(vm *VM) {
 	}
 }
 
-func (b BlockStmt) Flow(g *graphBuilder) (head Step) {
+func (b BlockStmt) flow(g *graphBuilder) (head Step) {
 	head = g.current
 	for i, stmt := range b.List {
 		if i == 0 {
-			head = stmt.Flow(g)
+			head = stmt.flow(g)
 			continue
 		}
-		_ = stmt.Flow(g)
+		_ = stmt.flow(g)
 	}
 	return
 }

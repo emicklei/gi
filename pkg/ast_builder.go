@@ -175,7 +175,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 				s.callGraph = ce.deferFlow(g)
 			} else {
 				slog.Warn("defer statement call is not a CallExpr")
-				s.callGraph = s.Call.Flow(g)
+				s.callGraph = s.Call.flow(g)
 			}
 		}
 		b.push(s)
@@ -201,7 +201,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 		// store call graph in the FuncLit
 		g := newGraphBuilder(b.goPkg)
 		g.funcStack.push(s)
-		s.callGraph = s.Body.Flow(g)
+		s.callGraph = s.Body.flow(g)
 		g.funcStack.pop()
 
 		b.push(s)
@@ -534,7 +534,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 
 		// store call graph in the FuncDecl
 		g := newGraphBuilder(b.goPkg)
-		s.callGraph = s.Flow(g)
+		s.callGraph = s.flow(g)
 
 		// leave the function scope
 		b.popEnv()
@@ -619,7 +619,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 					}
 					// store call graph in the ValueSpec for initialization
 					g := newGraphBuilder(b.goPkg)
-					vs.callGraph = vs.Flow(g)
+					vs.graph = vs.flow(g)
 					decl.Specs = append(decl.Specs, vs)
 				}
 				b.push(decl)
@@ -642,12 +642,12 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 				}
 				// store call graph in the ValueSpec for initialization
 				g := newGraphBuilder(b.goPkg)
-				vs.callGraph = vs.Flow(g)
+				vs.graph = vs.flow(g)
 				decl.Specs = append(decl.Specs, vs)
 			}
 			// store call graph in the ConstDecl for initialization
 			g := newGraphBuilder(b.goPkg)
-			decl.callGraph = decl.Flow(g)
+			decl.graph = decl.flow(g)
 			b.constDecl = nil // clear current const decl
 			b.env.addConstOrVar(decl)
 		case token.VAR:
@@ -656,7 +656,7 @@ func (b *ASTBuilder) Visit(node ast.Node) ast.Visitor {
 				e := b.pop()
 				c := e.(ValueSpec)
 				g := newGraphBuilder(b.goPkg)
-				c.callGraph = c.Flow(g)
+				c.graph = c.flow(g)
 				// let the environment know
 				b.env.addConstOrVar(c)
 				// add to stack as normal

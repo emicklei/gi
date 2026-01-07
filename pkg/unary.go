@@ -100,8 +100,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 	}
 }
 
-func (u UnaryExpr) Flow(g *graphBuilder) (head Step) {
-	head = u.X.Flow(g)
+func (u UnaryExpr) flow(g *graphBuilder) (head Step) {
+	head = u.X.flow(g)
 	g.next(u)
 	return head
 }

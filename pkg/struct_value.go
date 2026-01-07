@@ -55,7 +55,7 @@ func (i *StructValue) Select(name string) reflect.Value {
 	panic("no such field or method: " + name)
 }
 
-func (i *StructValue) Assign(fieldName string, val reflect.Value) {
+func (i *StructValue) fieldAssign(fieldName string, val reflect.Value) {
 	if _, ok := i.fields[fieldName]; ok {
 		// override, TODO what if HeapPointer?
 		i.fields[fieldName] = val

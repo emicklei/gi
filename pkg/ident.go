@@ -20,7 +20,7 @@ func (i Ident) Eval(vm *VM) {
 
 func (i Ident) Assignable(vm *VM) CanAssign { return i }
 
-func (i Ident) Assign(vm *VM, value reflect.Value) {
+func (i Ident) assign(vm *VM, value reflect.Value) {
 	if i.Name == "_" {
 		return
 	}
@@ -31,7 +31,7 @@ func (i Ident) Define(vm *VM, value reflect.Value) {
 	vm.localEnv().set(i.Name, value)
 }
 
-func (i Ident) Flow(g *graphBuilder) (head Step) {
+func (i Ident) flow(g *graphBuilder) (head Step) {
 	g.next(i)
 	return g.current
 }

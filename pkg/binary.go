@@ -48,9 +48,9 @@ func (b BinaryExpr) Eval(vm *VM) {
 	vm.pushOperand(v.eval())
 }
 
-func (b BinaryExpr) Flow(g *graphBuilder) (head Step) {
-	head = b.X.Flow(g)
-	b.Y.Flow(g)
+func (b BinaryExpr) flow(g *graphBuilder) (head Step) {
+	head = b.X.flow(g)
+	b.Y.flow(g)
 	g.next(b)
 	return head
 }

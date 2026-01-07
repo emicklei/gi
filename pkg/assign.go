@@ -47,61 +47,61 @@ func (a AssignStmt) apply(each Expr, vm *VM, v reflect.Value) {
 	case token.DEFINE: // :=
 		target.Define(vm, v)
 	case token.ASSIGN: // =
-		target.Assign(vm, v)
+		target.assign(vm, v)
 	case token.ADD_ASSIGN: // +=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.ADD, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	case token.SUB_ASSIGN: // -=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.SUB, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	case token.MUL_ASSIGN: // *=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.MUL, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	case token.QUO_ASSIGN: // /=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.QUO, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	case token.REM_ASSIGN: // %=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.REM, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	case token.AND_ASSIGN: // &=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.AND, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	case token.OR_ASSIGN: // |=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.OR, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	case token.XOR_ASSIGN: // ^=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.XOR, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	case token.SHL_ASSIGN: // <<=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.SHL, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	case token.SHR_ASSIGN: // >>=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.SHR, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	case token.AND_NOT_ASSIGN: // &^=
 		current := vm.returnsEval(each)
 		result := binaryExprValue{left: current, op: token.AND_NOT, right: v}.eval()
-		target.Assign(vm, result)
+		target.assign(vm, result)
 	default:
 		panic("unsupported assignment " + a.Tok.String())
 	}
 }
 
 // pairwise flow
-func (a AssignStmt) Flow(g *graphBuilder) (head Step) {
+func (a AssignStmt) flow(g *graphBuilder) (head Step) {
 	for i := len(a.Lhs) - 1; i >= 0; i-- {
 		left := a.Lhs[i]
-		left.Flow(g)
+		left.flow(g)
 		// step back to previous, the last node must not be evaluated
 		g.stepBack()
 		if head == nil && g.current != nil {
@@ -110,7 +110,7 @@ func (a AssignStmt) Flow(g *graphBuilder) (head Step) {
 		// right side may be shorter (e.g. x, y = f())
 		if i < len(a.Rhs) {
 			right := a.Rhs[i]
-			rightFlow := right.Flow(g)
+			rightFlow := right.flow(g)
 			if head == nil {
 				head = rightFlow
 			}

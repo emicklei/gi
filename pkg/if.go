@@ -30,9 +30,9 @@ func (i IfStmt) Eval(vm *VM) {
 	}
 }
 
-func (i IfStmt) Flow(g *graphBuilder) (head Step) {
+func (i IfStmt) flow(g *graphBuilder) (head Step) {
 	if i.Init != nil {
-		head = i.Init.Flow(g)
+		head = i.Init.flow(g)
 	}
 	// condition can have its own assigments
 	push := newPushEnvironmentStep(i.Pos())
@@ -41,18 +41,18 @@ func (i IfStmt) Flow(g *graphBuilder) (head Step) {
 		head = g.current
 	}
 	begin := new(conditionalStep)
-	begin.conditionFlow = i.Cond.Flow(g)
+	begin.conditionFlow = i.Cond.flow(g)
 	g.nextStep(begin)
 
 	// true branch
-	i.Body.Flow(g)
+	i.Body.flow(g)
 	pop := newPopEnvironmentStep(i.Body.Pos())
 	g.nextStep(pop)
 
 	// false branch
 	if i.Else != nil {
 		g.current = nil
-		elseFlow := i.Else.Flow(g)
+		elseFlow := i.Else.flow(g)
 		// TODO if the body ends with a branch then pop should should be done before.
 		// fmt.Println(g.current)
 		begin.elseFlow = elseFlow

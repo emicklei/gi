@@ -39,13 +39,13 @@ func (s StarExpr) Eval(vm *VM) {
 	}
 	vm.pushOperand(v.Elem())
 }
-func (s StarExpr) Flow(g *graphBuilder) (head Step) {
-	head = s.X.Flow(g)
+func (s StarExpr) flow(g *graphBuilder) (head Step) {
+	head = s.X.flow(g)
 	g.next(s)
 	return
 }
 
-func (s StarExpr) Assign(vm *VM, value reflect.Value) {
+func (s StarExpr) assign(vm *VM, value reflect.Value) {
 	v := vm.returnsEval(s.X)
 	// Check if this is a heap pointer
 	if hp, ok := v.Interface().(*HeapPointer); ok {
@@ -81,8 +81,8 @@ type ParenExpr struct {
 }
 
 func (e ParenExpr) Eval(vm *VM) {} // noop
-func (e ParenExpr) Flow(g *graphBuilder) (head Step) {
-	return e.X.Flow(g)
+func (e ParenExpr) flow(g *graphBuilder) (head Step) {
+	return e.X.flow(g)
 }
 func (e ParenExpr) Pos() token.Pos { return e.LParen }
 func (e ParenExpr) String() string {

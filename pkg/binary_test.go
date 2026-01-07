@@ -9,7 +9,7 @@ import (
 
 func evalExpr(expr Expr) reflect.Value {
 	g := newGraphBuilder(nil)
-	head := expr.Flow(g)
+	head := expr.flow(g)
 	vm := NewVM(newEnvironment(nil))
 	vm.takeAllStartingAt(head)
 	result := vm.popOperand()

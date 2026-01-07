@@ -16,7 +16,7 @@ type SelectorExpr struct {
 
 func (s SelectorExpr) Define(vm *VM, val reflect.Value) {}
 
-func (s SelectorExpr) Assign(vm *VM, val reflect.Value) {
+func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 	if idn, ok := s.X.(Ident); ok {
 
 		// need to pop from stack? TODO
@@ -33,7 +33,7 @@ func (s SelectorExpr) Assign(vm *VM, val reflect.Value) {
 		// can we assign directly to the field?
 		fa, ok := recv.Interface().(FieldAssignable)
 		if ok {
-			fa.Assign(s.Sel.Name, val)
+			fa.fieldAssign(s.Sel.Name, val)
 			return
 		}
 		// TODO missing case?
@@ -136,8 +136,8 @@ func (s SelectorExpr) Eval(vm *VM) {
 	vm.fatal(fmt.Sprintf("method or field \"%s\" not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
 }
 
-func (s SelectorExpr) Flow(g *graphBuilder) (head Step) {
-	head = s.X.Flow(g)
+func (s SelectorExpr) flow(g *graphBuilder) (head Step) {
+	head = s.X.flow(g)
 	g.next(s)
 	return head
 }

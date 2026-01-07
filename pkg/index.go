@@ -39,7 +39,7 @@ func (i IndexExpr) Eval(vm *VM) {
 	}
 }
 
-func (i IndexExpr) Assign(vm *VM, value reflect.Value) {
+func (i IndexExpr) assign(vm *VM, value reflect.Value) {
 	index := vm.popOperand()
 	target := vm.popOperand()
 	if target.Kind() == reflect.Pointer {
@@ -59,9 +59,9 @@ func (i IndexExpr) Define(vm *VM, value reflect.Value) {
 	vm.fatal("not yet implemented: IndexExpr.Define")
 }
 
-func (i IndexExpr) Flow(g *graphBuilder) (head Step) {
-	head = i.X.Flow(g)
-	i.Index.Flow(g)
+func (i IndexExpr) flow(g *graphBuilder) (head Step) {
+	head = i.X.flow(g)
+	i.Index.flow(g)
 	g.next(i)
 	return head
 }

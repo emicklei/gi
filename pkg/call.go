@@ -351,17 +351,17 @@ func isPointerExpr(e Expr) bool {
 	return ok
 }
 
-func (c CallExpr) Flow(g *graphBuilder) (head Step) {
+func (c CallExpr) flow(g *graphBuilder) (head Step) {
 	// make sure first value is on top of the operand stack
 	// so we can pop in the right order during Eval
 	for i := len(c.Args) - 1; i >= 0; i-- {
 		if i == len(c.Args)-1 {
-			head = c.Args[i].Flow(g)
+			head = c.Args[i].flow(g)
 			continue
 		}
-		c.Args[i].Flow(g)
+		c.Args[i].flow(g)
 	}
-	funFlow := c.Fun.Flow(g)
+	funFlow := c.Fun.flow(g)
 	if head == nil { // must be a function with no args
 		head = funFlow
 	}
@@ -370,7 +370,7 @@ func (c CallExpr) Flow(g *graphBuilder) (head Step) {
 }
 
 func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {
-	funFlow := c.Fun.Flow(g)
+	funFlow := c.Fun.flow(g)
 	if head == nil { // must be a function with no args
 		head = funFlow
 	}
