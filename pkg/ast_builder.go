@@ -735,6 +735,10 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				// what if nil?
 			}
 		}
+		// if idn, ok := e.(Ident); ok {
+		// 	at := newExtendedType(idn)
+		// 	b.envSet(s.Name.Name, reflect.ValueOf(at))
+		// }
 		b.push(s)
 	case *ast.StructType:
 		s := makeStructType(n)

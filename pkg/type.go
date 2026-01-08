@@ -63,7 +63,7 @@ func (s TypeSpec) makeValue(vm *VM, _ int, constructorArgs []reflect.Value) refl
 		structVal := i.makeValue(vm, 0, constructorArgs)
 		return structVal
 	}
-	vm.fatal(fmt.Sprintf("expected a CanInstantiate value:%v", s.Type))
+	vm.fatal(fmt.Sprintf("expected a CanMake value:%v", s.Type))
 	return reflectNil
 }
 
@@ -199,4 +199,31 @@ func (m MapType) Pos() token.Pos { return m.MapPos }
 
 func (m MapType) String() string {
 	return fmt.Sprintf("MapType(%v,%v)", m.Key, m.Value)
+}
+
+type ExtendedType struct {
+	name    Ident
+	methods map[string]*FuncDecl
+}
+
+func newExtendedType(name Ident) ExtendedType {
+	return ExtendedType{
+		name:    name,
+		methods: map[string]*FuncDecl{},
+	}
+}
+func (d ExtendedType) makeValue(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
+	return reflectNil
+}
+func (d ExtendedType) addMethod(decl *FuncDecl) {
+	d.methods[decl.Name.Name] = decl
+}
+
+type GoType struct {
+	typ reflect.Type // underlying Go type, builtin or struct
+}
+
+func (g GoType) makeValue(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
+	// TODO
+	return reflectNil
 }

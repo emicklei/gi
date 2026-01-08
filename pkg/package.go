@@ -84,8 +84,15 @@ func (p *Package) Initialize(vm *VM) error {
 		default:
 			return fmt.Errorf("unsupported receiver type in method declaration: %T", recvType)
 		}
-		structType := vm.localEnv().valueLookUp(typeName)
-		structType.Interface().(StructType).addMethod(decl)
+		methodHolder := vm.localEnv().valueLookUp(typeName).Interface()
+		switch holder := methodHolder.(type) {
+		case StructType:
+			holder.addMethod(decl)
+		case ExtendedType:
+			holder.addMethod(decl)
+		default:
+			vm.fatal(fmt.Sprintf("unknown type holding methods: %T", holder))
+		}
 	}
 	clear(p.Env.methods)
 

@@ -14,27 +14,27 @@ type ConstDecl struct {
 	graph    Step
 }
 
-func (c ConstDecl) callGraph() Step {
-	return c.graph
-}
-func (c ConstDecl) declStep() CanDeclare { return c }
 func (c ConstDecl) declare(vm *VM) bool {
 	done := true
 	if c.iotaExpr != nil {
+		// reset iota for this const declaration
 		c.iotaExpr.reset()
 	}
 	for _, spec := range c.Specs {
 		vm.takeAllStartingAt(spec.callGraph())
 		if !spec.declare(vm) {
 			done = false
+			// continue trying others; we come back later
 		}
 		if c.iotaExpr != nil {
+			// if iota was used, advance it
 			c.iotaExpr.next()
 		}
 	}
 	return done
 }
-func (c ConstDecl) Eval(vm *VM) {}
+func (c ConstDecl) Eval(vm *VM) {} // noop
+
 func (c ConstDecl) flow(g *graphBuilder) (head Step) {
 	// process in order of declaration because of iota
 	for i, spec := range c.Specs {
@@ -49,6 +49,10 @@ func (c ConstDecl) flow(g *graphBuilder) (head Step) {
 	}
 	return
 }
+func (c ConstDecl) callGraph() Step {
+	return c.graph
+}
+func (c ConstDecl) declStep() CanDeclare { return c }
 func (c ConstDecl) Pos() token.Pos {
 	if len(c.Specs) == 0 {
 		return token.NoPos

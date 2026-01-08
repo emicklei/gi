@@ -144,13 +144,18 @@ func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 	return vm.popOperand()
 }
 
+// TODO only return a CanMake
 func (vm *VM) returnsType(e Evaluable) reflect.Type {
 	if id, ok := e.(Ident); ok {
 		typ, ok := builtins[id.Name]
 		if ok {
 			return typ.Interface().(builtinType).typ
 		}
-		// non-imported user defined type
+		// TODO not correct
+		// def := vm.localEnv().valueLookUp(id.Name)
+		// if def.IsValid() {
+		// 	return def.Type()
+		// }
 		return structValueType
 	}
 	if star, ok := e.(StarExpr); ok {
@@ -298,19 +303,39 @@ func (vm *VM) printStack() {
 		return
 	}
 	frame := vm.currentFrame
-	for k, v := range frame.env.(*Environment).valueTable { // TODO hack
-		if v.IsValid() && v.CanInterface() {
-			if v == reflectNil {
-				fmt.Printf("vm.env[%s]: untyped nil\n", k)
-				continue
+	if env, ok := frame.env.(*PkgEnvironment); ok {
+		for i, decl := range env.declarations {
+			fmt.Printf("pkg.decl[%d]: %v\n", i, decl)
+			if cd, ok := decl.(ConstDecl); ok {
+				for s, spec := range cd.Specs {
+					for n, idn := range spec.Names {
+						fmt.Printf("  const.spec[%d][%d]: %v\n", s, n, idn.Name)
+					}
+				}
 			}
-			if isUndeclared(v) {
-				fmt.Printf("vm.env[%s]: undeclared value\n", k)
-				continue
+		}
+		for i, method := range env.inits {
+			fmt.Printf("pkg.init[%d]: %v\n", i, method)
+		}
+		for i, method := range env.methods {
+			fmt.Printf("pkg.method[%d]: %v\n", i, method)
+		}
+	}
+	if env, ok := frame.env.(*Environment); ok {
+		for k, v := range env.valueTable {
+			if v.IsValid() && v.CanInterface() {
+				if v == reflectNil {
+					fmt.Printf("vm.env[%s]: untyped nil\n", k)
+					continue
+				}
+				if isUndeclared(v) {
+					fmt.Printf("vm.env[%s]: undeclared value\n", k)
+					continue
+				}
+				fmt.Printf("vm.env.%s = %v (%T)\n", k, v.Interface(), v.Interface())
+			} else {
+				fmt.Printf("vm.env.%s = %v\n", k, v)
 			}
-			fmt.Printf("vm.env.%s = %v (%T)\n", k, v.Interface(), v.Interface())
-		} else {
-			fmt.Printf("vm.env.%s = %v\n", k, v)
 		}
 	}
 	for i := 0; i < len(frame.operands); i++ {

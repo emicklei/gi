@@ -57,6 +57,18 @@ func (v ValueSpec) declare(vm *VM) bool {
 				vm.localEnv().set(idn.Name, zv)
 				continue
 			}
+			// need conversion?
+			// if val.CanConvert(typ) {
+			// 	cv := val.Convert(typ)
+			// 	vm.localEnv().set(idn.Name, cv)
+			// 	continue
+			// }
+			// if cm, ok := typ.(CanMake); ok {
+			// 	mv := cm.makeValue(vm, 0, []reflect.Value{val})
+			// 	vm.localEnv().set(idn.Name, mv)
+			// 	continue
+			// }
+			// store as is
 			vm.localEnv().set(idn.Name, val)
 		} else {
 			// if nil then zero
@@ -65,7 +77,7 @@ func (v ValueSpec) declare(vm *VM) bool {
 				vm.localEnv().set(idn.Name, zv)
 				continue
 			}
-			// zero primitive
+			// zero value
 			zv := reflect.Zero(typ)
 			vm.localEnv().set(idn.Name, zv)
 		}
@@ -96,7 +108,7 @@ func (v ValueSpec) Pos() token.Pos {
 }
 
 func (v ValueSpec) String() string {
-	return fmt.Sprintf("ValueSpec(len=%d)", len(v.Names))
+	return fmt.Sprintf("ValueSpec(%v)", v.Names)
 }
 
 var _ Expr = new(iotaExpr)

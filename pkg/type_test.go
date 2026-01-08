@@ -53,6 +53,28 @@ func main() {
 }`, "01")
 }
 
+func TestTypeAliasConstIotaWithMethod(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+import "fmt"
+
+type Count int
+
+func (c Count) String() string {
+	return fmt.Sprintf("%d")
+}
+
+const (
+	Zero Count = iota
+	One
+)
+
+func main() {
+	print(Zero, One.String())
+}`, "01")
+}
+
 func TestMap(t *testing.T) {
 	testMain(t, `package main
 
