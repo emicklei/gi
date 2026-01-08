@@ -26,7 +26,7 @@ lint:
 
 # go install golang.org/x/tools/cmd/deadcode@latest
 unused:
-	cd cmd/gi && deadcode .
+	cd cmd/gi && deadcode -test .
 
 .PHONY: test clean todo bench install unused examples lint
 examples: install
