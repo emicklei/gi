@@ -60,8 +60,8 @@ type FieldAssignable interface {
 
 type CanMake interface {
 	// size can be 0 if not applicable
-	// constructorArgs can be nil if not applicable
-	makeValue(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value
+	// elements can be nil if not applicable
+	makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value
 	CanCompose
 }
 

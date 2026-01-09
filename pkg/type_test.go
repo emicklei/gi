@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -17,7 +18,7 @@ func main() {
 }`, "done")
 }
 
-func TestTypeAlias(t *testing.T) {
+func TestTypeDecorated(t *testing.T) {
 	testMain(t, `package main
 
 type MyInt = int
@@ -28,7 +29,7 @@ func main() {
 }`, "1")
 }
 
-func TestTypeAlias2(t *testing.T) {
+func TestTypeDecorated2(t *testing.T) {
 	testMain(t, `package main
 
 type HTML string
@@ -38,7 +39,7 @@ func main() {
 }`, "gi")
 }
 
-func TestTypeAliasConstIota(t *testing.T) {
+func TestTypeDecoratedConstIota(t *testing.T) {
 	testMain(t, `package main
 
 type Count int
@@ -53,7 +54,7 @@ func main() {
 }`, "01")
 }
 
-func TestTypeAliasConstIotaWithMethod(t *testing.T) {
+func TestTypeDecoratedConstIotaWithMethod(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main
 
@@ -423,4 +424,17 @@ func main() {
 	*x = 40
 	print(*x)	
 }`, "40")
+}
+
+func TestGoType(t *testing.T) {
+	gt := GoType{typ: reflect.TypeOf(42)}
+	rv := gt.makeValue(nil, 0, nil)
+	t.Log(rv)
+	{
+		pi := new(int)
+		*pi = 42
+		gt := GoType{typ: reflect.TypeOf(pi)}
+		rv := gt.makeValue(nil, 0, nil)
+		t.Log(rv)
+	}
 }

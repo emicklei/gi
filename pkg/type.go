@@ -57,10 +57,10 @@ func (s TypeSpec) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (s TypeSpec) makeValue(vm *VM, _ int, constructorArgs []reflect.Value) reflect.Value {
+func (s TypeSpec) makeValue(vm *VM, _ int, elements []reflect.Value) reflect.Value {
 	actualType := vm.returnsEval(s.Type).Interface()
 	if i, ok := actualType.(CanMake); ok {
-		structVal := i.makeValue(vm, 0, constructorArgs)
+		structVal := i.makeValue(vm, 0, elements)
 		return structVal
 	}
 	vm.fatal(fmt.Sprintf("expected a CanMake value:%v", s.Type))
@@ -138,7 +138,7 @@ func (s StructType) literalCompose(vm *VM, composite reflect.Value, values []ref
 	return i.literalCompose(vm, composite, values)
 }
 
-func (s StructType) makeValue(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
+func (s StructType) makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value {
 	return reflect.ValueOf(NewStructValue(vm, s))
 }
 
@@ -167,7 +167,7 @@ func (m MapType) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (m MapType) makeValue(vm *VM, _ int, constructorArgs []reflect.Value) reflect.Value {
+func (m MapType) makeValue(vm *VM, _ int, elements []reflect.Value) reflect.Value {
 	keyTypeName := mustIdentName(m.Key)
 	valueTypeName := mustIdentName(m.Value)
 	// standard or importer types
@@ -201,8 +201,10 @@ func (m MapType) String() string {
 	return fmt.Sprintf("MapType(%v,%v)", m.Key, m.Value)
 }
 
+// type Count int
 type ExtendedType struct {
 	name    Ident
+	typ     reflect.Type // underlying Go type, builtin
 	methods map[string]*FuncDecl
 }
 
@@ -212,18 +214,26 @@ func newExtendedType(name Ident) ExtendedType {
 		methods: map[string]*FuncDecl{},
 	}
 }
-func (d ExtendedType) makeValue(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
+func (d ExtendedType) makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value {
 	return reflectNil
 }
 func (d ExtendedType) addMethod(decl *FuncDecl) {
 	d.methods[decl.Name.Name] = decl
 }
 
+type ExtendedValue struct {
+	typ ExtendedType
+}
+
 type GoType struct {
 	typ reflect.Type // underlying Go type, builtin or struct
 }
 
-func (g GoType) makeValue(vm *VM, size int, constructorArgs []reflect.Value) reflect.Value {
-	// TODO
-	return reflectNil
+func (g GoType) makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value {
+	pv := reflect.New(g.typ)
+	if g.typ.Kind() == reflect.Pointer {
+		return pv
+	} else {
+		return pv.Elem()
+	}
 }
