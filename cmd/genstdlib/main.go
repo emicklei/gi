@@ -77,8 +77,9 @@ func main() {
 			usedPkgContent[pkg] = PackageContent{pkgName, funcs, types}
 		}
 	}
-	generateStdFuncsFile(usedPkgs, usedPkgContent)
-	generateStdTypesFile(usedPkgs, usedPkgContent)
+	//generateStdFuncsFile(usedPkgs, usedPkgContent)
+	//generateStdTypesFile(usedPkgs, usedPkgContent)
+	generatStdInterfaceWrappers(usedPkgs, usedPkgContent)
 }
 
 func generateStdFuncsFile(usedPkgs []string, usedPkgFuncs map[string]PackageContent) {
@@ -187,6 +188,31 @@ func generateStdTypesFile(usedPkgs []string, usedPkgFuncs map[string]PackageCont
 	fmt.Fprintln(outFile, "}")
 }
 
+type ASTVisitor interface {
+	VisitValueSpec(pkgName string, valueName string, valueSpec *ast.ValueSpec)
+	VisitFunction(pkgName string, funcName string, funcDecl *ast.FuncDecl)
+	VisitStructType(pkgName string, typeName string, structType *ast.StructType)
+	VisitInterfaceType(pkgName string, typeName string, structType *ast.InterfaceType)
+}
+
+type functionsAndTypesCollector struct {
+	funcSet map[string]struct{}
+	typeSet map[string]struct{}
+}
+
+func (c functionsAndTypesCollector) VisitStructType(pkgName string, typeName string, structType *ast.StructType) {
+	c.typeSet[typeName] = struct{}{}
+}
+func (c functionsAndTypesCollector) VisitInterfaceType(pkgName string, typeName string, structType *ast.InterfaceType) {
+	// Do nothing for now
+}
+func (c functionsAndTypesCollector) VisitFunction(pkgName string, funcName string, funcDecl *ast.FuncDecl) {
+	c.funcSet[funcName] = struct{}{}
+}
+func (c functionsAndTypesCollector) VisitValueSpec(pkgName string, valueName string, valueSpec *ast.ValueSpec) {
+	c.funcSet[valueName] = struct{}{}
+}
+
 func getExportedFunctionsAndTypes(pkgImportPath string) (string, []string, []string, error) {
 	// This example assumes the package is in the standard library.
 	// Use build to get the package details, which respects build tags.
@@ -232,7 +258,9 @@ func getExportedFunctionsAndTypes(pkgImportPath string) (string, []string, []str
 								if _, ok := ts.Type.(*ast.StructType); ok && !isGeneric {
 									typeSet[ts.Name.Name] = struct{}{}
 								} else {
-									//fmt.Printf("%s %T\n", ts.Name.Name, ts.Type)
+									if _, ok := ts.Type.(*ast.InterfaceType); ok && !isGeneric {
+										fmt.Printf("INTERFACE: %s %T\n", ts.Name.Name, ts.Type)
+									}
 								}
 								if _, ok := ts.Type.(*ast.Ident); ok && !isGeneric {
 									typeSet[ts.Name.Name] = struct{}{}
@@ -284,4 +312,123 @@ func getExportedFunctionsAndTypes(pkgImportPath string) (string, []string, []str
 	sort.Strings(types)
 	fmt.Println("get exported functions and types for package:", pkgImportPath, "funcs:", len(funcs), "types:", len(types))
 	return pkgName, funcs, types, nil
+}
+
+func getExportedFunctionsAndTypes2(pkgImportPath string, visitor ASTVisitor) error {
+	// This example assumes the package is in the standard library.
+	// Use build to get the package details, which respects build tags.
+	ctxt := build.Default
+	ctxt.CgoEnabled = false
+	ctxt.GOOS = runtime.GOOS
+	ctxt.GOARCH = runtime.GOARCH
+	pkg, err := ctxt.Import(pkgImportPath, "", 0)
+	if err != nil {
+		return fmt.Errorf("could not import package %s: %v", pkgImportPath, err)
+	}
+
+	fset := token.NewFileSet()
+	var pkgName string
+	for _, file := range pkg.GoFiles {
+		f, err := parser.ParseFile(fset, filepath.Join(pkg.Dir, file), nil, 0)
+		if err != nil {
+			return fmt.Errorf("could not parse file %s: %v", file, err)
+		}
+		if pkgName == "" {
+			pkgName = f.Name.Name
+		}
+
+		for _, decl := range f.Decls {
+			if fn, ok := decl.(*ast.FuncDecl); ok {
+				isGeneric := fn.Type.TypeParams != nil && fn.Type.TypeParams.NumFields() > 0
+				// Only include functions, not methods.
+				if fn.Recv == nil && fn.Name.IsExported() && !isGeneric &&
+					!strings.HasPrefix(fn.Name.Name, "Test") &&
+					!strings.HasPrefix(fn.Name.Name, "Example") &&
+					!strings.HasPrefix(fn.Name.Name, "Benchmark") {
+					visitor.VisitFunction(pkgName, fn.Name.Name, fn)
+				}
+			}
+			if gd, ok := decl.(*ast.GenDecl); ok {
+				if gd.Tok == token.TYPE {
+					for _, spec := range gd.Specs {
+						if ts, ok := spec.(*ast.TypeSpec); ok {
+							if ts.Name.IsExported() {
+								isGeneric := ts.TypeParams != nil && ts.TypeParams.NumFields() > 0
+								if _, ok := ts.Type.(*ast.StructType); ok && !isGeneric {
+									visitor.VisitStructType(pkgName, ts.Name.Name, ts.Type.(*ast.StructType))
+								} else {
+									if _, ok := ts.Type.(*ast.InterfaceType); ok && !isGeneric {
+										visitor.VisitInterfaceType(pkgName, ts.Name.Name, ts.Type.(*ast.InterfaceType))
+									}
+								}
+								if _, ok := ts.Type.(*ast.Ident); ok && !isGeneric {
+									// ??
+								}
+							}
+						}
+					}
+				}
+				if gd.Tok == token.VAR || gd.Tok == token.CONST {
+					for _, spec := range gd.Specs {
+						if vs, ok := spec.(*ast.ValueSpec); ok {
+							isGeneric := false
+							if vs.Type != nil {
+								if ft, ok := vs.Type.(*ast.FuncType); ok {
+									if ft.TypeParams != nil && ft.TypeParams.NumFields() > 0 {
+										isGeneric = true
+									}
+								}
+							}
+							if !isGeneric && len(vs.Values) > 0 {
+								if fl, ok := vs.Values[0].(*ast.FuncLit); ok {
+									if fl.Type.TypeParams != nil && fl.Type.TypeParams.NumFields() > 0 {
+										isGeneric = true
+									}
+								}
+							}
+							if !isGeneric {
+								for _, name := range vs.Names {
+									if name.IsExported() {
+										visitor.VisitValueSpec(pkgName, name.Name, vs)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	fmt.Println("get exported functions and types for package:", pkgImportPath, "funcs:", len(funcs), "types:", len(types))
+	return nil
+}
+
+func generatStdInterfaceWrappers(usedPkgs []string, usedPkgFuncs map[string]PackageContent) {
+	// Create the output file.
+	outFile, err := os.Create("../../pkg/stdlib_interfaces_generated.go")
+	if err != nil {
+		log.Fatalf("failed to create output file: %v", err)
+	}
+	defer outFile.Close()
+
+	// Write the header.
+	fmt.Fprintln(outFile, "// Code generated by cmd/genstdlib/main.go; DO NOT EDIT.")
+	fmt.Fprintln(outFile, "package pkg")
+	fmt.Fprintln(outFile, "")
+
+	// Assign unique aliases for each package
+	pkgAliases := make(map[string]string)
+	for idx, pkg := range usedPkgs {
+		alias := fmt.Sprintf("i%d", idx+1)
+		pkgAliases[pkg] = alias
+	}
+
+	// imports
+	fmt.Fprintln(outFile, "import (")
+	fmt.Fprintln(outFile, "\t\"reflect\"")
+	for _, pkg := range usedPkgs {
+		alias := pkgAliases[pkg]
+		fmt.Fprintf(outFile, "\t%s \"%s\"\n", alias, pkg)
+	}
+	fmt.Fprintln(outFile, ")")
 }
