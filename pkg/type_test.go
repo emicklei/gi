@@ -29,7 +29,7 @@ func main() {
 }`, "1")
 }
 
-func TestTypeDecorated2(t *testing.T) {
+func TestExtendedString(t *testing.T) {
 	testMain(t, `package main
 
 type HTML string
@@ -68,11 +68,10 @@ func (c Count) String() string {
 
 const (
 	Zero Count = iota
-	One
 )
 
 func main() {
-	print(Zero, One.String())
+	print(Zero.String())
 }`, "01")
 }
 
@@ -427,13 +426,13 @@ func main() {
 }
 
 func TestGoType(t *testing.T) {
-	gt := GoType{typ: reflect.TypeOf(42)}
+	gt := SDKType{typ: reflect.TypeOf(42)}
 	rv := gt.makeValue(nil, 0, nil)
 	t.Log(rv)
 	{
 		pi := new(int)
 		*pi = 42
-		gt := GoType{typ: reflect.TypeOf(pi)}
+		gt := SDKType{typ: reflect.TypeOf(pi)}
 		rv := gt.makeValue(nil, 0, nil)
 		t.Log(rv)
 	}

@@ -28,10 +28,12 @@ func (c CallExpr) Eval(vm *VM) {
 			c.handleBuiltinType(vm, f)
 		case ArrayType:
 			c.handleArrayType(vm, f)
-		case TypeSpec:
+		case TypeSpec: // NEEDED?
 			c.handleTypeSpec(vm, f)
 		case reflect.Method:
 			c.handleReflectMethod(vm, f)
+		case ExtendedType:
+			c.handleExtendedType(vm, f)
 		default:
 			vm.fatal(fmt.Sprintf("struct unexpected %T", fn.Interface()))
 		}
@@ -80,6 +82,12 @@ func (c CallExpr) Eval(vm *VM) {
 					args[i] = val
 					continue
 				}
+				// TestExtendedString
+				if hasExtendedType(val) {
+					etv := val.Interface().(ExtendedValue)
+					// TODO for now, always pass the underlying value of ExtendedValue
+					val = etv.val
+				}
 				// reflect convert?
 				if val.CanConvert(argType) {
 					args[i] = val.Convert(argType)
@@ -101,6 +109,15 @@ func (c CallExpr) Eval(vm *VM) {
 	default:
 		vm.fatal(fmt.Sprintf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface()))
 	}
+}
+
+func (c CallExpr) handleExtendedType(vm *VM, et ExtendedType) {
+	arg := vm.popOperand()
+	val := ExtendedValue{
+		typ: et,
+		val: arg,
+	}
+	vm.pushOperand(reflect.ValueOf(val))
 }
 
 func (c CallExpr) handleBuiltinType(vm *VM, blt builtinType) {
@@ -134,7 +151,7 @@ func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
 func (c CallExpr) handleTypeSpec(vm *VM, ts TypeSpec) {
 	// do a conversion to the specified type
 	toConvert := vm.popOperand()
-	rt := vm.returnsType(ts.Type)
+	rt := vm.makeType(ts.Type)
 	cv := toConvert.Convert(rt)
 	vm.pushOperand(cv)
 }
@@ -142,7 +159,7 @@ func (c CallExpr) handleTypeSpec(vm *VM, ts TypeSpec) {
 func (c CallExpr) handleArrayType(vm *VM, at ArrayType) {
 	// do a conversion to array/slice
 	toConvert := vm.popOperand()
-	rt := vm.returnsType(at.Elt)
+	rt := vm.makeType(at.Elt)
 	length := toConvert.Len()
 	capacity := toConvert.Len()
 	st := reflect.SliceOf(rt)
@@ -230,7 +247,7 @@ func setZeroReturnsToFrame(ft *FuncType, vm *VM, frame *stackFrame) {
 	}
 	for _, field := range ft.Results.List {
 		for _, name := range field.Names {
-			val := reflect.Zero(vm.returnsType(field.Type)) // TODO put types from gopkg in Field?
+			val := reflect.Zero(vm.makeType(field.Type)) // TODO put types from gopkg in Field?
 			frame.env.set(name.Name, val)
 		}
 	}
@@ -247,7 +264,7 @@ func setParametersToFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *sta
 			val := args[p]
 			if val.Interface() == untypedNil {
 				// create a zero value of the expected type
-				val = reflect.Zero(vm.returnsType(field.Type)) // TODO put types from gopkg in Field?
+				val = reflect.Zero(vm.makeType(field.Type)) // TODO put types from gopkg in Field?
 			}
 			frame.env.set(name.Name, val)
 			p++
@@ -277,7 +294,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 			for j := 1; j < len(vals); j++ {
 				vals[j] = vm.popOperand()
 			}
-			elemType := vm.returnsType(expectedType)
+			elemType := vm.makeType(expectedType)
 			sliceType := reflect.SliceOf(elemType)
 			sliceVal := reflect.MakeSlice(sliceType, len(vals), len(vals))
 			for k := 0; k < len(vals); k++ {

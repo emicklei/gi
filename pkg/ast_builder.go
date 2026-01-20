@@ -727,18 +727,12 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			// set the name of the struct type
 			st.Name = s.Name.Name
 			b.envSet(s.Name.Name, reflect.ValueOf(st))
-			e = st
-		} else {
-			if s.Name != nil {
-				b.envSet(s.Name.Name, reflect.ValueOf(s)) // TODO: or s.Type ?, LiteralType?
-			} else {
-				// what if nil?
-			}
+		} else if idn, ok := e.(Ident); ok {
+			ext := newExtendedType(idn)
+			b.envSet(s.Name.Name, reflect.ValueOf(ext))
+		} else if it, ok := e.(InterfaceType); ok {
+			b.envSet(s.Name.Name, reflect.ValueOf(it))
 		}
-		// if idn, ok := e.(Ident); ok {
-		// 	at := newExtendedType(idn)
-		// 	b.envSet(s.Name.Name, reflect.ValueOf(at))
-		// }
 		b.push(s)
 	case *ast.StructType:
 		s := makeStructType(n)
@@ -746,6 +740,14 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			b.Visit(n.Fields)
 			e := b.pop().(FieldList)
 			s.Fields = &e
+		}
+		b.push(s)
+	case *ast.InterfaceType:
+		s := InterfaceType{InterfacePos: n.Interface}
+		if n.Methods != nil {
+			b.Visit(n.Methods)
+			e := b.pop().(FieldList)
+			s.Methods = &e
 		}
 		b.push(s)
 	case *ast.RangeStmt:

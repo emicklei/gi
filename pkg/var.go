@@ -44,32 +44,30 @@ func (v ValueSpec) declare(vm *VM) bool {
 		}
 		return true
 	}
-	typ := vm.returnsType(v.Type)
+	typ := vm.proxyType(v.Type)
+
 	// left to right, see Flow
 	for _, idn := range v.Names {
 		if v.Values != nil {
 			val := vm.popOperand()
-			if !val.IsValid() { // TODO check undeclared?
-				return false
-			}
-			if val.Interface() == untypedNil {
+			if val == reflectNil {
+				typ := vm.makeType(v.Type)
 				zv := reflect.Zero(typ)
 				vm.localEnv().set(idn.Name, zv)
 				continue
 			}
-			// need conversion?
-			// if val.CanConvert(typ) {
-			// 	cv := val.Convert(typ)
-			// 	vm.localEnv().set(idn.Name, cv)
-			// 	continue
-			// }
-			// if cm, ok := typ.(CanMake); ok {
-			// 	mv := cm.makeValue(vm, 0, []reflect.Value{val})
-			// 	vm.localEnv().set(idn.Name, mv)
-			// 	continue
-			// }
-			// store as is
-			vm.localEnv().set(idn.Name, val)
+			if !val.IsValid() { // TODO check undeclared?
+				console(fmt.Sprintf("var:53 invalid value for %s, is undeclared? %v", idn.Name, val == reflectUndeclared))
+				return false
+			}
+			if val.Interface() == untypedNil {
+				typ := vm.makeType(v.Type)
+				zv := reflect.Zero(typ)
+				vm.localEnv().set(idn.Name, zv)
+				continue
+			}
+			mv := typ.makeValue(vm, 0, []reflect.Value{val})
+			vm.localEnv().set(idn.Name, mv)
 		} else {
 			// if nil then zero
 			if z, ok := v.Type.(CanMake); ok {
@@ -78,6 +76,7 @@ func (v ValueSpec) declare(vm *VM) bool {
 				continue
 			}
 			// zero value
+			typ := vm.makeType(v.Type)
 			zv := reflect.Zero(typ)
 			vm.localEnv().set(idn.Name, zv)
 		}

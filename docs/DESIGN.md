@@ -77,7 +77,7 @@ The first step is the head of the chain.
 . fmt.Println for StructValues needs rework
 - symbolstable and typestable can be merged into one
 - github.com/fatih/structtag replace with some SDK pkg?
-- how to handle returnsType of FuncType? and what if FuncType is using local pkg types?
+- how to handle makeType of FuncType? and what if FuncType is using local pkg types?
 - handle omitzero
 - frameStack -> callStack
 - unaryfuncs

@@ -23,18 +23,16 @@ func (r ReturnStmt) Eval(vm *VM) {
 		results[i] = val
 	}
 	// bind result values to named results of the function if any
-	fd, ok := vm.currentFrame.creator.(Func)
-	if ok {
+	fn := vm.currentFrame.creator
+	if fn != nil {
 		i := 0
-		for _, fields := range fd.results().List {
+		for _, fields := range fn.results().List {
 			for _, name := range fields.Names {
 				owner := vm.currentFrame.env.valueOwnerOf(name.Name)
 				owner.set(name.Name, results[i])
 				i++
 			}
 		}
-	} else {
-		vm.fatal("creator not set")
 	}
 }
 

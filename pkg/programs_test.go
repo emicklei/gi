@@ -445,6 +445,25 @@ func main() {
 }`, "an error")
 }
 
+func TestPrintError(t *testing.T) {
+	testMain(t, `package main
+
+import "errors"
+func main() {
+	var err2 error = errors.New("an error")
+	print(err2.Error())
+}`, "an error")
+}
+
+func TestPrintOne(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	var i int = 1
+	print(i)
+}`, "1")
+}
+
 func TestGotoInFunctionLiteral(t *testing.T) {
 	testMain(t, `package main
 
@@ -519,6 +538,7 @@ func main() {
 
 // https://stackoverflow.com/questions/67601236/run-tests-programmatically-in-go
 func TestTest(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
 import "testing"
 

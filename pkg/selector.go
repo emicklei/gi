@@ -71,11 +71,8 @@ func (s SelectorExpr) Eval(vm *VM) {
 	if hp, ok := recv.Interface().(*HeapPointer); ok {
 		recv = vm.heap.read(hp)
 	}
-	if isUndeclared(recv) {
-		// propagate invalid value
-		vm.pushOperand(recv)
-		return
-	}
+
+	// interpreted receiver that can select fields or methods
 	rec, ok := recv.Interface().(CanSelect)
 	if ok {
 		// can be field or method
@@ -109,26 +106,33 @@ func (s SelectorExpr) Eval(vm *VM) {
 	}
 
 	meth := recv.MethodByName(s.Sel.Name)
-	if !meth.IsValid() {
-		recvType := recv.Type()
-		ptrRecvType := reflect.PointerTo(recvType)
-		pmeth, ok := ptrRecvType.MethodByName(s.Sel.Name)
-		if ok {
-			meth = reflect.ValueOf(pmeth)
-			// push pointer to recv as first argument
-			if recv.CanAddr() {
-				recv = recv.Addr()
-			} else {
-				// Create a new pointer to a copy
-				ptr := reflect.New(recv.Type())
-				ptr.Elem().Set(recv)
-				recv = ptr
-			}
-			vm.pushOperand(recv)
-			vm.pushOperand(meth)
-			return
+	if meth.IsValid() {
+		vm.pushOperand(meth)
+		return
+	}
+
+	if isUndeclared(recv) {
+		// propagate invalid value
+		vm.pushOperand(recv)
+		return
+	}
+
+	// Sel.Name is a method of receiver's pointer type ?
+	recvType := recv.Type()
+	ptrRecvType := reflect.PointerTo(recvType)
+	pmeth, ok := ptrRecvType.MethodByName(s.Sel.Name)
+	if ok {
+		meth := reflect.ValueOf(pmeth)
+		// push pointer to recv as first argument
+		if recv.CanAddr() {
+			recv = recv.Addr()
+		} else {
+			// Create a new pointer to a copy
+			ptr := reflect.New(recv.Type())
+			ptr.Elem().Set(recv)
+			recv = ptr
 		}
-	} else {
+		vm.pushOperand(recv)
 		vm.pushOperand(meth)
 		return
 	}

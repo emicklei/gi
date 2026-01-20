@@ -31,7 +31,7 @@ func NewStructValue(vm *VM, t StructType) *StructValue {
 		fields: map[string]reflect.Value{},
 	}
 	for _, field := range t.Fields.List {
-		typ := vm.returnsType(field.Type)
+		typ := vm.makeType(field.Type)
 		for _, name := range field.Names {
 			i.fields[name.Name] = reflect.New(typ).Elem()
 		}
@@ -39,8 +39,7 @@ func NewStructValue(vm *VM, t StructType) *StructValue {
 	return i
 }
 
-// TODO must call String method of StructType if present and if not use default behavior
-func (i *StructValue) String() string {
+func (i *StructValue) toString() string {
 	return fmt.Sprintf("*StructValue(%v)", i.structType)
 }
 

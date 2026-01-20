@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"fmt"
 	"go/token"
 	"reflect"
 
@@ -71,7 +70,6 @@ type Decl interface {
 }
 
 type Step interface {
-	fmt.Stringer
 	Evaluable
 	StepTaker
 	Traverseable
@@ -99,4 +97,13 @@ type Func interface {
 	gotoReference(label string) statementReference
 	results() *FieldList
 	params() *FieldList
+}
+
+// for gi internal use
+type ToStringer interface {
+	toString() string
+}
+
+type HasMethods interface {
+	methodsMap() map[string]*FuncDecl
 }

@@ -145,6 +145,11 @@ func console(v any) {
 		fmt.Printf("console: type: %s,%v\n", rt.Name(), rt)
 		return
 	}
+	if ts, ok := v.(ToStringer); ok {
+		fmt.Printf("console: %s\n", ts.toString())
+		return
+	}
+	// fallback
 	fmt.Printf("console: %#v (%T)\n", v, v)
 }
 

@@ -70,6 +70,13 @@ func isHeapPointer(rv reflect.Value) (hp *HeapPointer, ok bool) {
 	return
 }
 
+func hasExtendedType(rv reflect.Value) bool {
+	if rv.Type() == reflect.TypeFor[ExtendedValue]() {
+		return true
+	}
+	return false
+}
+
 // allocHeapValue allocates space in the VM heap for a value and returns a HeapPointer to it.
 func (h *Heap) allocHeapValue(v reflect.Value) *HeapPointer {
 	addr := h.counter

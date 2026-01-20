@@ -1,6 +1,8 @@
 package pkg
 
 import (
+	"errors"
+	"reflect"
 	"testing"
 )
 
@@ -30,4 +32,10 @@ func TestStack(t *testing.T) {
 	if got, want := s.pop(), "a"; got != want {
 		t.Errorf("got [%v] want [%v]", got, want)
 	}
+}
+
+func TestIsInterface(t *testing.T) {
+	var e error = errors.New("some error")
+	et := reflect.TypeOf(e)
+	t.Log(et.Kind())
 }

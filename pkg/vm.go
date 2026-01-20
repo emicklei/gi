@@ -144,22 +144,74 @@ func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 	return vm.popOperand()
 }
 
+func (vm *VM) proxyType(e Expr) CanMake {
+	if id, ok := e.(Ident); ok {
+		typ, ok := builtins[id.Name]
+		if ok {
+			gt := SDKType{typ: typ.Interface().(builtinType).typ}
+			return gt
+		}
+		typ = vm.localEnv().valueLookUp(id.Name)
+		// interpreted?
+		if cm, ok := typ.Interface().(CanMake); ok {
+			return cm
+		}
+		vm.fatal(fmt.Sprintf("unhandled proxyType for Ident %v (%T)", e, e))
+	}
+
+	if sel, ok := e.(SelectorExpr); ok {
+		typ := vm.localEnv().valueLookUp(sel.X.(Ident).Name)
+		val := typ.Interface()
+		if canSelect, ok := val.(CanSelect); ok {
+			selVal := canSelect.selectFieldOrMethod(sel.Sel.Name)
+			return SDKType{typ: reflect.TypeOf(selVal.Interface())}
+		}
+		pkgType := stdtypes[sel.X.(Ident).Name][sel.Sel.Name]
+		return SDKType{typ: reflect.TypeOf(pkgType.Interface())}
+	}
+
+	if star, ok := e.(StarExpr); ok {
+		nonStarType := vm.proxyType(star.X)
+		return nonStarType // .pointerType(). // TODO
+	}
+
+	if ar, ok := e.(ArrayType); ok {
+		elemType := vm.makeType(ar.Elt)
+		if ar.Len == nil {
+			return SDKType{typ: reflect.SliceOf(elemType)}
+		} else {
+			lenVal := vm.returnsEval(ar.Len)
+			size := int(lenVal.Int())
+			return SDKType{typ: reflect.ArrayOf(size, elemType)}
+		}
+	}
+
+	if _, ok := e.(FuncType); ok {
+		// any function type will do; we just need its reflect.Type
+		// TODO
+		fn := func() {}
+		return SDKType{typ: reflect.TypeOf(fn)}
+	}
+
+	if e, ok := e.(Ellipsis); ok {
+		return vm.proxyType(e.Elt)
+	}
+
+	vm.fatal(fmt.Sprintf("unhandled proxyType for %v (%T)", e, e))
+	return nil
+}
+
 // TODO only return a CanMake
-func (vm *VM) returnsType(e Evaluable) reflect.Type {
+func (vm *VM) makeType(e Evaluable) reflect.Type {
 	if id, ok := e.(Ident); ok {
 		typ, ok := builtins[id.Name]
 		if ok {
 			return typ.Interface().(builtinType).typ
 		}
-		// TODO not correct
-		// def := vm.localEnv().valueLookUp(id.Name)
-		// if def.IsValid() {
-		// 	return def.Type()
-		// }
 		return structValueType
 	}
 	if star, ok := e.(StarExpr); ok {
-		nonStarType := vm.returnsType(star.X)
+		nonStarType := vm.makeType(star.X)
 		return reflect.PointerTo(nonStarType)
 	}
 	if sel, ok := e.(SelectorExpr); ok {
@@ -173,7 +225,7 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 		return reflect.TypeOf(pkgType.Interface())
 	}
 	if ar, ok := e.(ArrayType); ok {
-		elemType := vm.returnsType(ar.Elt)
+		elemType := vm.makeType(ar.Elt)
 		if ar.Len == nil {
 			return reflect.SliceOf(elemType)
 		} else {
@@ -188,9 +240,9 @@ func (vm *VM) returnsType(e Evaluable) reflect.Type {
 		return reflect.TypeOf(fn)
 	}
 	if e, ok := e.(Ellipsis); ok {
-		return vm.returnsType(e.Elt)
+		return vm.makeType(e.Elt)
 	}
-	vm.fatal(fmt.Sprintf("unhandled returnsType for %v (%T)", e, e))
+	vm.fatal(fmt.Sprintf("unhandled makeType for %v (%T)", e, e))
 	return nil
 }
 
@@ -201,7 +253,7 @@ func (vm *VM) pushOperand(v reflect.Value) {
 			if v == reflectNil {
 				fmt.Printf("vm.push: untyped nil\n")
 			} else if isUndeclared(v) {
-				fmt.Printf("vm.push: %v\n", v)
+				fmt.Printf("vm.push: %v (undeclared)\n", v)
 			} else {
 				fmt.Printf("vm.push: %v (%T)\n", v.Interface(), v.Interface())
 			}
@@ -332,9 +384,9 @@ func (vm *VM) printStack() {
 					fmt.Printf("vm.env[%s]: undeclared value\n", k)
 					continue
 				}
-				fmt.Printf("vm.env.%s = %v (%T)\n", k, v.Interface(), v.Interface())
+				fmt.Printf("vm.env.%s = %s (%T)\n", k, stringOf(v.Interface()), v.Interface())
 			} else {
-				fmt.Printf("vm.env.%s = %v\n", k, v)
+				fmt.Printf("vm.env.%s = %s\n", k, stringOf(v))
 			}
 		}
 	}
@@ -349,9 +401,22 @@ func (vm *VM) printStack() {
 				fmt.Printf("vm.ops.%d: undeclared value\n", i)
 				continue
 			}
-			fmt.Printf("vm.ops.%d: %v (%T)\n", i, v.Interface(), v.Interface())
+			fmt.Printf("vm.ops.%d: %s (%T)\n", i, stringOf(v.Interface()), v.Interface())
 		} else {
-			fmt.Printf("vm.ops.%d: %v\n", i, v)
+			fmt.Printf("vm.ops.%d: %s\n", i, stringOf(v))
 		}
 	}
+}
+
+func stringOf(v any) string {
+	if v == nil {
+		return "nil"
+	}
+	if ts, ok := v.(ToStringer); ok {
+		return ts.toString()
+	}
+	if fs, ok := v.(fmt.Stringer); ok {
+		return fs.String()
+	}
+	return fmt.Sprintf("%v", v)
 }

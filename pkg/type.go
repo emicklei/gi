@@ -81,8 +81,9 @@ func (s TypeSpec) String() string {
 func (s TypeSpec) Pos() token.Pos { return s.AssignPos }
 
 var (
-	_ Flowable = StructType{}
-	_ Expr     = StructType{}
+	_ Flowable   = StructType{}
+	_ Expr       = StructType{}
+	_ HasMethods = StructType{}
 )
 
 // StructType represents a struct type definition that is interpreted (IType).
@@ -142,8 +143,50 @@ func (s StructType) makeValue(vm *VM, size int, elements []reflect.Value) reflec
 	return reflect.ValueOf(NewStructValue(vm, s))
 }
 
-func (s StructType) addMethod(decl *FuncDecl) {
+func (s StructType) addMethod(decl *FuncDecl) { // TODO inline
 	s.methods[decl.Name.Name] = decl
+}
+
+func (s StructType) methodsMap() map[string]*FuncDecl {
+	return s.methods
+}
+
+var (
+	_ Flowable = InterfaceType{}
+	_ Expr     = InterfaceType{}
+	_ CanMake  = InterfaceType{}
+)
+
+// InterfaceType represents an interface type definition.
+type InterfaceType struct {
+	InterfacePos token.Pos
+	Methods      *FieldList
+}
+
+func (i InterfaceType) Eval(vm *VM) {
+	vm.pushOperand(reflect.ValueOf(i))
+}
+
+func (i InterfaceType) flow(g *graphBuilder) (head Step) {
+	g.next(i)
+	return g.current
+}
+
+func (i InterfaceType) makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value {
+	if len(elements) > 0 {
+		return elements[0]
+	}
+	return reflectNil
+}
+
+func (i InterfaceType) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
+	return reflectNil
+}
+
+func (i InterfaceType) Pos() token.Pos { return i.InterfacePos }
+
+func (i InterfaceType) String() string {
+	return fmt.Sprintf("InterfaceType(methods=%v)", i.Methods)
 }
 
 var (
@@ -197,14 +240,15 @@ func (m MapType) literalCompose(vm *VM, composite reflect.Value, values []reflec
 
 func (m MapType) Pos() token.Pos { return m.MapPos }
 
-func (m MapType) String() string {
+func (m MapType) toString() string {
 	return fmt.Sprintf("MapType(%v,%v)", m.Key, m.Value)
 }
+
+var _ HasMethods = ExtendedType{}
 
 // type Count int
 type ExtendedType struct {
 	name    Ident
-	typ     reflect.Type // underlying Go type, builtin
 	methods map[string]*FuncDecl
 }
 
@@ -215,25 +259,65 @@ func newExtendedType(name Ident) ExtendedType {
 	}
 }
 func (d ExtendedType) makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value {
+	// TODO rethink
+	if len(d.methods) == 0 {
+		// not extended after all
+		return elements[0]
+	}
+	return reflect.ValueOf(ExtendedValue{
+		typ: d,
+		val: elements[0],
+	})
+}
+
+func (d ExtendedType) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	return reflectNil
 }
-func (d ExtendedType) addMethod(decl *FuncDecl) {
+
+func (d ExtendedType) addMethod(decl *FuncDecl) { // TODO inline
 	d.methods[decl.Name.Name] = decl
 }
 
-type ExtendedValue struct {
-	typ ExtendedType
+func (d ExtendedType) methodsMap() map[string]*FuncDecl {
+	return d.methods
 }
 
-type GoType struct {
+func (d ExtendedType) toString() string {
+	return fmt.Sprintf("ExtendedType(%v,methods=%d)", d.name, len(d.methods))
+}
+
+// ExtendedValue represents a value of an ExtendedType.
+type ExtendedValue struct {
+	typ ExtendedType  // The typ is used for method resolution.
+	val reflect.Value // The val field holds the actual reflect.Value.
+}
+
+func (e ExtendedValue) toString() string {
+	return fmt.Sprintf("ExtendedValue(%v,%v)", e.typ.name.Name, e.val)
+}
+
+var _ CanMake = SDKType{}
+
+type SDKType struct {
 	typ reflect.Type // underlying Go type, builtin or struct
 }
 
-func (g GoType) makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value {
+func (g SDKType) makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value {
 	pv := reflect.New(g.typ)
+	if len(elements) == 1 {
+		elm := elements[0]
+		if elm.Kind() == reflect.Pointer {
+			elm = elm.Elem()
+		}
+		pv.Elem().Set(elm.Convert(g.typ))
+	}
 	if g.typ.Kind() == reflect.Pointer {
 		return pv
 	} else {
 		return pv.Elem()
 	}
+}
+
+func (g SDKType) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
+	return reflectNil
 }
