@@ -30,7 +30,7 @@ func main() {
 		b.Fatal(err)
 	}
 	cfg := &packages.Config{
-		Mode: packages.NeedName | packages.NeedSyntax | packages.NeedFiles,
+		Mode: loadMode,
 		Fset: token.NewFileSet(),
 		Dir:  path.Join(cwd, "../examples"),
 		Overlay: map[string][]byte{
@@ -40,6 +40,9 @@ func main() {
 	pkg, err := LoadPackage(cfg.Dir, cfg)
 	if err != nil {
 		b.Fatalf("failed to load packages: %v", err)
+	}
+	if pkg.Types == nil {
+		b.Fatalf("package has no types info")
 	}
 
 	{

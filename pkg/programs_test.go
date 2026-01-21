@@ -495,18 +495,19 @@ func main() {
 }`, "donegi")
 }
 
+// Wait has pointer receiver
 func TestPointerMethod(t *testing.T) {
 	testMain(t, `package main
 
 import "sync"
 func main() {
 	var wg sync.WaitGroup
-	wg.Wait()
+	wg.Wait() 
 	print("done")
 }`, "done")
 }
 
-func TestNoInitStdtype(t *testing.T) {
+func TestZeroValueStdLibType(t *testing.T) {
 	testMain(t, `package main
 
 import "html/template"

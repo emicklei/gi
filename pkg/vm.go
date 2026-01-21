@@ -152,7 +152,7 @@ func (vm *VM) proxyType(e Expr) CanMake {
 			return gt
 		}
 		typ = vm.localEnv().valueLookUp(id.Name)
-		// interpreted?
+		// interpreted
 		if cm, ok := typ.Interface().(CanMake); ok {
 			return cm
 		}
@@ -201,7 +201,7 @@ func (vm *VM) proxyType(e Expr) CanMake {
 	return nil
 }
 
-// TODO only return a CanMake
+// never returns a CanMake
 func (vm *VM) makeType(e Evaluable) reflect.Type {
 	if id, ok := e.(Ident); ok {
 		typ, ok := builtins[id.Name]

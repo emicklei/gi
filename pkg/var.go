@@ -56,10 +56,6 @@ func (v ValueSpec) declare(vm *VM) bool {
 				vm.localEnv().set(idn.Name, zv)
 				continue
 			}
-			if !val.IsValid() { // TODO check undeclared?
-				console(fmt.Sprintf("var:53 invalid value for %s, is undeclared? %v", idn.Name, val == reflectUndeclared))
-				return false
-			}
 			if val.Interface() == untypedNil {
 				typ := vm.makeType(v.Type)
 				zv := reflect.Zero(typ)

@@ -28,8 +28,6 @@ func (c CallExpr) Eval(vm *VM) {
 			c.handleBuiltinType(vm, f)
 		case ArrayType:
 			c.handleArrayType(vm, f)
-		case TypeSpec: // NEEDED?
-			c.handleTypeSpec(vm, f)
 		case reflect.Method:
 			c.handleReflectMethod(vm, f)
 		case ExtendedType:
@@ -130,6 +128,7 @@ func (c CallExpr) handleBuiltinType(vm *VM, blt builtinType) {
 	pushCallResults(vm, vals)
 }
 
+// pre: not a method from an interface type
 func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
 	// Get the receiver (the value the method is called on)
 	receiver := vm.popOperand()
