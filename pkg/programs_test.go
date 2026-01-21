@@ -555,8 +555,6 @@ func main() {
 }
 
 func TestIdentRoles(t *testing.T) {
-	t.Skip()
-	setAttr(t, "go.ast", "true")
 	testMain(t, `package main
 
 func main() {
@@ -573,5 +571,5 @@ func main() {
 	i7 := (*int)(nil)
 	print(*i1, i2, i3, i5, i6, i7)
 }
-`, "000000x0")
+`, "00000<nil>")
 }

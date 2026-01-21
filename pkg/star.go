@@ -68,7 +68,8 @@ func (s StarExpr) assign(vm *VM, value reflect.Value) {
 	if v.IsNil() {
 		vm.fatal("cannot dereference nil pointer")
 	}
-	v.Elem().Set(value)
+	uv := v.Elem()
+	uv.Set(value.Convert(uv.Type()))
 }
 
 func (s StarExpr) define(vm *VM, value reflect.Value) {

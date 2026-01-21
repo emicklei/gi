@@ -41,10 +41,10 @@ func main() {
 	if err != nil {
 		b.Fatalf("failed to load packages: %v", err)
 	}
-	if pkg.Types == nil {
+	if pkg.TypesInfo == nil {
 		b.Fatalf("package has no types info")
 	}
-
+	trace = false
 	{
 		b.Run("build", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {

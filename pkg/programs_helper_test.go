@@ -30,9 +30,11 @@ func collectPrintOutput(vm *VM) {
 				if rv.Kind() == reflect.Pointer && rv.Elem().Kind() == reflect.Array {
 					fmt.Fprintf(vm.output, "%v", rv.Elem().Interface())
 				} else if rv.Kind() == reflect.Pointer {
-					fmt.Fprintf(vm.output, "%v", rv.Elem().Interface())
+					v := rv.Elem().Interface()
+					fmt.Fprintf(vm.output, "%v", v)
 				} else {
-					fmt.Fprintf(vm.output, "%v", rv.Interface())
+					v := rv.Interface()
+					fmt.Fprintf(vm.output, "%v", v)
 				}
 			} else {
 				if s, ok := a.(string); ok {

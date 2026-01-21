@@ -172,7 +172,11 @@ func (c CallExpr) evalNew(vm *VM) {
 			vm.pushOperand(structVal)
 			return
 		}
-
+		if bt, ok := typ.(builtinType); ok {
+			rv := reflect.New(bt.typ)
+			vm.pushOperand(rv)
+			return
+		}
 	}
 	// typ is an instance of a standard or imported external type
 	rtype := reflect.TypeOf(typ)
