@@ -60,7 +60,7 @@ func (c CallExpr) Eval(vm *VM) {
 				args[i] = reflect.New(argType).Elem()
 				continue
 			}
-			if hp, ok := isHeapPointer(val); ok {
+			if hp, ok := asHeapPointer(val); ok {
 				hpv := vm.heap.read(hp)
 				if hpv.CanAddr() {
 					// TODO

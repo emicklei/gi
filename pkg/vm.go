@@ -310,6 +310,7 @@ func (vm *VM) popFrame() {
 	framePool.Put(frame)
 }
 
+// fatal reports a fatal error and stops execution.
 func (vm *VM) fatal(err any) {
 	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)
 	fmt.Fprintln(os.Stderr, "")

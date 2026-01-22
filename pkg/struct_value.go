@@ -18,6 +18,7 @@ var structValueType = reflect.TypeOf(&StructValue{})
 
 var _ fmt.Formatter = &StructValue{}
 var _ CanCompose = &StructValue{}
+var _ FieldAssignable = &StructValue{}
 
 // StructValue represents an instance of an interpreted struct.
 type StructValue struct {
@@ -25,8 +26,8 @@ type StructValue struct {
 	fields     map[string]reflect.Value
 }
 
-// NewStructValue creates a new StructValue of the given StructType.
-func NewStructValue(vm *VM, t StructType) *StructValue {
+// InstantiateStructValue creates a new StructValue of the given StructType.
+func InstantiateStructValue(vm *VM, t StructType) *StructValue {
 	i := &StructValue{structType: t,
 		fields: map[string]reflect.Value{},
 	}

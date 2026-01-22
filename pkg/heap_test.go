@@ -72,7 +72,7 @@ func TestHeapReadWriteEnv(t *testing.T) {
 	}
 }
 
-func TestIsHeapPointer(t *testing.T) {
+func TestAsHeapPointer(t *testing.T) {
 	h := newHeap()
 	val := reflect.ValueOf(100)
 	hp := h.allocHeapValue(val)
@@ -81,9 +81,9 @@ func TestIsHeapPointer(t *testing.T) {
 	var iface interface{} = hp
 	rv := reflect.ValueOf(iface)
 
-	gotHP, ok := isHeapPointer(rv)
+	gotHP, ok := asHeapPointer(rv)
 	if !ok {
-		t.Error("expected isHeapPointer to return true")
+		t.Error("expected asHeapPointer to return true")
 	}
 	if gotHP != hp {
 		t.Error("expected returned HeapPointer to match original")
@@ -92,9 +92,9 @@ func TestIsHeapPointer(t *testing.T) {
 	// Test non-heap pointer
 	x := 10
 	rv2 := reflect.ValueOf(&x)
-	_, ok = isHeapPointer(rv2)
+	_, ok = asHeapPointer(rv2)
 	if ok {
-		t.Error("expected isHeapPointer to return false for standard pointer")
+		t.Error("expected asHeapPointer to return false for standard pointer")
 	}
 }
 

@@ -56,7 +56,7 @@ func (hp HeapPointer) String() string {
 }
 
 // TODO inline?
-func isHeapPointer(rv reflect.Value) (hp *HeapPointer, ok bool) {
+func asHeapPointer(rv reflect.Value) (hp *HeapPointer, ok bool) {
 	if rv.Kind() != reflect.Pointer {
 		return nil, false
 	}

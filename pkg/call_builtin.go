@@ -177,6 +177,12 @@ func (c CallExpr) evalNew(vm *VM) {
 			vm.pushOperand(rv)
 			return
 		}
+		if st, ok := typ.(StructType); ok {
+			rv := st.makeValue(vm, 0, nil)
+			hp := vm.heap.allocHeapValue(rv)
+			vm.pushOperand(reflect.ValueOf(hp))
+			return
+		}
 	}
 	// typ is an instance of a standard or imported external type
 	rtype := reflect.TypeOf(typ)

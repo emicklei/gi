@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -208,8 +209,44 @@ func main() {
 }`, "helicopter")
 }
 
+func TestInstantiateIType(t *testing.T) {
+	testMain(t, `package main
+
+type Aircraft struct {
+	Model string
+}
+func main() {
+	heli := Aircraft{}
+	print(heli)
+}`, `Aircraft{Model:""}`)
+}
+
+func TestInstantiateITypeWithField(t *testing.T) {
+	testMain(t, `package main
+
+type Aircraft struct {
+	Model string
+}
+func main() {
+	heli := Aircraft{Model:"heli"}
+	print(heli)
+}`, `Aircraft{Model:"heli"}`)
+}
+
 func TestNewIType(t *testing.T) {
-	t.Skip()
+	//t.Skip()
+	testMain(t, `package main
+
+type Aircraft struct {
+	Model string
+}
+func main() {
+	heli := new(Aircraft)
+	print(heli)
+}`, func(out string) bool { return strings.HasPrefix(out, "0x") })
+}
+
+func TestNewITypeSetField(t *testing.T) {
 	testMain(t, `package main
 
 type Aircraft struct {
@@ -222,7 +259,7 @@ func main() {
 }`, "heli")
 }
 
-func TestMethodNoReceiverRef(t *testing.T) {
+func TestITypeMethodNoReceiverRef(t *testing.T) {
 	testMain(t, `package main
 
 func (_ Aircraft) S() string { return "aircraft" } // put before type on purpose
@@ -232,7 +269,7 @@ func main() {
 }`, "aircraft")
 }
 
-func TestMethodAccessingField(t *testing.T) {
+func TestMITypeethodAccessingField(t *testing.T) {
 	testMain(t, `package main
 
 func (a Aircraft) S() string { return a.Model } // put before type on purpose
@@ -244,7 +281,7 @@ func main() {
 }`, "heli")
 }
 
-func TestMethodReadingFieldWithArgument(t *testing.T) {
+func TestITypeMethodReadingFieldWithArgument(t *testing.T) {
 	testMain(t, `package main
 
 func (a Aircraft) S(prefix string) string { return prefix + a.Model } // put before type on purpose
@@ -256,7 +293,7 @@ func main() {
 }`, "prefix-heli")
 }
 
-func TestNonPointerMethodWritingFieldWithArgument(t *testing.T) {
+func TestITypeNonPointerMethodWritingFieldWithArgument(t *testing.T) {
 	testMain(t, `package main
 
 type Aircraft struct {
@@ -271,7 +308,7 @@ func main() {
 }`, "airplane")
 }
 
-func TestPointerFunctionWritingFieldWithArgument(t *testing.T) {
+func TestITypePointerFunctionWritingFieldWithArgument(t *testing.T) {
 	testMain(t, `package main
 
 type Aircraft struct {
@@ -301,7 +338,7 @@ func main() {
 }`, "heli")
 }
 
-func TestNonPointerFunctionWritingFieldWithArgument(t *testing.T) {
+func TestITypeNonPointerFunctionWritingFieldWithArgument(t *testing.T) {
 	testMain(t, `package main
 
 type Aircraft struct {
@@ -316,7 +353,7 @@ func main() {
 }`, "airplane")
 }
 
-func TestFmtFormat(t *testing.T) {
+func TestITypeFmtFormat(t *testing.T) {
 	testMain(t, `package main
 import "fmt"
 type Aircraft struct {

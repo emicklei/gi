@@ -36,7 +36,6 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 			fa.fieldAssign(s.Sel.Name, val)
 			return
 		}
-		// TODO missing case?
 
 		vm.fatal(fmt.Sprintf("cannot assign to field %v for receiver: %v (%T)", s, recv.Interface(), recv.Interface()))
 		return

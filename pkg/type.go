@@ -131,16 +131,32 @@ func (s StructType) String() string {
 	return fmt.Sprintf("StructType(%s,fields=%v,methods=%d)", n, s.Fields, len(s.methods))
 }
 
-func (s StructType) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
-	i, ok := composite.Interface().(CanCompose)
-	if !ok {
-		expected(composite, "CanCompose")
+// literalCompose initializes the composite StructType with the provided field values.
+func (s StructType) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) (initializedComposite reflect.Value) {
+	if len(values) == 0 {
+		return composite
 	}
-	return i.literalCompose(vm, composite, values)
+	v := composite.Interface()
+	i, ok := v.(CanCompose)
+	if ok {
+		return i.literalCompose(vm, composite, values)
+	}
+	// check for HeapPointer
+	if hp, ok := asHeapPointer(composite); ok {
+		v = vm.heap.read(hp).Interface()
+		i, ok := v.(CanCompose)
+		if ok {
+			initializedComposite = i.literalCompose(vm, composite, values)
+			vm.heap.write(hp, initializedComposite)
+			return
+		}
+	}
+	vm.fatal("expected a CanCompose value")
+	return reflectNil // unreachable
 }
 
 func (s StructType) makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value {
-	return reflect.ValueOf(NewStructValue(vm, s))
+	return reflect.ValueOf(InstantiateStructValue(vm, s))
 }
 
 func (s StructType) addMethod(decl *FuncDecl) { // TODO inline
