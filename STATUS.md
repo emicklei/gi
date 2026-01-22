@@ -28,7 +28,7 @@
 | `error` | ✅ |
 | `nil` | ✅ |
 | Pointers | ✅ |
-| Std Methods | ✅ |
+| Std Methods | ✅ | 
 | Function literal | ✅ |
 | Type alias | ✅ |
 | blank identifier | ✅ |
@@ -48,7 +48,8 @@
 | continue | ⬜ |
 | fallthrough | ⬜ |
 | break | ⬜ |
-| Interfaces | ⬜ |
+| Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
 | Channels `chan` | ⬜ |
 | `select` statement | ⬜ |
+| DAP | ⬜ |

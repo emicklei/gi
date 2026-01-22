@@ -5,7 +5,26 @@
 [![codecov](https://codecov.io/gh/emicklei/gi/branch/main/graph/badge.svg)](https://codecov.io/gh/emicklei/gi)
 [![examples](https://img.shields.io/badge/dynamic/json?url=https://ernestmicklei.com/treerunner-report.json&query=$.label&label=gobyexample)](https://ernestmicklei.com/treerunner-report.json)
 
-a Go interpreter that can be used in plugins and debuggers.
+`gi` is a Go interpreter that creates an executable representation of a Go program from source.
+It offers a virtual machine that can step through such a program and allows access to the full stack and scoped variables (environment).
+
+`gi` is implemented using Go reflection API so one can expect 10x slower program execution depending on the complexity.
+
+## mission
+
+### runtime
+
+- support latest Go SDK
+- support type parameterization (generics)
+- support Go modules
+
+### debugging
+
+- handle source changes during a debugging session:
+	- change a function definition
+	- change a struct definition
+	- add package constant/variable
+- debugging concurrent programs
 
 ## status
 
