@@ -105,6 +105,8 @@ func main() {
 	print(len(m))
 }`, "1")
 }
+
+// panic: reflect.Value.SetMapIndex: value of type pkg.ExtendedValue is not assignable to type *pkg.StructValue
 func TestITypeMapKey(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main

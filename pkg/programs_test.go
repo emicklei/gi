@@ -484,7 +484,7 @@ func main() {
 
 func TestPointerMethodWithFunctionLiteralArgument(t *testing.T) {
 	t.Skip()
-	testMain(t, `ackage main
+	testMain(t, `package main
 
 import "sync"
 
@@ -539,7 +539,6 @@ func main() {
 
 // https://stackoverflow.com/questions/67601236/run-tests-programmatically-in-go
 func TestTest(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 import "testing"
 
@@ -569,6 +568,29 @@ func main() {
 	}
 	i6 := (int)(0)
 	i7 := (*int)(nil)
+	print(*i1, i2, i3, i5, i6, i7)
+}
+`, "00000<nil>")
+}
+
+func TestIdentOfITypeRoles(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+type count int
+
+func main() {
+	i1 := new(count)
+	i2 := count(0)
+	var i3 count
+	var i4 any = 0
+	i5 := i4.(count)
+	switch i4.(type) {
+	case count:
+	case *count:
+	}
+	i6 := (count)(0)
+	i7 := (*count)(nil)
 	print(*i1, i2, i3, i5, i6, i7)
 }
 `, "00000<nil>")

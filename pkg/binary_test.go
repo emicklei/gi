@@ -28,7 +28,6 @@ func main() {
 }
 
 func TestNewNumberPointersEqual(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
  
 func main() {

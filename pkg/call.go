@@ -327,8 +327,14 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 			frame.env.set(recvName, receiver)
 		} else {
 			// put a copy of the value
-			clone := receiver.Interface().(*StructValue).clone()
-			frame.env.set(recvName, reflect.ValueOf(clone))
+			if sv, ok := receiver.Interface().(*StructValue); ok {
+				clone := sv.clone()
+				frame.env.set(recvName, reflect.ValueOf(clone))
+			}
+			if ev, ok := receiver.Interface().(ExtendedValue); ok {
+				// no need to clone value
+				frame.env.set(recvName, reflect.ValueOf(ev))
+			}
 		}
 	}
 

@@ -136,6 +136,17 @@ func (s SelectorExpr) Eval(vm *VM) {
 		return
 	}
 
+	if ext, ok := recv.Interface().(ExtendedValue); ok {
+		// *FuncDecl
+		m, ok := ext.typ.methods[s.Sel.Name]
+		if ok {
+			// method value so push receiver as first argument
+			vm.pushOperand(recv)
+			vm.pushOperand(reflect.ValueOf(m))
+			return
+		}
+	}
+
 	vm.fatal(fmt.Sprintf("method or field \"%s\" not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
 }
 
