@@ -56,7 +56,6 @@ func main() {
 }
 
 func TestTypeDecoratedConstIotaWithMethod(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 import "fmt"
@@ -64,7 +63,7 @@ import "fmt"
 type Count int
 
 func (c Count) String() string {
-	return fmt.Sprintf("%d")
+	return fmt.Sprintf("%d",c)
 }
 
 const (
@@ -73,7 +72,7 @@ const (
 
 func main() {
 	print(Zero.String())
-}`, "01")
+}`, "0")
 }
 
 func TestMap(t *testing.T) {
@@ -108,7 +107,7 @@ func main() {
 
 // panic: reflect.Value.SetMapIndex: value of type pkg.ExtendedValue is not assignable to type *pkg.StructValue
 func TestITypeMapKey(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	testMain(t, `package main
 type Count int
 func main() {
