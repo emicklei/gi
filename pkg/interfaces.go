@@ -67,6 +67,7 @@ type CanMake interface {
 type Decl interface {
 	Flowable
 	declStep() CanDeclare
+	Pos() token.Pos
 }
 
 type Step interface {

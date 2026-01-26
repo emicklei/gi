@@ -310,7 +310,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.ExprStmt:
-		s := ExprStmt{ExprStmt: n}
+		s := ExprStmt{}
 		b.Visit(n.X)
 		e := b.pop()
 		s.X = e.(Expr)
@@ -667,7 +667,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			}
 		}
 	case *ast.DeclStmt:
-		s := DeclStmt{DeclStmt: n}
+		s := DeclStmt{}
 		b.Visit(n.Decl)
 		e := b.pop()
 		s.Decl = e.(Decl)

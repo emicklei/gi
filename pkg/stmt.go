@@ -10,7 +10,6 @@ import (
 var _ Stmt = ExprStmt{}
 
 type ExprStmt struct {
-	*ast.ExprStmt
 	X Expr
 }
 
@@ -20,19 +19,22 @@ func (s ExprStmt) Eval(vm *VM) {
 	vm.eval(s.X)
 }
 
+func (s ExprStmt) flow(g *graphBuilder) (head Step) {
+	return s.X.flow(g)
+}
+
 func (s ExprStmt) String() string {
 	return fmt.Sprintf("ExprStmt(%v)", s.X)
 }
 
-func (s ExprStmt) flow(g *graphBuilder) (head Step) {
-	return s.X.flow(g)
+func (s ExprStmt) Pos() token.Pos {
+	return s.X.Pos()
 }
 
 var _ Stmt = DeclStmt{}
 
 type DeclStmt struct {
-	*ast.DeclStmt // TODO
-	Decl          Decl
+	Decl Decl
 }
 
 func (s DeclStmt) Eval(vm *VM) {
@@ -48,9 +50,9 @@ func (s DeclStmt) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-// func (s DeclStmt) Pos() token.Pos {
-// 	return s.Decl.Pos()
-// }
+func (s DeclStmt) Pos() token.Pos {
+	return s.Decl.Pos()
+}
 
 func (s DeclStmt) stmtStep() Evaluable { return s }
 
