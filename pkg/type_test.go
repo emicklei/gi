@@ -235,7 +235,6 @@ func main() {
 }
 
 func TestNewIType(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 type Aircraft struct {
@@ -340,7 +339,6 @@ func main() {
 }
 
 func TestITypeNonPointerFunctionWritingFieldWithArgument(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 type Aircraft struct {

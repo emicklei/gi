@@ -40,6 +40,9 @@ func collectPrintOutput(vm *VM) {
 				if s, ok := a.(string); ok {
 					io.WriteString(vm.output, s)
 					continue
+					// handle *StructValue specially because it implements Format
+				} else if psv, ok := a.(*StructValue); ok {
+					fmt.Fprintf(vm.output, "%p", psv)
 				} else if a == undeclaredNil {
 					fmt.Fprintf(vm.output, "(0x0,0x0)")
 				} else if a == untypedNil {

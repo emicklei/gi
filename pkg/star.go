@@ -35,8 +35,11 @@ func (s StarExpr) Eval(vm *VM) {
 		if _, ok := v.Interface().(builtinType); ok {
 			vm.pushOperand(v)
 			return
+		} else if _, ok := v.Interface().(ExtendedType); ok {
+			vm.pushOperand(v)
+			return
 		} else {
-			vm.fatal(fmt.Sprintf("unhandled struct type: %v", v))
+			vm.fatal(fmt.Sprintf("unhandled struct type: %v (%T)", v.Interface(), v.Interface()))
 		}
 	}
 

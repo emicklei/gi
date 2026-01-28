@@ -56,20 +56,27 @@ func (c CallExpr) Eval(vm *VM) {
 				argType = fn.Type().In(i)
 			}
 			val := vm.popOperand()
+			// TODO needed?
 			if !val.IsValid() || val == untypedNil {
 				args[i] = reflect.New(argType).Elem()
 				continue
 			}
+			// console(val)
+			// if val.Kind() == reflect.Pointer && val.IsNil() {
+			// 	args[i] = reflect.New(argType)
+			// 	continue
+			// }
 			if hp, ok := asHeapPointer(val); ok {
 				hpv := vm.heap.read(hp)
 				if hpv.CanAddr() {
 					// TODO
 					args[i] = hpv.Addr()
+				} else if sv, ok := hpv.Interface().(StructValue); ok {
+					args[i] = reflect.ValueOf(&sv)
 				} else {
-					console(hpv.Type())
+					// TODO needed?
 					newPtr := reflect.New(hpv.Type())
 					newPtr.Elem().Set(hpv)
-					console(newPtr)
 					args[i] = newPtr
 					// after the call use the value of newPtr to write back the heapointer backing value
 					defer func() {
@@ -147,14 +154,6 @@ func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
 	// Call the method using rm.Func
 	vals := rm.Func.Call(args)
 	pushCallResults(vm, vals)
-}
-
-func (c CallExpr) handleTypeSpec(vm *VM, ts TypeSpec) {
-	// do a conversion to the specified type
-	toConvert := vm.popOperand()
-	rt := vm.makeType(ts.Type)
-	cv := toConvert.Convert(rt)
-	vm.pushOperand(cv)
 }
 
 func (c CallExpr) handleArrayType(vm *VM, at ArrayType) {
@@ -315,6 +314,11 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 					}
 				}
 			}
+			if st, ok := val.Interface().(StructValue); ok {
+				// need to clone to have copy semantics
+				val = reflect.ValueOf(st.clone())
+			}
+			console(val)
 			args[i] = val
 		}
 	}
@@ -406,12 +410,9 @@ func (c CallExpr) flow(g *graphBuilder) (head Step) {
 }
 
 func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {
-	funFlow := c.Fun.flow(g)
-	if head == nil { // must be a function with no args
-		head = funFlow
-	}
+	head = c.Fun.flow(g)
 	g.next(c)
-	return head
+	return
 }
 
 func (c CallExpr) Pos() token.Pos { return c.Lparen }
