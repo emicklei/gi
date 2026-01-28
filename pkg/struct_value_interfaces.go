@@ -7,7 +7,7 @@ import (
 
 type StructValueWrapper struct {
 	vm  *VM
-	val *StructValue
+	val StructValue
 }
 
 // Write implements io.Writer

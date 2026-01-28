@@ -66,8 +66,10 @@ func (c CallExpr) Eval(vm *VM) {
 					// TODO
 					args[i] = hpv.Addr()
 				} else {
+					console(hpv.Type())
 					newPtr := reflect.New(hpv.Type())
 					newPtr.Elem().Set(hpv)
+					console(newPtr)
 					args[i] = newPtr
 					// after the call use the value of newPtr to write back the heapointer backing value
 					defer func() {
@@ -81,9 +83,9 @@ func (c CallExpr) Eval(vm *VM) {
 					continue
 				}
 				// TestExtendedString
-				if hasExtendedType(val) {
+				if val.Type() == reflectExtendedType {
 					etv := val.Interface().(ExtendedValue)
-					// TODO for now, always pass the underlying value of ExtendedValue
+					// TODO for now pass the underlying value of ExtendedValue
 					val = etv.val
 				}
 				// reflect convert?
@@ -94,7 +96,7 @@ func (c CallExpr) Eval(vm *VM) {
 				if argType.Kind() == reflect.Interface && isPointerToStructValue(val) {
 					md := StructValueWrapper{
 						vm:  vm,
-						val: val.Interface().(*StructValue),
+						val: val.Interface().(StructValue),
 					}
 					args[i] = reflect.ValueOf(md)
 					continue
@@ -308,7 +310,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 				if isStructValue(val) {
 					if !isPointerExpr(expectedType) {
 						// need to dereference
-						clone := val.Interface().(*StructValue).clone()
+						clone := val.Interface().(StructValue).clone()
 						val = reflect.ValueOf(clone)
 					}
 				}
@@ -327,7 +329,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 			frame.env.set(recvName, receiver)
 		} else {
 			// put a copy of the value
-			if sv, ok := receiver.Interface().(*StructValue); ok {
+			if sv, ok := receiver.Interface().(StructValue); ok {
 				clone := sv.clone()
 				frame.env.set(recvName, reflect.ValueOf(clone))
 			}
@@ -376,7 +378,7 @@ func isEllipsis(t Expr) bool {
 	return ok
 }
 func isStructValue(v reflect.Value) bool {
-	_, ok := v.Interface().(*StructValue)
+	_, ok := v.Interface().(StructValue)
 	return ok
 }
 

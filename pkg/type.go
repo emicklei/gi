@@ -260,6 +260,8 @@ func (m MapType) toString() string {
 	return fmt.Sprintf("MapType(%v,%v)", m.Key, m.Value)
 }
 
+var reflectExtendedType = reflect.TypeFor[ExtendedValue]()
+
 var _ HasMethods = ExtendedType{}
 
 // type Count int

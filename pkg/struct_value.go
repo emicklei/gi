@@ -14,11 +14,11 @@ import (
 	"github.com/fatih/structtag"
 )
 
-var structValueType = reflect.TypeOf(&StructValue{})
+var structValueType = reflect.TypeOf(StructValue{})
 
-var _ fmt.Formatter = &StructValue{}
-var _ CanCompose = &StructValue{}
-var _ FieldAssignable = &StructValue{}
+var _ fmt.Formatter = StructValue{}
+var _ CanCompose = StructValue{}
+var _ FieldAssignable = StructValue{}
 
 // StructValue represents an instance of an interpreted struct.
 type StructValue struct {
@@ -27,8 +27,8 @@ type StructValue struct {
 }
 
 // InstantiateStructValue creates a new StructValue of the given StructType.
-func InstantiateStructValue(vm *VM, t StructType) *StructValue {
-	i := &StructValue{structType: t,
+func InstantiateStructValue(vm *VM, t StructType) StructValue {
+	i := StructValue{structType: t,
 		fields: map[string]reflect.Value{},
 	}
 	for _, field := range t.Fields.List {
@@ -40,12 +40,12 @@ func InstantiateStructValue(vm *VM, t StructType) *StructValue {
 	return i
 }
 
-func (i *StructValue) toString() string {
-	return fmt.Sprintf("*StructValue(%v)", i.structType)
+func (i StructValue) toString() string {
+	return fmt.Sprintf("StructValue(%v)", i.structType)
 }
 
 // TODO maybe return extra bool for ok?
-func (i *StructValue) selectFieldOrMethod(name string) reflect.Value {
+func (i StructValue) selectFieldOrMethod(name string) reflect.Value {
 	if v, ok := i.fields[name]; ok {
 		return v
 	}
@@ -55,7 +55,7 @@ func (i *StructValue) selectFieldOrMethod(name string) reflect.Value {
 	panic("no such field or method: " + name)
 }
 
-func (i *StructValue) fieldAssign(fieldName string, val reflect.Value) {
+func (i StructValue) fieldAssign(fieldName string, val reflect.Value) {
 	if _, ok := i.fields[fieldName]; ok {
 		// override, TODO what if HeapPointer?
 		i.fields[fieldName] = val
@@ -65,7 +65,7 @@ func (i *StructValue) fieldAssign(fieldName string, val reflect.Value) {
 }
 
 // composite is (a reflect on) an StructValue
-func (i *StructValue) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
+func (i StructValue) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	if len(values) == 0 {
 		return composite
 	}
@@ -93,7 +93,7 @@ func (i *StructValue) literalCompose(vm *VM, composite reflect.Value, values []r
 	return composite
 }
 
-func (i *StructValue) MarshalJSON() ([]byte, error) {
+func (i StructValue) MarshalJSON() ([]byte, error) {
 	m := map[string]any{}
 	for fieldName, val := range i.fields {
 		tagName, ok := i.tagFieldName("json", fieldName, val)
@@ -104,7 +104,7 @@ func (i *StructValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
-func (i *StructValue) UnmarshalJSON(data []byte) error {
+func (i StructValue) UnmarshalJSON(data []byte) error {
 	m := map[string]any{}
 	err := json.Unmarshal(data, &m)
 	if err != nil {
@@ -121,7 +121,7 @@ func (i *StructValue) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (i *StructValue) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
+func (i StructValue) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	start.Name.Local = i.structType.Name
 	if err := enc.EncodeToken(start); err != nil {
 		return err
@@ -140,7 +140,7 @@ func (i *StructValue) MarshalXML(enc *xml.Encoder, start xml.StartElement) error
 
 // TODO cache tagFieldName results in StructType
 // tagFieldName returns the name of the field as it should appear in JSON.
-func (i *StructValue) tagFieldName(key string, fieldName string, fieldValue reflect.Value) (string, bool) {
+func (i StructValue) tagFieldName(key string, fieldName string, fieldValue reflect.Value) (string, bool) {
 	if !unicode.IsUpper(rune(fieldName[0])) {
 		// unexported field
 		return "", false
@@ -169,7 +169,7 @@ func (i *StructValue) tagFieldName(key string, fieldName string, fieldValue refl
 	return jsonTag.Name, true
 }
 
-func (i *StructValue) Format(f fmt.State, verb rune) {
+func (i StructValue) Format(f fmt.State, verb rune) {
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "%s{", i.structType.Name)
 	c := 0
@@ -187,8 +187,8 @@ func (i *StructValue) Format(f fmt.State, verb rune) {
 	f.Write(buf.Bytes())
 }
 
-func (i *StructValue) clone() *StructValue {
-	return &StructValue{
+func (i StructValue) clone() StructValue {
+	return StructValue{
 		structType: i.structType,
 		fields:     maps.Clone(i.fields),
 	}

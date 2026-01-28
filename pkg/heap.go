@@ -34,7 +34,7 @@ func (hp *HeapPointer) UnmarshalJSON(data []byte) error {
 	}
 	deref := hp.EnvRef.valueLookUp(hp.EnvVarName)
 	val := deref.Interface()
-	if i, ok := val.(*StructValue); ok {
+	if i, ok := val.(StructValue); ok {
 		return i.UnmarshalJSON(data)
 	}
 	// For standard types, we need to update the value in the environment
@@ -48,7 +48,7 @@ func (hp *HeapPointer) UnmarshalJSON(data []byte) error {
 }
 
 // String formats the HeapPointer to look like a real pointer address.
-func (hp HeapPointer) String() string {
+func (hp *HeapPointer) String() string {
 	if hp.EnvRef != nil {
 		return fmt.Sprintf("0x%x (%s)", hp.Addr, hp.EnvVarName)
 	}
@@ -68,13 +68,6 @@ func asHeapPointer(rv reflect.Value) (hp *HeapPointer, ok bool) {
 	}
 	hp, ok = rv.Interface().(*HeapPointer)
 	return
-}
-
-func hasExtendedType(rv reflect.Value) bool {
-	if rv.Type() == reflect.TypeFor[ExtendedValue]() {
-		return true
-	}
-	return false
 }
 
 // allocHeapValue allocates space in the VM heap for a value and returns a HeapPointer to it.
