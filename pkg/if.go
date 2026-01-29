@@ -16,18 +16,7 @@ type IfStmt struct {
 }
 
 func (i IfStmt) Eval(vm *VM) {
-	if i.Init != nil {
-		vm.eval(i.Init.stmtStep())
-	}
-	rv := vm.returnsEval(i.Cond)
-	if rv.Bool() {
-		vm.eval(i.Body)
-		return
-	}
-	if i.Else != nil {
-		vm.eval(i.Else.stmtStep())
-		return
-	}
+	// no op
 }
 
 func (i IfStmt) flow(g *graphBuilder) (head Step) {

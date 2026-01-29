@@ -33,7 +33,7 @@ func (c CallExpr) Eval(vm *VM) {
 		case ExtendedType:
 			c.handleExtendedType(vm, f)
 		default:
-			vm.fatal(fmt.Sprintf("struct unexpected %T", fn.Interface()))
+			vm.fatalf("struct unexpected %T", fn.Interface())
 		}
 	case reflect.Pointer:
 		switch f := fn.Interface().(type) {
@@ -42,7 +42,7 @@ func (c CallExpr) Eval(vm *VM) {
 		case *FuncLit:
 			c.handleFuncLit(vm, f)
 		default:
-			vm.fatal(fmt.Sprintf("pointer unexpected %T", fn.Interface()))
+			vm.fatalf("pointer unexpected %T", fn.Interface())
 		}
 	case reflect.Func:
 		args := make([]reflect.Value, len(c.Args))

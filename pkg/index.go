@@ -35,7 +35,7 @@ func (i IndexExpr) Eval(vm *VM) {
 		v := reflect.ValueOf(target.String()[int(index.Int())])
 		vm.pushOperand(v)
 	default:
-		vm.fatal(fmt.Sprintf("expected string,map,slice or array, got %s", target.Kind()))
+		vm.fatalf("expected string,map,slice or array, got %s", target.Kind())
 	}
 }
 
@@ -56,7 +56,7 @@ func (i IndexExpr) assign(vm *VM, value reflect.Value) {
 }
 
 func (i IndexExpr) define(vm *VM, value reflect.Value) {
-	vm.fatal("not yet implemented: IndexExpr.Define")
+	vm.fatalf("not yet implemented: IndexExpr.Define")
 }
 
 func (i IndexExpr) flow(g *graphBuilder) (head Step) {

@@ -318,6 +318,15 @@ func (vm *VM) fatal(err any) {
 	panic(err)
 }
 
+// fatalf reports a fatal error and stops execution.
+func (vm *VM) fatalf(format string, a ...any) {
+	line := fmt.Sprintf(format, a...)
+	fmt.Fprintln(os.Stderr, "[gi] fatal error: "+line)
+	fmt.Fprintln(os.Stderr, "")
+	vm.printStack()
+	panic(line)
+}
+
 func (vm *VM) eval(e Evaluable) {
 	if trace {
 		fmt.Fprintln(os.Stderr, "vm.eval:", e)
