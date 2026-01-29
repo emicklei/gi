@@ -156,7 +156,7 @@ func (vm *VM) proxyType(e Expr) CanMake {
 		if cm, ok := typ.Interface().(CanMake); ok {
 			return cm
 		}
-		vm.fatal(fmt.Sprintf("unhandled proxyType for Ident %v (%T)", e, e))
+		vm.fatal(fmt.Sprintf("unhandled proxyType for %v (%T)", e, e))
 	}
 
 	if sel, ok := e.(SelectorExpr); ok {

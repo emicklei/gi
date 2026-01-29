@@ -95,14 +95,6 @@ func (c CallExpr) Eval(vm *VM) {
 					args[i] = val.Convert(argType)
 					continue
 				}
-				// if argType.Kind() == reflect.Interface && isPointerToStructValue(val) {
-				// 	md := StructValueWrapper{
-				// 		vm:  vm,
-				// 		val: val.Interface().(StructValue),
-				// 	}
-				// 	args[i] = reflect.ValueOf(md)
-				// 	continue
-				// }
 				args[i] = val
 			}
 		}

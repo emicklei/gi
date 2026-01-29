@@ -19,7 +19,7 @@ func main() {
 }`, "done")
 }
 
-func TestTypeDecorated(t *testing.T) {
+func TestIntExtended(t *testing.T) {
 	testMain(t, `package main
 
 type MyInt = int
@@ -28,6 +28,20 @@ func main() {
 	var a MyInt = 1
 	print(a)
 }`, "1")
+}
+
+func TestPointerIntExtended(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+// type pri = *int
+type pri *int
+
+func main() {
+	n := 42
+	var a pri = &n
+	print(*a)
+}`, "42")
 }
 
 func TestExtendedString(t *testing.T) {
