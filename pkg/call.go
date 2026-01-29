@@ -61,11 +61,6 @@ func (c CallExpr) Eval(vm *VM) {
 				args[i] = reflect.New(argType).Elem()
 				continue
 			}
-			// console(val)
-			// if val.Kind() == reflect.Pointer && val.IsNil() {
-			// 	args[i] = reflect.New(argType)
-			// 	continue
-			// }
 			if hp, ok := asHeapPointer(val); ok {
 				hpv := vm.heap.read(hp)
 				if hpv.CanAddr() {
@@ -100,14 +95,14 @@ func (c CallExpr) Eval(vm *VM) {
 					args[i] = val.Convert(argType)
 					continue
 				}
-				if argType.Kind() == reflect.Interface && isPointerToStructValue(val) {
-					md := StructValueWrapper{
-						vm:  vm,
-						val: val.Interface().(StructValue),
-					}
-					args[i] = reflect.ValueOf(md)
-					continue
-				}
+				// if argType.Kind() == reflect.Interface && isPointerToStructValue(val) {
+				// 	md := StructValueWrapper{
+				// 		vm:  vm,
+				// 		val: val.Interface().(StructValue),
+				// 	}
+				// 	args[i] = reflect.ValueOf(md)
+				// 	continue
+				// }
 				args[i] = val
 			}
 		}
@@ -318,7 +313,6 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 				// need to clone to have copy semantics
 				val = reflect.ValueOf(st.clone())
 			}
-			console(val)
 			args[i] = val
 		}
 	}

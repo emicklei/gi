@@ -8,7 +8,6 @@ import (
 	"io"
 	"maps"
 	"reflect"
-	"strings"
 	"unicode"
 
 	"github.com/fatih/structtag"
@@ -200,21 +199,4 @@ func formatFieldValue(w io.Writer, verb rune, val any) {
 		return
 	}
 	format(w, verb, val)
-}
-
-func isPointerToStructValue(v reflect.Value) bool {
-	if v.Kind() != reflect.Pointer {
-		return false
-	}
-	if v.Elem().Kind() != reflect.Struct {
-		return false
-	}
-	if v.Elem().Type().Name() != "StructValue" {
-		return false
-	}
-	// not exact package match to allow source code forks
-	if !strings.HasSuffix(v.Elem().Type().PkgPath(), "/gi/pkg") {
-		return false
-	}
-	return true
 }

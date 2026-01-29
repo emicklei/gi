@@ -145,3 +145,12 @@ type funcInvocation struct {
 - var i int
 - case int: 
 - j := i.(int)
+
+
+## types
+- builtintypes: int, *int
+- SDK types: time.Time, sync.WaitGroup
+- Interpreted struct types: type Aircraft struct{}
+- Interpreted embedding struct types: type Aircraft struct{ Asset }
+- Interpreted extended builtin types: type Count int
+- Interpreted extended struct types: type Vliegtuig Aircraft
