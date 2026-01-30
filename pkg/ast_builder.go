@@ -742,13 +742,13 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.InterfaceType:
-		// s := InterfaceType{InterfacePos: n.Interface}
-		// if n.Methods != nil {
-		// 	b.Visit(n.Methods)
-		// 	e := b.pop().(FieldList)
-		// 	s.Methods = &e
-		// }
-		// b.push(s)
+		s := InterfaceType{InterfacePos: n.Interface}
+		if n.Methods != nil {
+			b.Visit(n.Methods)
+			e := b.pop().(FieldList)
+			s.Methods = &e
+		}
+		b.push(s)
 	case *ast.RangeStmt:
 		s := RangeStmt{ForPos: n.For}
 		s.XType = b.goPkg.TypesInfo.TypeOf(n.X)

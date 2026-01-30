@@ -517,6 +517,24 @@ func main() {
 }`, "")
 }
 
+func TestCounterWithInterface(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+type counter interface {
+	inc()
+}
+type myCounter int
+func (c *myCounter) inc() {
+	*c++
+}
+func main() {
+	var c counter = new(myCounter)
+	c.inc()
+	print(c)
+}`, "")
+}
+
 func TestCompileTimeMapKey(t *testing.T) {
 	testMain(t, `package main
 
