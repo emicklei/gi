@@ -45,7 +45,7 @@ func (b *astBuilder) popEnv() {
 
 func (b *astBuilder) push(s Evaluable) {
 	if trace {
-		fmt.Printf("ast.push: %v\n", s)
+		fmt.Printf("ast.push: %s\n", stringOf(s))
 	}
 	b.stack = append(b.stack, s)
 }
@@ -327,8 +327,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			b.push(ie)
 			break
 		}
-		s := Ident{Name: n.Name}
-		s.NamePos = n.NamePos
+		s := Ident{Name: n.Name, NamePos: n.NamePos}
 		b.push(s)
 	case *ast.BlockStmt:
 		s := BlockStmt{LbracePos: n.Lbrace}
@@ -730,8 +729,14 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		} else if idn, ok := e.(Ident); ok {
 			ext := newExtendedType(idn)
 			b.envSet(s.Name.Name, reflect.ValueOf(ext))
+		} else if se, ok := e.(StarExpr); ok {
+			// first make it work TODO
+			// assume StarExpr.X of Ident for now
+			ext := newExtendedType(se.X.(Ident))
+			b.envSet(s.Name.Name, reflect.ValueOf(ext))
+		} else {
+			panic("unsupported type spec type")
 		}
-		//b.envSet(s.Name.Name, reflect.ValueOf(e))
 		b.push(s)
 	case *ast.StructType:
 		s := makeStructType(n)

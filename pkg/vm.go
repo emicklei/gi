@@ -156,7 +156,7 @@ func (vm *VM) proxyType(e Expr) CanMake {
 		if cm, ok := typ.Interface().(CanMake); ok {
 			return cm
 		}
-		vm.fatal(fmt.Sprintf("unhandled proxyType for %v (%T)", e, e))
+		vm.fatalf("unhandled proxyType for %v (%T)", e, e)
 	}
 
 	if sel, ok := e.(SelectorExpr); ok {
@@ -197,7 +197,7 @@ func (vm *VM) proxyType(e Expr) CanMake {
 		return vm.proxyType(e.Elt)
 	}
 
-	vm.fatal(fmt.Sprintf("unhandled proxyType for %v (%T)", e, e))
+	vm.fatalf("unhandled proxyType for %v (%T)", e, e)
 	return nil
 }
 
@@ -421,6 +421,13 @@ func (vm *VM) printStack() {
 func stringOf(v any) string {
 	if v == nil {
 		return "nil"
+	}
+	if rv, ok := v.(reflect.Value); ok {
+		if rv.IsValid() && rv.CanInterface() {
+			return stringOf(rv.Interface())
+		} else {
+			return fmt.Sprintf("%v", rv)
+		}
 	}
 	if ts, ok := v.(ToStringer); ok {
 		return ts.toString()

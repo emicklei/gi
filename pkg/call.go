@@ -91,9 +91,13 @@ func (c CallExpr) Eval(vm *VM) {
 					val = etv.val
 				}
 				// reflect convert?
-				if val.CanConvert(argType) {
-					args[i] = val.Convert(argType)
-					continue
+				if val.IsValid() {
+					if val.CanConvert(argType) {
+						args[i] = val.Convert(argType)
+						continue
+					}
+				} else {
+					val = reflect.New(argType)
 				}
 				args[i] = val
 			}

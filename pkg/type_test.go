@@ -18,7 +18,6 @@ func main() {
 }
 
 func TestIntExtended(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 type MyInt = int
@@ -30,7 +29,6 @@ func main() {
 }
 
 func TestPointerIntExtended(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 // type pri = *int
