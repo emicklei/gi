@@ -15,9 +15,9 @@ var (
 
 // StructType represents a struct type definition that is interpreted (IType).
 type StructType struct {
-	StructPos token.Pos
-	Name      string
-	Fields    *FieldList
+	structPos token.Pos
+	name      string
+	fields    *FieldList
 	methods   map[string]*FuncDecl
 }
 
@@ -32,13 +32,13 @@ func (s StructType) flow(g *graphBuilder) (head Step) {
 
 func makeStructType(ast *ast.StructType) StructType {
 	return StructType{
-		StructPos: ast.Struct,
+		structPos: ast.Struct,
 		methods:   map[string]*FuncDecl{},
 	}
 }
 
 func (s StructType) tagForField(fieldName string) *string {
-	for _, field := range s.Fields.List {
+	for _, field := range s.fields.List {
 		for _, name := range field.Names {
 			if name.Name == fieldName {
 				return field.Tag
@@ -48,14 +48,14 @@ func (s StructType) tagForField(fieldName string) *string {
 	return nil
 }
 
-func (s StructType) Pos() token.Pos { return s.StructPos }
+func (s StructType) Pos() token.Pos { return s.structPos }
 
 func (s StructType) String() string {
-	n := s.Name
+	n := s.name
 	if n == "" {
 		n = "<anonymous>"
 	}
-	return fmt.Sprintf("StructType(%s,fields=%v,methods=%d)", n, s.Fields, len(s.methods))
+	return fmt.Sprintf("StructType(%s,fields=%v,methods=%d)", n, s.fields, len(s.methods))
 }
 
 // literalCompose initializes the composite StructType with the provided field values.

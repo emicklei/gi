@@ -11,9 +11,9 @@ type UnaryExprFunc func(reflect.Value) reflect.Value
 var _ Expr = UnaryExpr{}
 
 type UnaryExpr struct {
-	OpPos     token.Pos   // position of Op
-	Op        token.Token // operator
-	X         Expr
+	opPos     token.Pos   // position of Op
+	op        token.Token // operator
+	x         Expr
 	unaryFunc UnaryExprFunc // optional function to perform the unary operation
 }
 
@@ -36,8 +36,8 @@ func (u UnaryExpr) Eval(vm *VM) {
 	}
 
 	// Special case: if taking address of an identifier, create a reference to the variable
-	if u.Op == token.AND {
-		if ident, ok := u.X.(Ident); ok {
+	if u.op == token.AND {
+		if ident, ok := u.x.(Ident); ok {
 			// Pop the value that was already pushed by the identifier evaluation
 			_ = vm.popOperand()
 			// Create a heap pointer that references the environment variable
@@ -50,7 +50,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 				return
 			}
 		}
-		if _, ok := u.X.(CompositeLit); ok {
+		if _, ok := u.x.(CompositeLit); ok {
 			v := vm.popOperand()
 			hp := vm.heap.allocHeapValue(v)
 			vm.pushOperand(reflect.ValueOf(hp))
@@ -69,15 +69,15 @@ func (u UnaryExpr) Eval(vm *VM) {
 	switch v.Kind() {
 
 	case reflect.Struct:
-		switch u.Op {
+		switch u.op {
 		case token.AND:
 			hp := vm.heap.allocHeapValue(v)
 			vm.pushOperand(reflect.ValueOf(hp))
 		default:
-			vm.fatal("missing unary operation on struct:" + u.Op.String())
+			vm.fatal("missing unary operation on struct:" + u.op.String())
 		}
 	case reflect.Chan:
-		switch u.Op {
+		switch u.op {
 		case token.ARROW: // receive
 			val, ok := v.Recv()
 			if !ok {
@@ -86,11 +86,11 @@ func (u UnaryExpr) Eval(vm *VM) {
 				vm.pushOperand(val)
 			}
 		default:
-			vm.fatal("missing unary operation on chan:" + u.Op.String())
+			vm.fatal("missing unary operation on chan:" + u.op.String())
 		}
 	default:
 		// Handle any other types (string, slice, map, etc.)
-		switch u.Op {
+		switch u.op {
 		case token.AND:
 			hp := vm.heap.allocHeapValue(v)
 			vm.pushOperand(reflect.ValueOf(hp))
@@ -101,13 +101,13 @@ func (u UnaryExpr) Eval(vm *VM) {
 }
 
 func (u UnaryExpr) flow(g *graphBuilder) (head Step) {
-	head = u.X.flow(g)
+	head = u.x.flow(g)
 	g.next(u)
 	return head
 }
 
 func (u UnaryExpr) String() string {
-	return fmt.Sprintf("UnaryExpr(%s %s)", u.Op, u.X)
+	return fmt.Sprintf("UnaryExpr(%s %s)", u.op, u.x)
 }
 
-func (u UnaryExpr) Pos() token.Pos { return u.OpPos }
+func (u UnaryExpr) Pos() token.Pos { return u.opPos }

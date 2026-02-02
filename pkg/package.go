@@ -56,27 +56,27 @@ func (p ExternalPackage) String() string {
 
 type Package struct {
 	*packages.Package // TODO look for actual data used here
-	Env               *PkgEnvironment
-	Initialized       bool
+	env               *PkgEnvironment
+	initialized       bool
 }
 
 func (p *Package) selectFieldOrMethod(name string) reflect.Value {
-	return p.Env.valueLookUp(name)
+	return p.env.valueLookUp(name)
 }
 
 func (p *Package) Initialize(vm *VM) error {
-	if p.Initialized {
+	if p.initialized {
 		return nil
 	}
-	p.Initialized = true
+	p.initialized = true
 
 	// move methods to types
-	for _, decl := range p.Env.methods {
+	for _, decl := range p.env.methods {
 		recvType := decl.Recv.List[0].Type
 		var typeName string
 		switch rt := recvType.(type) {
 		case StarExpr:
-			if ident, ok := rt.X.(Ident); ok {
+			if ident, ok := rt.x.(Ident); ok {
 				typeName = ident.Name
 			}
 		case Ident:
@@ -94,27 +94,27 @@ func (p *Package) Initialize(vm *VM) error {
 			vm.fatal(fmt.Sprintf("unknown type holding methods: %T", holder))
 		}
 	}
-	clear(p.Env.methods)
+	clear(p.env.methods)
 
 	// try declare all of them until none left
 	// a declare may refer to other unseen declares.
 	done := false
 	for !done {
 		done = true
-		for i, decl := range p.Env.declarations {
+		for i, decl := range p.env.declarations {
 			if decl != nil {
-				if p.Env.declarations[i].declare(vm) {
-					p.Env.declarations[i] = nil
+				if p.env.declarations[i].declare(vm) {
+					p.env.declarations[i] = nil
 				} else {
 					done = false
 				}
 			}
 		}
 	}
-	clear(p.Env.declarations)
+	clear(p.env.declarations)
 
 	// then run all inits
-	for _, each := range p.Env.inits {
+	for _, each := range p.env.inits {
 		// TODO clean up
 		call := CallExpr{
 			Fun:  Ident{Name: "init"},
@@ -122,7 +122,7 @@ func (p *Package) Initialize(vm *VM) error {
 		}
 		call.handleFuncDecl(vm, each)
 	}
-	clear(p.Env.inits)
+	clear(p.env.inits)
 
 	return nil
 }
@@ -139,7 +139,7 @@ func (p *Package) writeAST(fileName string) {
 	done := make(chan bool)
 	go func() {
 		// only dump the actual values of each var/function in the environment
-		for _, v := range p.Env.Env.(*Environment).valueTable {
+		for _, v := range p.env.Env.(*Environment).valueTable {
 			// skip SDKPackage
 			val := v.Interface()
 			if _, ok := val.(SDKPackage); ok {
@@ -189,7 +189,7 @@ func (p *Package) writeCallGraph(fileName string) {
 		n.Attr("style", "filled")
 	})
 	// for each function in the package create a subgraph
-	values := p.Env.Env.(*Environment).valueTable
+	values := p.env.Env.(*Environment).valueTable
 	for k, v := range values {
 		if funDecl, ok := v.Interface().(*FuncDecl); ok {
 			if funDecl.graph == nil {
@@ -263,7 +263,7 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 			}
 		}
 	}
-	pkg := &Package{Package: goPkg, Env: b.env.(*PkgEnvironment)}
+	pkg := &Package{Package: goPkg, env: b.env.(*PkgEnvironment)}
 	if callGraphFilename := os.Getenv("GI_CALL"); callGraphFilename != "" {
 		pkg.writeCallGraph(callGraphFilename)
 	}
@@ -278,11 +278,11 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	if optionalVM != nil {
 		vm = optionalVM
 	} else {
-		vm = NewVM(pkg.Env)
+		vm = NewVM(pkg.env)
 		vm.setFileSet(pkg.Fset)
 	}
-	for _, subpkg := range pkg.Env.packageTable {
-		subvm := NewVM(subpkg.Env)
+	for _, subpkg := range pkg.env.packageTable {
+		subvm := NewVM(subpkg.env)
 		subvm.setFileSet(pkg.Fset)
 		if err := subpkg.Initialize(subvm); err != nil {
 			return nil, fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
@@ -292,7 +292,7 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 		return nil, fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
 	}
 	// TODO maybe let the call do the lookup?
-	fun := pkg.Env.valueLookUp(functionName)
+	fun := pkg.env.valueLookUp(functionName)
 	if !fun.IsValid() {
 		return nil, fmt.Errorf("%s function definition not found", functionName)
 	}

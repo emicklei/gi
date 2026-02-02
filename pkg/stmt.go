@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"reflect"
 )
@@ -34,15 +33,15 @@ func (s ExprStmt) Pos() token.Pos {
 var _ Stmt = DeclStmt{}
 
 type DeclStmt struct {
-	Decl Decl
+	decl Decl
 }
 
 func (s DeclStmt) Eval(vm *VM) {
-	s.Decl.declStep().declare(vm)
+	s.decl.declStep().declare(vm)
 }
 
 func (s DeclStmt) flow(g *graphBuilder) (head Step) {
-	head = s.Decl.flow(g)
+	head = s.decl.flow(g)
 	g.next(s)
 	if head == nil {
 		head = g.current
@@ -51,42 +50,41 @@ func (s DeclStmt) flow(g *graphBuilder) (head Step) {
 }
 
 func (s DeclStmt) Pos() token.Pos {
-	return s.Decl.Pos()
+	return s.decl.Pos()
 }
 
 func (s DeclStmt) stmtStep() Evaluable { return s }
 
 func (s DeclStmt) String() string {
-	return fmt.Sprintf("DeclStmt(%v)", s.Decl)
+	return fmt.Sprintf("DeclStmt(%v)", s.decl)
 }
 
 // LabeledStmt represents a labeled statement.
 // https://go.dev/ref/spec#Labeled_statements
 // https://go.dev/ref/spec#Label_scopes
 type LabeledStmt struct {
-	*ast.LabeledStmt
-	ColonPos token.Pos
-	Label    *Ident
-	Stmt     Stmt
+	colonPos  token.Pos
+	label     *Ident
+	statement Stmt
 }
 
 func (s LabeledStmt) Eval(vm *VM) {
-	vm.eval(s.Stmt.stmtStep())
+	vm.eval(s.statement.stmtStep())
 }
 
 func (s LabeledStmt) flow(g *graphBuilder) (head Step) {
-	head = s.Stmt.flow(g)
+	head = s.statement.flow(g)
 	// get statement reference and update its step
 	fd := g.funcStack.top()
-	ref := fd.gotoReference(s.Label.Name)
+	ref := fd.gotoReference(s.label.Name)
 	ref.step.SetNext(head)
 	return
 }
 
-func (s LabeledStmt) Pos() token.Pos { return s.Label.Pos() }
+func (s LabeledStmt) Pos() token.Pos { return s.colonPos }
 
 func (s LabeledStmt) String() string {
-	return fmt.Sprintf("LabeledStmt(%v,%v)", s.Label, s.Stmt)
+	return fmt.Sprintf("LabeledStmt(%v,%v)", s.label, s.statement)
 }
 
 func (s LabeledStmt) stmtStep() Evaluable { return s }

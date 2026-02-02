@@ -160,18 +160,18 @@ func (vm *VM) proxyType(e Expr) CanMake {
 	}
 
 	if sel, ok := e.(SelectorExpr); ok {
-		typ := vm.localEnv().valueLookUp(sel.X.(Ident).Name)
+		typ := vm.localEnv().valueLookUp(sel.x.(Ident).Name)
 		val := typ.Interface()
 		if canSelect, ok := val.(CanSelect); ok {
-			selVal := canSelect.selectFieldOrMethod(sel.Sel.Name)
+			selVal := canSelect.selectFieldOrMethod(sel.selector.Name)
 			return SDKType{typ: reflect.TypeOf(selVal.Interface())}
 		}
-		pkgType := stdtypes[sel.X.(Ident).Name][sel.Sel.Name]
+		pkgType := stdtypes[sel.x.(Ident).Name][sel.selector.Name]
 		return SDKType{typ: reflect.TypeOf(pkgType.Interface())}
 	}
 
 	if star, ok := e.(StarExpr); ok {
-		nonStarType := vm.proxyType(star.X)
+		nonStarType := vm.proxyType(star.x)
 		return nonStarType // .pointerType(). // TODO
 	}
 
@@ -211,17 +211,17 @@ func (vm *VM) makeType(e Evaluable) reflect.Type {
 		return structValueType
 	}
 	if star, ok := e.(StarExpr); ok {
-		nonStarType := vm.makeType(star.X)
+		nonStarType := vm.makeType(star.x)
 		return reflect.PointerTo(nonStarType)
 	}
 	if sel, ok := e.(SelectorExpr); ok {
-		typ := vm.localEnv().valueLookUp(sel.X.(Ident).Name)
+		typ := vm.localEnv().valueLookUp(sel.x.(Ident).Name)
 		val := typ.Interface()
 		if canSelect, ok := val.(CanSelect); ok {
-			selVal := canSelect.selectFieldOrMethod(sel.Sel.Name)
+			selVal := canSelect.selectFieldOrMethod(sel.selector.Name)
 			return reflect.TypeOf(selVal.Interface())
 		}
-		pkgType := stdtypes[sel.X.(Ident).Name][sel.Sel.Name]
+		pkgType := stdtypes[sel.x.(Ident).Name][sel.selector.Name]
 		return reflect.TypeOf(pkgType.Interface())
 	}
 	if ar, ok := e.(ArrayType); ok {

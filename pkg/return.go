@@ -9,16 +9,16 @@ import (
 var _ Stmt = ReturnStmt{}
 
 type ReturnStmt struct {
-	ReturnPos token.Pos
-	Results   []Expr
+	returnPos token.Pos
+	results   []Expr
 }
 
 func (r ReturnStmt) Eval(vm *VM) {
-	if len(r.Results) == 0 {
+	if len(r.results) == 0 {
 		return
 	}
-	results := make([]reflect.Value, len(r.Results))
-	for i := range r.Results {
+	results := make([]reflect.Value, len(r.results))
+	for i := range r.results {
 		val := vm.popOperand()
 		results[i] = val
 	}
@@ -38,9 +38,9 @@ func (r ReturnStmt) Eval(vm *VM) {
 
 func (r ReturnStmt) flow(g *graphBuilder) (head Step) {
 	// reverse order to keep Eval correct
-	for i := len(r.Results) - 1; i >= 0; i-- {
-		each := r.Results[i]
-		if i == len(r.Results)-1 {
+	for i := len(r.results) - 1; i >= 0; i-- {
+		each := r.results[i]
+		if i == len(r.results)-1 {
 			head = each.flow(g)
 			continue
 		}
@@ -59,11 +59,11 @@ func (r ReturnStmt) flow(g *graphBuilder) (head Step) {
 }
 
 func (r ReturnStmt) Pos() token.Pos {
-	return r.ReturnPos
+	return r.returnPos
 }
 
 func (r ReturnStmt) stmtStep() Evaluable { return r }
 
 func (r ReturnStmt) String() string {
-	return fmt.Sprintf("return(len=%d)", len(r.Results))
+	return fmt.Sprintf("return(len=%d)", len(r.results))
 }

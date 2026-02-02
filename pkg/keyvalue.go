@@ -9,9 +9,9 @@ import (
 var _ Expr = KeyValueExpr{}
 
 type KeyValueExpr struct {
-	Colon token.Pos // position of ":"
-	Key   Expr
-	Value Expr
+	colonPos token.Pos // position of ":"
+	key      Expr
+	Value    Expr
 }
 
 func (k KeyValueExpr) Eval(vm *VM) {
@@ -24,7 +24,7 @@ func (k KeyValueExpr) flow(g *graphBuilder) (head Step) {
 	// Value first so that key ends up on top of the stack
 	head = k.Value.flow(g)
 
-	key := k.Key
+	key := k.key
 	if id, ok := key.(Ident); ok {
 		// wrap so that we can evaluate it properly
 		key = identKey{Ident: id}
@@ -35,10 +35,10 @@ func (k KeyValueExpr) flow(g *graphBuilder) (head Step) {
 	return head
 }
 
-func (k KeyValueExpr) Pos() token.Pos { return k.Colon }
+func (k KeyValueExpr) Pos() token.Pos { return k.colonPos }
 
 func (k KeyValueExpr) String() string {
-	return fmt.Sprintf("KeyValueExpr(%v,%v)", k.Key, k.Value)
+	return fmt.Sprintf("KeyValueExpr(%v,%v)", k.key, k.Value)
 }
 
 // identKey is a wrapper to evaluate struct keys that are selectors.

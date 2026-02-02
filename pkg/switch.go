@@ -10,10 +10,10 @@ var _ Stmt = SwitchStmt{}
 
 // A SwitchStmt represents an expression switch statement.
 type SwitchStmt struct {
-	SwitchPos token.Pos
-	Init      Stmt // initialization statement; or nil
-	Tag       Expr // tag expression; or nil
-	Body      BlockStmt
+	switchPos token.Pos
+	init      Stmt // initialization statement; or nil
+	tag       Expr // tag expression; or nil
+	body      BlockStmt
 }
 
 func (s SwitchStmt) stmtStep() Evaluable { return s }
@@ -21,24 +21,24 @@ func (s SwitchStmt) stmtStep() Evaluable { return s }
 func (s SwitchStmt) Eval(vm *VM) {
 	vm.currentFrame.pushEnv()
 	defer vm.currentFrame.popEnv()
-	if s.Init != nil {
-		vm.eval(s.Init.stmtStep())
+	if s.init != nil {
+		vm.eval(s.init.stmtStep())
 	}
-	if s.Tag != nil {
-		vm.eval(s.Tag)
+	if s.tag != nil {
+		vm.eval(s.tag)
 	}
-	vm.eval(s.Body)
+	vm.eval(s.body)
 }
 
 func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
-	if s.Init != nil {
-		head = s.Init.flow(g)
+	if s.init != nil {
+		head = s.init.flow(g)
 	}
-	if s.Tag != nil {
+	if s.tag != nil {
 		if head == nil {
-			head = s.Tag.flow(g)
+			head = s.tag.flow(g)
 		} else {
-			_ = s.Tag.flow(g)
+			_ = s.tag.flow(g)
 		}
 	}
 	gotoLabel := fmt.Sprintf("switch-end-%d", g.idgen)
@@ -46,7 +46,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 	ref := statementReference{step: gotoStep} // has no ID
 	g.funcStack.top().putGotoReference(gotoLabel, ref)
 
-	for _, stmt := range s.Body.List {
+	for _, stmt := range s.body.List {
 		clause := stmt.(CaseClause)
 
 		// check for default case
@@ -84,11 +84,11 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 		// build a chain of OR expressions for each case expression
 		for i, expr := range clause.List {
 			var nextCond Expr
-			if s.Tag != nil {
+			if s.tag != nil {
 				nextCond = BinaryExpr{
 					Op:    token.EQL,
 					OpPos: clause.Pos(),
-					X:     s.Tag,
+					X:     s.tag,
 					Y:     expr,
 				}
 			}
@@ -139,9 +139,9 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 }
 
 func (s SwitchStmt) String() string {
-	return fmt.Sprintf("SwitchStmt(%v,%v,%v)", s.Init, s.Tag, s.Body)
+	return fmt.Sprintf("SwitchStmt(%v,%v,%v)", s.init, s.tag, s.body)
 }
-func (s SwitchStmt) Pos() token.Pos { return s.SwitchPos }
+func (s SwitchStmt) Pos() token.Pos { return s.switchPos }
 
 var _ Flowable = CaseClause{}
 

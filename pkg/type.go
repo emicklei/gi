@@ -9,13 +9,13 @@ import (
 var _ Expr = TypeAssertExpr{}
 
 type TypeAssertExpr struct {
-	X      Expr
-	Type   Expr // asserted type; nil means type switch X.(type)
-	Lparen token.Pos
+	x         Expr
+	typ       Expr // asserted type; nil means type switch X.(type)
+	lparenPos token.Pos
 }
 
 func (e TypeAssertExpr) Eval(vm *VM) {
-	if e.Type == nil {
+	if e.typ == nil {
 		val := vm.popOperand()
 		valType := val.Type()
 		vm.pushOperand(reflect.ValueOf(valType.Name())) // we compare strings
@@ -25,30 +25,30 @@ func (e TypeAssertExpr) Eval(vm *VM) {
 }
 
 func (e TypeAssertExpr) flow(g *graphBuilder) (head Step) {
-	head = e.X.flow(g)
+	head = e.x.flow(g)
 	g.next(e)
 	return
 }
 
 func (e TypeAssertExpr) String() string {
-	return fmt.Sprintf("TypeAssertExpr(%v,%v)", e.X, e.Type)
+	return fmt.Sprintf("TypeAssertExpr(%v,%v)", e.x, e.typ)
 }
 
-func (e TypeAssertExpr) Pos() token.Pos { return e.Lparen }
+func (e TypeAssertExpr) Pos() token.Pos { return e.lparenPos }
 
 var _ CanMake = TypeSpec{}
 var _ Expr = TypeSpec{}
 
 type TypeSpec struct {
-	Name       *Ident
-	TypeParams *FieldList
-	Type       Expr
-	AssignPos  token.Pos
+	name       *Ident
+	typeParams *FieldList
+	typ        Expr
+	assignPos  token.Pos
 }
 
 func (s TypeSpec) Eval(vm *VM) {
-	actualType := vm.returnsEval(s.Type)
-	vm.localEnv().set(s.Name.Name, actualType) // use the spec itself as value
+	actualType := vm.returnsEval(s.typ)
+	vm.localEnv().set(s.name.Name, actualType) // use the spec itself as value
 }
 
 func (s TypeSpec) flow(g *graphBuilder) (head Step) {
@@ -57,27 +57,27 @@ func (s TypeSpec) flow(g *graphBuilder) (head Step) {
 }
 
 func (s TypeSpec) makeValue(vm *VM, _ int, elements []reflect.Value) reflect.Value {
-	actualType := vm.returnsEval(s.Type).Interface()
+	actualType := vm.returnsEval(s.typ).Interface()
 	if i, ok := actualType.(CanMake); ok {
 		structVal := i.makeValue(vm, 0, elements)
 		return structVal
 	}
-	vm.fatal(fmt.Sprintf("expected a CanMake value:%v", s.Type))
+	vm.fatal(fmt.Sprintf("expected a CanMake value:%v", s.typ))
 	return reflectNil
 }
 
 func (s TypeSpec) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
-	if c, ok := s.Type.(CanCompose); ok {
+	if c, ok := s.typ.(CanCompose); ok {
 		return c.literalCompose(vm, composite, values)
 	}
-	return expected(s.Type, "a CanCompose value")
+	return expected(s.typ, "a CanCompose value")
 }
 
 func (s TypeSpec) String() string {
-	return fmt.Sprintf("TypeSpec(%v,%v,%v)", s.Name, s.TypeParams, s.Type)
+	return fmt.Sprintf("TypeSpec(%v,%v,%v)", s.name, s.typeParams, s.typ)
 }
 
-func (s TypeSpec) Pos() token.Pos { return s.AssignPos }
+func (s TypeSpec) Pos() token.Pos { return s.assignPos }
 
 var (
 	_ Flowable = InterfaceType{}

@@ -30,7 +30,7 @@ func InstantiateStructValue(vm *VM, t StructType) StructValue {
 	i := StructValue{structType: t,
 		fields: map[string]reflect.Value{},
 	}
-	for _, field := range t.Fields.List {
+	for _, field := range t.fields.List {
 		typ := vm.makeType(field.Type)
 		for _, name := range field.Names {
 			i.fields[name.Name] = reflect.New(typ).Elem()
@@ -78,7 +78,7 @@ func (i StructValue) literalCompose(vm *VM, composite reflect.Value, values []re
 	} else {
 		// unkeyed
 		var fieldNames []string
-		for _, field := range i.structType.Fields.List {
+		for _, field := range i.structType.fields.List {
 			for _, name := range field.Names {
 				fieldNames = append(fieldNames, name.Name)
 			}
@@ -121,7 +121,7 @@ func (i StructValue) UnmarshalJSON(data []byte) error {
 }
 
 func (i StructValue) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
-	start.Name.Local = i.structType.Name
+	start.Name.Local = i.structType.name
 	if err := enc.EncodeToken(start); err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func (i StructValue) tagFieldName(key string, fieldName string, fieldValue refle
 
 func (i StructValue) Format(f fmt.State, verb rune) {
 	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "%s{", i.structType.Name)
+	fmt.Fprintf(&buf, "%s{", i.structType.name)
 	c := 0
 	for fieldName, val := range i.fields {
 		if unicode.IsUpper(rune(fieldName[0])) {

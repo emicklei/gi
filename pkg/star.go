@@ -10,8 +10,8 @@ var _ Expr = StarExpr{}
 var _ CanAssign = StarExpr{}
 
 type StarExpr struct {
-	StarPos token.Pos
-	X       Expr
+	starPos token.Pos
+	x       Expr
 }
 
 func (s StarExpr) Eval(vm *VM) {
@@ -24,7 +24,7 @@ func (s StarExpr) Eval(vm *VM) {
 	}
 	// needed?
 	if v.Kind() == reflect.Func {
-		if idn, ok := s.X.(Ident); ok {
+		if idn, ok := s.x.(Ident); ok {
 			v = vm.localEnv().valueLookUp("*" + idn.Name)
 			vm.pushOperand(v)
 			return
@@ -53,13 +53,13 @@ func (s StarExpr) Eval(vm *VM) {
 	vm.pushOperand(v.Elem())
 }
 func (s StarExpr) flow(g *graphBuilder) (head Step) {
-	head = s.X.flow(g)
+	head = s.x.flow(g)
 	g.next(s)
 	return
 }
 
 func (s StarExpr) assign(vm *VM, value reflect.Value) {
-	v := vm.returnsEval(s.X)
+	v := vm.returnsEval(s.x)
 	// Check if this is a heap pointer
 	if hp, ok := v.Interface().(*HeapPointer); ok {
 		vm.heap.write(hp, value)
@@ -81,10 +81,10 @@ func (s StarExpr) define(vm *VM, value reflect.Value) {
 	vm.fatal("cannot use := with pointer dereference")
 }
 
-func (s StarExpr) Pos() token.Pos { return s.StarPos }
+func (s StarExpr) Pos() token.Pos { return s.starPos }
 
 func (s StarExpr) String() string {
-	return fmt.Sprintf("StarExpr(%v)", s.X)
+	return fmt.Sprintf("StarExpr(%v)", s.x)
 }
 
 var _ Expr = ParenExpr{}

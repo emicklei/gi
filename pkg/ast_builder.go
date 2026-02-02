@@ -75,14 +75,14 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 
 	case *ast.TypeAssertExpr:
-		s := TypeAssertExpr{Lparen: n.Lparen}
+		s := TypeAssertExpr{lparenPos: n.Lparen}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 		if n.Type != nil {
 			b.Visit(n.Type)
 			e := b.pop()
-			s.Type = e.(Expr)
+			s.typ = e.(Expr)
 		}
 		b.push(s)
 
@@ -201,20 +201,20 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 
 		b.push(s)
 	case *ast.SwitchStmt:
-		s := SwitchStmt{SwitchPos: n.Switch}
+		s := SwitchStmt{switchPos: n.Switch}
 		if n.Init != nil {
 			b.Visit(n.Init)
-			s.Init = b.pop().(Stmt)
+			s.init = b.pop().(Stmt)
 		}
 		if n.Tag != nil {
 			b.Visit(n.Tag)
 			e := b.pop()
-			s.Tag = e.(Expr)
+			s.tag = e.(Expr)
 		}
 		if n.Body != nil {
 			b.Visit(n.Body)
 			blk := b.pop().(BlockStmt)
-			s.Body = blk
+			s.body = blk
 		}
 		b.push(s)
 	case *ast.CaseClause:
@@ -268,10 +268,10 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Body = &blk
 		b.push(s)
 	case *ast.UnaryExpr:
-		s := UnaryExpr{Op: n.Op, OpPos: n.OpPos}
+		s := UnaryExpr{op: n.Op, opPos: n.OpPos}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 
 		// check type and operator combination for immediate function evaluation
 		xt := b.goPkg.TypesInfo.TypeOf(n.X)
@@ -456,16 +456,16 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.SelectorExpr:
-		s := SelectorExpr{SelectorExpr: n}
+		s := SelectorExpr{selector: &Ident{Name: n.Sel.Name, NamePos: n.Sel.NamePos}}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 		b.push(s)
 	case *ast.StarExpr:
-		s := StarExpr{StarPos: n.Star}
+		s := StarExpr{starPos: n.Star}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 		b.push(s)
 	case *ast.IfStmt:
 		s := IfStmt{IfPos: n.If}
@@ -488,11 +488,11 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.ReturnStmt:
-		s := ReturnStmt{ReturnPos: n.Pos()}
+		s := ReturnStmt{returnPos: n.Pos()}
 		for _, r := range n.Results {
 			b.Visit(r)
 			e := b.pop()
-			s.Results = append(s.Results, e.(Expr))
+			s.results = append(s.results, e.(Expr))
 		}
 		b.push(s)
 	case *ast.FuncDecl:
@@ -669,7 +669,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s := DeclStmt{}
 		b.Visit(n.Decl)
 		e := b.pop()
-		s.Decl = e.(Decl)
+		s.decl = e.(Decl)
 		b.push(s)
 	case *ast.CompositeLit:
 		s := CompositeLit{Lbrace: n.Lbrace}
@@ -699,41 +699,41 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Elt = e.(Expr)
 		b.push(s)
 	case *ast.KeyValueExpr:
-		s := KeyValueExpr{Colon: n.Colon}
+		s := KeyValueExpr{colonPos: n.Colon}
 		b.Visit(n.Key)
 		e := b.pop()
-		s.Key = e.(Expr)
+		s.key = e.(Expr)
 		b.Visit(n.Value)
 		e = b.pop()
 		s.Value = e.(Expr)
 		b.push(s)
 	case *ast.TypeSpec:
-		s := TypeSpec{AssignPos: n.Assign}
+		s := TypeSpec{assignPos: n.Assign}
 		if n.Name != nil {
 			b.Visit(n.Name)
 			e := b.pop().(Ident)
-			s.Name = &e
+			s.name = &e
 		}
 		if n.TypeParams != nil {
 			b.Visit(n.TypeParams)
 			e := b.pop().(FieldList)
-			s.TypeParams = &e
+			s.typeParams = &e
 		}
 		b.Visit(n.Type)
 		e := b.pop().(Expr)
-		s.Type = e
+		s.typ = e
 		if st, ok := e.(StructType); ok {
 			// set the name of the struct type
-			st.Name = s.Name.Name
-			b.envSet(s.Name.Name, reflect.ValueOf(st))
+			st.name = s.name.Name
+			b.envSet(s.name.Name, reflect.ValueOf(st))
 		} else if idn, ok := e.(Ident); ok {
 			ext := newExtendedType(idn)
-			b.envSet(s.Name.Name, reflect.ValueOf(ext))
+			b.envSet(s.name.Name, reflect.ValueOf(ext))
 		} else if se, ok := e.(StarExpr); ok {
 			// first make it work TODO
 			// assume StarExpr.X of Ident for now
-			ext := newExtendedType(se.X.(Ident))
-			b.envSet(s.Name.Name, reflect.ValueOf(ext))
+			ext := newExtendedType(se.x.(Ident))
+			b.envSet(s.name.Name, reflect.ValueOf(ext))
 		} else {
 			panic("unsupported type spec type")
 		}
@@ -743,7 +743,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		if n.Fields != nil {
 			b.Visit(n.Fields)
 			e := b.pop().(FieldList)
-			s.Fields = &e
+			s.fields = &e
 		}
 		b.push(s)
 	case *ast.InterfaceType:
@@ -784,15 +784,15 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Index = e.(Expr)
 		b.push(s)
 	case *ast.LabeledStmt:
-		s := LabeledStmt{ColonPos: n.Pos()}
+		s := LabeledStmt{colonPos: n.Pos()}
 		if n.Label != nil {
 			b.Visit(n.Label)
 			e := b.pop().(Ident)
-			s.Label = &e
+			s.label = &e
 		}
 		b.Visit(n.Stmt)
 		e := b.pop()
-		s.Stmt = e.(Stmt)
+		s.statement = e.(Stmt)
 		b.push(s)
 
 		// TODO
@@ -803,10 +803,10 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		// add label -> statement by index mapping in current function
 		index := slices.Index(b.funcStack.top().bodyList, ast.Stmt(n))
 		refStep := new(labeledStep)
-		refStep.label = s.Label.Name
+		refStep.label = s.label.Name
 		refStep.pos = s.Pos()
 		ref := statementReference{index: index, step: refStep} // has no ID
-		b.funcStack.top().fn.putGotoReference(s.Label.Name, ref)
+		b.funcStack.top().fn.putGotoReference(s.label.Name, ref)
 	case *ast.BranchStmt:
 		s := BranchStmt{TokPos: n.TokPos, Tok: n.Tok}
 		if n.Label != nil {

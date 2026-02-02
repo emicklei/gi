@@ -2,7 +2,7 @@ package pkg
 
 import (
 	"fmt"
-	"go/ast"
+	"go/token"
 	"reflect"
 )
 
@@ -10,18 +10,18 @@ var _ Expr = SelectorExpr{}
 var _ CanAssign = SelectorExpr{}
 
 type SelectorExpr struct {
-	*ast.SelectorExpr
-	X Expr
+	selector *Ident
+	x        Expr
 }
 
 func (s SelectorExpr) define(vm *VM, val reflect.Value) {}
 
 func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
-	if idn, ok := s.X.(Ident); ok {
+	if idn, ok := s.x.(Ident); ok {
 
 		// need to pop from stack? TODO
 		if trace {
-			fmt.Println("TRACE: SelectorExpr.Assign", idn.Name, s.Sel.Name, "=", val, "operands:", vm.currentFrame.operands)
+			fmt.Println("TRACE: SelectorExpr.Assign", idn.Name, s.selector.Name, "=", val, "operands:", vm.currentFrame.operands)
 		}
 
 		recv := vm.localEnv().valueLookUp(idn.Name)
@@ -33,14 +33,14 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 		// can we assign directly to the field?
 		fa, ok := recv.Interface().(FieldAssignable)
 		if ok {
-			fa.fieldAssign(s.Sel.Name, val)
+			fa.fieldAssign(s.selector.Name, val)
 			return
 		}
 
 		vm.fatal(fmt.Sprintf("cannot assign to field %v for receiver: %v (%T)", s, recv.Interface(), recv.Interface()))
 		return
 	}
-	recv := vm.returnsEval(s.X)
+	recv := vm.returnsEval(s.x)
 
 	// dereference if pointer to heap value
 	if hp, ok := recv.Interface().(*HeapPointer); ok {
@@ -51,17 +51,17 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 	}
 	rec, ok := recv.Interface().(CanSelect)
 	if ok {
-		sel := rec.selectFieldOrMethod(s.Sel.Name)
+		sel := rec.selectFieldOrMethod(s.selector.Name)
 		if !sel.IsValid() {
-			vm.fatal(fmt.Sprintf("field %s not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
+			vm.fatal(fmt.Sprintf("field %s not found for receiver: %v (%T)", s.selector.Name, recv.Interface(), recv.Interface()))
 		}
 		if !sel.CanSet() {
-			vm.fatal(fmt.Sprintf("field %s is not settable for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
+			vm.fatal(fmt.Sprintf("field %s is not settable for receiver: %v (%T)", s.selector.Name, recv.Interface(), recv.Interface()))
 		}
 		sel.Set(val)
 		return
 	}
-	vm.fatal(fmt.Sprintf("cannot assign to method %s for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
+	vm.fatal(fmt.Sprintf("cannot assign to method %s for receiver: %v (%T)", s.selector.Name, recv.Interface(), recv.Interface()))
 }
 
 func (s SelectorExpr) Eval(vm *VM) {
@@ -75,7 +75,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 	rec, ok := recv.Interface().(CanSelect)
 	if ok {
 		// can be field or method
-		sel := rec.selectFieldOrMethod(s.Sel.Name)
+		sel := rec.selectFieldOrMethod(s.selector.Name)
 		// check for method
 		if _, ok := sel.Interface().(*FuncDecl); ok {
 			// method value so push receiver as first argument
@@ -86,7 +86,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 	}
 
 	if recv.Kind() == reflect.Struct {
-		field := recv.FieldByName(s.Sel.Name)
+		field := recv.FieldByName(s.selector.Name)
 		if field.IsValid() {
 			vm.pushOperand(field)
 			return
@@ -96,7 +96,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 	if recv.Kind() == reflect.Pointer {
 		nonPtrRecv := recv.Elem()
 		if nonPtrRecv.Kind() == reflect.Struct {
-			field := nonPtrRecv.FieldByName(s.Sel.Name)
+			field := nonPtrRecv.FieldByName(s.selector.Name)
 			if field.IsValid() {
 				vm.pushOperand(field)
 				return
@@ -104,7 +104,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 		}
 	}
 
-	meth := recv.MethodByName(s.Sel.Name)
+	meth := recv.MethodByName(s.selector.Name)
 	if meth.IsValid() {
 		vm.pushOperand(meth)
 		return
@@ -119,7 +119,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 	// Sel.Name is a method of receiver's pointer type ?
 	recvType := recv.Type()
 	ptrRecvType := reflect.PointerTo(recvType)
-	pmeth, ok := ptrRecvType.MethodByName(s.Sel.Name)
+	pmeth, ok := ptrRecvType.MethodByName(s.selector.Name)
 	if ok {
 		meth := reflect.ValueOf(pmeth)
 		// push pointer to recv as first argument
@@ -138,7 +138,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 
 	if ext, ok := recv.Interface().(ExtendedValue); ok {
 		// *FuncDecl
-		m, ok := ext.typ.methods[s.Sel.Name]
+		m, ok := ext.typ.methods[s.selector.Name]
 		if ok {
 			// method value so push receiver as first argument
 			vm.pushOperand(recv)
@@ -147,15 +147,17 @@ func (s SelectorExpr) Eval(vm *VM) {
 		}
 	}
 
-	vm.fatal(fmt.Sprintf("method or field \"%s\" not found for receiver: %v (%T)", s.Sel.Name, recv.Interface(), recv.Interface()))
+	vm.fatal(fmt.Sprintf("method or field \"%s\" not found for receiver: %v (%T)", s.selector.Name, recv.Interface(), recv.Interface()))
 }
 
 func (s SelectorExpr) flow(g *graphBuilder) (head Step) {
-	head = s.X.flow(g)
+	head = s.x.flow(g)
 	g.next(s)
 	return head
 }
 
+func (s SelectorExpr) Pos() token.Pos { return s.selector.NamePos }
+
 func (s SelectorExpr) String() string {
-	return fmt.Sprintf("SelectorExpr(%v, %v)", s.X, s.SelectorExpr.Sel.Name)
+	return fmt.Sprintf("SelectorExpr(%v, %v)", s.x, s.selector.Name)
 }
