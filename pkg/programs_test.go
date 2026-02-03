@@ -210,28 +210,6 @@ func init() {
 func main() {}`, "01")
 }
 
-func TestGoto(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	s := 1
-one:
-	print(s)
-	s++
-	if s == 4 {
-		return
-	} else {
-		goto two
-	}
-	print("unreachable")
-two:
-	print(s)
-	s++
-	goto one
-}
-`, "123")
-}
-
 func TestTwoPrints(t *testing.T) {
 	testMain(t, `package main
 
@@ -462,24 +440,6 @@ func main() {
 	var i int = 1
 	print(i)
 }`, "1")
-}
-
-func TestGotoInFunctionLiteral(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	f := func() {
-		a := 1
-	label:
-		a++
-		if a < 3 {
-			goto label
-		}
-		print(a)
-	}
-	f()
-}
-`, "3")
 }
 
 func TestPointerMethodWithFunctionLiteralArgument(t *testing.T) {

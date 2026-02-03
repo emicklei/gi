@@ -46,13 +46,13 @@ func (r RangeStmt) flow(g *graphBuilder) (head Step) {
 	case *types.Map:
 		// start the map flow, detached from the current
 		g.current = g.newLabeledStep("range-map", r.Pos())
-		switcher.mapFlow = r.MapFlow(g)
+		switcher.mapFlow = r.mapFlow(g)
 		g.nextStep(rangeDone)
 
 	case *types.Slice, *types.Array:
 		// start the list flow, detached from the current
 		g.current = g.newLabeledStep("range-slice-or-array", r.Pos())
-		switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
+		switcher.sliceOrArrayFlow = r.sliceOrArrayFlow(g)
 		g.nextStep(rangeDone)
 
 	case *types.Basic:
@@ -60,14 +60,14 @@ func (r RangeStmt) flow(g *graphBuilder) (head Step) {
 		if basicKind == types.Int {
 			// start the int flow, detached from the current
 			g.current = g.newLabeledStep("range-int", r.Pos())
-			switcher.intFlow = r.IntFlow(g)
+			switcher.intFlow = r.intFlow(g)
 			g.nextStep(rangeDone)
 			break
 		}
 		if basicKind == types.String || basicKind == types.UntypedString {
 			// start the runes flow, detached from the current
 			g.current = g.newLabeledStep("range-runes", r.Pos())
-			switcher.sliceOrArrayFlow = r.SliceOrArrayFlow(g)
+			switcher.sliceOrArrayFlow = r.sliceOrArrayFlow(g)
 			g.nextStep(rangeDone)
 			break
 		}
@@ -152,7 +152,7 @@ func (r *rangeMapIteratorNextStep) String() string {
 	return r.step.StringWith("range-map-iterator-next:" + r.localVarName)
 }
 
-func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
+func (r RangeStmt) mapFlow(g *graphBuilder) (head Step) {
 	head = r.x.flow(g) // again on the stack
 
 	// create the iterator
@@ -212,7 +212,7 @@ func (n noExpr) flow(g *graphBuilder) (head Step) {
 }
 func (noExpr) String() string { return "NoExpr" }
 
-func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
+func (r RangeStmt) intFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
 	indexVar := Ident{name: internalVarName("index", g.idgen)}
@@ -272,7 +272,7 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 	return forstmt.flow(g)
 }
 
-func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
+func (r RangeStmt) sliceOrArrayFlow(g *graphBuilder) (head Step) {
 
 	// index := 0
 	indexVar := Ident{name: internalVarName("index", g.idgen)}
