@@ -12,20 +12,20 @@ type funcDeclPair struct {
 	bodyList []ast.Stmt // need this to find index of each block stmt
 }
 
-type statementReference struct {
+type stmtReference struct {
 	step  Step
 	index int
 }
 
 type FuncDecl struct {
-	Name *Ident
-	Recv *FieldList // non-nil for methods
-	Body *BlockStmt
-	Type *FuncType
+	name *Ident
+	recv *FieldList // non-nil for methods
+	body *BlockStmt
+	typ  *FuncType
 	// control flow graph
 	graph Step
 	// goto targets
-	labelToStmt map[string]statementReference
+	labelToStmt map[string]stmtReference
 	// for source access of any statement/expression within this function
 	fileSet      *token.FileSet
 	callsRecover bool
@@ -35,9 +35,9 @@ func (f *FuncDecl) Eval(vm *VM) {} // noop
 
 func (f *FuncDecl) flow(g *graphBuilder) (head Step) {
 	head = g.current
-	if f.Body != nil {
+	if f.body != nil {
 		g.funcStack.push(f)
-		head = f.Body.flow(g)
+		head = f.body.flow(g)
 		g.funcStack.pop()
 	}
 	return
@@ -45,25 +45,25 @@ func (f *FuncDecl) flow(g *graphBuilder) (head Step) {
 
 func (f *FuncDecl) setHasRecoverCall(bool) { f.callsRecover = true }
 func (f *FuncDecl) hasRecoverCall() bool   { return f.callsRecover }
-func (f *FuncDecl) putGotoReference(label string, ref statementReference) {
+func (f *FuncDecl) putGotoReference(label string, ref stmtReference) {
 	if f.labelToStmt == nil {
-		f.labelToStmt = make(map[string]statementReference)
+		f.labelToStmt = make(map[string]stmtReference)
 	}
 	f.labelToStmt[label] = ref
 }
-func (f *FuncDecl) gotoReference(label string) statementReference {
+func (f *FuncDecl) gotoReference(label string) stmtReference {
 	return f.labelToStmt[label]
 }
 func (f *FuncDecl) results() *FieldList {
-	return f.Type.Results
+	return f.typ.Results
 }
 func (f *FuncDecl) params() *FieldList {
-	return f.Type.Params
+	return f.typ.Params
 }
-func (f FuncDecl) Pos() token.Pos { return f.Type.Pos() }
+func (f FuncDecl) Pos() token.Pos { return f.typ.Pos() }
 
 func (f FuncDecl) String() string {
-	return fmt.Sprintf("FuncDecl(%s)", f.Name.Name)
+	return fmt.Sprintf("FuncDecl(%s)", f.name.name)
 }
 
 var _ Expr = FuncType{}
@@ -122,7 +122,7 @@ type funcInvocation struct {
 
 func isRecoverCall(expr Expr) bool {
 	if ident, ok := expr.(Ident); ok {
-		return ident.Name == "recover"
+		return ident.name == "recover"
 	}
 	return false
 }
@@ -134,7 +134,7 @@ type FuncLit struct {
 	Body      *BlockStmt // TODO not sure what to do when Body and/or Type is nil
 	callGraph Step
 	// goto targets
-	labelToStmt  map[string]statementReference // TODO lazy initialization
+	labelToStmt  map[string]stmtReference // TODO lazy initialization
 	callsRecover bool
 }
 
@@ -151,13 +151,13 @@ func (f *FuncLit) Pos() token.Pos { return f.Type.Pos() }
 
 func (f *FuncLit) setHasRecoverCall(bool) { f.callsRecover = true }
 func (f *FuncLit) hasRecoverCall() bool   { return f.callsRecover }
-func (f *FuncLit) putGotoReference(label string, ref statementReference) {
+func (f *FuncLit) putGotoReference(label string, ref stmtReference) {
 	if f.labelToStmt == nil {
-		f.labelToStmt = make(map[string]statementReference)
+		f.labelToStmt = make(map[string]stmtReference)
 	}
 	f.labelToStmt[label] = ref
 }
-func (f *FuncLit) gotoReference(label string) statementReference {
+func (f *FuncLit) gotoReference(label string) stmtReference {
 	return f.labelToStmt[label]
 }
 func (f *FuncLit) results() *FieldList {

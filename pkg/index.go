@@ -10,15 +10,15 @@ var _ Expr = IndexExpr{}
 var _ CanAssign = IndexExpr{}
 
 type IndexExpr struct {
-	Lbrack token.Pos // position of "["
-	X      Expr
-	Index  Expr
+	lbrackPos token.Pos // position of "["
+	x         Expr
+	index     Expr
 }
 
 func (i IndexExpr) Eval(vm *VM) {
 	if len(vm.currentFrame.operands) == 0 {
-		vm.eval(i.Index)
-		vm.eval(i.X)
+		vm.eval(i.index)
+		vm.eval(i.x)
 	}
 	index := vm.popOperand()
 	target := vm.popOperand()
@@ -60,14 +60,14 @@ func (i IndexExpr) define(vm *VM, value reflect.Value) {
 }
 
 func (i IndexExpr) flow(g *graphBuilder) (head Step) {
-	head = i.X.flow(g)
-	i.Index.flow(g)
+	head = i.x.flow(g)
+	i.index.flow(g)
 	g.next(i)
 	return head
 }
 
-func (i IndexExpr) Pos() token.Pos { return i.Lbrack }
+func (i IndexExpr) Pos() token.Pos { return i.lbrackPos }
 
 func (i IndexExpr) String() string {
-	return fmt.Sprintf("IndexExpr(%v, %v)", i.X, i.Index)
+	return fmt.Sprintf("IndexExpr(%v, %v)", i.x, i.index)
 }

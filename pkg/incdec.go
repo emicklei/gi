@@ -12,13 +12,14 @@ var _ Flowable = IncDecStmt{}
 var _ Stmt = IncDecStmt{}
 
 type IncDecStmt struct {
-	TokPos token.Pos   // position of Tok
-	Tok    token.Token // INC or DEC
-	X      Expr
+	tokPos token.Pos   // position of Tok
+	tok    token.Token // INC or DEC
+	x      Expr
+	fun    IncDecFunc // set by ast builder
 }
 
 func (i IncDecStmt) flow(g *graphBuilder) (head Step) {
-	head = i.X.flow(g)
+	head = i.x.flow(g)
 	g.next(i)
 	return head
 }
@@ -30,26 +31,26 @@ func (i IncDecStmt) Eval(vm *VM) {
 	if isUndeclared(val) {
 		return
 	}
-	if i.Tok == token.INC {
+	if i.tok == token.INC {
 		switch val.Kind() {
 		case reflect.Int:
-			if a, ok := i.X.(CanAssign); ok {
+			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(int(val.Int()+1)))
 			}
 		case reflect.Int32:
-			if a, ok := i.X.(CanAssign); ok {
+			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(int32(val.Int()+1)))
 			}
 		case reflect.Int64:
-			if a, ok := i.X.(CanAssign); ok {
+			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(int64(val.Int()+1)))
 			}
 		case reflect.Float32:
-			if a, ok := i.X.(CanAssign); ok {
+			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(float32(val.Float()+1)))
 			}
 		case reflect.Float64:
-			if a, ok := i.X.(CanAssign); ok {
+			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(val.Float()+1))
 			}
 		default:
@@ -58,23 +59,23 @@ func (i IncDecStmt) Eval(vm *VM) {
 	} else { // DEC
 		switch val.Kind() {
 		case reflect.Int:
-			if a, ok := i.X.(CanAssign); ok {
+			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(int(val.Int()-1)))
 			}
 		case reflect.Int32:
-			if a, ok := i.X.(CanAssign); ok {
+			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(int32(val.Int()-1)))
 			}
 		case reflect.Int64:
-			if a, ok := i.X.(CanAssign); ok {
+			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(val.Int()-1))
 			}
 		case reflect.Float64:
-			if a, ok := i.X.(CanAssign); ok {
+			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(val.Float()-1))
 			}
 		case reflect.Float32:
-			if a, ok := i.X.(CanAssign); ok {
+			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(float32(val.Float()-1)))
 			}
 		default:
@@ -82,10 +83,10 @@ func (i IncDecStmt) Eval(vm *VM) {
 		}
 	}
 }
-func (i IncDecStmt) Pos() token.Pos { return i.TokPos }
+func (i IncDecStmt) Pos() token.Pos { return i.tokPos }
 
 func (i IncDecStmt) stmtStep() Evaluable { return i }
 
 func (i IncDecStmt) String() string {
-	return fmt.Sprintf("IncDecStmt(%v)", i.X)
+	return fmt.Sprintf("IncDecStmt(%v)", i.x)
 }

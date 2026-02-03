@@ -39,9 +39,9 @@ func makeStructType(ast *ast.StructType) StructType {
 
 func (s StructType) tagForField(fieldName string) *string {
 	for _, field := range s.fields.List {
-		for _, name := range field.Names {
-			if name.Name == fieldName {
-				return field.Tag
+		for _, name := range field.names {
+			if name.name == fieldName {
+				return field.tag
 			}
 		}
 	}
@@ -87,7 +87,7 @@ func (s StructType) makeValue(vm *VM, size int, elements []reflect.Value) reflec
 }
 
 func (s StructType) addMethod(decl *FuncDecl) { // TODO inline
-	s.methods[decl.Name.Name] = decl
+	s.methods[decl.name.name] = decl
 }
 
 func (s StructType) methodsMap() map[string]*FuncDecl {

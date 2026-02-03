@@ -146,12 +146,12 @@ func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 
 func (vm *VM) proxyType(e Expr) CanMake {
 	if id, ok := e.(Ident); ok {
-		typ, ok := builtins[id.Name]
+		typ, ok := builtins[id.name]
 		if ok {
 			gt := SDKType{typ: typ.Interface().(builtinType).typ}
 			return gt
 		}
-		typ = vm.localEnv().valueLookUp(id.Name)
+		typ = vm.localEnv().valueLookUp(id.name)
 		// interpreted
 		if cm, ok := typ.Interface().(CanMake); ok {
 			return cm
@@ -160,13 +160,13 @@ func (vm *VM) proxyType(e Expr) CanMake {
 	}
 
 	if sel, ok := e.(SelectorExpr); ok {
-		typ := vm.localEnv().valueLookUp(sel.x.(Ident).Name)
+		typ := vm.localEnv().valueLookUp(sel.x.(Ident).name)
 		val := typ.Interface()
 		if canSelect, ok := val.(CanSelect); ok {
-			selVal := canSelect.selectFieldOrMethod(sel.selector.Name)
+			selVal := canSelect.selectFieldOrMethod(sel.selector.name)
 			return SDKType{typ: reflect.TypeOf(selVal.Interface())}
 		}
-		pkgType := stdtypes[sel.x.(Ident).Name][sel.selector.Name]
+		pkgType := stdtypes[sel.x.(Ident).name][sel.selector.name]
 		return SDKType{typ: reflect.TypeOf(pkgType.Interface())}
 	}
 
@@ -176,11 +176,11 @@ func (vm *VM) proxyType(e Expr) CanMake {
 	}
 
 	if ar, ok := e.(ArrayType); ok {
-		elemType := vm.makeType(ar.Elt)
-		if ar.Len == nil {
+		elemType := vm.makeType(ar.elt)
+		if ar.len == nil {
 			return SDKType{typ: reflect.SliceOf(elemType)}
 		} else {
-			lenVal := vm.returnsEval(ar.Len)
+			lenVal := vm.returnsEval(ar.len)
 			size := int(lenVal.Int())
 			return SDKType{typ: reflect.ArrayOf(size, elemType)}
 		}
@@ -204,7 +204,7 @@ func (vm *VM) proxyType(e Expr) CanMake {
 // never returns a CanMake
 func (vm *VM) makeType(e Evaluable) reflect.Type {
 	if id, ok := e.(Ident); ok {
-		typ, ok := builtins[id.Name]
+		typ, ok := builtins[id.name]
 		if ok {
 			return typ.Interface().(builtinType).typ
 		}
@@ -215,21 +215,21 @@ func (vm *VM) makeType(e Evaluable) reflect.Type {
 		return reflect.PointerTo(nonStarType)
 	}
 	if sel, ok := e.(SelectorExpr); ok {
-		typ := vm.localEnv().valueLookUp(sel.x.(Ident).Name)
+		typ := vm.localEnv().valueLookUp(sel.x.(Ident).name)
 		val := typ.Interface()
 		if canSelect, ok := val.(CanSelect); ok {
-			selVal := canSelect.selectFieldOrMethod(sel.selector.Name)
+			selVal := canSelect.selectFieldOrMethod(sel.selector.name)
 			return reflect.TypeOf(selVal.Interface())
 		}
-		pkgType := stdtypes[sel.x.(Ident).Name][sel.selector.Name]
+		pkgType := stdtypes[sel.x.(Ident).name][sel.selector.name]
 		return reflect.TypeOf(pkgType.Interface())
 	}
 	if ar, ok := e.(ArrayType); ok {
-		elemType := vm.makeType(ar.Elt)
-		if ar.Len == nil {
+		elemType := vm.makeType(ar.elt)
+		if ar.len == nil {
 			return reflect.SliceOf(elemType)
 		} else {
-			lenVal := vm.returnsEval(ar.Len)
+			lenVal := vm.returnsEval(ar.len)
 			size := int(lenVal.Int())
 			return reflect.ArrayOf(size, elemType)
 		}
@@ -369,9 +369,9 @@ func (vm *VM) printStack() {
 		for i, decl := range env.declarations {
 			fmt.Printf("pkg.decl[%d]: %v\n", i, decl)
 			if cd, ok := decl.(ConstDecl); ok {
-				for s, spec := range cd.Specs {
+				for s, spec := range cd.specs {
 					for n, idn := range spec.Names {
-						fmt.Printf("  const.spec[%d][%d]: %v\n", s, n, idn.Name)
+						fmt.Printf("  const.spec[%d][%d]: %v\n", s, n, idn.name)
 					}
 				}
 			}

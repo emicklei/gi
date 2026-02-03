@@ -8,11 +8,11 @@ import (
 var _ Stmt = ForStmt{}
 
 type ForStmt struct {
-	ForPos token.Pos
-	Init   Stmt
-	Cond   Expr
-	Post   Stmt
-	Body   *BlockStmt
+	forPos token.Pos
+	init   Stmt
+	cond   Expr
+	post   Stmt
+	body   *BlockStmt
 }
 
 func (f ForStmt) Eval(vm *VM) {} // noop
@@ -22,33 +22,33 @@ func (f ForStmt) flow(g *graphBuilder) (head Step) {
 	push.pos = f.Pos()
 	head = push
 	g.nextStep(head)
-	if f.Init != nil {
-		f.Init.flow(g)
+	if f.init != nil {
+		f.init.flow(g)
 	}
 	begin := new(conditionalStep)
-	if f.Cond != nil {
-		begin.conditionFlow = f.Cond.flow(g)
+	if f.cond != nil {
+		begin.conditionFlow = f.cond.flow(g)
 	}
 	g.nextStep(begin)
-	f.Body.flow(g)
-	if f.Post != nil {
-		f.Post.flow(g)
+	f.body.flow(g)
+	if f.post != nil {
+		f.post.flow(g)
 	}
-	if f.Cond != nil {
+	if f.cond != nil {
 		g.nextStep(begin.conditionFlow)
 	}
-	pop := newPopEnvironmentStep(f.Body.Pos())
+	pop := newPopEnvironmentStep(f.body.Pos())
 	begin.elseFlow = pop
 	g.current = pop
 	return
 }
 
 func (f ForStmt) Pos() token.Pos {
-	return f.ForPos
+	return f.forPos
 }
 
 func (f ForStmt) stmtStep() Evaluable { return f }
 
 func (f ForStmt) String() string {
-	return fmt.Sprintf("ForStmt(%v)", f.Cond)
+	return fmt.Sprintf("ForStmt(%v)", f.cond)
 }

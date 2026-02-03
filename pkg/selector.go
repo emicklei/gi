@@ -21,10 +21,10 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 
 		// need to pop from stack? TODO
 		if trace {
-			fmt.Println("TRACE: SelectorExpr.Assign", idn.Name, s.selector.Name, "=", val, "operands:", vm.currentFrame.operands)
+			fmt.Println("TRACE: SelectorExpr.Assign", idn.name, s.selector.name, "=", val, "operands:", vm.currentFrame.operands)
 		}
 
-		recv := vm.localEnv().valueLookUp(idn.Name)
+		recv := vm.localEnv().valueLookUp(idn.name)
 
 		// dereference if pointer to heap value
 		if hp, ok := recv.Interface().(*HeapPointer); ok {
@@ -33,7 +33,7 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 		// can we assign directly to the field?
 		fa, ok := recv.Interface().(FieldAssignable)
 		if ok {
-			fa.fieldAssign(s.selector.Name, val)
+			fa.fieldAssign(s.selector.name, val)
 			return
 		}
 
@@ -51,17 +51,17 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 	}
 	rec, ok := recv.Interface().(CanSelect)
 	if ok {
-		sel := rec.selectFieldOrMethod(s.selector.Name)
+		sel := rec.selectFieldOrMethod(s.selector.name)
 		if !sel.IsValid() {
-			vm.fatal(fmt.Sprintf("field %s not found for receiver: %v (%T)", s.selector.Name, recv.Interface(), recv.Interface()))
+			vm.fatal(fmt.Sprintf("field %s not found for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface()))
 		}
 		if !sel.CanSet() {
-			vm.fatal(fmt.Sprintf("field %s is not settable for receiver: %v (%T)", s.selector.Name, recv.Interface(), recv.Interface()))
+			vm.fatal(fmt.Sprintf("field %s is not settable for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface()))
 		}
 		sel.Set(val)
 		return
 	}
-	vm.fatal(fmt.Sprintf("cannot assign to method %s for receiver: %v (%T)", s.selector.Name, recv.Interface(), recv.Interface()))
+	vm.fatal(fmt.Sprintf("cannot assign to method %s for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface()))
 }
 
 func (s SelectorExpr) Eval(vm *VM) {
@@ -75,7 +75,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 	rec, ok := recv.Interface().(CanSelect)
 	if ok {
 		// can be field or method
-		sel := rec.selectFieldOrMethod(s.selector.Name)
+		sel := rec.selectFieldOrMethod(s.selector.name)
 		// check for method
 		if _, ok := sel.Interface().(*FuncDecl); ok {
 			// method value so push receiver as first argument
@@ -86,7 +86,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 	}
 
 	if recv.Kind() == reflect.Struct {
-		field := recv.FieldByName(s.selector.Name)
+		field := recv.FieldByName(s.selector.name)
 		if field.IsValid() {
 			vm.pushOperand(field)
 			return
@@ -96,7 +96,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 	if recv.Kind() == reflect.Pointer {
 		nonPtrRecv := recv.Elem()
 		if nonPtrRecv.Kind() == reflect.Struct {
-			field := nonPtrRecv.FieldByName(s.selector.Name)
+			field := nonPtrRecv.FieldByName(s.selector.name)
 			if field.IsValid() {
 				vm.pushOperand(field)
 				return
@@ -104,7 +104,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 		}
 	}
 
-	meth := recv.MethodByName(s.selector.Name)
+	meth := recv.MethodByName(s.selector.name)
 	if meth.IsValid() {
 		vm.pushOperand(meth)
 		return
@@ -119,7 +119,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 	// Sel.Name is a method of receiver's pointer type ?
 	recvType := recv.Type()
 	ptrRecvType := reflect.PointerTo(recvType)
-	pmeth, ok := ptrRecvType.MethodByName(s.selector.Name)
+	pmeth, ok := ptrRecvType.MethodByName(s.selector.name)
 	if ok {
 		meth := reflect.ValueOf(pmeth)
 		// push pointer to recv as first argument
@@ -138,7 +138,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 
 	if ext, ok := recv.Interface().(ExtendedValue); ok {
 		// *FuncDecl
-		m, ok := ext.typ.methods[s.selector.Name]
+		m, ok := ext.typ.methods[s.selector.name]
 		if ok {
 			// method value so push receiver as first argument
 			vm.pushOperand(recv)
@@ -147,7 +147,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 		}
 	}
 
-	vm.fatal(fmt.Sprintf("method or field \"%s\" not found for receiver: %v (%T)", s.selector.Name, recv.Interface(), recv.Interface()))
+	vm.fatal(fmt.Sprintf("method or field \"%s\" not found for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface()))
 }
 
 func (s SelectorExpr) flow(g *graphBuilder) (head Step) {
@@ -156,8 +156,8 @@ func (s SelectorExpr) flow(g *graphBuilder) (head Step) {
 	return head
 }
 
-func (s SelectorExpr) Pos() token.Pos { return s.selector.NamePos }
+func (s SelectorExpr) Pos() token.Pos { return s.selector.namePos }
 
 func (s SelectorExpr) String() string {
-	return fmt.Sprintf("SelectorExpr(%v, %v)", s.x, s.selector.Name)
+	return fmt.Sprintf("SelectorExpr(%v, %v)", s.x, s.selector.name)
 }

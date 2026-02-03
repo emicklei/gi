@@ -9,9 +9,9 @@ import (
 var _ Expr = ArrayType{}
 
 type ArrayType struct {
-	Lbrack token.Pos // position of "["
-	Len    Expr
-	Elt    Expr
+	lbrackPos token.Pos // position of "["
+	len       Expr
+	elt       Expr
 }
 
 // Eval creates and pushes an instance of the array or slice type onto the operand stack.
@@ -20,15 +20,15 @@ func (a ArrayType) Eval(vm *VM) {
 }
 
 func (a ArrayType) makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value {
-	if a.Len != nil {
-		len := vm.returnsEval(a.Len)
+	if a.len != nil {
+		len := vm.returnsEval(a.len)
 		/// override size from Len expression unless Ellipsis
 		if len.Kind() == reflect.Int {
 			size = int(len.Int())
 		}
 	}
-	eltType := vm.makeType(a.Elt)
-	if a.Len == nil {
+	eltType := vm.makeType(a.elt)
+	if a.len == nil {
 		// slice
 		sliceType := reflect.SliceOf(eltType)
 		return reflect.MakeSlice(sliceType, size, size)
@@ -45,12 +45,6 @@ func (a ArrayType) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (a ArrayType) Pos() token.Pos { return a.Lbrack }
-
-func (a ArrayType) String() string {
-	return fmt.Sprintf("ArrayType(%v,slice=%v)", a.Elt, a.Len == nil)
-}
-
 // composite is (a reflect on) a Go array or slice
 func (a ArrayType) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	if len(values) == 0 {
@@ -62,7 +56,7 @@ func (a ArrayType) literalCompose(vm *VM, composite reflect.Value, values []refl
 	for i, v := range values {
 
 		if elementType.Kind() == reflect.Array {
-			composingElem := a.Elt.(CanCompose)
+			composingElem := a.elt.(CanCompose)
 			elemValues := v.Interface().([]reflect.Value)
 			composingElem.literalCompose(vm, composite.Index(i), elemValues)
 			continue
@@ -82,30 +76,36 @@ func (a ArrayType) literalCompose(vm *VM, composite reflect.Value, values []refl
 
 }
 
+func (a ArrayType) Pos() token.Pos { return a.lbrackPos }
+
+func (a ArrayType) String() string {
+	return fmt.Sprintf("ArrayType(%v,slice=%v)", a.elt, a.len == nil)
+}
+
 var _ Expr = SliceExpr{}
 
 // http://golang.org/ref/spec#Slice_expressions
 type SliceExpr struct {
-	X      Expr      // expression
-	Lbrack token.Pos // position of "["
-	Low    Expr      // begin of slice range; or nil
-	High   Expr      // end of slice range; or nil
-	Max    Expr      // maximum capacity of slice; or nil
+	x         Expr      // expression
+	lbrackPos token.Pos // position of "["
+	low       Expr      // begin of slice range; or nil
+	high      Expr      // end of slice range; or nil
+	max       Expr      // maximum capacity of slice; or nil
 	// TODO handle this
-	Slice3 bool // true if 3-index slice (2 colons present)
+	slice3 bool // true if 3-index slice (2 colons present)
 }
 
 func (s SliceExpr) Eval(vm *VM) {
 	// stack has max, high, low, x
 	var high, low, x reflect.Value
-	if s.Max != nil {
+	if s.max != nil {
 		// ignore max
 		_ = vm.popOperand()
 	}
-	if s.High != nil {
+	if s.high != nil {
 		high = vm.popOperand()
 	}
-	if s.Low != nil {
+	if s.low != nil {
 		low = vm.popOperand()
 	}
 	var result reflect.Value
@@ -121,22 +121,22 @@ func (s SliceExpr) Eval(vm *VM) {
 }
 
 func (s SliceExpr) flow(g *graphBuilder) (head Step) {
-	head = s.X.flow(g)
-	if s.Low != nil {
-		s.Low.flow(g)
+	head = s.x.flow(g)
+	if s.low != nil {
+		s.low.flow(g)
 	}
-	if s.High != nil {
-		s.High.flow(g)
+	if s.high != nil {
+		s.high.flow(g)
 	}
-	if s.Max != nil {
-		s.Max.flow(g)
+	if s.max != nil {
+		s.max.flow(g)
 	}
 	g.next(s)
 	return
 }
 
-func (s SliceExpr) Pos() token.Pos { return s.Lbrack }
+func (s SliceExpr) Pos() token.Pos { return s.lbrackPos }
 
 func (s SliceExpr) String() string {
-	return fmt.Sprintf("SliceExpr(%v,%v:%v:%v)", s.X, s.Low, s.High, s.Max)
+	return fmt.Sprintf("SliceExpr(%v,%v:%v:%v)", s.x, s.low, s.high, s.max)
 }

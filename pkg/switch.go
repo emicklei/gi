@@ -43,7 +43,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 	}
 	gotoLabel := fmt.Sprintf("switch-end-%d", g.idgen)
 	gotoStep := g.newLabeledStep(gotoLabel, s.Pos())
-	ref := statementReference{step: gotoStep} // has no ID
+	ref := stmtReference{step: gotoStep} // has no ID
 	g.funcStack.top().putGotoReference(gotoLabel, ref)
 
 	for _, stmt := range s.body.List {
@@ -52,7 +52,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 		// check for default case
 		if clause.List == nil {
 			// compose goto to end of switch
-			labelIdent := Ident{Name: gotoLabel}
+			labelIdent := Ident{name: gotoLabel}
 			gotoEnd := BranchStmt{
 				Tok:    token.GOTO,
 				TokPos: clause.Pos(),
@@ -86,10 +86,10 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 			var nextCond Expr
 			if s.tag != nil {
 				nextCond = BinaryExpr{
-					Op:    token.EQL,
-					OpPos: clause.Pos(),
-					X:     s.tag,
-					Y:     expr,
+					op:    token.EQL,
+					opPos: clause.Pos(),
+					x:     s.tag,
+					y:     expr,
 				}
 			}
 			if bin, ok := expr.(BinaryExpr); ok {
@@ -102,16 +102,16 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 				cond = nextCond
 			} else {
 				cond = BinaryExpr{
-					Op:    token.LOR,
-					OpPos: clause.Pos(),
-					X:     cond,
-					Y:     nextCond,
+					op:    token.LOR,
+					opPos: clause.Pos(),
+					x:     cond,
+					y:     nextCond,
 				}
 			}
 		}
 
 		// compose goto to end of switch
-		labelIdent := Ident{Name: gotoLabel}
+		labelIdent := Ident{name: gotoLabel}
 		gotoEnd := BranchStmt{
 			Tok:    token.GOTO,
 			TokPos: clause.Pos(),
@@ -121,9 +121,9 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 
 		// compose if statement for this case
 		when := IfStmt{
-			IfPos: clause.Pos(),
-			Cond:  cond,
-			Body:  &BlockStmt{List: list},
+			ifPos: clause.Pos(),
+			cond:  cond,
+			body:  &BlockStmt{List: list},
 		}
 		whenFlow := when.flow(g)
 		if head == nil {
@@ -193,16 +193,16 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 	}
 	gotoLabel := fmt.Sprintf("type-switch-end-%d", g.idgen)
 	gotoStep := g.newLabeledStep(gotoLabel, s.Pos())
-	ref := statementReference{step: gotoStep} // has no ID
+	ref := stmtReference{step: gotoStep} // has no ID
 	g.funcStack.top().putGotoReference(gotoLabel, ref)
 
-	nameOfType := Ident{NamePos: s.Pos(), Name: internalVarName("switch-type-name", g.idgen)}
+	nameOfType := Ident{namePos: s.Pos(), name: internalVarName("switch-type-name", g.idgen)}
 
 	nameOfTypeAssignment := AssignStmt{
-		TokPos: s.SwitchPos,
-		Tok:    token.DEFINE,
-		Lhs:    []Expr{nameOfType},
-		Rhs:    []Expr{noExpr{}}, // no expression because TypeAssertExpr pushes two values
+		tokPos: s.SwitchPos,
+		tok:    token.DEFINE,
+		lhs:    []Expr{nameOfType},
+		rhs:    []Expr{noExpr{}}, // no expression because TypeAssertExpr pushes two values
 	}
 	nameOfTypeAssignment.flow(g)
 
@@ -212,7 +212,7 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 		// check for default case
 		if clause.List == nil {
 			// compose goto to end of switch
-			labelIdent := Ident{Name: gotoLabel}
+			labelIdent := Ident{name: gotoLabel}
 			gotoEnd := BranchStmt{
 				Tok:    token.GOTO,
 				TokPos: clause.Pos(),
@@ -244,10 +244,10 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 		for i, expr := range clause.List {
 			var nextCond Expr
 			nextCond = BinaryExpr{
-				Op:    token.EQL,
-				OpPos: clause.Pos(),
-				X:     nameOfType,
-				Y:     identAsStringLiteral(expr.(Ident)), // right is the name of the type
+				op:    token.EQL,
+				opPos: clause.Pos(),
+				x:     nameOfType,
+				y:     identAsStringLiteral(expr.(Ident)), // right is the name of the type
 			}
 
 			if bin, ok := expr.(BinaryExpr); ok {
@@ -260,16 +260,16 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 				cond = nextCond
 			} else {
 				cond = BinaryExpr{
-					Op:    token.LOR,
-					OpPos: clause.Pos(),
-					X:     cond,
-					Y:     nextCond,
+					op:    token.LOR,
+					opPos: clause.Pos(),
+					x:     cond,
+					y:     nextCond,
 				}
 			}
 		}
 
 		// compose goto to end of switch
-		labelIdent := Ident{Name: gotoLabel}
+		labelIdent := Ident{name: gotoLabel}
 		gotoEnd := BranchStmt{
 			Tok:    token.GOTO,
 			TokPos: clause.Pos(),
@@ -279,9 +279,9 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 
 		// compose if statement for this case
 		when := IfStmt{
-			IfPos: clause.Pos(),
-			Cond:  cond,
-			Body:  &BlockStmt{List: list},
+			ifPos: clause.Pos(),
+			cond:  cond,
+			body:  &BlockStmt{List: list},
 		}
 		whenFlow := when.flow(g)
 		if head == nil {
@@ -305,5 +305,5 @@ func (s TypeSwitchStmt) String() string {
 }
 
 func identAsStringLiteral(id Ident) BasicLit {
-	return newBasicLit(token.NoPos, reflect.ValueOf(id.Name))
+	return newBasicLit(token.NoPos, reflect.ValueOf(id.name))
 }

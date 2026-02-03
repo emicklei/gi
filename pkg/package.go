@@ -72,15 +72,15 @@ func (p *Package) Initialize(vm *VM) error {
 
 	// move methods to types
 	for _, decl := range p.env.methods {
-		recvType := decl.Recv.List[0].Type
+		recvType := decl.recv.List[0].typ
 		var typeName string
 		switch rt := recvType.(type) {
 		case StarExpr:
 			if ident, ok := rt.x.(Ident); ok {
-				typeName = ident.Name
+				typeName = ident.name
 			}
 		case Ident:
-			typeName = rt.Name
+			typeName = rt.name
 		default:
 			return fmt.Errorf("unsupported receiver type in method declaration: %T", recvType)
 		}
@@ -117,8 +117,8 @@ func (p *Package) Initialize(vm *VM) error {
 	for _, each := range p.env.inits {
 		// TODO clean up
 		call := CallExpr{
-			Fun:  Ident{Name: "init"},
-			Args: []Expr{}, // TODO for now, main only
+			fun:  Ident{name: "init"},
+			args: []Expr{}, // TODO for now, main only
 		}
 		call.handleFuncDecl(vm, each)
 	}
@@ -303,8 +303,8 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	}
 	// make a CallExpr and reuse its logic to set up the call
 	call := CallExpr{
-		Fun:  Ident{Name: functionName},
-		Args: callArgs,
+		fun:  Ident{name: functionName},
+		args: callArgs,
 	}
 	// push arguments as parameters on the operand stack, in reverse order
 	for i := len(args) - 1; i >= 0; i-- {

@@ -76,7 +76,7 @@ func (s LabeledStmt) flow(g *graphBuilder) (head Step) {
 	head = s.statement.flow(g)
 	// get statement reference and update its step
 	fd := g.funcStack.top()
-	ref := fd.gotoReference(s.label.Name)
+	ref := fd.gotoReference(s.label.name)
 	ref.step.SetNext(head)
 	return
 }
@@ -112,10 +112,10 @@ func (s BranchStmt) Eval(vm *VM) {
 func (s BranchStmt) flow(g *graphBuilder) (head Step) {
 	switch s.Tok {
 	case token.GOTO:
-		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.Label.Name), s.Pos())
+		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.Label.name), s.Pos())
 		g.nextStep(head)
 		fd := g.funcStack.top()
-		ref := fd.gotoReference(s.Label.Name)
+		ref := fd.gotoReference(s.Label.name)
 		head.SetNext(ref.step)
 		// branch ends the current flow
 		g.current = nil
@@ -148,8 +148,8 @@ func (d DeferStmt) Eval(vm *VM) {
 	// create a new env and copy the current argument values
 	env := frame.env.newChild() // TODO needed?
 	call := d.Call.(CallExpr)
-	vals := make([]reflect.Value, len(call.Args))
-	for i, arg := range call.Args { // TODO variadic
+	vals := make([]reflect.Value, len(call.args))
+	for i, arg := range call.args { // TODO variadic
 		vals[i] = vm.returnsEval(arg)
 	}
 	frame.env.markSharedReferenced()

@@ -18,7 +18,7 @@ type Env interface {
 	newChild() Env
 	depth() int
 	getParent() Env
-	addConstOrVar(cv CanDeclare)
+	addCanDeclare(cv CanDeclare)
 	rootPackageEnv() *PkgEnvironment
 	// if marked, this env has references that escape to the heap
 	// or is used by funcInvocation in a defer statement
@@ -53,7 +53,7 @@ func (p *PkgEnvironment) addMethod(f *FuncDecl) {
 	p.methods = append(p.methods, f)
 }
 
-func (p *PkgEnvironment) addConstOrVar(cv CanDeclare) {
+func (p *PkgEnvironment) addCanDeclare(cv CanDeclare) {
 	p.declarations = append(p.declarations, cv)
 }
 
@@ -185,7 +185,7 @@ func (e *Environment) unset(name string) {
 	delete(e.valueTable, name)
 }
 
-func (e *Environment) addConstOrVar(cv CanDeclare) {}
+func (e *Environment) addCanDeclare(cv CanDeclare) {}
 
 func (e *Environment) rootPackageEnv() *PkgEnvironment {
 	if e.parent == nil {

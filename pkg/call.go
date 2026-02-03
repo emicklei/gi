@@ -9,9 +9,9 @@ import (
 var _ Expr = CallExpr{}
 
 type CallExpr struct {
-	Lparen token.Pos // position of "("
-	Fun    Expr
-	Args   []Expr // function arguments; or nil
+	lparenPos token.Pos // position of "("
+	fun       Expr
+	args      []Expr // function arguments; or nil
 }
 
 func (c CallExpr) Eval(vm *VM) {
@@ -45,9 +45,9 @@ func (c CallExpr) Eval(vm *VM) {
 			vm.fatalf("pointer unexpected %T", fn.Interface())
 		}
 	case reflect.Func:
-		args := make([]reflect.Value, len(c.Args))
+		args := make([]reflect.Value, len(c.args))
 		// first to last, see Flow
-		for i := range len(c.Args) {
+		for i := range len(c.args) {
 			var argType reflect.Type
 			if fn.Type().IsVariadic() && i >= fn.Type().NumIn()-1 {
 				// last arg is variadic
@@ -134,10 +134,10 @@ func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
 	receiver := vm.popOperand()
 
 	// Prepare arguments: receiver + method args
-	args := make([]reflect.Value, len(c.Args)+1)
+	args := make([]reflect.Value, len(c.args)+1)
 	args[0] = receiver // First arg is always the receiver
 
-	for i := range c.Args {
+	for i := range c.args {
 		val := vm.popOperand() // first to last, see Flow
 		args[i+1] = val
 	}
@@ -150,7 +150,7 @@ func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
 func (c CallExpr) handleArrayType(vm *VM, at ArrayType) {
 	// do a conversion to array/slice
 	toConvert := vm.popOperand()
-	rt := vm.makeType(at.Elt)
+	rt := vm.makeType(at.elt)
 	length := toConvert.Len()
 	capacity := toConvert.Len()
 	st := reflect.SliceOf(rt)
@@ -174,8 +174,8 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 	case "clear":
 		cleared := c.evalClear(vm)
 		// the argument of clear needs to be replaced
-		if identArg, ok := c.Args[0].(Ident); ok {
-			vm.localEnv().set(identArg.Name, cleared)
+		if identArg, ok := c.args[0].(Ident); ok {
+			vm.localEnv().set(identArg.name, cleared)
 		} else {
 			vm.fatal("clear argument must be an identifier")
 		}
@@ -193,8 +193,8 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	// TODO deduplicate with handleFuncDecl
 	// prepare arguments
-	args := make([]reflect.Value, len(c.Args))
-	for i := range c.Args {
+	args := make([]reflect.Value, len(c.args))
+	for i := range c.args {
 		val := vm.popOperand() // first to last, see Flow
 		args[i] = val
 	}
@@ -222,8 +222,8 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	vals := []reflect.Value{} // todo size it
 	if fl.Type.Results != nil {
 		for _, field := range fl.results().List {
-			for _, name := range field.Names {
-				val := frame.env.valueLookUp(name.Name)
+			for _, name := range field.names {
+				val := frame.env.valueLookUp(name.name)
 				vals = append(vals, val)
 			}
 		}
@@ -237,9 +237,9 @@ func setZeroReturnsToFrame(ft *FuncType, vm *VM, frame *stackFrame) {
 		return
 	}
 	for _, field := range ft.Results.List {
-		for _, name := range field.Names {
-			val := reflect.Zero(vm.makeType(field.Type)) // TODO put types from gopkg in Field?
-			frame.env.set(name.Name, val)
+		for _, name := range field.names {
+			val := reflect.Zero(vm.makeType(field.typ)) // TODO put types from gopkg in Field?
+			frame.env.set(name.name, val)
 		}
 	}
 }
@@ -251,13 +251,13 @@ func setParametersToFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *sta
 	}
 	p := 0
 	for _, field := range ft.Params.List {
-		for _, name := range field.Names {
+		for _, name := range field.names {
 			val := args[p]
 			if val.Interface() == untypedNil {
 				// create a zero value of the expected type
-				val = reflect.Zero(vm.makeType(field.Type)) // TODO put types from gopkg in Field?
+				val = reflect.Zero(vm.makeType(field.typ)) // TODO put types from gopkg in Field?
 			}
-			frame.env.set(name.Name, val)
+			frame.env.set(name.name, val)
 			p++
 		}
 	}
@@ -267,20 +267,20 @@ func setParametersToFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *sta
 func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	// if method then take receiver from the stack
 	var receiver reflect.Value
-	if fd.Recv != nil {
+	if fd.recv != nil {
 		receiver = vm.popOperand()
 		// need to wait for a frame to set the receiver in env
 	}
 
 	// prepare arguments
-	args := make([]reflect.Value, len(c.Args))
+	args := make([]reflect.Value, len(c.args))
 	// first to last, see Flow
-	for i := range c.Args {
+	for i := range c.args {
 		val := vm.popOperand()
-		expectedType := fieldTypeExpr(fd.Type.Params, i)
+		expectedType := fieldTypeExpr(fd.typ.Params, i)
 		if isEllipsis(expectedType) {
 			// consume remaining as slice
-			vals := make([]reflect.Value, len(c.Args)-i)
+			vals := make([]reflect.Value, len(c.args)-i)
 			vals[0] = val
 			for j := 1; j < len(vals); j++ {
 				vals[j] = vm.popOperand()
@@ -316,10 +316,10 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	frame := vm.currentFrame
 
 	// if method, set receiver in env
-	if fd.Recv != nil {
-		recvName := fd.Recv.List[0].Names[0].Name
+	if fd.recv != nil {
+		recvName := fd.recv.List[0].names[0].name
 		// check pointer receiver
-		if isPointerExpr(fd.Recv.List[0].Type) {
+		if isPointerExpr(fd.recv.List[0].typ) {
 			frame.env.set(recvName, receiver)
 		} else {
 			// put a copy of the value
@@ -334,8 +334,8 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 		}
 	}
 
-	setParametersToFrame(fd.Type, args, vm, frame)
-	setZeroReturnsToFrame(fd.Type, vm, frame)
+	setParametersToFrame(fd.typ, args, vm, frame)
+	setZeroReturnsToFrame(fd.typ, vm, frame)
 
 	if fd.hasRecoverCall() {
 		defer func() {
@@ -354,10 +354,10 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 
 	// take values before popping frame
 	vals := []reflect.Value{} // todo size it
-	if fd.Type.Results != nil {
+	if fd.typ.Results != nil {
 		for _, field := range fd.results().List {
-			for _, name := range field.Names {
-				val := frame.env.valueLookUp(name.Name)
+			for _, name := range field.names {
+				val := frame.env.valueLookUp(name.name)
 				vals = append(vals, val)
 			}
 		}
@@ -384,14 +384,14 @@ func isPointerExpr(e Expr) bool {
 func (c CallExpr) flow(g *graphBuilder) (head Step) {
 	// make sure first value is on top of the operand stack
 	// so we can pop in the right order during Eval
-	for i := len(c.Args) - 1; i >= 0; i-- {
-		if i == len(c.Args)-1 {
-			head = c.Args[i].flow(g)
+	for i := len(c.args) - 1; i >= 0; i-- {
+		if i == len(c.args)-1 {
+			head = c.args[i].flow(g)
 			continue
 		}
-		c.Args[i].flow(g)
+		c.args[i].flow(g)
 	}
-	funFlow := c.Fun.flow(g)
+	funFlow := c.fun.flow(g)
 	if head == nil { // must be a function with no args
 		head = funFlow
 	}
@@ -400,13 +400,13 @@ func (c CallExpr) flow(g *graphBuilder) (head Step) {
 }
 
 func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {
-	head = c.Fun.flow(g)
+	head = c.fun.flow(g)
 	g.next(c)
 	return
 }
 
-func (c CallExpr) Pos() token.Pos { return c.Lparen }
+func (c CallExpr) Pos() token.Pos { return c.lparenPos }
 
 func (c CallExpr) String() string {
-	return fmt.Sprintf("CallExpr(%v, args=%d)", c.Fun, len(c.Args))
+	return fmt.Sprintf("CallExpr(%v, args=%d)", c.fun, len(c.args))
 }

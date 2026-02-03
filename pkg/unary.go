@@ -41,11 +41,11 @@ func (u UnaryExpr) Eval(vm *VM) {
 			// Pop the value that was already pushed by the identifier evaluation
 			_ = vm.popOperand()
 			// Create a heap pointer that references the environment variable
-			env := vm.localEnv().valueOwnerOf(ident.Name)
+			env := vm.localEnv().valueOwnerOf(ident.name)
 			if env != nil {
 				env.markSharedReferenced()
-				value := env.valueLookUp(ident.Name)
-				hp := vm.heap.allocHeapVar(env, ident.Name, value.Type())
+				value := env.valueLookUp(ident.name)
+				hp := vm.heap.allocHeapVar(env, ident.name, value.Type())
 				vm.pushOperand(reflect.ValueOf(hp))
 				return
 			}

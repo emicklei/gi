@@ -9,7 +9,7 @@ var _ CanDeclare = ConstDecl{}
 var _ Decl = ConstDecl{}
 
 type ConstDecl struct {
-	Specs    []ValueSpec
+	specs    []ValueSpec
 	iotaExpr *iotaExpr // each const block has its independent iota counter
 	graph    Step
 }
@@ -20,7 +20,7 @@ func (c ConstDecl) declare(vm *VM) bool {
 		// reset iota for this const declaration
 		c.iotaExpr.reset()
 	}
-	for _, spec := range c.Specs {
+	for _, spec := range c.specs {
 		vm.takeAllStartingAt(spec.callGraph())
 		if !spec.declare(vm) {
 			done = false
@@ -37,7 +37,7 @@ func (c ConstDecl) Eval(vm *VM) {} // noop
 
 func (c ConstDecl) flow(g *graphBuilder) (head Step) {
 	// process in order of declaration because of iota
-	for i, spec := range c.Specs {
+	for i, spec := range c.specs {
 		s := spec.flow(g)
 		if i == 0 {
 			head = s
@@ -54,11 +54,11 @@ func (c ConstDecl) callGraph() Step {
 }
 func (c ConstDecl) declStep() CanDeclare { return c }
 func (c ConstDecl) Pos() token.Pos {
-	if len(c.Specs) == 0 {
+	if len(c.specs) == 0 {
 		return token.NoPos
 	}
-	return c.Specs[0].Pos()
+	return c.specs[0].Pos()
 }
 func (c ConstDecl) String() string {
-	return fmt.Sprintf("ConstDecl(len=%d)", len(c.Specs))
+	return fmt.Sprintf("ConstDecl(len=%d)", len(c.specs))
 }

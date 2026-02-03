@@ -12,10 +12,10 @@ var _ Expr = BinaryExpr{}
 type BinaryExprFunc func(x, y reflect.Value) reflect.Value
 
 type BinaryExpr struct {
-	OpPos      token.Pos      // position of Op
-	Op         token.Token    // operator
-	X          Expr           // left
-	Y          Expr           // right
+	opPos      token.Pos      // position of Op
+	op         token.Token    // operator
+	x          Expr           // left
+	y          Expr           // right
 	binaryFunc BinaryExprFunc // only set for known (types,operator) combinations
 }
 
@@ -42,25 +42,25 @@ func (b BinaryExpr) Eval(vm *VM) {
 	}
 	v := binaryExprValue{
 		left:  left,
-		op:    b.Op,
+		op:    b.op,
 		right: right,
 	}
 	vm.pushOperand(v.eval())
 }
 
 func (b BinaryExpr) flow(g *graphBuilder) (head Step) {
-	head = b.X.flow(g)
-	b.Y.flow(g)
+	head = b.x.flow(g)
+	b.y.flow(g)
 	g.next(b)
 	return head
 }
 
 func (b BinaryExpr) String() string {
-	return fmt.Sprintf("BinaryExpr(%v %v %v)", b.X, b.Op, b.Y)
+	return fmt.Sprintf("BinaryExpr(%v %v %v)", b.x, b.op, b.y)
 }
 
 func (b BinaryExpr) Pos() token.Pos {
-	return b.OpPos
+	return b.opPos
 }
 
 type binaryExprValue struct {

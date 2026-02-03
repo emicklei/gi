@@ -25,17 +25,17 @@ func mustString(v reflect.Value) string {
 	}
 	i, ok := v.Interface().(Ident)
 	if ok {
-		return i.Name
+		return i.name
 	}
 	panic(fmt.Sprintf("expected string or undeclaredbut got %T", v.Interface()))
 }
 
 func mustIdentName(e Expr) string {
 	if id, ok := e.(Ident); ok {
-		return id.Name
+		return id.name
 	}
 	if id, ok := e.(*Ident); ok {
-		return id.Name
+		return id.name
 	}
 	panic(fmt.Sprintf("expected Ident but got %T", e))
 }
@@ -161,9 +161,9 @@ func internalVarName(meaning string, seq int) string {
 func fieldTypeExpr(fields *FieldList, index int) Expr {
 	count := 0
 	for _, field := range fields.List {
-		for range field.Names {
+		for range field.names {
 			if count == index {
-				return field.Type
+				return field.typ
 			}
 			count++
 		}

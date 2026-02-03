@@ -25,7 +25,7 @@ func (s StarExpr) Eval(vm *VM) {
 	// needed?
 	if v.Kind() == reflect.Func {
 		if idn, ok := s.x.(Ident); ok {
-			v = vm.localEnv().valueLookUp("*" + idn.Name)
+			v = vm.localEnv().valueLookUp("*" + idn.name)
 			vm.pushOperand(v)
 			return
 		}

@@ -9,17 +9,17 @@ import (
 var _ Stmt = AssignStmt{}
 
 type AssignStmt struct {
-	TokPos      token.Pos   // position of Tok
-	Tok         token.Token // assignment token, DEFINE
-	Lhs         []Expr
-	Rhs         []Expr
+	tokPos      token.Pos   // position of Tok
+	tok         token.Token // assignment token, DEFINE
+	lhs         []Expr
+	rhs         []Expr
 	rhsBinFuncs []BinaryExprFunc // computed at build time
 }
 
 func (a AssignStmt) Eval(vm *VM) {
 	var lastVal reflect.Value
-	for i := 0; i < len(a.Lhs); i++ {
-		each := a.Lhs[i]
+	for i := 0; i < len(a.lhs); i++ {
+		each := a.lhs[i]
 		var v reflect.Value
 		// handle "ok" idiom for map index expressions
 		if len(vm.currentFrame.operands) == 0 {
@@ -33,7 +33,7 @@ func (a AssignStmt) Eval(vm *VM) {
 		}
 		a.apply(each, vm, v)
 	}
-	if len(a.Lhs) < len(a.Rhs) {
+	if len(a.lhs) < len(a.rhs) {
 		_ = vm.popOperand()
 	}
 }
@@ -43,7 +43,7 @@ func (a AssignStmt) apply(each Expr, vm *VM, v reflect.Value) {
 	if !ok_ {
 		vm.fatal(fmt.Sprintf("cannot assign %v to a %T", v.Interface(), each))
 	}
-	switch a.Tok {
+	switch a.tok {
 	case token.DEFINE: // :=
 		target.define(vm, v)
 	case token.ASSIGN: // =
@@ -93,14 +93,14 @@ func (a AssignStmt) apply(each Expr, vm *VM, v reflect.Value) {
 		result := binaryExprValue{left: current, op: token.AND_NOT, right: v}.eval()
 		target.assign(vm, result)
 	default:
-		panic("unsupported assignment " + a.Tok.String())
+		panic("unsupported assignment " + a.tok.String())
 	}
 }
 
 // pairwise flow
 func (a AssignStmt) flow(g *graphBuilder) (head Step) {
-	for i := len(a.Lhs) - 1; i >= 0; i-- {
-		left := a.Lhs[i]
+	for i := len(a.lhs) - 1; i >= 0; i-- {
+		left := a.lhs[i]
 		left.flow(g)
 		// step back to previous, the last node must not be evaluated
 		g.stepBack()
@@ -108,8 +108,8 @@ func (a AssignStmt) flow(g *graphBuilder) (head Step) {
 			head = g.current
 		}
 		// right side may be shorter (e.g. x, y = f())
-		if i < len(a.Rhs) {
-			right := a.Rhs[i]
+		if i < len(a.rhs) {
+			right := a.rhs[i]
 			rightFlow := right.flow(g)
 			if head == nil {
 				head = rightFlow
@@ -123,10 +123,10 @@ func (a AssignStmt) flow(g *graphBuilder) (head Step) {
 	return head
 }
 
-func (a AssignStmt) Pos() token.Pos { return a.TokPos }
+func (a AssignStmt) Pos() token.Pos { return a.tokPos }
 
 func (a AssignStmt) stmtStep() Evaluable { return a }
 
 func (a AssignStmt) String() string {
-	return fmt.Sprintf("AssignStmt(%v %s %v)", a.Lhs, a.Tok, a.Rhs)
+	return fmt.Sprintf("AssignStmt(%v %s %v)", a.lhs, a.tok, a.rhs)
 }

@@ -10,23 +10,23 @@ var _ Expr = Ident{}
 var _ CanAssign = Ident{}
 
 type Ident struct {
-	NamePos token.Pos
-	Name    string
+	namePos token.Pos
+	name    string
 }
 
 func (i Ident) Eval(vm *VM) {
-	vm.pushOperand(vm.localEnv().valueLookUp(i.Name))
+	vm.pushOperand(vm.localEnv().valueLookUp(i.name))
 }
 
 func (i Ident) assign(vm *VM, value reflect.Value) {
-	if i.Name == "_" {
+	if i.name == "_" {
 		return
 	}
-	owner := vm.localEnv().valueOwnerOf(i.Name)
-	owner.set(i.Name, value)
+	owner := vm.localEnv().valueOwnerOf(i.name)
+	owner.set(i.name, value)
 }
 func (i Ident) define(vm *VM, value reflect.Value) {
-	vm.localEnv().set(i.Name, value)
+	vm.localEnv().set(i.name, value)
 }
 
 func (i Ident) flow(g *graphBuilder) (head Step) {
@@ -35,9 +35,9 @@ func (i Ident) flow(g *graphBuilder) (head Step) {
 }
 
 func (i Ident) Pos() token.Pos {
-	return i.NamePos
+	return i.namePos
 }
 
 func (i Ident) String() string {
-	return fmt.Sprintf("Ident(%v)", i.Name)
+	return fmt.Sprintf("Ident(%s)", i.name)
 }

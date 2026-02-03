@@ -48,7 +48,7 @@ type TypeSpec struct {
 
 func (s TypeSpec) Eval(vm *VM) {
 	actualType := vm.returnsEval(s.typ)
-	vm.localEnv().set(s.name.Name, actualType) // use the spec itself as value
+	vm.localEnv().set(s.name.name, actualType) // use the spec itself as value
 }
 
 func (s TypeSpec) flow(g *graphBuilder) (head Step) {
@@ -159,7 +159,7 @@ func (m MapType) literalCompose(vm *VM, composite reflect.Value, values []reflec
 		// check for ident
 		if ik, ok := k.Interface().(Ident); ok {
 			// Ident.Eval
-			k = vm.localEnv().valueLookUp(ik.Name)
+			k = vm.localEnv().valueLookUp(ik.name)
 		}
 		v := kv.Value
 		composite.SetMapIndex(k, v)
@@ -206,7 +206,7 @@ func (d ExtendedType) literalCompose(vm *VM, composite reflect.Value, values []r
 }
 
 func (d ExtendedType) addMethod(decl *FuncDecl) { // TODO inline
-	d.methods[decl.Name.Name] = decl
+	d.methods[decl.name.name] = decl
 }
 
 func (d ExtendedType) methodsMap() map[string]*FuncDecl {
@@ -224,7 +224,7 @@ type ExtendedValue struct {
 }
 
 func (e ExtendedValue) toString() string {
-	return fmt.Sprintf("ExtendedValue(%v,%v)", e.typ.name.Name, e.val)
+	return fmt.Sprintf("ExtendedValue(%v,%v)", e.typ.name.name, e.val)
 }
 
 var _ CanMake = SDKType{}

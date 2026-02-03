@@ -31,9 +31,9 @@ func InstantiateStructValue(vm *VM, t StructType) StructValue {
 		fields: map[string]reflect.Value{},
 	}
 	for _, field := range t.fields.List {
-		typ := vm.makeType(field.Type)
-		for _, name := range field.Names {
-			i.fields[name.Name] = reflect.New(typ).Elem()
+		typ := vm.makeType(field.typ)
+		for _, name := range field.names {
+			i.fields[name.name] = reflect.New(typ).Elem()
 		}
 	}
 	return i
@@ -79,8 +79,8 @@ func (i StructValue) literalCompose(vm *VM, composite reflect.Value, values []re
 		// unkeyed
 		var fieldNames []string
 		for _, field := range i.structType.fields.List {
-			for _, name := range field.Names {
-				fieldNames = append(fieldNames, name.Name)
+			for _, name := range field.names {
+				fieldNames = append(fieldNames, name.name)
 			}
 		}
 		for valueIndex, each := range values {

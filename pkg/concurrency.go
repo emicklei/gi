@@ -12,10 +12,9 @@ var _ Flowable = ChanType{}
 var _ CanMake = ChanType{}
 
 type ChanType struct {
-	Begin token.Pos   // position of "chan" keyword or "<-" (whichever comes first)
-	Arrow token.Pos   // position of "<-" (token.NoPos if there is no "<-")
-	Dir   ast.ChanDir // channel direction
-	Value Expr        // value type
+	beginPos  token.Pos   // position of "chan" keyword or "<-" (whichever comes first)
+	dir       ast.ChanDir // channel direction
+	valueType Expr        // value type
 }
 
 func (c ChanType) Eval(vm *VM) {
@@ -26,8 +25,8 @@ func (c ChanType) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 func (c ChanType) makeValue(vm *VM, buffer int, elements []reflect.Value) reflect.Value {
-	typ := vm.makeType(c.Value)
-	dir := reflect.ChanDir(c.Dir)
+	typ := vm.makeType(c.valueType)
+	dir := reflect.ChanDir(c.dir)
 	ch := reflect.ChanOf(dir, typ)
 	return reflect.MakeChan(ch, int(buffer))
 }
@@ -36,10 +35,10 @@ func (c ChanType) literalCompose(vm *VM, composite reflect.Value, values []refle
 	return composite
 }
 func (c ChanType) Pos() token.Pos {
-	return c.Begin
+	return c.beginPos
 }
 func (c ChanType) String() string {
-	return fmt.Sprintf("ChanType(%v,%v)", c.Dir, c.Value)
+	return fmt.Sprintf("ChanType(%v,%v)", c.dir, c.valueType)
 }
 
 var _ Expr = SendStmt{}

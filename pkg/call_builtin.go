@@ -25,8 +25,8 @@ func (CallExpr) evalCopy(vm *VM) {
 
 // https://pkg.go.dev/builtin#append
 func (c CallExpr) evalAppend(vm *VM) {
-	args := make([]reflect.Value, len(c.Args))
-	for i := range c.Args {
+	args := make([]reflect.Value, len(c.args))
+	for i := range c.args {
 		args[i] = vm.popOperand()
 	}
 	slice := args[0]
@@ -85,7 +85,7 @@ func (c CallExpr) evalClear(vm *VM) reflect.Value {
 
 func (c CallExpr) evalMin(vm *VM) {
 	var result reflect.Value
-	if len(c.Args) == 2 {
+	if len(c.args) == 2 {
 		right := vm.popOperand() // first to last, see Flow
 		left := vm.popOperand()
 		less := binaryExprValue{op: token.LSS, left: left, right: right}.eval()
@@ -115,7 +115,7 @@ func (c CallExpr) evalMin(vm *VM) {
 
 func (c CallExpr) evalMax(vm *VM) {
 	var result reflect.Value
-	if len(c.Args) == 2 {
+	if len(c.args) == 2 {
 		right := vm.popOperand() // first to last, see Flow
 		left := vm.popOperand()
 		less := binaryExprValue{op: token.LSS, left: left, right: right}.eval()
@@ -148,7 +148,7 @@ func (c CallExpr) evalMake(vm *VM) {
 	// stack has 1,2, or 3 arguments, left to right
 	typ := vm.popOperand()
 	length := 0
-	if len(c.Args) > 1 {
+	if len(c.args) > 1 {
 		length = int(vm.popOperand().Int())
 	}
 	// TODO

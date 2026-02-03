@@ -104,31 +104,31 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		b.push(s)
 
 	case *ast.ChanType:
-		s := ChanType{Begin: n.Begin, Arrow: n.Arrow, Dir: n.Dir}
+		s := ChanType{beginPos: n.Begin, dir: n.Dir}
 		b.Visit(n.Value)
 		e := b.pop()
-		s.Value = e.(Expr)
+		s.valueType = e.(Expr)
 		b.push(s)
 
 	case *ast.SliceExpr:
-		s := SliceExpr{Lbrack: n.Lbrack, Slice3: n.Slice3}
+		s := SliceExpr{lbrackPos: n.Lbrack, slice3: n.Slice3}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 		if n.Low != nil {
 			b.Visit(n.Low)
 			e = b.pop()
-			s.Low = e.(Expr)
+			s.low = e.(Expr)
 		}
 		if n.High != nil {
 			b.Visit(n.High)
 			e = b.pop()
-			s.High = e.(Expr)
+			s.high = e.(Expr)
 		}
 		if n.Max != nil {
 			b.Visit(n.Max)
 			e = b.pop()
-			s.Max = e.(Expr)
+			s.max = e.(Expr)
 		}
 		b.push(s)
 
@@ -240,32 +240,32 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Value = e.(Expr)
 		b.push(s)
 	case *ast.IncDecStmt:
-		s := &IncDecStmt{Tok: n.Tok, TokPos: n.TokPos}
+		s := &IncDecStmt{tok: n.Tok, tokPos: n.TokPos}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 		b.push(s)
 	case *ast.ForStmt:
-		s := ForStmt{ForPos: n.Pos()}
+		s := ForStmt{forPos: n.Pos()}
 		if n.Init != nil {
 			b.Visit(n.Init)
 			e := b.pop()
-			s.Init = e.(Stmt)
+			s.init = e.(Stmt)
 		}
 		if n.Cond != nil {
 			b.Visit(n.Cond)
 			e := b.pop()
-			s.Cond = e.(Expr)
+			s.cond = e.(Expr)
 		}
 		if n.Post != nil {
 			b.Visit(n.Post)
 			e := b.pop()
-			s.Post = e.(Stmt)
+			s.post = e.(Stmt)
 		}
 		b.Visit(n.Body)
 		e := b.pop()
 		blk := e.(BlockStmt)
-		s.Body = &blk
+		s.body = &blk
 		b.push(s)
 	case *ast.UnaryExpr:
 		s := UnaryExpr{op: n.Op, opPos: n.OpPos}
@@ -327,7 +327,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			b.push(ie)
 			break
 		}
-		s := Ident{Name: n.Name, NamePos: n.NamePos}
+		s := Ident{name: n.Name, namePos: n.NamePos}
 		b.push(s)
 	case *ast.BlockStmt:
 		s := BlockStmt{LbracePos: n.Lbrace}
@@ -338,16 +338,16 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.AssignStmt:
-		s := AssignStmt{Tok: n.Tok, TokPos: n.TokPos}
+		s := AssignStmt{tok: n.Tok, tokPos: n.TokPos}
 		for _, l := range n.Lhs {
 			b.Visit(l)
 			e := b.pop()
-			s.Lhs = append(s.Lhs, e.(Expr))
+			s.lhs = append(s.lhs, e.(Expr))
 		}
 		for _, r := range n.Rhs {
 			b.Visit(r)
 			e := b.pop()
-			s.Rhs = append(s.Rhs, e.(Expr))
+			s.rhs = append(s.rhs, e.(Expr))
 		}
 		b.push(s)
 	case *ast.ImportSpec:
@@ -416,13 +416,13 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.BasicLit:
 		b.push(newBasicLit(n.ValuePos, basicLitValue(n)))
 	case *ast.BinaryExpr:
-		s := BinaryExpr{OpPos: n.OpPos, Op: n.Op}
+		s := BinaryExpr{opPos: n.OpPos, op: n.Op}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 		b.Visit(n.Y)
 		e = b.pop()
-		s.Y = e.(Expr)
+		s.y = e.(Expr)
 
 		// check type and operator combination for immediate function evaluation
 		xt, yt := b.goPkg.TypesInfo.TypeOf(n.X), b.goPkg.TypesInfo.TypeOf(n.Y)
@@ -441,22 +441,22 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.CallExpr:
-		s := CallExpr{Lparen: n.Lparen}
+		s := CallExpr{lparenPos: n.Lparen}
 		b.Visit(n.Fun)
 		e := b.pop()
-		s.Fun = e.(Expr)
-		if isRecoverCall(s.Fun) {
+		s.fun = e.(Expr)
+		if isRecoverCall(s.fun) {
 			// mark enclosing function as having a recover call
 			b.funcStack.underTop().fn.setHasRecoverCall(true)
 		}
 		for _, arg := range n.Args {
 			b.Visit(arg)
 			e := b.pop()
-			s.Args = append(s.Args, e.(Expr))
+			s.args = append(s.args, e.(Expr))
 		}
 		b.push(s)
 	case *ast.SelectorExpr:
-		s := SelectorExpr{selector: &Ident{Name: n.Sel.Name, NamePos: n.Sel.NamePos}}
+		s := SelectorExpr{selector: &Ident{name: n.Sel.Name, namePos: n.Sel.NamePos}}
 		b.Visit(n.X)
 		e := b.pop()
 		s.x = e.(Expr)
@@ -468,23 +468,23 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s.x = e.(Expr)
 		b.push(s)
 	case *ast.IfStmt:
-		s := IfStmt{IfPos: n.If}
+		s := IfStmt{ifPos: n.If}
 		if n.Init != nil {
 			b.Visit(n.Init)
 			e := b.pop()
-			s.Init = e.(Stmt)
+			s.init = e.(Stmt)
 		}
 		b.Visit(n.Cond)
 		e := b.pop()
-		s.Cond = e.(Expr)
+		s.cond = e.(Expr)
 		b.Visit(n.Body)
 		e = b.pop()
 		blk := e.(BlockStmt)
-		s.Body = &blk
+		s.body = &blk
 		if n.Else != nil {
 			b.Visit(n.Else)
 			e = b.pop()
-			s.Else = e.(Stmt)
+			s.elseif = e.(Stmt)
 		}
 		b.push(s)
 	case *ast.ReturnStmt:
@@ -508,22 +508,22 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			b.Visit(n.Recv)
 			e := b.pop()
 			f := e.(FieldList)
-			s.Recv = &f
+			s.recv = &f
 		}
 		b.Visit(n.Name)
 		e := b.pop()
 		i := e.(Ident)
-		s.Name = &i
+		s.name = &i
 
 		b.Visit(n.Type)
 		e = b.pop()
 		f := e.(FuncType)
-		s.Type = &f
+		s.typ = &f
 
 		b.Visit(n.Body)
 		e = b.pop()
 		blk := e.(BlockStmt)
-		s.Body = &blk
+		s.body = &blk
 		b.push(s) // TODO ??
 
 		// store call graph in the FuncDecl
@@ -581,16 +581,16 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			b.Visit(name)
 			e := b.pop()
 			i := e.(Ident)
-			s.Names = append(s.Names, &i)
+			s.names = append(s.names, &i)
 		}
 		b.Visit(n.Type)
 		e := b.pop()
-		s.Type = e.(Expr)
+		s.typ = e.(Expr)
 		if n.Tag != nil {
 			b.Visit(n.Tag)
 			e := b.pop().(BasicLit)
 			v := e.value.Interface().(string)
-			s.Tag = &v
+			s.tag = &v
 		}
 		b.push(s)
 	case *ast.GenDecl:
@@ -614,7 +614,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 					// store call graph in the ValueSpec for initialization
 					g := newGraphBuilder(b.goPkg)
 					vs.graph = vs.flow(g)
-					decl.Specs = append(decl.Specs, vs)
+					decl.specs = append(decl.specs, vs)
 				}
 				b.push(decl)
 				b.constDecl = nil // clear current const decl
@@ -637,13 +637,13 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				// store call graph in the ValueSpec for initialization
 				g := newGraphBuilder(b.goPkg)
 				vs.graph = vs.flow(g)
-				decl.Specs = append(decl.Specs, vs)
+				decl.specs = append(decl.specs, vs)
 			}
 			// store call graph in the ConstDecl for initialization
 			g := newGraphBuilder(b.goPkg)
 			decl.graph = decl.flow(g)
 			b.constDecl = nil // clear current const decl
-			b.env.addConstOrVar(decl)
+			b.env.addCanDeclare(decl)
 		case token.VAR:
 			for _, each := range n.Specs {
 				b.Visit(each)
@@ -652,7 +652,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				g := newGraphBuilder(b.goPkg)
 				c.graph = c.flow(g)
 				// let the environment know
-				b.env.addConstOrVar(c)
+				b.env.addCanDeclare(c)
 				// add to stack as normal
 				b.push(c)
 			}
@@ -688,15 +688,15 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.ArrayType:
-		s := ArrayType{Lbrack: n.Lbrack}
+		s := ArrayType{lbrackPos: n.Lbrack}
 		if n.Len != nil {
 			b.Visit(n.Len)
 			e := b.pop()
-			s.Len = e.(Expr)
+			s.len = e.(Expr)
 		}
 		b.Visit(n.Elt)
 		e := b.pop()
-		s.Elt = e.(Expr)
+		s.elt = e.(Expr)
 		b.push(s)
 	case *ast.KeyValueExpr:
 		s := KeyValueExpr{colonPos: n.Colon}
@@ -724,16 +724,16 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s.typ = e
 		if st, ok := e.(StructType); ok {
 			// set the name of the struct type
-			st.name = s.name.Name
-			b.envSet(s.name.Name, reflect.ValueOf(st))
+			st.name = s.name.name
+			b.envSet(s.name.name, reflect.ValueOf(st))
 		} else if idn, ok := e.(Ident); ok {
 			ext := newExtendedType(idn)
-			b.envSet(s.name.Name, reflect.ValueOf(ext))
+			b.envSet(s.name.name, reflect.ValueOf(ext))
 		} else if se, ok := e.(StarExpr); ok {
 			// first make it work TODO
 			// assume StarExpr.X of Ident for now
 			ext := newExtendedType(se.x.(Ident))
-			b.envSet(s.name.Name, reflect.ValueOf(ext))
+			b.envSet(s.name.name, reflect.ValueOf(ext))
 		} else {
 			panic("unsupported type spec type")
 		}
@@ -775,13 +775,13 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s.Body = &bs
 		b.push(s)
 	case *ast.IndexExpr:
-		s := IndexExpr{Lbrack: n.Lbrack}
+		s := IndexExpr{lbrackPos: n.Lbrack}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 		b.Visit(n.Index)
 		e = b.pop()
-		s.Index = e.(Expr)
+		s.index = e.(Expr)
 		b.push(s)
 	case *ast.LabeledStmt:
 		s := LabeledStmt{colonPos: n.Pos()}
@@ -803,10 +803,10 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		// add label -> statement by index mapping in current function
 		index := slices.Index(b.funcStack.top().bodyList, ast.Stmt(n))
 		refStep := new(labeledStep)
-		refStep.label = s.label.Name
+		refStep.label = s.label.name
 		refStep.pos = s.Pos()
-		ref := statementReference{index: index, step: refStep} // has no ID
-		b.funcStack.top().fn.putGotoReference(s.label.Name, ref)
+		ref := stmtReference{index: index, step: refStep} // has no ID
+		b.funcStack.top().fn.putGotoReference(s.label.name, ref)
 	case *ast.BranchStmt:
 		s := BranchStmt{TokPos: n.TokPos, Tok: n.Tok}
 		if n.Label != nil {
