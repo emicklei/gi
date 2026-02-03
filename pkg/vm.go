@@ -429,6 +429,9 @@ func stringOf(v any) string {
 			return fmt.Sprintf("%v", rv)
 		}
 	}
+	if psv, ok := v.(*StructValue); ok {
+		return fmt.Sprintf("%v", psv)
+	}
 	if ts, ok := v.(ToStringer); ok {
 		return ts.toString()
 	}

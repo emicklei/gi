@@ -13,7 +13,7 @@ import (
 	"github.com/fatih/structtag"
 )
 
-var structValueType = reflect.TypeOf(StructValue{})
+var structValueType = reflect.TypeFor[StructValue]()
 
 var _ fmt.Formatter = StructValue{}
 var _ CanCompose = StructValue{}
