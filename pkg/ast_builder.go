@@ -159,18 +159,18 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.DeferStmt:
-		s := DeferStmt{DeferPos: n.Defer}
+		s := DeferStmt{deferPos: n.Defer}
 		if n.Call != nil {
 			b.Visit(n.Call)
 			e := b.pop()
-			s.Call = e.(Expr)
+			s.call = e.(Expr)
 			// store call graph in the DeferStmt
 			g := newGraphBuilder(b.goPkg)
-			if ce, ok := s.Call.(CallExpr); ok {
+			if ce, ok := s.call.(CallExpr); ok {
 				s.callGraph = ce.deferFlow(g)
 			} else {
 				slog.Warn("defer statement call is not a CallExpr")
-				s.callGraph = s.Call.flow(g)
+				s.callGraph = s.call.flow(g)
 			}
 		}
 		b.push(s)
@@ -294,18 +294,18 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			b.Visit(each)
 			e := b.pop()
 			i := e.(Ident)
-			s.Names = append(s.Names, i)
+			s.names = append(s.names, i)
 		}
 		if n.Type != nil {
 			b.Visit(n.Type)
 			e := b.pop()
-			s.Type = e.(Expr)
+			s.typ = e.(Expr)
 		}
 		if n.Values != nil {
 			for _, val := range n.Values {
 				b.Visit(val)
 				e := b.pop()
-				s.Values = append(s.Values, e.(Expr))
+				s.values = append(s.values, e.(Expr))
 			}
 		}
 		b.push(s)
@@ -330,11 +330,11 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s := Ident{name: n.Name, namePos: n.NamePos}
 		b.push(s)
 	case *ast.BlockStmt:
-		s := BlockStmt{LbracePos: n.Lbrace}
+		s := BlockStmt{lbracePos: n.Lbrace}
 		for _, stmt := range n.List {
 			b.Visit(stmt)
 			e := b.pop()
-			s.List = append(s.List, e.(Stmt))
+			s.list = append(s.list, e.(Stmt))
 		}
 		b.push(s)
 	case *ast.AssignStmt:
@@ -606,10 +606,10 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 					b.Visit(each)
 					// must be ValueSpec because CONST
 					vs := b.pop().(ValueSpec)
-					if len(vs.Values) == 0 {
-						vs.Values = append(vs.Values, lastExpr)
+					if len(vs.values) == 0 {
+						vs.values = append(vs.values, lastExpr)
 					} else {
-						lastExpr = vs.Values[0]
+						lastExpr = vs.values[0]
 					}
 					// store call graph in the ValueSpec for initialization
 					g := newGraphBuilder(b.goPkg)
@@ -629,10 +629,10 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				b.Visit(each)
 				// must be ValueSpec because CONST
 				vs := b.pop().(ValueSpec)
-				if len(vs.Values) == 0 {
-					vs.Values = append(vs.Values, lastExpr)
+				if len(vs.values) == 0 {
+					vs.values = append(vs.values, lastExpr)
 				} else {
-					lastExpr = vs.Values[0]
+					lastExpr = vs.values[0]
 				}
 				// store call graph in the ValueSpec for initialization
 				g := newGraphBuilder(b.goPkg)
@@ -755,24 +755,24 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.RangeStmt:
-		s := RangeStmt{ForPos: n.For}
-		s.XType = b.goPkg.TypesInfo.TypeOf(n.X)
+		s := RangeStmt{forPos: n.For}
+		s.xType = b.goPkg.TypesInfo.TypeOf(n.X)
 		if n.Key != nil {
 			b.Visit(n.Key)
 			e := b.pop()
-			s.Key = e.(Expr)
+			s.key = e.(Expr)
 		}
 		if n.Value != nil {
 			b.Visit(n.Value)
 			e := b.pop()
-			s.Value = e.(Expr)
+			s.value = e.(Expr)
 		}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 		b.Visit(n.Body)
 		bs := b.pop().(BlockStmt)
-		s.Body = &bs
+		s.body = &bs
 		b.push(s)
 	case *ast.IndexExpr:
 		s := IndexExpr{lbrackPos: n.Lbrack}
@@ -808,11 +808,11 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		ref := stmtReference{index: index, step: refStep} // has no ID
 		b.funcStack.top().fn.putGotoReference(s.label.name, ref)
 	case *ast.BranchStmt:
-		s := BranchStmt{TokPos: n.TokPos, Tok: n.Tok}
+		s := BranchStmt{tokPos: n.TokPos, tok: n.Tok}
 		if n.Label != nil {
 			b.Visit(n.Label)
 			e := b.pop().(Ident)
-			s.Label = &e
+			s.label = &e
 		}
 		b.push(s)
 	case nil:

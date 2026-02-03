@@ -93,43 +93,34 @@ var _ Stmt = BranchStmt{}
 
 // BranchStmt represents a break, continue, goto, or fallthrough statement.
 type BranchStmt struct {
-	TokPos token.Pos   // position of Tok
-	Tok    token.Token // keyword token (BREAK, CONTINUE, GOTO, FALLTHROUGH)
-	Label  *Ident
+	tokPos token.Pos   // position of Tok
+	tok    token.Token // keyword token (BREAK, CONTINUE, GOTO, FALLTHROUGH)
+	label  *Ident
 }
 
-func (s BranchStmt) Eval(vm *VM) {
-	switch s.Tok {
-	case token.GOTO:
-		// af := vm.activeFuncStack.top()
-		// ref := af.FuncDecl.labelToStmt[s.Label.Name]
-		// af.setNextStmtIndex(ref.index)
-	default:
-		// TODO handle break, continue, fallthrough
-	}
-}
+func (s BranchStmt) Eval(vm *VM) {} // no-op; flow is handled in graph building
 
 func (s BranchStmt) flow(g *graphBuilder) (head Step) {
-	switch s.Tok {
+	switch s.tok {
 	case token.GOTO:
-		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.Label.name), s.Pos())
+		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.label.name), s.Pos())
 		g.nextStep(head)
 		fd := g.funcStack.top()
-		ref := fd.gotoReference(s.Label.name)
+		ref := fd.gotoReference(s.label.name)
 		head.SetNext(ref.step)
 		// branch ends the current flow
 		g.current = nil
 		return
 	default:
-		// TODO handle break, continue, fallthrough
+		g.fatal("TODO handle break, continue, fallthrough")
 	}
 	return g.current
 }
 
-func (s BranchStmt) Pos() token.Pos { return s.TokPos }
+func (s BranchStmt) Pos() token.Pos { return s.tokPos }
 
 func (s BranchStmt) String() string {
-	return fmt.Sprintf("BranchStmt(%v)", s.Label)
+	return fmt.Sprintf("BranchStmt(%v)", s.label)
 }
 
 func (s BranchStmt) stmtStep() Evaluable { return s }
@@ -137,8 +128,8 @@ func (s BranchStmt) stmtStep() Evaluable { return s }
 var _ Stmt = DeferStmt{}
 
 type DeferStmt struct {
-	DeferPos token.Pos
-	Call     Expr
+	deferPos token.Pos
+	call     Expr
 	// detached flow
 	callGraph Step
 }
@@ -147,7 +138,7 @@ func (d DeferStmt) Eval(vm *VM) {
 	frame := vm.currentFrame
 	// create a new env and copy the current argument values
 	env := frame.env.newChild() // TODO needed?
-	call := d.Call.(CallExpr)
+	call := d.call.(CallExpr)
 	vals := make([]reflect.Value, len(call.args))
 	for i, arg := range call.args { // TODO variadic
 		vals[i] = vm.returnsEval(arg)
@@ -166,10 +157,10 @@ func (d DeferStmt) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (d DeferStmt) Pos() token.Pos { return d.DeferPos }
+func (d DeferStmt) Pos() token.Pos { return d.deferPos }
 
 func (d DeferStmt) String() string {
-	return fmt.Sprintf("DeferStmt(%v)", d.Call)
+	return fmt.Sprintf("DeferStmt(%v)", d.call)
 }
 
 func (d DeferStmt) stmtStep() Evaluable { return d }
@@ -177,19 +168,19 @@ func (d DeferStmt) stmtStep() Evaluable { return d }
 var _ Stmt = BlockStmt{}
 
 type BlockStmt struct {
-	LbracePos token.Pos // position of "{"
-	List      []Stmt
+	lbracePos token.Pos // position of "{"
+	list      []Stmt
 }
 
 func (b BlockStmt) Eval(vm *VM) {
-	for _, stmt := range b.List {
+	for _, stmt := range b.list {
 		vm.eval(stmt.stmtStep())
 	}
 }
 
 func (b BlockStmt) flow(g *graphBuilder) (head Step) {
 	head = g.current
-	for i, stmt := range b.List {
+	for i, stmt := range b.list {
 		if i == 0 {
 			head = stmt.flow(g)
 			continue
@@ -201,8 +192,8 @@ func (b BlockStmt) flow(g *graphBuilder) (head Step) {
 
 func (b BlockStmt) stmtStep() Evaluable { return b }
 
-func (b BlockStmt) Pos() token.Pos { return b.LbracePos }
+func (b BlockStmt) Pos() token.Pos { return b.lbracePos }
 
 func (b BlockStmt) String() string {
-	return fmt.Sprintf("BlockStmt(len=%d)", len(b.List))
+	return fmt.Sprintf("BlockStmt(len=%d)", len(b.list))
 }

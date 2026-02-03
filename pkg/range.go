@@ -15,12 +15,12 @@ var (
 )
 
 type RangeStmt struct {
-	ForPos     token.Pos
-	Tok        token.Token // ILLEGAL if Key == nil, ASSIGN, DEFINE
-	Key, Value Expr        // Key, Value may be nil
-	X          Expr
-	XType      types.Type // depending on type, different flows are created
-	Body       *BlockStmt
+	forPos     token.Pos
+	tok        token.Token // ILLEGAL if Key == nil, ASSIGN, DEFINE
+	key, value Expr        // Key, Value may be nil
+	x          Expr
+	xType      types.Type // depending on type, different flows are created
+	body       *BlockStmt
 }
 
 func (r RangeStmt) Eval(vm *VM) {} // noop
@@ -35,14 +35,14 @@ func (r RangeStmt) Eval(vm *VM) {} // noop
 // All four flows converge to a done step.
 // The last 3 subflows are transformed into a ForStmt that uses a hidden index variable.
 func (r RangeStmt) flow(g *graphBuilder) (head Step) {
-	head = r.X.flow(g)
+	head = r.x.flow(g)
 	switcher := new(rangeIteratorSwitchStep)
 	g.nextStep(switcher)
 	// all flows converge to this done step
 	rangeDone := g.newLabeledStep("range-done", r.Pos())
 
 	// flow depends on the type of X
-	switch r.XType.Underlying().(type) {
+	switch r.xType.Underlying().(type) {
 	case *types.Map:
 		// start the map flow, detached from the current
 		g.current = g.newLabeledStep("range-map", r.Pos())
@@ -56,7 +56,7 @@ func (r RangeStmt) flow(g *graphBuilder) (head Step) {
 		g.nextStep(rangeDone)
 
 	case *types.Basic:
-		basicKind := r.XType.Underlying().(*types.Basic).Kind()
+		basicKind := r.xType.Underlying().(*types.Basic).Kind()
 		if basicKind == types.Int {
 			// start the int flow, detached from the current
 			g.current = g.newLabeledStep("range-int", r.Pos())
@@ -71,9 +71,9 @@ func (r RangeStmt) flow(g *graphBuilder) (head Step) {
 			g.nextStep(rangeDone)
 			break
 		}
-		g.fatal(fmt.Sprintf("unhandled range over basic type %v", r.XType))
+		g.fatal(fmt.Sprintf("unhandled range over basic type %v", r.xType))
 	default:
-		g.fatal(fmt.Sprintf("unhandled range over type %v", r.XType))
+		g.fatal(fmt.Sprintf("unhandled range over type %v", r.xType))
 	}
 	return
 }
@@ -153,7 +153,7 @@ func (r *rangeMapIteratorNextStep) String() string {
 }
 
 func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
-	head = r.X.flow(g) // again on the stack
+	head = r.x.flow(g) // again on the stack
 
 	// create the iterator
 	localVarName := internalVarName("mapIter", g.idgen)
@@ -166,8 +166,8 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 	iter := new(rangeMapIteratorNextStep)
 	iter.pos = r.Pos()
 	iter.localVarName = localVarName
-	iter.yieldKey = r.Key != nil
-	iter.yieldValue = r.Value != nil
+	iter.yieldKey = r.key != nil
+	iter.yieldValue = r.value != nil
 	g.nextStep(iter)
 
 	// start the body flow, detached from the current
@@ -179,11 +179,11 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 		// so we use NoExpr as rhs placeholders
 		lhs, rhs := []Expr{}, []Expr{}
 		if iter.yieldKey {
-			lhs = append(lhs, r.Key)
+			lhs = append(lhs, r.key)
 			rhs = append(rhs, noExpr{}) // feels hacky
 		}
 		if iter.yieldValue {
-			lhs = append(lhs, r.Value)
+			lhs = append(lhs, r.value)
 			rhs = append(rhs, noExpr{}) // feels hacky
 		}
 		updateKeyValue := AssignStmt{
@@ -194,9 +194,9 @@ func (r RangeStmt) MapFlow(g *graphBuilder) (head Step) {
 		}
 		bodyFlow := updateKeyValue.flow(g)
 		iter.bodyFlow = bodyFlow
-		r.Body.flow(g)
+		r.body.flow(g)
 	} else {
-		iter.bodyFlow = r.Body.flow(g)
+		iter.bodyFlow = r.body.flow(g)
 	}
 	g.nextStep(iter) // back to iterator
 	g.current = iter
@@ -223,24 +223,24 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 		lhs:    []Expr{indexVar},
 		rhs:    []Expr{zeroInt},
 	}
-	init := BlockStmt{List: []Stmt{initIndex}}
+	init := BlockStmt{list: []Stmt{initIndex}}
 
 	// key := 0 // only one var permitted
-	if r.Key != nil {
+	if r.key != nil {
 		initKey := AssignStmt{
 			tok:    token.DEFINE,
 			tokPos: r.Pos(),
-			lhs:    []Expr{r.Key},
+			lhs:    []Expr{r.key},
 			rhs:    []Expr{indexVar},
 		}
-		init.List = append(init.List, initKey)
+		init.list = append(init.list, initKey)
 	}
 	// index < x
 	cond := BinaryExpr{
 		op:    token.LSS,
-		opPos: r.ForPos,
+		opPos: r.forPos,
 		x:     indexVar,
-		y:     r.X,
+		y:     r.x,
 	}
 	// index++
 	post := IncDecStmt{
@@ -249,18 +249,18 @@ func (r RangeStmt) IntFlow(g *graphBuilder) (head Step) {
 		x:      indexVar,
 	}
 	body := &BlockStmt{
-		List: r.Body.List,
+		list: r.body.list,
 	}
 	// key = index
-	if r.Key != nil {
+	if r.key != nil {
 		updateKey := AssignStmt{
 			tok:    token.ASSIGN,
 			tokPos: r.Pos(),
-			lhs:    []Expr{r.Key},
+			lhs:    []Expr{r.key},
 			rhs:    []Expr{indexVar},
 		}
 		// body with updated key assignment at the top
-		body.List = append([]Stmt{updateKey}, body.List...)
+		body.list = append([]Stmt{updateKey}, body.list...)
 	}
 	// now build it
 	forstmt := ForStmt{
@@ -285,15 +285,15 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 	}
 	// key and value are optionally defined
 	lhs, rhs := []Expr{}, []Expr{}
-	if r.Key != nil {
-		lhs = append(lhs, r.Key)
+	if r.key != nil {
+		lhs = append(lhs, r.key)
 		rhs = append(rhs, indexVar)
 	}
-	if r.Value != nil {
-		lhs = append(lhs, r.Value)
+	if r.value != nil {
+		lhs = append(lhs, r.value)
 		rhs = append(rhs, IndexExpr{
 			lbrackPos: r.Pos(),
-			x:         r.X,
+			x:         r.x,
 			index:     indexVar,
 		})
 	}
@@ -306,7 +306,7 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 		rhs:    rhs,
 	}
 	init := BlockStmt{
-		List: []Stmt{
+		list: []Stmt{
 			initIndex,
 			initKeyValue,
 		},
@@ -314,9 +314,9 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 	// index < len(x)
 	cond := BinaryExpr{
 		op:    token.LSS,
-		opPos: r.ForPos,
+		opPos: r.forPos,
 		x:     indexVar,
-		y:     reflectLenExpr{X: r.X},
+		y:     reflectLenExpr{X: r.x},
 	}
 	// index++
 	post := IncDecStmt{
@@ -334,7 +334,7 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 	}
 	// body with updated key/value assignment at the top
 	body := &BlockStmt{
-		List: append([]Stmt{updateKeyValue}, r.Body.List...),
+		list: append([]Stmt{updateKeyValue}, r.body.list...),
 	}
 	// now build it
 	forstmt := ForStmt{
@@ -346,10 +346,10 @@ func (r RangeStmt) SliceOrArrayFlow(g *graphBuilder) (head Step) {
 	return forstmt.flow(g)
 }
 
-func (r RangeStmt) Pos() token.Pos { return r.ForPos }
+func (r RangeStmt) Pos() token.Pos { return r.forPos }
 
 func (r RangeStmt) String() string {
-	return fmt.Sprintf("RangeStmt(%v, %v, %v, %v)", r.Key, r.Value, r.X, r.Body)
+	return fmt.Sprintf("RangeStmt(%v, %v, %v, %v)", r.key, r.value, r.x, r.body)
 }
 
 func (r RangeStmt) stmtStep() Evaluable { return r }

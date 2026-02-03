@@ -16,14 +16,15 @@ It offers a virtual machine that can step through such a program and allows acce
 
 - support latest Go SDK
 - support type parameterization (generics)
-- support Go modules
+- support Go modules (will require pre-compilation)
 
 ### debugging
 
+- offer a DAP interface
 - handle source changes during a debugging session:
 	- change a function definition
 	- change a struct definition
-	- add package constant/variable
+	- add package constant|variable
 - debugging concurrent programs
 
 ## status

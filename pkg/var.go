@@ -18,10 +18,10 @@ var _ CanDeclare = ValueSpec{}
 
 // Const or Var declaration
 type ValueSpec struct {
-	NamePos token.Pos
-	Names   []Ident
-	Type    Expr
-	Values  []Expr
+	namePos token.Pos
+	names   []Ident
+	typ     Expr
+	values  []Expr
 	graph   Step
 }
 
@@ -33,8 +33,8 @@ func (v ValueSpec) callGraph() Step {
 
 func (v ValueSpec) declare(vm *VM) bool {
 	vm.takeAllStartingAt(v.graph)
-	if v.Type == nil {
-		for _, idn := range v.Names {
+	if v.typ == nil {
+		for _, idn := range v.names {
 			val := vm.popOperand()
 			if isUndeclared(val) {
 				// this happens when the value expression is referencing an undeclared variable
@@ -44,20 +44,20 @@ func (v ValueSpec) declare(vm *VM) bool {
 		}
 		return true
 	}
-	typ := vm.proxyType(v.Type)
+	typ := vm.proxyType(v.typ)
 
 	// left to right, see Flow
-	for _, idn := range v.Names {
-		if v.Values != nil {
+	for _, idn := range v.names {
+		if v.values != nil {
 			val := vm.popOperand()
 			if val == reflectNil {
-				typ := vm.makeType(v.Type)
+				typ := vm.makeType(v.typ)
 				zv := reflect.Zero(typ)
 				vm.localEnv().set(idn.name, zv)
 				continue
 			}
 			if val.Interface() == untypedNil {
-				typ := vm.makeType(v.Type)
+				typ := vm.makeType(v.typ)
 				zv := reflect.Zero(typ)
 				vm.localEnv().set(idn.name, zv)
 				continue
@@ -66,13 +66,13 @@ func (v ValueSpec) declare(vm *VM) bool {
 			vm.localEnv().set(idn.name, mv)
 		} else {
 			// if nil then zero
-			if z, ok := v.Type.(CanMake); ok {
+			if z, ok := v.typ.(CanMake); ok {
 				zv := z.makeValue(vm, 0, nil)
 				vm.localEnv().set(idn.name, zv)
 				continue
 			}
 			// zero value
-			typ := vm.makeType(v.Type)
+			typ := vm.makeType(v.typ)
 			zv := reflect.Zero(typ)
 			vm.localEnv().set(idn.name, zv)
 		}
@@ -83,11 +83,11 @@ func (v ValueSpec) declare(vm *VM) bool {
 func (v ValueSpec) Eval(vm *VM) {}
 
 func (v ValueSpec) flow(g *graphBuilder) (head Step) {
-	if v.Values != nil {
+	if v.values != nil {
 		// reverse the order to have first value on top of stack
-		for i := len(v.Values) - 1; i >= 0; i-- {
-			valFlow := v.Values[i].flow(g)
-			if i == len(v.Values)-1 {
+		for i := len(v.values) - 1; i >= 0; i-- {
+			valFlow := v.values[i].flow(g)
+			if i == len(v.values)-1 {
 				head = valFlow
 			}
 		}
@@ -99,11 +99,11 @@ func (v ValueSpec) flow(g *graphBuilder) (head Step) {
 }
 
 func (v ValueSpec) Pos() token.Pos {
-	return v.NamePos
+	return v.namePos
 }
 
 func (v ValueSpec) String() string {
-	return fmt.Sprintf("ValueSpec(%v)", v.Names)
+	return fmt.Sprintf("ValueSpec(%v)", v.names)
 }
 
 var _ Expr = new(iotaExpr)

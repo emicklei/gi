@@ -370,7 +370,7 @@ func (vm *VM) printStack() {
 			fmt.Printf("pkg.decl[%d]: %v\n", i, decl)
 			if cd, ok := decl.(ConstDecl); ok {
 				for s, spec := range cd.specs {
-					for n, idn := range spec.Names {
+					for n, idn := range spec.names {
 						fmt.Printf("  const.spec[%d][%d]: %v\n", s, n, idn.name)
 					}
 				}

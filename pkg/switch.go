@@ -46,7 +46,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 	ref := stmtReference{step: gotoStep} // has no ID
 	g.funcStack.top().putGotoReference(gotoLabel, ref)
 
-	for _, stmt := range s.body.List {
+	for _, stmt := range s.body.list {
 		clause := stmt.(CaseClause)
 
 		// check for default case
@@ -54,9 +54,9 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 			// compose goto to end of switch
 			labelIdent := Ident{name: gotoLabel}
 			gotoEnd := BranchStmt{
-				Tok:    token.GOTO,
-				TokPos: clause.Pos(),
-				Label:  &labelIdent,
+				tok:    token.GOTO,
+				tokPos: clause.Pos(),
+				label:  &labelIdent,
 			}
 			list := append(clause.Body, gotoEnd)
 			for i, stmt := range list {
@@ -113,9 +113,9 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 		// compose goto to end of switch
 		labelIdent := Ident{name: gotoLabel}
 		gotoEnd := BranchStmt{
-			Tok:    token.GOTO,
-			TokPos: clause.Pos(),
-			Label:  &labelIdent,
+			tok:    token.GOTO,
+			tokPos: clause.Pos(),
+			label:  &labelIdent,
 		}
 		list := append(clause.Body, gotoEnd)
 
@@ -123,7 +123,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 		when := IfStmt{
 			ifPos: clause.Pos(),
 			cond:  cond,
-			body:  &BlockStmt{List: list},
+			body:  &BlockStmt{list: list},
 		}
 		whenFlow := when.flow(g)
 		if head == nil {
@@ -206,7 +206,7 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 	}
 	nameOfTypeAssignment.flow(g)
 
-	for _, stmt := range s.Body.List {
+	for _, stmt := range s.Body.list {
 		clause := stmt.(CaseClause)
 
 		// check for default case
@@ -214,9 +214,9 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 			// compose goto to end of switch
 			labelIdent := Ident{name: gotoLabel}
 			gotoEnd := BranchStmt{
-				Tok:    token.GOTO,
-				TokPos: clause.Pos(),
-				Label:  &labelIdent,
+				tok:    token.GOTO,
+				tokPos: clause.Pos(),
+				label:  &labelIdent,
 			}
 			list := append(clause.Body, gotoEnd)
 			for i, stmt := range list {
@@ -271,9 +271,9 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 		// compose goto to end of switch
 		labelIdent := Ident{name: gotoLabel}
 		gotoEnd := BranchStmt{
-			Tok:    token.GOTO,
-			TokPos: clause.Pos(),
-			Label:  &labelIdent,
+			tok:    token.GOTO,
+			tokPos: clause.Pos(),
+			label:  &labelIdent,
 		}
 		list := append(clause.Body, gotoEnd)
 
@@ -281,7 +281,7 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 		when := IfStmt{
 			ifPos: clause.Pos(),
 			cond:  cond,
-			body:  &BlockStmt{List: list},
+			body:  &BlockStmt{list: list},
 		}
 		whenFlow := when.flow(g)
 		if head == nil {
