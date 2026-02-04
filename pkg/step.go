@@ -107,7 +107,9 @@ type conditionalStep struct {
 }
 
 func (c *conditionalStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	c.conditionFlow.traverse(g, visited)
+	if c.conditionFlow != nil {
+		c.conditionFlow.traverse(g, visited)
+	}
 	me := c.step.traverseWithLabel(g, c.String(), "true", visited)
 	if c.elseFlow != nil {
 		// no edge if visited before
@@ -132,7 +134,13 @@ func (c *conditionalStep) take(vm *VM) Step {
 }
 
 func (c *conditionalStep) Pos() token.Pos {
-	return c.conditionFlow.Pos()
+	if c.conditionFlow != nil {
+		return c.conditionFlow.Pos()
+	}
+	if c.elseFlow != nil {
+		return c.elseFlow.Pos()
+	}
+	return c.step.Pos()
 }
 
 func (c *conditionalStep) String() string {

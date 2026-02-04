@@ -44,10 +44,10 @@
 | Non-std Methods | ✅ |
 | variadic function | ✅ |
 | struct xml write | ✅ |
+| break | ✅ |
 | struct xml read | ⬜ |
 | continue | ⬜ |
 | fallthrough | ⬜ |
-| break | ⬜ |
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
 | Channels `chan` | ⬜ |

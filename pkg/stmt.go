@@ -111,6 +111,11 @@ func (s BranchStmt) flow(g *graphBuilder) (head Step) {
 		// branch ends the current flow
 		g.current = nil
 		return
+	case token.BREAK:
+		end := g.breakStack.top()
+		g.nextStep(end)
+		g.current = nil
+		return
 	default:
 		g.fatal("TODO handle break, continue, fallthrough")
 	}

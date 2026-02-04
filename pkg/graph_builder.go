@@ -11,11 +11,13 @@ import (
 
 // graphBuilder helps building a control flow graph by keeping track of the current step.
 type graphBuilder struct {
-	idgen     int
-	goPkg     *packages.Package // for type information
-	previous  Step              // the previous step before current; or nil
-	current   Step              // the current step to attach the next step to; or nil
-	funcStack stack[Func]       // to keep track of current function for branch statements
+	idgen         int
+	goPkg         *packages.Package // for type information
+	previous      Step              // the previous step before current; or nil
+	current       Step              // the current step to attach the next step to; or nil
+	funcStack     stack[Func]       // to keep track of current function for branch statements
+	breakStack    stack[Step]       // to keep track of break targets
+	continueStack stack[Step]       // to keep track of continue targets
 }
 
 func newGraphBuilder(goPkg *packages.Package) *graphBuilder {
@@ -46,13 +48,14 @@ func (g *graphBuilder) newLabeledStep(label string, pos token.Pos) Step {
 
 // nextStep adds the given step after the current one and makes it the current step.
 func (g *graphBuilder) nextStep(next Step) {
+	// ensure it has an ID
 	if next.ID() == 0 {
 		g.idgen++
 		next.SetID(g.idgen)
 	}
 	if g.current != nil {
 		if g.current.Next() != nil {
-			g.fatal(fmt.Sprintf("current %s already has a next %s, wanted %s\n", g.current, g.current.Next(), next))
+			g.fatalf("current %s already has a next %s, wanted %s\n", g.current, g.current.Next(), next)
 		}
 		if trace {
 			fmt.Printf("fw: %d → %v", g.current.ID(), next)
@@ -77,9 +80,14 @@ func (g *graphBuilder) nextStep(next Step) {
 	g.current = next
 }
 
+// deprecated: use fatalf instead
 func (g *graphBuilder) fatal(err any) {
 	fmt.Fprintln(os.Stderr, "[gi] fatal graph error:", err)
 	panic(err)
+}
+func (g *graphBuilder) fatalf(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, "[gi] fatal graph error: "+format+"\n", args...)
+	panic(fmt.Sprintf(format, args...))
 }
 
 func (g *graphBuilder) stepBack() {
