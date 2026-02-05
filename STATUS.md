@@ -57,4 +57,8 @@
 | methods | ✅ |
 | struct json | ✅ |
 | struct xml write | ✅ |
+| struct fmt | ✅ |
 | struct xml read | ⬜ |
+| passing to std | ⬜ |
+| callback from std | ⬜ |
+| dispatch std interface funcs | ⬜ |
