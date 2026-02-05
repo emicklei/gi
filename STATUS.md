@@ -30,26 +30,31 @@
 | Pointers | ✅ |
 | Std Methods | ✅ | 
 | Function literal | ✅ |
-| Type alias | ✅ |
 | blank identifier | ✅ |
 | goto | ✅ |
 | min,max with 3 args | ✅ |
 | min,max with string | ✅ |
 | defer | ✅ |
-| struct json | ✅ |
 | iota | ✅ |
 | `switch` statement on type | ✅ |
 | type assertion | ✅ |
 | recover | ✅ |
-| Non-std Methods | ✅ |
 | variadic function | ✅ |
-| struct xml write | ✅ |
 | break | ✅ |
 | continue | ✅ |
-| struct xml read | ⬜ |
 | fallthrough | ⬜ |
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
 | Channels `chan` | ⬜ |
 | `select` statement | ⬜ |
 | DAP | ⬜ |
+
+## interpreted types (itype)
+
+| Feature | Implemented |
+|---|---|
+| Type alias | ✅ |
+| methods | ✅ |
+| struct json | ✅ |
+| struct xml write | ✅ |
+| struct xml read | ⬜ |
