@@ -49,8 +49,18 @@ func main() {
 }
 `, "1011121314")
 }
+func TestForNoContinue(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	for i := 0; i < 5; i++ {
+		print(i)
+	}
+}
+`, "01234")
+}
+
 func TestForContinue(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -137,4 +147,64 @@ func main() {
 	f()
 }
 `, "3")
+}
+
+func TestDeferScope(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	a := 1
+	defer func(b int) {
+		print(a)
+		print(b)
+	}(a)
+	a++
+}
+`, "21")
+}
+
+func TestDefer(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	a := 1
+	defer print(a)
+	a++
+	defer print(a)
+}`, "21")
+}
+
+func TestDeferFuncLiteral(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	f := func() {
+		defer print(1)
+	}
+	f()
+}`, "1")
+}
+
+func TestDeferInLoop(t *testing.T) {
+	// i must be captured by value in the defer
+	testMain(t, `package main	
+
+func main(){
+	for i := 0; i <= 3; i++ {
+		defer print(i)
+	}
+}`, "3210")
+}
+
+func TestDeferInLoopInFuncLiteral(t *testing.T) {
+	testMain(t, `package main
+
+func main(){
+	f := func() {
+		for i := 0; i <= 3; i++ {
+			defer print(i)
+		}
+	}
+	f()
+}`, "3210")
 }

@@ -29,9 +29,13 @@ func (f ForStmt) flow(g *graphBuilder) (head Step) {
 	}
 	g.nextStep(begin)
 
-	// need to know where to continue for 'continue' statements
+	// need to know where to continue for 'continue' statements in the body
+	// continue with the condition of the loop unless there is no condition
+	cont := g.newLabeledStep("continue", token.NoPos) // TODO give unique name
+	g.continueStack.push(cont)
+	defer g.continueStack.pop()
 
-	// need to know the end of the loop for break statements in the body
+	// need to know the end of the loop for 'break' statements in the body
 	// and for the else branch of the condition
 	end := newPopEnvironmentStep(f.body.Pos())
 	g.breakStack.push(end)
@@ -40,11 +44,22 @@ func (f ForStmt) flow(g *graphBuilder) (head Step) {
 
 	f.body.flow(g)
 	if f.post != nil {
-		f.post.flow(g)
+		postHead := f.post.flow(g)
+		cont.SetNext(postHead)
 	}
+
+	// goto the condition of the loop unless there is no condition
 	if f.cond == nil {
+		// if there is no post statement, we can jump directly to the beginning of the loop
+		if f.post == nil {
+			cont.SetNext(begin)
+		}
 		g.nextStep(begin)
 	} else {
+		// if there is no post statement, we can jump directly to the condition of the loop
+		if f.post == nil {
+			cont.SetNext(begin)
+		}
 		g.nextStep(begin.conditionFlow)
 	}
 	g.current = end

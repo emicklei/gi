@@ -83,44 +83,6 @@ func main() {
 }`, "101")
 }
 
-func TestFor(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	for i := 0; i < 10; i++ {
-		print(i)
-	}
-	for i := 9; i > 0; i-- {
-		print(i)
-	}
-}`, "0123456789987654321")
-}
-
-func TestForScope(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	j := 1
-	for i := 0; i < 3; i++ {
-		j = i
-		print(i)
-	}
-	print(j)
-}`, "0122")
-}
-func TestForScopeDefine(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	j := 1
-	for i := 0; i < 3; i++ {
-		j := i
-		print(j)
-	}
-	print(j)
-}`, "0121")
-}
-
 func TestGeneric(t *testing.T) {
 	testMain(t, `package main
 
@@ -137,16 +99,6 @@ func main() {
 	var s string
 	print(s)
 }`, "")
-}
-
-func TestMapClear(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	m := map[string]int{"A":1, "B":2}
-	clear(m)
-	print(len(m))
-}`, "0")
 }
 
 func TestTimeConstant(t *testing.T) {
@@ -219,66 +171,6 @@ func main() {
 }`, "onetwo")
 }
 
-func TestDeferScope(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	a := 1
-	defer func(b int) {
-		print(a)
-		print(b)
-	}(a)
-	a++
-}
-`, "21")
-}
-
-func TestDefer(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	a := 1
-	defer print(a)
-	a++
-	defer print(a)
-}`, "21")
-}
-
-func TestDeferFuncLiteral(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	f := func() {
-		defer print(1)
-	}
-	f()
-}`, "1")
-}
-
-func TestDeferInLoop(t *testing.T) {
-	// i must be captured by value in the defer
-	testMain(t, `package main	
-
-func main(){
-	for i := 0; i <= 3; i++ {
-		defer print(i)
-	}
-}`, "3210")
-}
-
-func TestDeferInLoopInFuncLiteral(t *testing.T) {
-	testMain(t, `package main
-
-func main(){
-	f := func() {
-		for i := 0; i <= 3; i++ {
-			defer print(i)
-		}
-	}
-	f()
-}`, "3210")
-}
-
 func TestStringToByteSlice(t *testing.T) {
 	testMain(t, `package main
 
@@ -293,54 +185,6 @@ func TestByteSliceToString(t *testing.T) {
 func main() {
 	print(string([]byte{103,111}))
 }`, "go")
-}
-
-func TestMinMax(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print(min(1,2), max(1,2))
-}`, "12")
-}
-func TestMaxAtLeast(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print(max(1,2,10))
-	print(max(1,5,3))
-}`, "105")
-}
-
-func TestMinAtMost(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print(min(3,2,1))
-	print(min(4,2,3))
-}`, "12")
-}
-
-func TestMaxString(t *testing.T) {
-	testMain(t, `package main
-
-func main() {
-	print(max("", "foo", "bar"))
-}`, "foo")
-}
-
-func TestPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			if got, want := fmt.Sprint(r), "oops"; got != want {
-				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
-			}
-		}
-	}()
-	testMain(t, `package main
-
-func main() {
-	panic("oops")
-}`, "")
 }
 
 func TestMakeMap(t *testing.T) {

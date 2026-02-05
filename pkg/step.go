@@ -225,6 +225,10 @@ func (s *labeledStep) Pos() token.Pos {
 	return s.pos
 }
 
+func (s *labeledStep) SetPos(update token.Pos) {
+	s.pos = update
+}
+
 func (s *labeledStep) String() string {
 	if s == nil {
 		return "labeledStep(<nil>)"
