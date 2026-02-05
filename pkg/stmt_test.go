@@ -75,7 +75,6 @@ func main() {
 }
 
 func TestContinueAndBreakInEmptyFor(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -95,7 +94,6 @@ func main() {
 }
 
 func TestForContinueInRange(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {

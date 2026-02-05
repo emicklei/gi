@@ -112,8 +112,9 @@ func (s BranchStmt) flow(g *graphBuilder) (head Step) {
 		g.current = nil
 		return
 	case token.BREAK:
-		end := g.breakStack.top()
-		g.nextStep(end)
+		target := g.breakStack.top().(*labeledStep) // safe?
+		target.SetPos(s.Pos())
+		g.nextStep(target)
 		g.current = nil
 		return
 	case token.CONTINUE:

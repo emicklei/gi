@@ -45,8 +45,8 @@
 | variadic function | ✅ |
 | struct xml write | ✅ |
 | break | ✅ |
+| continue | ✅ |
 | struct xml read | ⬜ |
-| continue | ⬜ |
 | fallthrough | ⬜ |
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |

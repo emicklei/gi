@@ -75,7 +75,6 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 		}
 
 		// non-default case
-		// non-default case
 		if len(clause.Body) == 0 {
 			continue
 		}
