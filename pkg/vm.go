@@ -93,7 +93,7 @@ type VM struct {
 	fileSet      *token.FileSet // optional file set for position info
 }
 
-func NewVM(env Env) *VM {
+func NewVM(pkg *Package) *VM {
 	if os.Getenv("GI_IGNORE_EXIT") != "" {
 		OnOsExit(func(code int) {
 			fmt.Fprintf(os.Stderr, "[gi] os.Exit called with code %d\n", code)
@@ -109,7 +109,11 @@ func NewVM(env Env) *VM {
 		callStack: make(stack[*stackFrame], 0, 16),
 		heap:      newHeap()}
 	frame := framePool.Get().(*stackFrame)
-	frame.env = env
+	frame.env = pkg.env
+	// happens in tests
+	if pkg.Package != nil {
+		vm.setFileSet(pkg.Fset)
+	}
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
 	return vm

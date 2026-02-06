@@ -157,6 +157,7 @@ func (ds *dapSession) onInitializeRequest(request *dap.InitializeRequest) {
 func (ds *dapSession) onLaunchRequest(request *dap.LaunchRequest) {
 	resp := new(dap.LaunchResponse)
 	resp.Response = *newResponse(request.Seq, request.Command)
+	resp.Success = true
 
 	cwd, _ := os.Getwd()
 	log.Println("starting program in", cwd)
@@ -166,16 +167,16 @@ func (ds *dapSession) onLaunchRequest(request *dap.LaunchRequest) {
 		log.Println("load package failed", err)
 		resp.Message = "failed to load package: " + err.Error()
 		resp.Success = false
-		return
+	} else {
+		p, err := pkg.BuildPackage(gopkg)
+		if err != nil {
+			log.Println("build package failed", err)
+			resp.Success = false
+		} else {
+			ds.vm = pkg.NewVM(p)
+			pkg.CallPackageFunction(p, "main", nil, ds.vm)
+		}
 	}
-	p, err := pkg.BuildPackage(gopkg)
-	if err != nil {
-		log.Println("build package failed", err)
-		resp.Success = false
-		return
-	}
-
-	resp.Success = true
 	ds.send(resp)
 }
 
@@ -196,6 +197,9 @@ func (ds *dapSession) onRestartRequest(request *dap.RestartRequest) {
 }
 
 func (ds *dapSession) onSetBreakpointsRequest(request *dap.SetBreakpointsRequest) {
+	log.Println("breakpoint args", request.Arguments)
+	resp := new(dap.SetBreakpointsResponse)
+	ds.send(resp)
 }
 
 func (ds *dapSession) onSetFunctionBreakpointsRequest(request *dap.SetFunctionBreakpointsRequest) {

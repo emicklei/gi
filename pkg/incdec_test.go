@@ -25,7 +25,8 @@ func TestIncDec(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.tok.String()+" "+tc.start.Kind().String(), func(t *testing.T) {
-			vm := NewVM(newEnvironment(nil))
+			p := &Package{env: newPkgEnvironment(nil)}
+			vm := NewVM(p)
 			x := Ident{name: "x"}
 			x.define(vm, tc.start)
 

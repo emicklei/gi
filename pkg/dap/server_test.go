@@ -40,7 +40,7 @@ func TestServer(t *testing.T) {
 	log.SetOutput(io.Discard)
 	port := "9999"
 	go func() {
-		srv := DAPServer{Addr: ":" + port}
+		srv := Server{Addr: ":" + port}
 		err := srv.Start()
 		if err != nil {
 			log.Fatal("Could not start server:", err)

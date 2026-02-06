@@ -26,14 +26,14 @@ import (
 	"github.com/google/go-dap"
 )
 
-type DAPServer struct {
+type Server struct {
 	Addr string
 }
 
 // Starts a server that listens on a specified port
 // and blocks indefinitely. This server can accept multiple
 // client connections at the same time.
-func (s *DAPServer) Start() error {
+func (s *Server) Start() error {
 	listener, err := net.Listen("tcp", s.Addr)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (s *DAPServer) Start() error {
 // to per-request processing goroutines. It also launches the
 // sender goroutine to send resulting messages over the connection
 // back to the client.
-func (s *DAPServer) handleConnection(conn net.Conn) {
+func (s *Server) handleConnection(conn net.Conn) {
 	session := &dapSession{
 		rw:           bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)),
 		sendQueue:    make(chan dap.Message),

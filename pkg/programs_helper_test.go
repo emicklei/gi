@@ -63,8 +63,7 @@ func parseAndWalk(t *testing.T, source string) string {
 		}
 	}()
 	pkg := buildPackage(t, source)
-	vm := NewVM(pkg.env)
-	vm.setFileSet(pkg.Fset)
+	vm := NewVM(pkg)
 	collectPrintOutput(vm)
 
 	if trace {

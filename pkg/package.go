@@ -68,8 +68,6 @@ func (p *Package) Initialize(vm *VM) error {
 	if p.initialized {
 		return nil
 	}
-	p.initialized = true
-
 	// move methods to types
 	for _, decl := range p.env.methods {
 		recvType := decl.recv.List[0].typ
@@ -118,12 +116,13 @@ func (p *Package) Initialize(vm *VM) error {
 		// TODO clean up
 		call := CallExpr{
 			fun:  Ident{name: "init"},
-			args: []Expr{}, // TODO for now, main only
+			args: []Expr{},
 		}
 		call.handleFuncDecl(vm, each)
 	}
 	clear(p.env.inits)
 
+	p.initialized = true
 	return nil
 }
 
@@ -278,12 +277,10 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	if optionalVM != nil {
 		vm = optionalVM
 	} else {
-		vm = NewVM(pkg.env)
-		vm.setFileSet(pkg.Fset)
+		vm = NewVM(pkg)
 	}
 	for _, subpkg := range pkg.env.packageTable {
-		subvm := NewVM(subpkg.env)
-		subvm.setFileSet(pkg.Fset)
+		subvm := NewVM(subpkg)
 		if err := subpkg.Initialize(subvm); err != nil {
 			return nil, fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
 		}

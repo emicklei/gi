@@ -11,7 +11,7 @@ import (
 //	dap --listen=127.0.0.1:52950 --log-dest=3 --log
 func main() {
 	addr := flagValueString(getListenFlag())
-	srv := dap.DAPServer{Addr: addr}
+	srv := dap.Server{Addr: addr}
 	if err := srv.Start(); err != nil {
 		log.Fatal(err)
 	}
