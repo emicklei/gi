@@ -50,7 +50,6 @@ func main() {
 }
 
 func TestSwitchFallthrough(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -69,7 +68,6 @@ func main() {
 }
 
 func TestSwitchFallthroughNoEffect(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {

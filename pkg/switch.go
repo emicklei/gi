@@ -59,6 +59,15 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 				label:  &labelIdent,
 			}
 			list := append(clause.Body, gotoEnd)
+
+			// if previous case had a fallthrough then set its next
+			if len(g.fallthroughStack) > 0 {
+				fall := g.fallthroughStack.pop()
+				destination := fallThroughDestination{from: fall}
+				// put it first in the list so that it will be executed before the case body
+				list = append([]Stmt{destination}, list...)
+			}
+
 			for i, stmt := range list {
 				if i == 0 {
 					first := stmt.flow(g)
@@ -76,6 +85,10 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 
 		// non-default case
 		if len(clause.Body) == 0 {
+			// if previous case had a fallthrough then we need to pop it because there is no body to execute
+			if len(g.fallthroughStack) > 0 {
+				g.fallthroughStack.pop()
+			}
 			continue
 		}
 		// compose condition
@@ -118,11 +131,12 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 		}
 		list := append(clause.Body, gotoEnd)
 
-		// if previous case was a fallthrough then its next
+		// if previous case had a fallthrough then set its next
 		if len(g.fallthroughStack) > 0 {
 			fall := g.fallthroughStack.pop()
 			destination := fallThroughDestination{from: fall}
-			list = append(list, destination)
+			// put it first in the list so that it will be executed before the case body
+			list = append([]Stmt{destination}, list...)
 		}
 
 		// compose if statement for this case
@@ -151,8 +165,9 @@ type fallThroughDestination struct {
 }
 
 func (c fallThroughDestination) flow(g *graphBuilder) (head Step) {
-	to := g.newLabeledStep("destination", token.NoPos)
+	to := g.newLabeledStep("fallthrough destination", token.NoPos)
 	c.from.SetNext(to)
+	g.nextStep(to)
 	return to
 
 }

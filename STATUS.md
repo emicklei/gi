@@ -42,7 +42,7 @@
 | variadic function | ✅ |
 | break | ✅ |
 | continue | ✅ |
-| fallthrough | ⬜ |
+| fallthrough | ✅ |
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
 | Channels `chan` | ⬜ |
