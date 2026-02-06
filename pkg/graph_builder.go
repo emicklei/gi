@@ -11,13 +11,14 @@ import (
 
 // graphBuilder helps building a control flow graph by keeping track of the current step.
 type graphBuilder struct {
-	idgen         int
-	goPkg         *packages.Package // for type information
-	previous      Step              // the previous step before current; or nil
-	current       Step              // the current step to attach the next step to; or nil
-	funcStack     stack[Func]       // to keep track of current function for branch statements
-	breakStack    stack[Step]       // to keep track of break targets
-	continueStack stack[Step]       // to keep track of continue targets
+	idgen            int
+	goPkg            *packages.Package   // for type information
+	previous         Step                // the previous step before current; or nil
+	current          Step                // the current step to attach the next step to; or nil
+	funcStack        stack[Func]         // to keep track of current function for branch statements
+	breakStack       stack[*labeledStep] // to keep track of break targets
+	continueStack    stack[*labeledStep] // to keep track of continue targets
+	fallthroughStack stack[*labeledStep] // to keep track of fallthrough targets
 }
 
 func newGraphBuilder(goPkg *packages.Package) *graphBuilder {
@@ -42,7 +43,7 @@ func (g *graphBuilder) newStep(e Evaluable) *evaluableStep {
 }
 
 // newLabeledStep creates a labeled step but does not add it to the current flow.
-func (g *graphBuilder) newLabeledStep(label string, pos token.Pos) Step {
+func (g *graphBuilder) newLabeledStep(label string, pos token.Pos) *labeledStep {
 	return &labeledStep{label: label, pos: pos}
 }
 

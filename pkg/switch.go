@@ -118,6 +118,13 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 		}
 		list := append(clause.Body, gotoEnd)
 
+		// if previous case was a fallthrough then its next
+		if len(g.fallthroughStack) > 0 {
+			fall := g.fallthroughStack.pop()
+			destination := fallThroughDestination{from: fall}
+			list = append(list, destination)
+		}
+
 		// compose if statement for this case
 		when := IfStmt{
 			ifPos: clause.Pos(),
@@ -135,6 +142,22 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 		head = g.current
 	}
 	return head
+}
+
+var _ Stmt = fallThroughDestination{}
+
+type fallThroughDestination struct {
+	from *labeledStep
+}
+
+func (c fallThroughDestination) flow(g *graphBuilder) (head Step) {
+	to := g.newLabeledStep("destination", token.NoPos)
+	c.from.SetNext(to)
+	return to
+
+}
+func (c fallThroughDestination) stmtStep() Evaluable {
+	return nil
 }
 
 func (s SwitchStmt) String() string {

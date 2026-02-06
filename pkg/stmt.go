@@ -75,8 +75,8 @@ func (s LabeledStmt) Eval(vm *VM) {
 func (s LabeledStmt) flow(g *graphBuilder) (head Step) {
 	head = s.statement.flow(g)
 	// get statement reference and update its step
-	fd := g.funcStack.top()
-	ref := fd.gotoReference(s.label.name)
+	fun := g.funcStack.top()
+	ref := fun.gotoReference(s.label.name)
 	ref.step.SetNext(head)
 	return
 }
@@ -112,15 +112,22 @@ func (s BranchStmt) flow(g *graphBuilder) (head Step) {
 		g.current = nil
 		return
 	case token.BREAK:
-		target := g.breakStack.top().(*labeledStep) // safe?
+		target := g.breakStack.top()
 		target.SetPos(s.Pos())
 		g.nextStep(target)
 		g.current = nil
 		return
 	case token.CONTINUE:
-		target := g.continueStack.top().(*labeledStep) // safe?
+		target := g.continueStack.top()
 		target.SetPos(s.Pos())
 		g.nextStep(target)
+		g.current = nil
+		return
+	case token.FALLTHROUGH:
+		fall := g.newLabeledStep("fallthrough", s.Pos())
+		// the next for target will be set in the next case of the switch statement
+		g.fallthroughStack.push(fall)
+		g.nextStep(fall)
 		g.current = nil
 		return
 	default:

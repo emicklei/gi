@@ -49,6 +49,42 @@ func main() {
 }`, "3")
 }
 
+func TestSwitchFallthrough(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+	a := 1
+	switch a {
+	case 1:
+		print(1)
+		fallthrough
+	case 2:
+		print(2)
+		fallthrough
+	default:
+		print(3)
+		}
+}`, "123")
+}
+
+func TestSwitchFallthroughNoEffect(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+	a := 1
+	switch a {
+	case 1:
+		print(1)
+		fallthrough
+	case 2:
+	default:
+		print(3)
+		}
+}`, "1")
+}
+
 func TestSwitch(t *testing.T) {
 	testMain(t, `package main
 
@@ -101,7 +137,7 @@ func main() {
 	i = 1
 	switch i.(type) {
 	case int:
-		print("int:", i) 
+		print("int:", i)
 	}
 }`, "int:1")
 }
