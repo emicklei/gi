@@ -31,13 +31,13 @@ func (f ForStmt) flow(g *graphBuilder) (head Step) {
 
 	// need to know where to continue for 'continue' statements in the body
 	// continue with the condition of the loop unless there is no condition
-	cont := g.newLabeledStep("continue", token.NoPos)
+	cont := g.newLabeledStep("~continue", token.NoPos)
 	g.continueStack.push(cont)
 	defer g.continueStack.pop()
 
 	// need to know the end of the loop for 'break' statements in the body
 	// and for the else branch of the condition
-	braek := g.newLabeledStep("break", token.NoPos)
+	braek := g.newLabeledStep("~break", token.NoPos)
 	g.breakStack.push(braek)
 	defer g.breakStack.pop()
 
@@ -62,7 +62,7 @@ func (f ForStmt) flow(g *graphBuilder) (head Step) {
 		g.nextStep(begin.conditionFlow)
 	}
 	// leave the scope of the loop
-	end := newPopEnvironmentStep(f.body.Pos())
+	end := g.newPopEnvironmentStep(f.body.Pos())
 	// break goes to the end of the loop
 	braek.SetNext(end)
 	// else branch of the condition goes to the end of the loop

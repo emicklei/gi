@@ -195,8 +195,7 @@ func (p *Package) writeCallGraph(fileName string) {
 				continue
 			}
 			sub := g.Subgraph(k, dot.ClusterOption{})
-			visited := map[int]dot.Node{}
-			funDecl.graph.traverse(sub, visited)
+			funDecl.graph.traverse(sub, p.Fset)
 		}
 	}
 	os.WriteFile(fileName, []byte(g.String()), 0644)

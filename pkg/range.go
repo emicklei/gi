@@ -5,6 +5,7 @@ import (
 	"go/token"
 	"go/types"
 	"reflect"
+	"strconv"
 
 	"github.com/emicklei/dot"
 )
@@ -31,27 +32,28 @@ func (r RangeStmt) Eval(vm *VM) {} // noop
 //   - sliceOrArrayFlow for slices and arrays
 //   - intFlow for integers
 //   - funcFlow for functions of type iter.Seq[V any], iter.Seq2[K comparable, V any]
+//   - chanFlow for channels
 //
-// All four flows converge to a done step.
-// The last 3 subflows are transformed into a ForStmt that uses a hidden index variable.
+// All flows converge to a done step.
+// Some subflows are transformed into a ForStmt that uses a hidden index variable.
 func (r RangeStmt) flow(g *graphBuilder) (head Step) {
 	head = r.x.flow(g)
 	switcher := new(rangeIteratorSwitchStep)
 	g.nextStep(switcher)
 	// all flows converge to this done step
-	rangeDone := g.newLabeledStep("range-done", r.Pos())
+	rangeDone := g.newLabeledStep("~range-done", r.Pos())
 
 	// flow depends on the type of X
 	switch r.xType.Underlying().(type) {
 	case *types.Map:
 		// start the map flow, detached from the current
-		g.current = g.newLabeledStep("range-map", r.Pos())
+		g.current = g.newLabeledStep("~range-map", r.Pos())
 		switcher.mapFlow = r.mapFlow(g)
 		g.nextStep(rangeDone)
 
 	case *types.Slice, *types.Array:
 		// start the list flow, detached from the current
-		g.current = g.newLabeledStep("range-slice-or-array", r.Pos())
+		g.current = g.newLabeledStep("~range-slice-or-array", r.Pos())
 		switcher.sliceOrArrayFlow = r.sliceOrArrayFlow(g)
 		g.nextStep(rangeDone)
 
@@ -59,19 +61,24 @@ func (r RangeStmt) flow(g *graphBuilder) (head Step) {
 		basicKind := r.xType.Underlying().(*types.Basic).Kind()
 		if basicKind == types.Int {
 			// start the int flow, detached from the current
-			g.current = g.newLabeledStep("range-int", r.Pos())
+			g.current = g.newLabeledStep("~range-int", r.Pos())
 			switcher.intFlow = r.intFlow(g)
 			g.nextStep(rangeDone)
 			break
 		}
 		if basicKind == types.String || basicKind == types.UntypedString {
 			// start the runes flow, detached from the current
-			g.current = g.newLabeledStep("range-runes", r.Pos())
+			g.current = g.newLabeledStep("~range-runes", r.Pos())
 			switcher.sliceOrArrayFlow = r.sliceOrArrayFlow(g)
 			g.nextStep(rangeDone)
 			break
 		}
 		g.fatal(fmt.Sprintf("unhandled range over basic type %v", r.xType))
+	case *types.Chan:
+		// start the chan flow, detached from the current
+		g.current = g.newLabeledStep("~range-chan", r.Pos())
+		switcher.chanFlow = r.chanFlow(g)
+		g.nextStep(rangeDone)
 	default:
 		g.fatal(fmt.Sprintf("unhandled range over type %v", r.xType))
 	}
@@ -91,8 +98,8 @@ func (r *rangeMapIteratorInitStep) take(vm *VM) Step {
 	return r.next
 }
 
-func (r *rangeMapIteratorInitStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	return r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-init"), "next", visited)
+func (r *rangeMapIteratorInitStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
+	return r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-init"), location(fs, r.Pos()), fs)
 }
 
 func (r *rangeMapIteratorInitStep) Pos() token.Pos {
@@ -103,7 +110,7 @@ func (r *rangeMapIteratorInitStep) String() string {
 	if r == nil {
 		return "rangeMapIteratorInitStep(<nil>)"
 	}
-	return r.step.StringWith("range-map-iterator-init:" + r.localVarName)
+	return r.step.StringWith("~range-map-iterator-init:" + r.localVarName)
 }
 
 type rangeMapIteratorNextStep struct {
@@ -129,12 +136,13 @@ func (r *rangeMapIteratorNextStep) take(vm *VM) Step {
 	return r.next
 }
 
-func (r *rangeMapIteratorNextStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	me := r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-next"), "next", visited)
+func (r *rangeMapIteratorNextStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
+	me := r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-next"), location(fs, r.Pos()), fs)
 	if r.bodyFlow != nil {
 		// no edge if visited before
-		if _, ok := visited[r.bodyFlow.ID()]; !ok {
-			bodyNode := r.bodyFlow.traverse(g, visited)
+		sid := strconv.Itoa(r.bodyFlow.ID())
+		if !g.HasNodeWithID(sid) {
+			bodyNode := r.bodyFlow.traverse(g, fs)
 			me.Edge(bodyNode, "body")
 		}
 	}
@@ -149,7 +157,12 @@ func (r *rangeMapIteratorNextStep) String() string {
 	if r == nil {
 		return "rangeMapIteratorNextStep(<nil>)"
 	}
-	return r.step.StringWith("range-map-iterator-next:" + r.localVarName)
+	return r.step.StringWith("~range-map-iterator-next:" + r.localVarName)
+}
+
+func (r RangeStmt) chanFlow(g *graphBuilder) (head Step) {
+	head = r.x.flow(g) // again on the stack
+	return
 }
 
 func (r RangeStmt) mapFlow(g *graphBuilder) (head Step) {
@@ -171,7 +184,7 @@ func (r RangeStmt) mapFlow(g *graphBuilder) (head Step) {
 	g.nextStep(iter)
 
 	// start the body flow, detached from the current
-	g.current = g.newLabeledStep("range-map-body", r.Pos())
+	g.current = g.newLabeledStep("~range-map-body", r.Pos())
 	if iter.yieldKey || iter.yieldValue {
 		// key = key
 		// value = x[value]
@@ -378,14 +391,17 @@ type rangeIteratorSwitchStep struct {
 	mapFlow          Step
 	sliceOrArrayFlow Step
 	intFlow          Step
+	chanFlow         Step
 }
 
 func (i *rangeIteratorSwitchStep) take(vm *VM) Step {
 	rangeable := vm.popOperand()
-	if rangeable.Kind() == reflect.Ptr {
+	if rangeable.Kind() == reflect.Pointer {
 		rangeable = rangeable.Elem()
 	}
 	switch rangeable.Kind() {
+	case reflect.Chan:
+		return i.chanFlow.take(vm)
 	case reflect.Map:
 		return i.mapFlow.take(vm)
 	case reflect.Slice, reflect.Array:
@@ -407,29 +423,41 @@ func (i *rangeIteratorSwitchStep) take(vm *VM) Step {
 		//return i.funcFlow.take(vm)
 		fallthrough
 	default:
-		panic(fmt.Sprintf("cannot range over type %v", rangeable.Type()))
+		vm.fatalf("cannot range over type %v", rangeable.Type())
 	}
+	return nil
 }
-func (i *rangeIteratorSwitchStep) traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node {
-	me := i.step.traverseWithLabel(g, i.step.StringWith("switch-iterator"), "next", visited)
+func (i *rangeIteratorSwitchStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
+	me := i.step.traverseWithLabel(g, i.step.StringWith("~switch-iterator"), location(fs, i.Pos()), fs)
 	if i.mapFlow != nil {
 		// no edge if visited before
-		if _, ok := visited[i.mapFlow.ID()]; !ok {
-			mapNode := i.mapFlow.traverse(g, visited)
+		sid := strconv.Itoa(i.mapFlow.ID())
+		if !g.HasNodeWithID(sid) {
+			mapNode := i.mapFlow.traverse(g, fs)
 			me.Edge(mapNode, "map")
 		}
 	}
 	if i.sliceOrArrayFlow != nil {
 		// no edge if visited before
-		if _, ok := visited[i.sliceOrArrayFlow.ID()]; !ok {
-			sliceOrArrayNode := i.sliceOrArrayFlow.traverse(g, visited)
+		sid := strconv.Itoa(i.sliceOrArrayFlow.ID())
+		if !g.HasNodeWithID(sid) {
+			sliceOrArrayNode := i.sliceOrArrayFlow.traverse(g, fs)
 			me.Edge(sliceOrArrayNode, "sliceOrArray")
 		}
 	}
 	if i.intFlow != nil {
 		// no edge if visited before
-		if _, ok := visited[i.intFlow.ID()]; !ok {
-			intNode := i.intFlow.traverse(g, visited)
+		sid := strconv.Itoa(i.intFlow.ID())
+		if !g.HasNodeWithID(sid) {
+			intNode := i.intFlow.traverse(g, fs)
+			me.Edge(intNode, "int")
+		}
+	}
+	if i.chanFlow != nil {
+		// no edge if visited before
+		sid := strconv.Itoa(i.chanFlow.ID())
+		if !g.HasNodeWithID(sid) {
+			intNode := i.chanFlow.traverse(g, fs)
 			me.Edge(intNode, "int")
 		}
 	}

@@ -35,7 +35,7 @@ func (i IfStmt) flow(g *graphBuilder) (head Step) {
 
 	// true branch
 	i.body.flow(g)
-	pop := newPopEnvironmentStep(i.body.Pos())
+	pop := g.newPopEnvironmentStep(i.body.Pos())
 	g.nextStep(pop)
 
 	// false branch

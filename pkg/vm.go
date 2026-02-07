@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go/token"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
@@ -353,14 +352,7 @@ func (vm *VM) sourceLocation(e Evaluable) string {
 	if e == nil {
 		return "<no creator>"
 	}
-	if vm.fileSet == nil {
-		return "<no file set>"
-	}
-	if f := vm.fileSet.File(e.Pos()); f != nil {
-		nodir := filepath.Base(f.Name())
-		return fmt.Sprintf("%s:%d", nodir, f.Line(e.Pos()))
-	}
-	return "<bad pos>"
+	return location(vm.fileSet, e.Pos())
 }
 
 func (vm *VM) printStack() {

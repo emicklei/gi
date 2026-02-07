@@ -1,5 +1,7 @@
 github.com/emicklei/dot v1.10.0 h1:z17n0ce/FBMz3QbShSzVGhiW447Qhu7fljzvp3Gs6ig=
 github.com/emicklei/dot v1.10.0/go.mod h1:DeV7GvQtIw4h2u73RKBkkFdvVAz0D9fzeJrgPW6gy/s=
+github.com/emicklei/dot v1.11.0 h1:zsrhCuFHAJge/aZIC4N4LdHy5tqYu4tWEaUzIwdYj4Y=
+github.com/emicklei/dot v1.11.0/go.mod h1:DeV7GvQtIw4h2u73RKBkkFdvVAz0D9fzeJrgPW6gy/s=
 github.com/fatih/structtag v1.2.0 h1:/OdNE99OxoI/PqaW/SuSK9uxxT3f/tcSZgon/ssNSx4=
 github.com/fatih/structtag v1.2.0/go.mod h1:mBJUNpUnHmRKrKlQQlmCrh5PuhftFbNv8Ys4/aAZl94=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=

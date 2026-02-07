@@ -47,7 +47,16 @@ func (g *graphBuilder) newLabeledStep(label string, pos token.Pos) *labeledStep 
 	return &labeledStep{label: label, pos: pos}
 }
 
+func (g *graphBuilder) newPopEnvironmentStep(pos token.Pos) *popEnvironmentStep {
+	g.idgen++
+	pop := &popEnvironmentStep{pos: pos}
+	pop.SetID(g.idgen)
+	return pop
+}
+
 // nextStep adds the given step after the current one and makes it the current step.
+// if current is nil, it sets the given step as the current step.
+// ensures the step has an ID
 func (g *graphBuilder) nextStep(next Step) {
 	// ensure it has an ID
 	if next.ID() == 0 {

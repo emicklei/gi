@@ -66,7 +66,7 @@ func parseAndWalk(t *testing.T, source string) string {
 	vm := NewVM(pkg)
 	collectPrintOutput(vm)
 
-	if trace {
+	if getAttr(t, "dot") != nil {
 		// create dot graph for debugging
 		os.WriteFile(fmt.Sprintf("internal/testgraphs/%s.src", t.Name()), []byte(source), 0644)
 		dotFileName := fmt.Sprintf("internal/testgraphs/%s.dot", t.Name())
@@ -74,15 +74,14 @@ func parseAndWalk(t *testing.T, source string) string {
 		// will fail in pipeline without graphviz installed
 		exec.Command("dot", "-Tsvg", "-o", dotFileName+".svg", dotFileName).Run()
 		os.Remove(dotFileName)
-
-		// create ast dump for debugging, requires test to set attribute(s)
-		astFileName := fmt.Sprintf("internal/testgraphs/%s", t.Name())
-		if getAttr(t, "ast") == "true" {
-			pkg.writeAST(astFileName + ".ast")
-		}
-		if getAttr(t, "go.ast") == "true" {
-			writeGoAST(astFileName+".go.ast", pkg.Package)
-		}
+	}
+	// create ast dump for debugging, requires test to set attribute(s)
+	astFileName := fmt.Sprintf("internal/testgraphs/%s", t.Name())
+	if getAttr(t, "ast") == "true" {
+		pkg.writeAST(astFileName + ".ast")
+	}
+	if getAttr(t, "go.ast") == "true" {
+		writeGoAST(astFileName+".go.ast", pkg.Package)
 	}
 	if _, err := CallPackageFunction(pkg, "main", nil, vm); err != nil {
 		t.Fatal(err)

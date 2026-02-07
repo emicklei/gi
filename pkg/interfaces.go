@@ -87,7 +87,7 @@ type StepTaker interface {
 }
 
 type Traverseable interface {
-	traverse(g *dot.Graph, visited map[int]dot.Node) dot.Node
+	traverse(g *dot.Graph, fs *token.FileSet) dot.Node
 }
 
 // FuncDecl and FuncLit implement this

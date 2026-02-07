@@ -165,7 +165,7 @@ type fallThroughDestination struct {
 }
 
 func (c fallThroughDestination) flow(g *graphBuilder) (head Step) {
-	to := g.newLabeledStep("fallthrough destination", token.NoPos)
+	to := g.newLabeledStep("~fallthrough destination", token.NoPos)
 	c.from.SetNext(to)
 	g.nextStep(to)
 	return to

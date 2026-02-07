@@ -5,6 +5,32 @@ import (
 	"testing"
 )
 
+func TestRangeOfChan(t *testing.T) {
+	t.Skip()
+	setAttr(t, "dot", true)
+	testMain(t, `package main
+
+func main() {
+		io := make(chan int, 10)
+		for i := 0; i < 10; i++ {
+			io <- i
+		}
+		for {
+			j := <-io
+			print(j)
+			if j == 4 {
+				break
+			}
+		}
+		for j := range io {
+			print(j)
+			if j == 9 {
+				break
+			}
+		}
+}`, "0123456789")
+}
+
 func TestRangeOfStrings(t *testing.T) {
 	testMain(t, `package main
 
@@ -29,7 +55,7 @@ func main() {
 func TestRangeOfStringsNoValue(t *testing.T) {
 	testMain(t, `package main
 
-func main() { 
+func main() {
 	for i := range [2]string{} {
 		print(i)
 	}

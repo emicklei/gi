@@ -2,16 +2,12 @@ package pkg
 
 import (
 	"fmt"
+	"go/token"
 	"io"
+	"path/filepath"
 	"reflect"
 	"strings"
 )
-
-// pkgIdent = fully (package) qualified (identifying) name
-type pkgIdent struct {
-	path string
-	name string
-}
 
 // Deprecated
 func expected(value any, expectation string) reflect.Value {
@@ -186,4 +182,15 @@ func isPointerToStructValue(v reflect.Value) bool {
 		return false
 	}
 	return true
+}
+
+func location(fs *token.FileSet, pos token.Pos) string {
+	if fs == nil {
+		return "<no file set>"
+	}
+	if f := fs.File(pos); f != nil {
+		nodir := filepath.Base(f.Name())
+		return fmt.Sprintf("%s:%d", nodir, f.Line(pos))
+	}
+	return "<bad pos>"
 }

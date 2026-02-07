@@ -124,7 +124,7 @@ func (s BranchStmt) flow(g *graphBuilder) (head Step) {
 		g.current = nil
 		return
 	case token.FALLTHROUGH:
-		fall := g.newLabeledStep("fallthrough", s.Pos())
+		fall := g.newLabeledStep("~fallthrough", s.Pos())
 		// the next for target will be set in the next case of the switch statement
 		g.fallthroughStack.push(fall)
 		g.nextStep(fall)
