@@ -24,7 +24,7 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 			fmt.Println("TRACE: SelectorExpr.Assign", idn.name, s.selector.name, "=", val, "operands:", vm.currentFrame.operands)
 		}
 
-		recv := vm.localEnv().valueLookUp(idn.name)
+		recv := vm.currentEnv().valueLookUp(idn.name)
 
 		// dereference if pointer to heap value
 		if hp, ok := recv.Interface().(*HeapPointer); ok {

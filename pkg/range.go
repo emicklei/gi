@@ -94,7 +94,7 @@ type rangeMapIteratorInitStep struct {
 func (r *rangeMapIteratorInitStep) take(vm *VM) Step {
 	rangeable := vm.popOperand()
 	iter := rangeable.MapRange()
-	vm.localEnv().set(r.localVarName, reflect.ValueOf(iter))
+	vm.currentEnv().set(r.localVarName, reflect.ValueOf(iter))
 	return r.next
 }
 
@@ -122,7 +122,7 @@ type rangeMapIteratorNextStep struct {
 }
 
 func (r *rangeMapIteratorNextStep) take(vm *VM) Step {
-	iterator := vm.localEnv().valueLookUp(r.localVarName).Interface().(*reflect.MapIter)
+	iterator := vm.currentEnv().valueLookUp(r.localVarName).Interface().(*reflect.MapIter)
 	if iterator.Next() {
 		// first value then key to match assignment order
 		if r.yieldValue {

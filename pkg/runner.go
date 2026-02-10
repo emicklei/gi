@@ -30,7 +30,7 @@ func (r *Runner) Step() error {
 	call := CallExpr{
 		fun: Ident{name: "main"},
 	}
-	fun := r.vm.localEnv().valueLookUp("main")
+	fun := r.vm.currentEnv().valueLookUp("main")
 	r.vm.pushOperand(fun)
 	r.vm.eval(call)
 	return nil

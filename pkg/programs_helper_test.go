@@ -23,7 +23,7 @@ func buildPackage(t *testing.T, source string) *Package {
 
 // this print function outputs are different from the standard and is only used for tests
 func collectPrintOutput(vm *VM) {
-	vm.localEnv().set("print", reflect.ValueOf(func(args ...any) {
+	vm.currentEnv().set("print", reflect.ValueOf(func(args ...any) {
 		for _, a := range args {
 			if rv, ok := a.(reflect.Value); ok && rv.IsValid() && rv.CanInterface() {
 				// check for pointer to array

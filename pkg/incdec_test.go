@@ -38,7 +38,7 @@ func TestIncDec(t *testing.T) {
 			head := n.flow(g)
 			vm.takeAllStartingAt(head)
 
-			v := vm.localEnv().valueLookUp("x")
+			v := vm.currentEnv().valueLookUp("x")
 			if got, want := v.Interface(), tc.end.Interface(); got != want {
 				t.Errorf("got %v want %v", got, want)
 			}

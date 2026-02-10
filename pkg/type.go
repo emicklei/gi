@@ -48,7 +48,7 @@ type TypeSpec struct {
 
 func (s TypeSpec) Eval(vm *VM) {
 	actualType := vm.returnsEval(s.typ)
-	vm.localEnv().set(s.name.name, actualType) // use the spec itself as value
+	vm.currentEnv().set(s.name.name, actualType) // use the spec itself as value
 }
 
 func (s TypeSpec) flow(g *graphBuilder) (head Step) {
@@ -143,12 +143,12 @@ func (m MapType) makeValue(vm *VM, _ int, elements []reflect.Value) reflect.Valu
 	keyTypeName := mustIdentName(m.Key)
 	valueTypeName := mustIdentName(m.Value)
 	// standard or importer types
-	keyType := vm.localEnv().typeLookUp(keyTypeName)
+	keyType := vm.currentEnv().typeLookUp(keyTypeName)
 	if keyType == nil {
 		// TODO handl custom types as key types
 		keyType = structValueType
 	}
-	valueType := vm.localEnv().typeLookUp(valueTypeName)
+	valueType := vm.currentEnv().typeLookUp(valueTypeName)
 	mapType := reflect.MapOf(keyType, valueType)
 	return reflect.MakeMap(mapType)
 }
@@ -159,7 +159,7 @@ func (m MapType) literalCompose(vm *VM, composite reflect.Value, values []reflec
 		// check for ident
 		if ik, ok := k.Interface().(Ident); ok {
 			// Ident.Eval
-			k = vm.localEnv().valueLookUp(ik.name)
+			k = vm.currentEnv().valueLookUp(ik.name)
 		}
 		v := kv.Value
 		composite.SetMapIndex(k, v)

@@ -175,7 +175,7 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		cleared := c.evalClear(vm)
 		// the argument of clear needs to be replaced
 		if identArg, ok := c.args[0].(Ident); ok {
-			vm.localEnv().set(identArg.name, cleared)
+			vm.currentEnv().set(identArg.name, cleared)
 		} else {
 			vm.fatalf("clear argument must be an identifier")
 		}

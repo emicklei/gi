@@ -62,8 +62,8 @@ func NewVM(pkg *Package) *VM {
 	return vm
 }
 
-// localEnv returns the current environment from the top stack frame.
-func (vm *VM) localEnv() Env {
+// currentEnv returns the current environment from the top stack frame.
+func (vm *VM) currentEnv() Env {
 	return vm.currentFrame.env
 }
 
@@ -103,7 +103,7 @@ func (vm *VM) pushNewFrame(f Func) {
 	frame := framePool.Get().(*stackFrame)
 	frame.creator = f
 	env := envPool.Get().(*Environment)
-	env.parent = vm.localEnv()
+	env.parent = vm.currentEnv()
 	frame.env = env
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
