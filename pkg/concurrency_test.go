@@ -55,3 +55,22 @@ func TestMakeChanUserWriteRead(t *testing.T) {
 		print(v.Name)
 	}`, func(out string) bool { return out == "Alice" })
 }
+
+func TestSelect(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+func main() {
+    c1 := make(chan string,1)
+    c2 := make(chan string,1)
+    c1 <- "one"
+    c2 <- "two"
+    for range 2 {
+        select {
+        case msg1 := <-c1:
+            print(msg1)
+        case msg2 := <-c2:
+            print(msg2)
+        }
+    }
+}`, "onetwo")
+}

@@ -45,9 +45,9 @@ var _ Expr = SendStmt{}
 var _ Stmt = SendStmt{}
 
 type SendStmt struct {
-	Arrow token.Pos
-	Chan  Expr
-	Value Expr
+	arrowPos token.Pos
+	chann    Expr
+	value    Expr
 }
 
 func (s SendStmt) Eval(vm *VM) {
@@ -58,8 +58,8 @@ func (s SendStmt) Eval(vm *VM) {
 }
 
 func (s SendStmt) flow(g *graphBuilder) (head Step) {
-	head = s.Chan.flow(g)
-	s.Value.flow(g)
+	head = s.chann.flow(g)
+	s.value.flow(g)
 	g.next(s)
 	return head
 }
@@ -67,9 +67,9 @@ func (s SendStmt) flow(g *graphBuilder) (head Step) {
 func (s SendStmt) stmtStep() Evaluable { return s }
 
 func (s SendStmt) Pos() token.Pos {
-	return s.Arrow
+	return s.arrowPos
 }
 
 func (s SendStmt) String() string {
-	return fmt.Sprintf("SendStmt(%v <- %v)", s.Chan, s.Value)
+	return fmt.Sprintf("SendStmt(%v <- %v)", s.chann, s.value)
 }

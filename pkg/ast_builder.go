@@ -94,13 +94,13 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		b.push(s)
 
 	case *ast.SendStmt:
-		s := SendStmt{Arrow: n.Arrow}
+		s := SendStmt{arrowPos: n.Arrow}
 		b.Visit(n.Chan)
 		e := b.pop()
-		s.Chan = e.(Expr)
+		s.chann = e.(Expr)
 		b.Visit(n.Value)
 		e = b.pop()
-		s.Value = e.(Expr)
+		s.value = e.(Expr)
 		b.push(s)
 
 	case *ast.ChanType:
