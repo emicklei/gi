@@ -184,6 +184,7 @@ func isPointerToStructValue(v reflect.Value) bool {
 	return true
 }
 
+// sourceLocation returns a string representation of the source location of the given Evaluable (can be nil).
 func sourceLocation(fs *token.FileSet, pos token.Pos) string {
 	if fs == nil {
 		return "<no file set>"

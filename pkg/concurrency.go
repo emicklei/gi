@@ -25,7 +25,7 @@ func (c ChanType) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 func (c ChanType) makeValue(vm *VM, buffer int, elements []reflect.Value) reflect.Value {
-	typ := vm.makeType(c.valueType)
+	typ := makeType(vm, c.valueType)
 	dir := reflect.ChanDir(c.dir)
 	ch := reflect.ChanOf(dir, typ)
 	return reflect.MakeChan(ch, int(buffer))

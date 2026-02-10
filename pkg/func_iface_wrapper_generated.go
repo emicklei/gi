@@ -10,7 +10,7 @@ type fmtStringer struct {
 func (s fmtStringer) String() string {
 	decl, ok := s.typ.methodsMap()["String"]
 	if !ok {
-		s.vm.fatal("func declaration for 'String' not found")
+		s.vm.fatalf("func declaration for 'String' not found")
 	}
 	s.vm.takeAllStartingAt(decl.graph)
 	result := make([]reflect.Value, 1)

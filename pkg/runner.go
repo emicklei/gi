@@ -26,6 +26,13 @@ func (r *Runner) collectPackages(from *Package) {
 	}
 }
 func (r *Runner) Step() error {
+	// for now skip initialization
+	call := CallExpr{
+		fun: Ident{name: "main"},
+	}
+	fun := r.vm.localEnv().valueLookUp("main")
+	r.vm.pushOperand(fun)
+	r.vm.eval(call)
 	return nil
 }
 

@@ -31,7 +31,7 @@ func InstantiateStructValue(vm *VM, t StructType) StructValue {
 		fields: map[string]reflect.Value{},
 	}
 	for _, field := range t.fields.List {
-		typ := vm.makeType(field.typ)
+		typ := makeType(vm, field.typ)
 		for _, name := range field.names {
 			i.fields[name.name] = reflect.New(typ).Elem()
 		}

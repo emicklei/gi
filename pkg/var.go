@@ -44,20 +44,20 @@ func (v ValueSpec) declare(vm *VM) bool {
 		}
 		return true
 	}
-	typ := vm.proxyType(v.typ)
+	typ := typeMaker(vm, v.typ)
 
 	// left to right, see Flow
 	for _, idn := range v.names {
 		if v.values != nil {
 			val := vm.popOperand()
 			if val == reflectNil {
-				typ := vm.makeType(v.typ)
+				typ := makeType(vm, v.typ)
 				zv := reflect.Zero(typ)
 				vm.localEnv().set(idn.name, zv)
 				continue
 			}
 			if val.Interface() == untypedNil {
-				typ := vm.makeType(v.typ)
+				typ := makeType(vm, v.typ)
 				zv := reflect.Zero(typ)
 				vm.localEnv().set(idn.name, zv)
 				continue
@@ -72,7 +72,7 @@ func (v ValueSpec) declare(vm *VM) bool {
 				continue
 			}
 			// zero value
-			typ := vm.makeType(v.typ)
+			typ := makeType(vm, v.typ)
 			zv := reflect.Zero(typ)
 			vm.localEnv().set(idn.name, zv)
 		}

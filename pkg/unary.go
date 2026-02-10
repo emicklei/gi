@@ -56,7 +56,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 			vm.pushOperand(reflect.ValueOf(hp))
 			return
 		}
-		vm.fatal("UnaryExpr.Eval todo")
+		vm.fatalf("UnaryExpr.Eval todo")
 	}
 
 	v := vm.popOperand()
@@ -74,7 +74,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 			hp := vm.heap.allocHeapValue(v)
 			vm.pushOperand(reflect.ValueOf(hp))
 		default:
-			vm.fatal("missing unary operation on struct:" + u.op.String())
+			vm.fatalf("missing unary operation on struct:%s", u.op.String())
 		}
 	case reflect.Chan:
 		switch u.op {
@@ -86,7 +86,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 				vm.pushOperand(val)
 			}
 		default:
-			vm.fatal("missing unary operation on chan:" + u.op.String())
+			vm.fatalf("missing unary operation on chan:%s", u.op.String())
 		}
 	default:
 		// Handle any other types (string, slice, map, etc.)
@@ -95,7 +95,7 @@ func (u UnaryExpr) Eval(vm *VM) {
 			hp := vm.heap.allocHeapValue(v)
 			vm.pushOperand(reflect.ValueOf(hp))
 		default:
-			vm.fatal("not implemented: UnaryExpr.Eval:" + v.Kind().String())
+			vm.fatalf("not implemented: UnaryExpr.Eval:%s", v.Kind().String())
 		}
 	}
 }

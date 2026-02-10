@@ -41,7 +41,7 @@ func (a AssignStmt) Eval(vm *VM) {
 func (a AssignStmt) apply(each Expr, vm *VM, v reflect.Value) {
 	target, ok_ := each.(CanAssign)
 	if !ok_ {
-		vm.fatal(fmt.Sprintf("cannot assign %v to a %T", v.Interface(), each))
+		vm.fatalf("cannot assign %v to a %T", v.Interface(), each)
 	}
 	switch a.tok {
 	case token.DEFINE: // :=

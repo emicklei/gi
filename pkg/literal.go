@@ -96,7 +96,7 @@ func (c CompositeLit) Eval(vm *VM) {
 		result := inst.literalCompose(vm, structVal, values)
 		vm.pushOperand(result)
 	} else {
-		vm.fatal("unhandled type")
+		vm.fatalf("unhandled type")
 	}
 }
 

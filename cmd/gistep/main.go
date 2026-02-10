@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -21,10 +22,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	vm := pkg.NewVM(ipkg)
+	runner := pkg.NewRunner(ipkg)
 	var b []byte = make([]byte, 1)
 	for {
 		os.Stdin.Read(b)
-		print(string(b))
+		if b[0] == 'q' {
+			os.Exit(0)
+		}
+		if err := runner.Step(); err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(runner.Location())
 	}
 }

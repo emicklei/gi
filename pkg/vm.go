@@ -18,6 +18,25 @@ var framePool = sync.Pool{
 	},
 }
 
+type Engine2 interface {
+	localEnv() Env
+
+	// stepping
+	eval(e Evaluable)
+	returnsEval(e Evaluable) reflect.Value
+	takeAllStartingAt(head Step)
+
+	// operands
+	pushOperand(v reflect.Value)
+	popOperand() reflect.Value
+
+	// frames
+	pushNewFrame(f Func)
+	popFrame()
+
+	fatalf(format string, a ...any)
+}
+
 // Runtime represents a virtual machine that can execute Go code.
 type VM struct {
 	callStack    stack[*stackFrame]
@@ -28,16 +47,6 @@ type VM struct {
 }
 
 func NewVM(pkg *Package) *VM {
-	if os.Getenv("GI_IGNORE_EXIT") != "" {
-		OnOsExit(func(code int) {
-			fmt.Fprintf(os.Stderr, "[gi] os.Exit called with code %d\n", code)
-		})
-	}
-	if os.Getenv("GI_IGNORE_PANIC") != "" {
-		OnPanic(func(why any) {
-			fmt.Fprintf(os.Stderr, "[gi] panic called with %v\n", why)
-		})
-	}
 	vm := &VM{
 		output:    new(bytes.Buffer),
 		callStack: make(stack[*stackFrame], 0, 16),
@@ -46,29 +55,11 @@ func NewVM(pkg *Package) *VM {
 	frame.env = pkg.env
 	// happens in tests
 	if pkg.Package != nil {
-		vm.setFileSet(pkg.Fset)
+		vm.fileSet = pkg.Fset
 	}
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
 	return vm
-}
-
-// OnPanic sets the function to be called when panic is invoked in the interpreted code.
-// The Go SDK panic is not called.
-func OnPanic(f func(any)) {
-	// TODO make this thread-safe
-	builtinsMap["panic"] = reflect.ValueOf(f)
-}
-
-// OnOsExit sets the function to be called when os.Exit is invoked in the interpreted code.
-// The Go SDK os.Exit is not called.
-func OnOsExit(f func(int)) {
-	// TODO make this thread-safe
-	stdfuncs["os"]["Exit"] = reflect.ValueOf(f)
-}
-
-func (vm *VM) setFileSet(fs *token.FileSet) {
-	vm.fileSet = fs
 }
 
 // localEnv returns the current environment from the top stack frame.
@@ -80,108 +71,6 @@ func (vm *VM) localEnv() Env {
 func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 	vm.eval(e)
 	return vm.popOperand()
-}
-
-func (vm *VM) proxyType(e Expr) CanMake {
-	if id, ok := e.(Ident); ok {
-		typ, ok := builtins[id.name]
-		if ok {
-			gt := SDKType{typ: typ.Interface().(builtinType).typ}
-			return gt
-		}
-		typ = vm.localEnv().valueLookUp(id.name)
-		// interpreted
-		if cm, ok := typ.Interface().(CanMake); ok {
-			return cm
-		}
-		vm.fatalf("unhandled proxyType for %v (%T)", e, e)
-	}
-
-	if sel, ok := e.(SelectorExpr); ok {
-		typ := vm.localEnv().valueLookUp(sel.x.(Ident).name)
-		val := typ.Interface()
-		if canSelect, ok := val.(CanSelect); ok {
-			selVal := canSelect.selectFieldOrMethod(sel.selector.name)
-			return SDKType{typ: reflect.TypeOf(selVal.Interface())}
-		}
-		pkgType := stdtypes[sel.x.(Ident).name][sel.selector.name]
-		return SDKType{typ: reflect.TypeOf(pkgType.Interface())}
-	}
-
-	if star, ok := e.(StarExpr); ok {
-		nonStarType := vm.proxyType(star.x)
-		return nonStarType // .pointerType(). // TODO
-	}
-
-	if ar, ok := e.(ArrayType); ok {
-		elemType := vm.makeType(ar.elt)
-		if ar.len == nil {
-			return SDKType{typ: reflect.SliceOf(elemType)}
-		} else {
-			lenVal := vm.returnsEval(ar.len)
-			size := int(lenVal.Int())
-			return SDKType{typ: reflect.ArrayOf(size, elemType)}
-		}
-	}
-
-	if _, ok := e.(FuncType); ok {
-		// any function type will do; we just need its reflect.Type
-		// TODO
-		fn := func() {}
-		return SDKType{typ: reflect.TypeOf(fn)}
-	}
-
-	if e, ok := e.(Ellipsis); ok {
-		return vm.proxyType(e.Elt)
-	}
-
-	vm.fatalf("unhandled proxyType for %v (%T)", e, e)
-	return nil
-}
-
-// never returns a CanMake
-func (vm *VM) makeType(e Evaluable) reflect.Type {
-	if id, ok := e.(Ident); ok {
-		typ, ok := builtins[id.name]
-		if ok {
-			return typ.Interface().(builtinType).typ
-		}
-		return structValueType
-	}
-	if star, ok := e.(StarExpr); ok {
-		nonStarType := vm.makeType(star.x)
-		return reflect.PointerTo(nonStarType)
-	}
-	if sel, ok := e.(SelectorExpr); ok {
-		typ := vm.localEnv().valueLookUp(sel.x.(Ident).name)
-		val := typ.Interface()
-		if canSelect, ok := val.(CanSelect); ok {
-			selVal := canSelect.selectFieldOrMethod(sel.selector.name)
-			return reflect.TypeOf(selVal.Interface())
-		}
-		pkgType := stdtypes[sel.x.(Ident).name][sel.selector.name]
-		return reflect.TypeOf(pkgType.Interface())
-	}
-	if ar, ok := e.(ArrayType); ok {
-		elemType := vm.makeType(ar.elt)
-		if ar.len == nil {
-			return reflect.SliceOf(elemType)
-		} else {
-			lenVal := vm.returnsEval(ar.len)
-			size := int(lenVal.Int())
-			return reflect.ArrayOf(size, elemType)
-		}
-	}
-	if _, ok := e.(FuncType); ok {
-		// any function type will do; we just need its reflect.Type
-		fn := func() {}
-		return reflect.TypeOf(fn)
-	}
-	if e, ok := e.(Ellipsis); ok {
-		return vm.makeType(e.Elt)
-	}
-	vm.fatal(fmt.Sprintf("unhandled makeType for %v (%T)", e, e))
-	return nil
 }
 
 // pushOperand pushes a value onto the operand stack as the result of an evaluation.
@@ -248,14 +137,6 @@ func (vm *VM) popFrame() {
 	framePool.Put(frame)
 }
 
-// fatal reports a fatal error and stops execution.
-func (vm *VM) fatal(err any) {
-	fmt.Fprintln(os.Stderr, "[gi] fatal error:", err)
-	fmt.Fprintln(os.Stderr, "")
-	vm.printStack()
-	panic(err)
-}
-
 // fatalf reports a fatal error and stops execution.
 func (vm *VM) fatalf(format string, a ...any) {
 	line := fmt.Sprintf(format, a...)
@@ -276,18 +157,10 @@ func (vm *VM) takeAllStartingAt(head Step) {
 	here := head
 	for here != nil {
 		if trace {
-			fmt.Printf("%v @ %s\n", here, vm.sourceLocation(here))
+			fmt.Printf("%v @ %s\n", here, sourceLocation(vm.fileSet, here.Pos()))
 		}
 		here = here.take(vm)
 	}
-}
-
-// sourceLocation returns a string representation of the source location of the given Evaluable (can be nil).
-func (vm *VM) sourceLocation(e Evaluable) string {
-	if e == nil {
-		return "<no creator>"
-	}
-	return sourceLocation(vm.fileSet, e.Pos())
 }
 
 func (vm *VM) printStack() {

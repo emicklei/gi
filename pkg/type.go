@@ -62,7 +62,7 @@ func (s TypeSpec) makeValue(vm *VM, _ int, elements []reflect.Value) reflect.Val
 		structVal := i.makeValue(vm, 0, elements)
 		return structVal
 	}
-	vm.fatal(fmt.Sprintf("expected a CanMake value:%v", s.typ))
+	vm.fatalf("expected a CanMake value:%v", s.typ)
 	return reflectNil
 }
 

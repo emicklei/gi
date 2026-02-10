@@ -51,7 +51,7 @@ func (i IndexExpr) assign(vm *VM, value reflect.Value) {
 	case reflect.Slice, reflect.Array:
 		target.Index(int(index.Int())).Set(value)
 	default:
-		vm.fatal("expected map or slice or array")
+		vm.fatalf("expected map or slice or array")
 	}
 }
 

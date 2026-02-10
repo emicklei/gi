@@ -78,7 +78,7 @@ func (s StructType) literalCompose(vm *VM, composite reflect.Value, values []ref
 			return
 		}
 	}
-	vm.fatal("expected a CanCompose value")
+	vm.fatalf("expected a CanCompose value")
 	return reflectNil // unreachable
 }
 

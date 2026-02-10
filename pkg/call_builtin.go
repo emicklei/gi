@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"fmt"
 	"go/token"
 	"reflect"
 )
@@ -160,7 +159,7 @@ func (c CallExpr) evalMake(vm *VM) {
 		vm.pushOperand(structVal)
 		return
 	}
-	vm.fatal(fmt.Sprintf("make: expected a CanInstantiate value:%v", typ))
+	vm.fatalf("make: expected a CanInstantiate value:%v", typ)
 }
 
 func (c CallExpr) evalNew(vm *VM) {

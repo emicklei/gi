@@ -37,7 +37,7 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 			return
 		}
 
-		vm.fatal(fmt.Sprintf("cannot assign to field %v for receiver: %v (%T)", s, recv.Interface(), recv.Interface()))
+		vm.fatalf("cannot assign to field %v for receiver: %v (%T)", s, recv.Interface(), recv.Interface())
 		return
 	}
 	recv := vm.returnsEval(s.x)
@@ -47,21 +47,21 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 		recv = vm.heap.read(hp)
 	}
 	if !recv.IsValid() {
-		vm.fatal("cannot assign to invalid selector receiver")
+		vm.fatalf("cannot assign to invalid selector receiver")
 	}
 	rec, ok := recv.Interface().(CanSelect)
 	if ok {
 		sel := rec.selectFieldOrMethod(s.selector.name)
 		if !sel.IsValid() {
-			vm.fatal(fmt.Sprintf("field %s not found for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface()))
+			vm.fatalf("field %s not found for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface())
 		}
 		if !sel.CanSet() {
-			vm.fatal(fmt.Sprintf("field %s is not settable for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface()))
+			vm.fatalf("field %s is not settable for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface())
 		}
 		sel.Set(val)
 		return
 	}
-	vm.fatal(fmt.Sprintf("cannot assign to method %s for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface()))
+	vm.fatalf("cannot assign to method %s for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface())
 }
 
 func (s SelectorExpr) Eval(vm *VM) {
@@ -147,7 +147,7 @@ func (s SelectorExpr) Eval(vm *VM) {
 		}
 	}
 
-	vm.fatal(fmt.Sprintf("method or field \"%s\" not found for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface()))
+	vm.fatalf("method or field \"%s\" not found for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface())
 }
 
 func (s SelectorExpr) flow(g *graphBuilder) (head Step) {

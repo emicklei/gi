@@ -27,7 +27,7 @@ func (a ArrayType) makeValue(vm *VM, size int, elements []reflect.Value) reflect
 			size = int(len.Int())
 		}
 	}
-	eltType := vm.makeType(a.elt)
+	eltType := makeType(vm, a.elt)
 	if a.len == nil {
 		// slice
 		sliceType := reflect.SliceOf(eltType)

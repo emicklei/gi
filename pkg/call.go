@@ -105,7 +105,7 @@ func (c CallExpr) Eval(vm *VM) {
 		vals := fn.Call(args)
 		pushCallResults(vm, vals)
 	default:
-		vm.fatal(fmt.Sprintf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface()))
+		vm.fatalf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface())
 	}
 }
 
@@ -150,7 +150,7 @@ func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
 func (c CallExpr) handleArrayType(vm *VM, at ArrayType) {
 	// do a conversion to array/slice
 	toConvert := vm.popOperand()
-	rt := vm.makeType(at.elt)
+	rt := makeType(vm, at.elt)
 	length := toConvert.Len()
 	capacity := toConvert.Len()
 	st := reflect.SliceOf(rt)
@@ -177,7 +177,7 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		if identArg, ok := c.args[0].(Ident); ok {
 			vm.localEnv().set(identArg.name, cleared)
 		} else {
-			vm.fatal("clear argument must be an identifier")
+			vm.fatalf("clear argument must be an identifier")
 		}
 	case "min":
 		c.evalMin(vm)
@@ -186,7 +186,7 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 	case "recover":
 		c.evalRecover(vm)
 	default:
-		vm.fatal("unknown builtin function: " + bf.name)
+		vm.fatalf("unknown builtin function: %s", bf.name)
 	}
 }
 
@@ -238,7 +238,7 @@ func setZeroReturnsToFrame(ft *FuncType, vm *VM, frame *stackFrame) {
 	}
 	for _, field := range ft.Results.List {
 		for _, name := range field.names {
-			val := reflect.Zero(vm.makeType(field.typ)) // TODO put types from gopkg in Field?
+			val := reflect.Zero(makeType(vm, field.typ)) // TODO put types from gopkg in Field?
 			frame.env.set(name.name, val)
 		}
 	}
@@ -255,7 +255,7 @@ func setParametersToFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *sta
 			val := args[p]
 			if val.Interface() == untypedNil {
 				// create a zero value of the expected type
-				val = reflect.Zero(vm.makeType(field.typ)) // TODO put types from gopkg in Field?
+				val = reflect.Zero(makeType(vm, field.typ)) // TODO put types from gopkg in Field?
 			}
 			frame.env.set(name.name, val)
 			p++
@@ -285,7 +285,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 			for j := 1; j < len(vals); j++ {
 				vals[j] = vm.popOperand()
 			}
-			elemType := vm.makeType(expectedType)
+			elemType := makeType(vm, expectedType)
 			sliceType := reflect.SliceOf(elemType)
 			sliceVal := reflect.MakeSlice(sliceType, len(vals), len(vals))
 			for k := 0; k < len(vals); k++ {

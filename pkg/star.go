@@ -39,16 +39,16 @@ func (s StarExpr) Eval(vm *VM) {
 			vm.pushOperand(v)
 			return
 		} else {
-			vm.fatal(fmt.Sprintf("unhandled struct type: %v (%T)", v.Interface(), v.Interface()))
+			vm.fatalf("unhandled struct type: %v (%T)", v.Interface(), v.Interface())
 		}
 	}
 
 	// Regular pointer dereference - validate it's a pointer
 	if v.Kind() != reflect.Pointer {
-		vm.fatal(fmt.Sprintf("cannot dereference non-pointer type: %v", v.Kind()))
+		vm.fatalf("cannot dereference non-pointer type: %v", v.Kind())
 	}
 	if v.IsNil() {
-		vm.fatal("cannot dereference nil pointer")
+		vm.fatalf("cannot dereference nil pointer")
 	}
 	vm.pushOperand(v.Elem())
 }
@@ -66,10 +66,10 @@ func (s StarExpr) assign(vm *VM, value reflect.Value) {
 		return
 	}
 	if v.Kind() != reflect.Pointer {
-		vm.fatal(fmt.Sprintf("cannot dereference non-pointer type: %v", v.Kind()))
+		vm.fatalf("cannot dereference non-pointer type: %v", v.Kind())
 	}
 	if v.IsNil() {
-		vm.fatal("cannot dereference nil pointer")
+		vm.fatalf("cannot dereference nil pointer")
 	}
 	uv := v.Elem()
 	uv.Set(value.Convert(uv.Type()))
@@ -78,7 +78,7 @@ func (s StarExpr) assign(vm *VM, value reflect.Value) {
 func (s StarExpr) define(vm *VM, value reflect.Value) {
 	// Define through a pointer doesn't make sense in Go
 	// This would be like *p := value, which is invalid syntax
-	vm.fatal("cannot use := with pointer dereference")
+	vm.fatalf("cannot use := with pointer dereference")
 }
 
 func (s StarExpr) Pos() token.Pos { return s.starPos }
