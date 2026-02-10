@@ -76,7 +76,7 @@ func (r RangeStmt) flow(g *graphBuilder) (head Step) {
 		g.fatal(fmt.Sprintf("unhandled range over basic type %v", r.xType))
 	case *types.Chan:
 		// start the chan flow, detached from the current
-		g.current = g.newLabeledStep("~range-chan", r.Pos())
+		g.current = nil // g.newLabeledStep("~range-chan", r.Pos())
 		switcher.chanFlow = r.chanFlow(g)
 		g.nextStep(rangeDone)
 	default:
@@ -175,8 +175,8 @@ func (r RangeStmt) chanFlow(g *graphBuilder) (head Step) {
 		rhs:    []Expr{recv},
 	}
 	bodyList := append([]Stmt{ass}, r.body.list...)
-	body := &BlockStmt{list: bodyList}
-	return ForStmt{body: body}.flow(g)
+	body := &BlockStmt{lbracePos: r.body.Pos(), list: bodyList}
+	return ForStmt{forPos: r.Pos(), body: body}.flow(g)
 }
 
 func (r RangeStmt) mapFlow(g *graphBuilder) (head Step) {
@@ -229,15 +229,6 @@ func (r RangeStmt) mapFlow(g *graphBuilder) (head Step) {
 	g.current = iter
 	return
 }
-
-type noExpr struct{}
-
-func (noExpr) Pos() token.Pos { return token.NoPos }
-func (noExpr) Eval(vm *VM)    {} // used?
-func (n noExpr) flow(g *graphBuilder) (head Step) {
-	return g.current
-}
-func (noExpr) String() string { return "NoExpr" }
 
 func (r RangeStmt) intFlow(g *graphBuilder) (head Step) {
 
@@ -381,24 +372,6 @@ func (r RangeStmt) String() string {
 
 func (r RangeStmt) stmtStep() Evaluable { return r }
 
-type reflectLenExpr struct {
-	X Expr
-}
-
-func (r reflectLenExpr) Pos() token.Pos { return r.X.Pos() }
-func (r reflectLenExpr) Eval(vm *VM) {
-	val := vm.popOperand()
-	vm.pushOperand(reflect.ValueOf(val.Len()))
-}
-func (r reflectLenExpr) flow(g *graphBuilder) (head Step) {
-	head = r.X.flow(g)
-	g.next(r)
-	return
-}
-func (r reflectLenExpr) String() string {
-	return fmt.Sprintf("reflectLenExpr(%v)", r.X)
-}
-
 // rangeIteratorSwitchStep looks at the Kind of the value of X to determine which flow to use.
 type rangeIteratorSwitchStep struct {
 	step
@@ -441,6 +414,7 @@ func (i *rangeIteratorSwitchStep) take(vm *VM) Step {
 	}
 	return nil
 }
+
 func (i *rangeIteratorSwitchStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
 	me := i.step.traverseWithLabel(g, i.step.StringWith("~range-iterator-switch"), sourceLocation(fs, i.Pos()), fs)
 	if i.mapFlow != nil {
@@ -476,4 +450,31 @@ func (i *rangeIteratorSwitchStep) traverse(g *dot.Graph, fs *token.FileSet) dot.
 		}
 	}
 	return me
+}
+
+type noExpr struct{}
+
+func (noExpr) Pos() token.Pos { return token.NoPos }
+func (noExpr) Eval(vm *VM)    {} // used?
+func (n noExpr) flow(g *graphBuilder) (head Step) {
+	return g.current
+}
+func (noExpr) String() string { return "NoExpr" }
+
+type reflectLenExpr struct {
+	X Expr
+}
+
+func (r reflectLenExpr) Pos() token.Pos { return r.X.Pos() }
+func (r reflectLenExpr) Eval(vm *VM) {
+	val := vm.popOperand()
+	vm.pushOperand(reflect.ValueOf(val.Len()))
+}
+func (r reflectLenExpr) flow(g *graphBuilder) (head Step) {
+	head = r.X.flow(g)
+	g.next(r)
+	return
+}
+func (r reflectLenExpr) String() string {
+	return fmt.Sprintf("reflectLenExpr(%v)", r.X)
 }
