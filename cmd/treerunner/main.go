@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/emicklei/gi"
+	"github.com/emicklei/gi/pkg"
 )
 
 var dir = flag.String("dir", ".", "directory to run gi on")
@@ -22,6 +23,7 @@ var skip = flag.String("skip", "", "comma-separated list of directories to skip"
 func main() {
 	flag.Parse()
 
+	processSafeFlags()
 	pathsToSkip := strings.Split(*skip, ",")
 
 	wr := walkReport{
@@ -56,6 +58,19 @@ func main() {
 	fmt.Printf("summary: %d succeeded, %d failed\n", wr.Success, wr.Failed)
 	if *report != "" {
 		generateReport(wr)
+	}
+}
+
+func processSafeFlags() {
+	if os.Getenv("GI_IGNORE_EXIT") != "" {
+		pkg.OnOsExit(func(code int) {
+			fmt.Fprintf(os.Stderr, "[gi] os.Exit called with code %d\n", code)
+		})
+	}
+	if os.Getenv("GI_IGNORE_PANIC") != "" {
+		pkg.OnPanic(func(why any) {
+			fmt.Fprintf(os.Stderr, "[gi] panic called with %v\n", why)
+		})
 	}
 }
 
