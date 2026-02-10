@@ -161,11 +161,13 @@ func (r *rangeMapIteratorNextStep) String() string {
 }
 
 func (r RangeStmt) chanFlow(g *graphBuilder) (head Step) {
+	// <- chan
 	recv := UnaryExpr{
 		opPos: r.Pos(),
 		op:    token.ARROW,
 		x:     r.x,
 	}
+	// var := <- chan
 	ass := AssignStmt{
 		tok:    token.DEFINE,
 		tokPos: r.Pos(),
@@ -178,7 +180,7 @@ func (r RangeStmt) chanFlow(g *graphBuilder) (head Step) {
 }
 
 func (r RangeStmt) mapFlow(g *graphBuilder) (head Step) {
-	head = r.x.flow(g) // again on the stack
+	head = r.x.flow(g) // again on the stack so we can call MapRange to set the iterator
 
 	// create the iterator
 	localVarName := internalVarName("mapIter", g.idgen)

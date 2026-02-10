@@ -40,3 +40,14 @@ func main() {
 	print(j)
 }`, "0121")
 }
+
+func TestForReturn(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	for {
+		print(1)
+		return
+	}
+}`, "1")
+}

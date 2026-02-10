@@ -7,6 +7,7 @@ import (
 
 func TestRangeOfChanDead(t *testing.T) {
 	t.Skip()
+	trace = true
 	setAttr(t, "dot", true)
 	testMain(t, `package main
 
