@@ -1,24 +1,26 @@
 package pkg
 
+import "slices"
+
 // A runner can interpret a function step-by-step.
 type Runner struct {
-	all map[string]*Package
+	all []*Package // ordered and unique
 	vm  *VM
 }
 
 func NewRunner(mainPackage *Package) *Runner {
 	r := &Runner{
-		all: make(map[string]*Package),
+		all: []*Package{},
 		vm:  NewVM(mainPackage),
 	}
 	r.collectPackages(mainPackage)
 	return r
 }
 func (r *Runner) collectPackages(from *Package) {
-	if _, ok := r.all[from.PkgPath]; ok {
+	if slices.Contains(r.all, from) {
 		return
 	}
-	r.all[from.PkgPath] = from
+	r.all = append(r.all, from)
 	for _, subpkg := range from.env.packageTable {
 		r.collectPackages(subpkg)
 	}

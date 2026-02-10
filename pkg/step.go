@@ -49,7 +49,7 @@ func (s *step) take(vm *VM) Step {
 }
 
 func (s *step) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return s.traverseWithLabel(g, s.String(), location(fs, s.Pos()), fs)
+	return s.traverseWithLabel(g, s.String(), sourceLocation(fs, s.Pos()), fs)
 }
 
 func (s *step) traverseWithLabel(g *dot.Graph, label, edge string, fs *token.FileSet) dot.Node {
@@ -97,7 +97,7 @@ func (s *evaluableStep) String() string {
 }
 
 func (s *evaluableStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return s.traverseWithLabel(g, s.String(), location(fs, s.Pos()), fs)
+	return s.traverseWithLabel(g, s.String(), sourceLocation(fs, s.Pos()), fs)
 }
 
 type conditionalStep struct {
@@ -176,7 +176,7 @@ func (p *pushEnvironmentStep) String() string {
 	return fmt.Sprintf("%d: ~push env", p.ID())
 }
 func (p *pushEnvironmentStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return p.step.traverseWithLabel(g, p.String(), location(fs, p.pos), fs)
+	return p.step.traverseWithLabel(g, p.String(), sourceLocation(fs, p.pos), fs)
 }
 
 type popEnvironmentStep struct {
@@ -201,7 +201,7 @@ func (p *popEnvironmentStep) String() string {
 }
 
 func (p *popEnvironmentStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return p.step.traverseWithLabel(g, p.String(), location(fs, p.pos), fs)
+	return p.step.traverseWithLabel(g, p.String(), sourceLocation(fs, p.pos), fs)
 }
 
 type returnStep struct {
@@ -234,7 +234,7 @@ func (s *labeledStep) String() string {
 }
 
 func (s *labeledStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return s.step.traverseWithLabel(g, s.String(), location(fs, s.pos), fs)
+	return s.step.traverseWithLabel(g, s.String(), sourceLocation(fs, s.pos), fs)
 }
 
 type popOperandStep struct {

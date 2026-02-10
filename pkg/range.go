@@ -99,7 +99,7 @@ func (r *rangeMapIteratorInitStep) take(vm *VM) Step {
 }
 
 func (r *rangeMapIteratorInitStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-init"), location(fs, r.Pos()), fs)
+	return r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-init"), sourceLocation(fs, r.Pos()), fs)
 }
 
 func (r *rangeMapIteratorInitStep) Pos() token.Pos {
@@ -137,7 +137,7 @@ func (r *rangeMapIteratorNextStep) take(vm *VM) Step {
 }
 
 func (r *rangeMapIteratorNextStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	me := r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-next"), location(fs, r.Pos()), fs)
+	me := r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-next"), sourceLocation(fs, r.Pos()), fs)
 	if r.bodyFlow != nil {
 		// no edge if visited before
 		sid := strconv.Itoa(r.bodyFlow.ID())
@@ -161,8 +161,20 @@ func (r *rangeMapIteratorNextStep) String() string {
 }
 
 func (r RangeStmt) chanFlow(g *graphBuilder) (head Step) {
-	head = r.x.flow(g) // again on the stack
-	return
+	recv := UnaryExpr{
+		opPos: r.Pos(),
+		op:    token.ARROW,
+		x:     r.x,
+	}
+	ass := AssignStmt{
+		tok:    token.DEFINE,
+		tokPos: r.Pos(),
+		lhs:    []Expr{r.key},
+		rhs:    []Expr{recv},
+	}
+	bodyList := append([]Stmt{ass}, r.body.list...)
+	body := &BlockStmt{list: bodyList}
+	return ForStmt{body: body}.flow(g)
 }
 
 func (r RangeStmt) mapFlow(g *graphBuilder) (head Step) {
@@ -428,7 +440,7 @@ func (i *rangeIteratorSwitchStep) take(vm *VM) Step {
 	return nil
 }
 func (i *rangeIteratorSwitchStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	me := i.step.traverseWithLabel(g, i.step.StringWith("~switch-iterator"), location(fs, i.Pos()), fs)
+	me := i.step.traverseWithLabel(g, i.step.StringWith("~range-iterator-switch"), sourceLocation(fs, i.Pos()), fs)
 	if i.mapFlow != nil {
 		// no edge if visited before
 		sid := strconv.Itoa(i.mapFlow.ID())
@@ -457,8 +469,8 @@ func (i *rangeIteratorSwitchStep) traverse(g *dot.Graph, fs *token.FileSet) dot.
 		// no edge if visited before
 		sid := strconv.Itoa(i.chanFlow.ID())
 		if !g.HasNodeWithID(sid) {
-			intNode := i.chanFlow.traverse(g, fs)
-			me.Edge(intNode, "int")
+			chanNode := i.chanFlow.traverse(g, fs)
+			me.Edge(chanNode, "chan")
 		}
 	}
 	return me

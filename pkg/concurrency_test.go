@@ -34,6 +34,7 @@ func TestMakeChanUserType(t *testing.T) {
 }
 
 func TestMakeChanIntWriteRead(t *testing.T) {
+	//	setAttr(t, "dot", true)
 	testMain(t, `package main
 
 	func main() {

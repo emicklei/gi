@@ -5,6 +5,19 @@ import (
 	"testing"
 )
 
+func TestRangeOfChanDead(t *testing.T) {
+	t.Skip()
+	setAttr(t, "dot", true)
+	testMain(t, `package main
+
+func main() {
+		io := make(chan int, 10)
+		for j := range io {
+			print(j)
+		}
+}`, "")
+}
+
 func TestRangeOfChan(t *testing.T) {
 	t.Skip()
 	setAttr(t, "dot", true)
@@ -15,13 +28,13 @@ func main() {
 		for i := 0; i < 10; i++ {
 			io <- i
 		}
-		for {
-			j := <-io
-			print(j)
-			if j == 4 {
-				break
-			}
-		}
+		// for {
+		// 	j := <-io
+		// 	print(j)
+		// 	if j == 4 {
+		// 		break
+		// 	}
+		// }
 		for j := range io {
 			print(j)
 			if j == 9 {

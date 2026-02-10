@@ -184,7 +184,7 @@ func isPointerToStructValue(v reflect.Value) bool {
 	return true
 }
 
-func location(fs *token.FileSet, pos token.Pos) string {
+func sourceLocation(fs *token.FileSet, pos token.Pos) string {
 	if fs == nil {
 		return "<no file set>"
 	}
@@ -193,4 +193,27 @@ func location(fs *token.FileSet, pos token.Pos) string {
 		return fmt.Sprintf("%s:%d", nodir, f.Line(pos))
 	}
 	return "<bad pos>"
+}
+
+func stringOf(v any) string {
+	if v == nil {
+		return "nil"
+	}
+	if rv, ok := v.(reflect.Value); ok {
+		if rv.IsValid() && rv.CanInterface() {
+			return stringOf(rv.Interface())
+		} else {
+			return fmt.Sprintf("%v", rv)
+		}
+	}
+	if psv, ok := v.(*StructValue); ok {
+		return fmt.Sprintf("%v", psv)
+	}
+	if ts, ok := v.(ToStringer); ok {
+		return ts.toString()
+	}
+	if fs, ok := v.(fmt.Stringer); ok {
+		return fs.String()
+	}
+	return fmt.Sprintf("%v", v)
 }
