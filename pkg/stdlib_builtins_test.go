@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -22,14 +23,15 @@ func TestProgramTypeConvert(t *testing.T) {
 		{"int32"},
 		{"int64"},
 	}
-	for _, tt := range tests {
-		t.Run(tt.typeName, func(t *testing.T) {
+	for i := range tests {
+		tc := tests[i]
+		t.Run(tc.typeName, func(t *testing.T) {
 			t.Parallel()
 			src := fmt.Sprintf(`package main
 			func main() {
 				a := %s(1) + 2
 				print(a)
-			}`, tt.typeName)
+			}`, tc.typeName)
 			out := parseAndWalk(t, src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
@@ -48,8 +50,9 @@ func TestProgramTypeUnsignedConvert(t *testing.T) {
 		{"uint32"},
 		{"uint64"},
 	}
-	for _, tt := range tests {
-		t.Run(tt.typeName, func(t *testing.T) {
+	for i := range tests {
+		tc := tests[i]
+		t.Run(tc.typeName, func(t *testing.T) {
 			t.Parallel()
 			src := fmt.Sprintf(`
 			package main
@@ -57,10 +60,37 @@ func TestProgramTypeUnsignedConvert(t *testing.T) {
 			func main() {
 				a := %s(1) + %s(2)
 				print(a)
-			}`, tt.typeName, tt.typeName)
+			}`, tc.typeName, tc.typeName)
 			out := parseAndWalk(t, src)
 			if got, want := out, "3"; got != want {
 				t.Errorf("[step] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
+			}
+		})
+	}
+}
+
+func TestReflectCondition(t *testing.T) {
+	tests := []struct {
+		name  string
+		input bool
+		want  reflect.Value
+	}{
+		{"true", true, reflectTrue},
+		{"false", false, reflectFalse},
+	}
+	for i := range tests {
+		tc := tests[i]
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got := reflectCondition(tc.input)
+			if got.Kind() != reflect.Bool {
+				t.Fatalf("reflectCondition(%v) kind = %v, want %v", tc.input, got.Kind(), reflect.Bool)
+			}
+			if got.Bool() != tc.want.Bool() {
+				t.Fatalf("reflectCondition(%v) bool = %v, want %v", tc.input, got.Bool(), tc.want.Bool())
+			}
+			if got != tc.want {
+				t.Fatalf("reflectCondition(%v) returned %v, want %v", tc.input, got, tc.want)
 			}
 		})
 	}

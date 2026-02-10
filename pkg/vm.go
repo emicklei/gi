@@ -18,25 +18,6 @@ var framePool = sync.Pool{
 	},
 }
 
-type Engine2 interface {
-	localEnv() Env
-
-	// stepping
-	eval(e Evaluable)
-	returnsEval(e Evaluable) reflect.Value
-	takeAllStartingAt(head Step)
-
-	// operands
-	pushOperand(v reflect.Value)
-	popOperand() reflect.Value
-
-	// frames
-	pushNewFrame(f Func)
-	popFrame()
-
-	fatalf(format string, a ...any)
-}
-
 // Runtime represents a virtual machine that can execute Go code.
 type VM struct {
 	callStack    stack[*stackFrame]
