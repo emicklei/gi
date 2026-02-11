@@ -43,9 +43,9 @@
 | break | ✅ |
 | continue | ✅ |
 | fallthrough | ✅ |
+| Channels `chan` | ✅ |
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
-| Channels `chan` | ⬜ |
 | `select` statement | ⬜ |
 | DAP | ⬜ |
 

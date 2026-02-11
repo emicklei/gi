@@ -5,23 +5,7 @@ import (
 	"testing"
 )
 
-func TestRangeOfChanDead(t *testing.T) {
-	t.Skip()
-	trace = true
-	setAttr(t, "dot", true)
-	testMain(t, `package main
-
-func main() {
-		io := make(chan int, 10)
-		for j := range io {
-			print(j)
-		}
-}`, "")
-}
-
 func TestRangeOfChan(t *testing.T) {
-	t.Skip()
-	setAttr(t, "dot", true)
 	testMain(t, `package main
 
 func main() {

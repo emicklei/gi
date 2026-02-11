@@ -9,7 +9,7 @@ serial:
 
 clean:
 	cd pkg/internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast *.ast.pkg
-	cd pkg && rm -f *.dot *.png *.src *.svg *.ast *panic.html
+	cd pkg && rm -f *.dot *.png *.src *.svg *.ast *panic.html __debug_bin*
 
 skip:
 	cd pkg && go test -v | grep SKIP
@@ -34,11 +34,11 @@ examples: install
 	# cd examples/externalpkg && gi run .
 	cd examples/nestedloop && gi run .
 	cd examples/subpkg && GI_TRACE=1 gi run .
-	
+
 # runs all programs provided by GoByExample and reports failures
 .PHONY: gobyexample
 gobyexample:
 	cd cmd/treerunner && go install
-	if [ ! -d "gobyexample" ]; then git clone https://github.com/mmcgrana/gobyexample; fi	
+	if [ ! -d "gobyexample" ]; then git clone https://github.com/mmcgrana/gobyexample; fi
 	mkdir -p gobyexample/examples/output
 	cd gobyexample/examples && GI_IGNORE_PANIC=1 GI_IGNORE_EXIT=1 treerunner -report output/treerunner-report.json -skip "line-filters" -urlprefix "https://github.com/mmcgrana/gobyexample/tree/master/examples" .
