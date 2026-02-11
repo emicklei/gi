@@ -324,6 +324,12 @@ func writeGoAST(fileName string, goPkg *packages.Package) {
 		}
 	}()
 	buf := new(bytes.Buffer)
+	// do not write fileset
+	fs := goPkg.Fset
+	goPkg.Fset = nil
+	defer func() {
+		goPkg.Fset = fs
+	}
 	spew.Config.DisableMethods = true
 	spew.Config.MaxDepth = 8 // TODO see if this is enough
 	done := make(chan bool)

@@ -9,7 +9,7 @@ serial:
 
 clean:
 	cd pkg/internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast *.ast.pkg
-	cd pkg && rm -f *.dot *.png *.src *.svg *.ast *panic.html __debug_bin*
+	cd pkg && rm -f *.dot *.png *.src *.svg *.ast *panic.html __debug_bin* *.ast.pkg
 
 skip:
 	cd pkg && go test -v | grep SKIP

@@ -218,7 +218,11 @@ func stringOf(v any) string {
 		}
 	}
 	if et, ok := v.(ExtendedValue); ok {
-		return fmt.Sprintf("%v", et.val.Interface())
+		if et.val.IsValid() {
+			return fmt.Sprintf("%v", et.val.Interface())
+		} else {
+			return fmt.Sprintf("%v", et.val)
+		}
 	}
 	if fs, ok := v.(fmt.Stringer); ok {
 		return fs.String()

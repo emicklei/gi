@@ -48,3 +48,4 @@ gobyexample
 
 .zed
 __debug_*
+*.ast.pkg
