@@ -356,8 +356,8 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	vals := []reflect.Value{} // todo size it
 	if fd.typ.Results != nil {
 		for _, field := range fd.results().List {
-			for _, name := range field.names {
-				val := frame.env.valueLookUp(name.name)
+			for _, ident := range field.names {
+				val := frame.env.valueLookUp(ident.name)
 				vals = append(vals, val)
 			}
 		}
@@ -365,20 +365,6 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 
 	vm.popFrame()
 	pushCallResults(vm, vals)
-}
-
-func isEllipsis(t Expr) bool {
-	_, ok := t.(Ellipsis)
-	return ok
-}
-func isStructValue(v reflect.Value) bool {
-	_, ok := v.Interface().(StructValue)
-	return ok
-}
-
-func isPointerExpr(e Expr) bool {
-	_, ok := e.(StarExpr)
-	return ok
 }
 
 func (c CallExpr) flow(g *graphBuilder) (head Step) {

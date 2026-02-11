@@ -9,9 +9,18 @@ import (
 	"strings"
 )
 
-// Deprecated
-func expected(value any, expectation string) reflect.Value {
-	panic(fmt.Sprintf("expected %s : %v (%T)", expectation, value, value))
+func isEllipsis(t Expr) bool {
+	_, ok := t.(Ellipsis)
+	return ok
+}
+func isStructValue(v reflect.Value) bool {
+	_, ok := v.Interface().(StructValue)
+	return ok
+}
+
+func isPointerExpr(e Expr) bool {
+	_, ok := e.(StarExpr)
+	return ok
 }
 
 func mustString(v reflect.Value) string {
@@ -36,7 +45,7 @@ func mustIdentName(e Expr) string {
 	panic(fmt.Sprintf("expected Ident but got %T", e))
 }
 
-// Push return values onto the operand stack in reverse order,
+// pushCallResults puts values onto the operand stack in reverse order,
 // so the first return value ends up on top of the stack.
 func pushCallResults(vm *VM, vals []reflect.Value) {
 	for i := len(vals) - 1; i >= 0; i-- {

@@ -70,7 +70,8 @@ func (s TypeSpec) literalCompose(vm *VM, composite reflect.Value, values []refle
 	if c, ok := s.typ.(CanCompose); ok {
 		return c.literalCompose(vm, composite, values)
 	}
-	return expected(s.typ, "a CanCompose value")
+	vm.fatalf("expected a CanCompose value, got %v (%T)", s.typ, s.typ)
+	return reflectNil
 }
 
 func (s TypeSpec) String() string {

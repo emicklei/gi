@@ -20,10 +20,13 @@ func (r *Runner) collectPackages(from *Package) {
 	if slices.Contains(r.all, from) {
 		return
 	}
-	r.all = append(r.all, from)
 	for _, subpkg := range from.env.packageTable {
 		r.collectPackages(subpkg)
 	}
+	if slices.Contains(r.all, from) {
+		return
+	}
+	r.all = append(r.all, from)
 }
 func (r *Runner) Step() error {
 	// for now skip initialization
