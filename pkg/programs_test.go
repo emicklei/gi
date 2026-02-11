@@ -293,10 +293,14 @@ func TestPointerMethodWithFunctionLiteralArgument(t *testing.T) {
 import "sync"
 
 func main() {
-	var wg sync.WaitGroup
-	wg.Go(func() { print("gi") })
-	print("done")
-}`, "donegi")
+		var wg sync.WaitGroup
+		wg.Add(1)
+		wg.Go(func() {
+			wg.Done()
+			print("gi")
+		})
+		wg.Wait()
+}`, "gi")
 }
 
 // Wait has pointer receiver
