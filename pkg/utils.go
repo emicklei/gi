@@ -197,8 +197,18 @@ func sourceLocation(fs *token.FileSet, pos token.Pos) string {
 }
 
 func stringOf(v any) string {
+	// Note: the order of tests is important!
+	if v == undeclaredNil {
+		return "(0x0,0x0)"
+	}
+	if v == untypedNil {
+		return "(0x0,0x0)"
+	}
 	if v == nil {
 		return "nil"
+	}
+	if s, ok := v.(string); ok {
+		return s
 	}
 	if rv, ok := v.(reflect.Value); ok {
 		if rv.IsValid() && rv.CanInterface() {
@@ -207,14 +217,20 @@ func stringOf(v any) string {
 			return fmt.Sprintf("%v", rv)
 		}
 	}
-	if psv, ok := v.(*StructValue); ok {
-		return fmt.Sprintf("%v", psv)
-	}
-	if ts, ok := v.(ToStringer); ok {
-		return ts.toString()
+	if et, ok := v.(ExtendedValue); ok {
+		return fmt.Sprintf("%v", et.val.Interface())
 	}
 	if fs, ok := v.(fmt.Stringer); ok {
 		return fs.String()
+	}
+	if psv, ok := v.(*StructValue); ok {
+		return fmt.Sprintf("%p", psv)
+	}
+	if fm, ok := v.(fmt.Formatter); ok {
+		return fmt.Sprintf("%v", fm)
+	}
+	if ts, ok := v.(ToStringer); ok {
+		return ts.toString()
 	}
 	return fmt.Sprintf("%v", v)
 }

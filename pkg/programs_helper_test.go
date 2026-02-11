@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -25,32 +24,7 @@ func buildPackage(t *testing.T, source string) *Package {
 func collectPrintOutput(vm *VM) {
 	vm.currentEnv().set("print", reflect.ValueOf(func(args ...any) {
 		for _, a := range args {
-			if rv, ok := a.(reflect.Value); ok && rv.IsValid() && rv.CanInterface() {
-				// check for pointer to array
-				if rv.Kind() == reflect.Pointer && rv.Elem().Kind() == reflect.Array {
-					fmt.Fprintf(vm.output, "%v", rv.Elem().Interface())
-				} else if rv.Kind() == reflect.Pointer {
-					v := rv.Elem().Interface()
-					fmt.Fprintf(vm.output, "%v", v)
-				} else {
-					v := rv.Interface()
-					fmt.Fprintf(vm.output, "%v", v)
-				}
-			} else {
-				if s, ok := a.(string); ok {
-					io.WriteString(vm.output, s)
-					continue
-					// handle *StructValue specially because it implements Format
-				} else if psv, ok := a.(*StructValue); ok {
-					fmt.Fprintf(vm.output, "%p", psv)
-				} else if a == undeclaredNil {
-					fmt.Fprintf(vm.output, "(0x0,0x0)")
-				} else if a == untypedNil {
-					fmt.Fprintf(vm.output, "(0x0,0x0)")
-				} else {
-					fmt.Fprintf(vm.output, "%v", a)
-				}
-			}
+			fmt.Fprint(vm.output, stringOf(a))
 		}
 	}))
 }

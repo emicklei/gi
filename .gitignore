@@ -47,3 +47,4 @@ gobyexample
 *.ast
 
 .zed
+__debug_*

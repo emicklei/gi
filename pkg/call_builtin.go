@@ -186,6 +186,9 @@ func (c CallExpr) evalNew(vm *VM) {
 	// typ is an instance of a standard or imported external type
 	rtype := reflect.TypeOf(typ)
 	rval := reflect.New(rtype)
+	if len(c.args) == 1 {
+		rval.Elem().Set(valWithType)
+	}
 	vm.pushOperand(rval)
 }
 
