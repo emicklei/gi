@@ -12,6 +12,7 @@ type stackFrame struct {
 	env      Env  // current environment with name->value mapping
 	operands []reflect.Value
 	defers   []funcInvocation
+	returnTo Step // the step to return to after this function finishes, or nil if this is the top-level frame
 }
 
 // push adds a value onto the operand stack.

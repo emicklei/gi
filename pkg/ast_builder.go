@@ -366,8 +366,8 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		// check for standard package
 		if symbolTable := stdfuncs[unq]; symbolTable != nil {
 			p := SDKPackage{
-				Name:        pkgName,
-				PkgPath:     unq,
+				name:        pkgName,
+				pkgPath:     unq,
 				symbolTable: symbolTable,
 			}
 			// check for types
@@ -381,8 +381,8 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		// check for imported external package
 		if symbols := importedPkgs[unq]; symbols != nil {
 			p := ExternalPackage{SDKPackage: SDKPackage{
-				Name:        pkgName,
-				PkgPath:     unq,
+				name:        pkgName,
+				pkgPath:     unq,
 				symbolTable: symbols,
 			}}
 			b.envSet(pkgName, reflect.ValueOf(p))

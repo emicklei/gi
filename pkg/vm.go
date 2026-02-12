@@ -25,6 +25,7 @@ type VM struct {
 	heap         *Heap
 	output       *bytes.Buffer  // for testing only
 	fileSet      *token.FileSet // optional file set for position info
+	currentStep  Step           // for using the VM to debug a function
 }
 
 func NewVM(pkg *Package) *VM {
@@ -83,6 +84,7 @@ func (vm *VM) pushNewFrame(f Func) {
 	}
 	frame := framePool.Get().(*stackFrame)
 	frame.creator = f
+	//frame.returnTo = vm.currentStep.Next()
 	env := envPool.Get().(*Environment)
 	env.parent = vm.currentEnv()
 	frame.env = env
