@@ -2,20 +2,9 @@ package pkg
 
 import (
 	"math"
-	"reflect"
 	"strconv"
 	"testing"
 )
-
-func evalExpr(expr Expr) reflect.Value {
-	g := newGraphBuilder(nil)
-	head := expr.flow(g)
-	p := &Package{env: newPkgEnvironment(nil)}
-	vm := NewVM(p)
-	vm.takeAllStartingAt(head)
-	result := vm.popOperand()
-	return result
-}
 
 func TestInterfaceEqualsNilError(t *testing.T) {
 	testMain(t, `package main

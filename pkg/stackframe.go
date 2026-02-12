@@ -8,11 +8,12 @@ import (
 
 // stackFrame represents a single frame in the VM's function call stack.
 type stackFrame struct {
-	creator  Func // typically a *FuncDecl or *FuncLit
-	env      Env  // current environment with name->value mapping
-	operands []reflect.Value
-	defers   []funcInvocation
-	returnTo Step // the step to return to after this function finishes, or nil if this is the top-level frame
+	creator     Func // typically a *FuncDecl or *FuncLit
+	env         Env  // current environment with name->value mapping
+	operands    []reflect.Value
+	defers      []funcInvocation
+	currentStep Step // for using the VM to debug a function
+	returnTo    Step // the step to return to after this function finishes, or nil if this is the top-level frame
 }
 
 // push adds a value onto the operand stack.

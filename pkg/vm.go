@@ -25,7 +25,6 @@ type VM struct {
 	heap         *Heap
 	output       *bytes.Buffer  // for testing only
 	fileSet      *token.FileSet // optional file set for position info
-	currentStep  Step           // for using the VM to debug a function
 }
 
 func NewVM(pkg *Package) *VM {
