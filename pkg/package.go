@@ -3,6 +3,7 @@ package pkg
 import (
 	"bytes"
 	"fmt"
+	"go/token"
 	"os"
 	"reflect"
 	"time"
@@ -22,51 +23,45 @@ func (p *Package) selectFieldOrMethod(name string) reflect.Value {
 	return p.env.valueLookUp(name)
 }
 
-func (p *Package) Initialize(vm *VM) error {
+func (p *Package) flow(g *graphBuilder) (head Step) {
+	for _, funcDecl := range p.env.inits {
+		s := &callFuncDeclStep{funcDecl: funcDecl}
+		g.nextStep(s)
+		if head == nil {
+			head = s
+		}
+	}
+	clear(p.env.inits)
+	return
+}
+
+func (p *Package) initialize(vm *VM) error {
 	if p.initialized {
 		return nil
 	}
 	p.resolveDeclarations(vm)
-
-	// run all inits
-	//
-	for _, each := range p.env.inits {
-		call := CallExpr{
-			lparenPos: each.Pos(),
-			fun:       Ident{name: "init", namePos: each.Pos()},
-			args:      nil,
-		}
-		stmt := ExprStmt{call}
-		gb := newGraphBuilder(p.Package)
-		initFlow := stmt.flow(gb)
-		// make this a initStep
-		vm.currentEnv().set("init", reflect.ValueOf(each)) // TODO make inits a reflect coll?
-		vm.takeAllStartingAt(initFlow)
-	}
-
-	// for _, each := range p.env.inits {
-	// 	call := CallExpr{
-	// 		lparenPos: each.Pos(),
-	// 		fun:       Ident{name: "init", namePos: each.Pos()},
-	// 		args:      nil,
-	// 	}
-	// 	call.handleFuncDecl(vm, each)
-	// }
-	clear(p.env.inits)
+	g := newGraphBuilder(p.Package)
+	initFlow := p.flow(g)
+	vm.takeAllStartingAt(initFlow)
 
 	p.initialized = true
 	return nil
 }
 
-type initStep struct {
+type callFuncDeclStep struct {
 	step
 	funcDecl *FuncDecl
-	initFlow Step
 }
 
-func (i initStep) Eval(vm *VM) {
-	vm.currentEnv().set("init", reflect.ValueOf(i.funcDecl))
-	vm.takeAllStartingAt(i.initFlow)
+func (c callFuncDeclStep) take(vm *VM) Step {
+	CallExpr{}.handleFuncDecl(vm, c.funcDecl)
+	return c.next
+}
+func (c callFuncDeclStep) String() string {
+	return fmt.Sprintf("callFuncDeclStep(%v)", c.funcDecl)
+}
+func (c callFuncDeclStep) Pos() token.Pos {
+	return c.funcDecl.Pos()
 }
 
 // try declare all of them until none left

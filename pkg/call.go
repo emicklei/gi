@@ -45,68 +45,72 @@ func (c CallExpr) Eval(vm *VM) {
 			vm.fatalf("pointer unexpected %T", fn.Interface())
 		}
 	case reflect.Func:
-		args := make([]reflect.Value, len(c.args))
-		// first to last, see Flow
-		for i := range len(c.args) {
-			var argType reflect.Type
-			if fn.Type().IsVariadic() && i >= fn.Type().NumIn()-1 {
-				// last arg is variadic
-				argType = fn.Type().In(fn.Type().NumIn() - 1)
-			} else {
-				argType = fn.Type().In(i)
-			}
-			val := vm.popOperand()
-			// TODO needed?
-			if !val.IsValid() || val == untypedNil {
-				args[i] = reflect.New(argType).Elem()
-				continue
-			}
-			if hp, ok := asHeapPointer(val); ok {
-				hpv := vm.heap.read(hp)
-				if hpv.CanAddr() {
-					// TODO
-					args[i] = hpv.Addr()
-				} else if sv, ok := hpv.Interface().(StructValue); ok {
-					args[i] = reflect.ValueOf(&sv)
-				} else {
-					// TODO needed?
-					newPtr := reflect.New(hpv.Type())
-					newPtr.Elem().Set(hpv)
-					args[i] = newPtr
-					// after the call use the value of newPtr to write back the heapointer backing value
-					defer func() {
-						vm.heap.write(hp, newPtr.Elem())
-					}()
-				}
-			} else {
-				// need conversion?
-				if argType.Kind() == reflect.Interface && val.Type().Implements(argType) {
-					args[i] = val
-					continue
-				}
-				// TestExtendedString
-				if val.Type() == reflectExtendedType {
-					etv := val.Interface().(ExtendedValue)
-					// TODO for now pass the underlying value of ExtendedValue
-					val = etv.val
-				}
-				// reflect convert?
-				if val.IsValid() {
-					if val.CanConvert(argType) {
-						args[i] = val.Convert(argType)
-						continue
-					}
-				} else {
-					val = reflect.New(argType)
-				}
-				args[i] = val
-			}
-		}
-		vals := fn.Call(args)
-		pushCallResults(vm, vals)
+		c.handleFunc(vm, fn)
 	default:
 		vm.fatalf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface())
 	}
+}
+
+func (c CallExpr) handleFunc(vm *VM, fn reflect.Value) {
+	args := make([]reflect.Value, len(c.args))
+	// first to last, see Flow
+	for i := range len(c.args) {
+		var argType reflect.Type
+		if fn.Type().IsVariadic() && i >= fn.Type().NumIn()-1 {
+			// last arg is variadic
+			argType = fn.Type().In(fn.Type().NumIn() - 1)
+		} else {
+			argType = fn.Type().In(i)
+		}
+		val := vm.popOperand()
+		// TODO needed?
+		if !val.IsValid() || val == untypedNil {
+			args[i] = reflect.New(argType).Elem()
+			continue
+		}
+		if hp, ok := asHeapPointer(val); ok {
+			hpv := vm.heap.read(hp)
+			if hpv.CanAddr() {
+				// TODO
+				args[i] = hpv.Addr()
+			} else if sv, ok := hpv.Interface().(StructValue); ok {
+				args[i] = reflect.ValueOf(&sv)
+			} else {
+				// TODO needed?
+				newPtr := reflect.New(hpv.Type())
+				newPtr.Elem().Set(hpv)
+				args[i] = newPtr
+				// after the call use the value of newPtr to write back the heapointer backing value
+				defer func() {
+					vm.heap.write(hp, newPtr.Elem())
+				}()
+			}
+		} else {
+			// need conversion?
+			if argType.Kind() == reflect.Interface && val.Type().Implements(argType) {
+				args[i] = val
+				continue
+			}
+			// TestExtendedString
+			if val.Type() == reflectExtendedType {
+				etv := val.Interface().(ExtendedValue)
+				// TODO for now pass the underlying value of ExtendedValue
+				val = etv.val
+			}
+			// reflect convert?
+			if val.IsValid() {
+				if val.CanConvert(argType) {
+					args[i] = val.Convert(argType)
+					continue
+				}
+			} else {
+				val = reflect.New(argType)
+			}
+			args[i] = val
+		}
+	}
+	vals := fn.Call(args)
+	pushCallResults(vm, vals)
 }
 
 func (c CallExpr) handleExtendedType(vm *VM, et ExtendedType) {
@@ -201,8 +205,8 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	vm.pushNewFrame(fl)
 	frame := vm.currentFrame
 
-	setParametersToFrame(fl.Type, args, vm, frame)
-	setZeroReturnsToFrame(fl.Type, vm, frame)
+	setParametersForFrame(fl.Type, args, vm, frame)
+	setZeroReturnsForFrame(fl.Type, vm, frame)
 
 	if fl.hasRecoverCall() {
 		defer func() {
@@ -230,37 +234,6 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	}
 	vm.popFrame()
 	pushCallResults(vm, vals)
-}
-
-func setZeroReturnsToFrame(ft *FuncType, vm *VM, frame *stackFrame) {
-	if ft.Results == nil {
-		return
-	}
-	for _, field := range ft.Results.List {
-		for _, name := range field.names {
-			val := reflect.Zero(makeType(vm, field.typ)) // TODO put types from gopkg in Field?
-			frame.env.set(name.name, val)
-		}
-	}
-}
-
-// setParametersToFrame takes all parameters and put them in the env of the new frame
-func setParametersToFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *stackFrame) {
-	if ft.Params == nil {
-		return
-	}
-	p := 0
-	for _, field := range ft.Params.List {
-		for _, name := range field.names {
-			val := args[p]
-			if val.Interface() == untypedNil {
-				// create a zero value of the expected type
-				val = reflect.Zero(makeType(vm, field.typ)) // TODO put types from gopkg in Field?
-			}
-			frame.env.set(name.name, val)
-			p++
-		}
-	}
 }
 
 // TODO deduplicate with handleFuncLit
@@ -334,8 +307,8 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 		}
 	}
 
-	setParametersToFrame(fd.typ, args, vm, frame)
-	setZeroReturnsToFrame(fd.typ, vm, frame)
+	setParametersForFrame(fd.typ, args, vm, frame)
+	setZeroReturnsForFrame(fd.typ, vm, frame)
 
 	if fd.hasRecoverCall() {
 		defer func() {
@@ -354,17 +327,47 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 
 	// take values before popping frame
 	vals := []reflect.Value{} // todo size it
-	if fd.typ.Results != nil {
+	if fd.results() != nil {
 		for _, field := range fd.results().List {
 			for _, ident := range field.names {
 				val := frame.env.valueLookUp(ident.name)
 				vals = append(vals, val)
 			}
 		}
-	}
-
+	} // to have a defer statement in the function for testing
 	vm.popFrame()
 	pushCallResults(vm, vals)
+}
+
+func setZeroReturnsForFrame(ft *FuncType, vm *VM, frame *stackFrame) {
+	if ft.Results == nil {
+		return
+	}
+	for _, field := range ft.Results.List {
+		for _, name := range field.names {
+			val := reflect.Zero(makeType(vm, field.typ)) // TODO put types from gopkg in Field?
+			frame.env.set(name.name, val)
+		}
+	}
+}
+
+// setParametersForFrame takes all parameters and put them in the env of the new frame
+func setParametersForFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *stackFrame) {
+	if ft.Params == nil {
+		return
+	}
+	p := 0
+	for _, field := range ft.Params.List {
+		for _, name := range field.names {
+			val := args[p]
+			if val.Interface() == untypedNil {
+				// create a zero value of the expected type
+				val = reflect.Zero(makeType(vm, field.typ)) // TODO put types from gopkg in Field?
+			}
+			frame.env.set(name.name, val)
+			p++
+		}
+	}
 }
 
 func (c CallExpr) flow(g *graphBuilder) (head Step) {
@@ -382,7 +385,37 @@ func (c CallExpr) flow(g *graphBuilder) (head Step) {
 		head = funFlow
 	}
 	g.next(c)
+	// g.nextStep(newFuncStep(c.Pos(), func(vm *VM) {
+	// 	vm.currentFrame.takeDeferList(vm)
+	// }))
+	g.nextStep(newFuncStep(c.Pos(), postCallFunc))
 	return head
+}
+
+func postCallFunc(vm *VM) {
+	if true {
+		return
+	}
+	if vm.currentFrame.creator == nil {
+		return
+	}
+	creator := vm.currentFrame.creator
+	frame := vm.currentFrame
+	frame.takeDeferList(vm)
+
+	// take values before popping frame
+	vals := []reflect.Value{}
+	if creator.results() != nil {
+		for _, field := range creator.results().List {
+			for _, name := range field.names {
+				val := frame.env.valueLookUp(name.name)
+				vals = append(vals, val)
+			}
+		}
+	}
+	// TODO returnStep,currentStep?
+	vm.popFrame()
+	vm.pushOperands(vals...)
 }
 
 func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {
