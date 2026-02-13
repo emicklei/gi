@@ -9,7 +9,7 @@ import (
 	"github.com/emicklei/gi/pkg"
 )
 
-var dir = flag.String("dir", ".", "directory to run gistep on")
+var dir = flag.String("dir", "/Users/emicklei/Projects/gi/examples/nestedloop", "directory to run gistep on")
 
 func main() {
 	flag.Parse()
@@ -22,7 +22,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	runner := pkg.NewRunner(ipkg)
+	runner := pkg.NewVM(ipkg)
+	runner.Setup("main", nil)
 	var b []byte = make([]byte, 1)
 	for {
 		os.Stdin.Read(b)

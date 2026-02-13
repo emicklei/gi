@@ -25,6 +25,7 @@ type VM struct {
 	heap         *Heap
 	output       *bytes.Buffer  // for testing only
 	fileSet      *token.FileSet // optional file set for position info
+	isStepping   bool           // whether the VM is currently stepping through code
 }
 
 func NewVM(pkg *Package) *VM {
@@ -70,6 +71,14 @@ func (vm *VM) pushOperand(v reflect.Value) {
 		}
 	}
 	vm.currentFrame.push(v)
+}
+
+// pushOperands pushes multiple values onto the operand stack in reverse order,
+// so the first value ends up on top of the stack.
+func (vm *VM) pushOperands(vals ...reflect.Value) {
+	for i := len(vals) - 1; i >= 0; i-- {
+		vm.pushOperand(vals[i])
+	}
 }
 
 // popOperand pops a value from the operand stack.
@@ -136,6 +145,11 @@ func (vm *VM) eval(e Evaluable) {
 }
 
 func (vm *VM) takeAllStartingAt(head Step) {
+	if vm.isStepping {
+		vm.currentFrame.returnTo = vm.currentFrame.currentStep
+		vm.currentFrame.currentStep = head
+		return
+	}
 	here := head
 	for here != nil {
 		if trace {
@@ -143,6 +157,38 @@ func (vm *VM) takeAllStartingAt(head Step) {
 		}
 		here = here.take(vm)
 	}
+}
+
+// take one step
+func (vm *VM) Step() error {
+	here := vm.currentFrame.currentStep
+	if here == nil {
+		return nil
+	}
+	next := here.take(vm)
+	vm.currentFrame.currentStep = next
+	return nil
+}
+func (vm *VM) Location() Step {
+	return vm.currentFrame.currentStep
+}
+func (vm *VM) Setup(funcName string, args []any) {
+	// TODO initialize pkgs
+	fun := vm.currentEnv().valueLookUp(funcName)
+	call := CallExpr{}
+	if args != nil {
+		// add noop expressions as arguments; the values will be pushed on the operand stack
+		for range len(args) {
+			call.args = append(call.args, noExpr{})
+		}
+		// push arguments as parameters on the operand stack, in reverse order
+		for i := len(args) - 1; i >= 0; i-- {
+			vm.pushOperand(reflect.ValueOf(args[i]))
+		}
+	}
+	// until w have breakpoints
+	vm.isStepping = true
+	call.handleFuncDecl(vm, fun.Interface().(*FuncDecl))
 }
 
 func (vm *VM) printStack() {

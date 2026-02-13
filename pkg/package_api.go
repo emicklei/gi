@@ -94,11 +94,11 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	}
 	for _, subpkg := range pkg.env.packageTable {
 		subvm := NewVM(subpkg)
-		if err := subpkg.Initialize(subvm); err != nil {
+		if err := subpkg.initialize(subvm); err != nil {
 			return nil, fmt.Errorf("failed to initialize package %s: %v", subpkg.PkgPath, err)
 		}
 	}
-	if err := pkg.Initialize(vm); err != nil {
+	if err := pkg.initialize(vm); err != nil {
 		return nil, fmt.Errorf("failed to initialize package %s: %v", pkg.PkgPath, err)
 	}
 	// TODO maybe let the call do the lookup?

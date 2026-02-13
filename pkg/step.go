@@ -242,18 +242,43 @@ type popOperandStep struct {
 	pos token.Pos
 }
 
-func (p *popOperandStep) Pos() token.Pos {
+func (p popOperandStep) Pos() token.Pos {
 	return p.pos
 }
 
-func (p *popOperandStep) take(vm *VM) Step {
+func (p popOperandStep) take(vm *VM) Step {
 	vm.popOperand()
 	return p.next
 }
 
-func (p *popOperandStep) String() string {
+func (p popOperandStep) String() string {
 	return fmt.Sprintf("%d: ~pop operand", p.ID())
 }
-func (p *popOperandStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
+func (p popOperandStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
 	return g.Node(strconv.Itoa(p.ID())).Label(p.String())
+}
+
+var _ Step = (*funcStep)(nil)
+
+type funcStep struct {
+	step
+	pos token.Pos
+	fun func(vm *VM)
+}
+
+// newFuncStep creates a new funcStep with the given position and function to execute.
+func newFuncStep(pos token.Pos, fun func(vm *VM)) *funcStep {
+	return &funcStep{pos: pos, fun: fun}
+}
+
+func (p funcStep) take(vm *VM) Step {
+	p.fun(vm)
+	return p.next
+}
+
+func (e funcStep) Pos() token.Pos {
+	return e.pos
+}
+func (e funcStep) String() string {
+	return fmt.Sprintf("%d: ~exec", e.ID())
 }
