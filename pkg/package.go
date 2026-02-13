@@ -35,17 +35,15 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-func (p *Package) initialize(vm *VM) error {
+func (p *Package) initialize(vm *VM) {
 	if p.initialized {
-		return nil
+		return
 	}
 	p.resolveDeclarations(vm)
 	g := newGraphBuilder(p.Package)
 	initFlow := p.flow(g)
-	vm.takeAllStartingAt(initFlow)
-
 	p.initialized = true
-	return nil
+	vm.takeAllStartingAt(initFlow)
 }
 
 type callFuncDeclStep struct {

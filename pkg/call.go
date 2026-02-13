@@ -216,11 +216,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 			frame.takeDeferList(vm)
 		}()
 	}
-
-	// we already have the call graph in FuncLit
-	g := fl.callGraph
-	vm.takeAllStartingAt(g)
-	//postCallFunc(vm)
+	vm.takeAllStartingAt(fl.callGraph)
 }
 
 // TODO deduplicate with handleFuncLit
@@ -306,10 +302,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 			}
 		}()
 	}
-
-	// take all steps from the call graph in FuncDecl
 	vm.takeAllStartingAt(fd.graph)
-	//postCallFunc(vm)
 }
 
 func setZeroReturnsForFrame(ft *FuncType, vm *VM, frame *stackFrame) {
@@ -361,7 +354,7 @@ func (c CallExpr) flow(g *graphBuilder) (head Step) {
 }
 
 // Runs defers and pushes return values on the operand stack after a function call.
-// this needs to happen for interpreted functions only.
+// This needs to happen for interpreted functions (FuncDecl,FuncLit) only.
 func postCallFunc(vm *VM) {
 	frame := vm.currentFrame
 	if frame.creator == nil {
