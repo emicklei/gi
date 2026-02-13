@@ -53,6 +53,8 @@ func (r ReturnStmt) flow(g *graphBuilder) (head Step) {
 	if head == nil {
 		head = g.current
 	}
+	// runs defers and puts result on the operand stack
+	g.nextStep(newFuncStep(g.current.Pos(), postCallFunc))
 	// no next step after return
 	g.current = nil
 	return

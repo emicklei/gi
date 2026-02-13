@@ -3,6 +3,8 @@ package pkg
 import "testing"
 
 func TestFunc(t *testing.T) {
+	trace = true
+	setAttr(t, "dot", "1")
 	testMain(t, `package main
 
 func plus(a int, b int) int {

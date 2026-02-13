@@ -218,8 +218,9 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	}
 
 	// we already have the call graph in FuncLit
-	vm.takeAllStartingAt(fl.callGraph)
-	postCallFunc(vm)
+	g := fl.callGraph
+	vm.takeAllStartingAt(g)
+	//postCallFunc(vm)
 }
 
 // TODO deduplicate with handleFuncLit
@@ -308,22 +309,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 
 	// take all steps from the call graph in FuncDecl
 	vm.takeAllStartingAt(fd.graph)
-	postCallFunc(vm)
-
-	//	frame.takeDeferList(vm)
-
-	// // take values before popping frame
-	// vals := []reflect.Value{} // todo size it
-	// if fd.results() != nil {
-	// 	for _, field := range fd.results().List {
-	// 		for _, ident := range field.names {
-	// 			val := frame.env.valueLookUp(ident.name)
-	// 			vals = append(vals, val)
-	// 		}
-	// 	}
-	// } // to have a defer statement in the function for testing
-	// vm.popFrame()
-	// pushCallResults(vm, vals)
+	//postCallFunc(vm)
 }
 
 func setZeroReturnsForFrame(ft *FuncType, vm *VM, frame *stackFrame) {
@@ -361,21 +347,21 @@ func (c CallExpr) flow(g *graphBuilder) (head Step) {
 	// make sure first value is on top of the operand stack
 	// so we can pop in the right order during Eval
 	for i := len(c.args) - 1; i >= 0; i-- {
+		argFlow := c.args[i].flow(g)
 		if i == len(c.args)-1 {
-			head = c.args[i].flow(g)
-			continue
+			head = argFlow
 		}
-		c.args[i].flow(g)
 	}
 	funFlow := c.fun.flow(g)
 	if head == nil { // must be a function with no args
 		head = funFlow
 	}
 	g.next(c)
-	//g.nextStep(newFuncStep(c.Pos(), postCallFunc))
 	return head
 }
 
+// Runs defers and pushes return values on the operand stack after a function call.
+// this needs to happen for interpreted functions only.
 func postCallFunc(vm *VM) {
 	frame := vm.currentFrame
 	if frame.creator == nil {
