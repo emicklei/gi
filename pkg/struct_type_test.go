@@ -158,7 +158,7 @@ func main() {
 }`, "aircraft")
 }
 
-func TestMITypeethodAccessingField(t *testing.T) {
+func TestITypeMethodAccessingField(t *testing.T) {
 	testMain(t, `package main
 
 func (a Aircraft) S() string { return a.Model } // put before type on purpose
@@ -263,7 +263,7 @@ func main() {
 	model := "plane"
 	a := Aircraft{model:model}
 	b := map[string]string{model: model}
-	
+
 	print(a.model)
 	print(b[model])
 }`, "planeplane")
@@ -285,7 +285,7 @@ func TestITypeAsWriter(t *testing.T) {
 	testMain(t, `package main
 
 import "fmt"
-	
+
 type writer struct {
 	written []byte
 }

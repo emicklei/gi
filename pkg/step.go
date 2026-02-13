@@ -148,7 +148,7 @@ func (c *conditionalStep) String() string {
 	if c == nil {
 		return "conditionalStep(<nil>)"
 	}
-	return fmt.Sprintf("%d: if", c.ID())
+	return fmt.Sprintf("%d: ~if", c.ID())
 }
 
 type pushEnvironmentStep struct {

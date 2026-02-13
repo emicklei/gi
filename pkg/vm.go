@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/token"
+	"io"
 	"os"
 	"reflect"
 	"sync"
@@ -58,16 +59,17 @@ func (vm *VM) returnsEval(e Evaluable) reflect.Value {
 // pushOperand pushes a value onto the operand stack as the result of an evaluation.
 func (vm *VM) pushOperand(v reflect.Value) {
 	if trace {
+		before := len(vm.currentFrame.operands)
 		if v.IsValid() && v.CanInterface() {
 			if v == reflectNil {
-				fmt.Printf("vm.push: untyped nil\n")
+				fmt.Printf("frame[%d].push [%d->%d]: untyped nil\n", vm.currentFrame.id, before, before+1)
 			} else if isUndeclared(v) {
-				fmt.Printf("vm.push: %v (undeclared)\n", v)
+				fmt.Printf("frame[%d].push [%d->%d]: %v (undeclared)\n", vm.currentFrame.id, before, before+1, v)
 			} else {
-				fmt.Printf("vm.push: %v (%T)\n", v.Interface(), v.Interface())
+				fmt.Printf("frame[%d].push [%d->%d]: %v (%T)\n", vm.currentFrame.id, before, before+1, v.Interface(), v.Interface())
 			}
 		} else {
-			fmt.Printf("vm.push: %v\n", v)
+			fmt.Printf("frame[%d].push [%d->%d]: %v\n", vm.currentFrame.id, before, before+1, v)
 		}
 	}
 	vm.currentFrame.push(v)
@@ -83,14 +85,23 @@ func (vm *VM) pushOperands(vals ...reflect.Value) {
 
 // popOperand pops a value from the operand stack.
 func (vm *VM) popOperand() reflect.Value {
-	return vm.currentFrame.pop()
+	if trace {
+		if len(vm.currentFrame.operands) == 0 {
+			vm.fatalf("no operand left on the stack")
+		}
+	}
+	popped := vm.currentFrame.pop()
+	if trace {
+		before := len(vm.currentFrame.operands)
+		fmt.Printf("frame[%d].pop [%d->%d]:%s\n", vm.currentFrame.id, before, before-1, stringOf(popped))
+	}
+	return popped
 }
 
 func (vm *VM) pushNewFrame(f Func) {
-	if trace {
-		fmt.Println("vm.pushNewFrame:", f)
-	}
 	frame := framePool.Get().(*stackFrame)
+	frame.id = frameIdSeq
+	frameIdSeq++
 	frame.creator = f
 	//frame.returnTo = vm.currentStep.Next()
 	env := envPool.Get().(*Environment)
@@ -98,13 +109,21 @@ func (vm *VM) pushNewFrame(f Func) {
 	frame.env = env
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
+	if trace {
+		fmt.Printf("vm.pushNewFrame[%d]:%s", frame.id, stringOf(f))
+	}
 }
 
 func (vm *VM) popFrame() {
 	if trace {
-		fmt.Println("vm.popFrame")
+		if len(vm.callStack) == 0 {
+			vm.fatalf("no frame left on the call stack")
+		}
 	}
 	frame := vm.callStack.pop()
+	if trace {
+		fmt.Printf("vm.popFrame[%d]\n", frame.id)
+	}
 	if len(vm.callStack) > 0 {
 		vm.currentFrame = vm.callStack.top()
 	} else {
@@ -158,14 +177,25 @@ func (vm *VM) takeAllStartingAt(head Step) {
 func (vm *VM) Step() error {
 	here := vm.currentFrame.currentStep
 	if here == nil {
-		return nil
+		return io.EOF
 	}
 	next := here.take(vm)
 	vm.currentFrame.currentStep = next
 	return nil
 }
-func (vm *VM) Location() Step {
-	return vm.currentFrame.currentStep
+func (vm *VM) Location() string {
+	s := vm.currentFrame.currentStep
+	if s == nil {
+		return "no current step"
+	}
+	loc := "no fileset"
+	if vm.fileSet != nil {
+		if s.Pos() == token.NoPos {
+			return "no position info"
+		}
+		loc = sourceLocation(vm.fileSet, s.Pos())
+	}
+	return fmt.Sprintf("%v @ %s", s, loc)
 }
 func (vm *VM) Setup(funcName string, args []any) {
 	// TODO initialize pkgs

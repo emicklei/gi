@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -31,6 +32,9 @@ func main() {
 			os.Exit(0)
 		}
 		if err := runner.Step(); err != nil {
+			if err == io.EOF {
+				return
+			}
 			log.Fatal(err)
 		}
 		fmt.Println(runner.Location())

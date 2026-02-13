@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -98,6 +99,10 @@ func testProgramIn(t *testing.T, dir string, _ any) {
 }
 
 func testMain(t *testing.T, source string, wantFuncOrString any) {
+	if os.Getenv("STEP") != "" {
+		testStepping(t, source, wantFuncOrString)
+		return
+	}
 	t.Parallel()
 	t.Helper()
 	out := parseAndWalk(t, source)
@@ -110,5 +115,29 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 	want := wantFuncOrString.(string)
 	if got, want := out, want; got != want {
 		t.Errorf("got [%v] want [%v]", got, want)
+	}
+}
+
+func testStepping(t *testing.T, source string, wantFuncOrString any) {
+	t.Parallel()
+	t.Helper()
+	defer func() {
+		if trace {
+			fmt.Println("TESTED:", t.Name())
+		}
+	}()
+	pkg := buildPackage(t, source)
+	runner := NewVM(pkg)
+	collectPrintOutput(runner)
+	runner.Setup("main", nil)
+	for {
+		if err := runner.Step(); err != nil {
+			if err == io.EOF {
+				fmt.Println("Program finished")
+				break
+			}
+			t.Fatal(err)
+		}
+		fmt.Println(runner.Location())
 	}
 }

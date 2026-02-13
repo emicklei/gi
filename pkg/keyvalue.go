@@ -56,7 +56,7 @@ func (i identKey) flow(g *graphBuilder) (head Step) {
 func (i identKey) Pos() token.Pos { return i.Ident.Pos() }
 
 func (i identKey) String() string {
-	return fmt.Sprintf("identKey(%v)", i.Ident)
+	return fmt.Sprintf("~identKey(%v)", i.Ident)
 }
 
 type keyValue struct {

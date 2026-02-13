@@ -221,7 +221,6 @@ func TestNestedLoop(t *testing.T) {
 }
 
 func TestNestedLoopFromSource(t *testing.T) {
-	//trace = true
 	testMain(t, `package main
 
 import (

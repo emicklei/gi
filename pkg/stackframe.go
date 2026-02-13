@@ -6,8 +6,11 @@ import (
 	"strings"
 )
 
+var frameIdSeq int
+
 // stackFrame represents a single frame in the VM's function call stack.
 type stackFrame struct {
+	id          int  // for debugging only, not used by the VM
 	creator     Func // typically a *FuncDecl or *FuncLit
 	env         Env  // current environment with name->value mapping
 	operands    []reflect.Value
@@ -18,6 +21,7 @@ type stackFrame struct {
 
 // reset is called before putting the frame back into the pool.
 func (f *stackFrame) reset() {
+	f.id = 0
 	f.creator = nil
 	f.env = nil
 	f.operands = f.operands[:0]
