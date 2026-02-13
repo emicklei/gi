@@ -219,21 +219,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 
 	// we already have the call graph in FuncLit
 	vm.takeAllStartingAt(fl.callGraph)
-
-	frame.takeDeferList(vm)
-
-	// take values before popping frame
-	vals := []reflect.Value{} // todo size it
-	if fl.Type.Results != nil {
-		for _, field := range fl.results().List {
-			for _, name := range field.names {
-				val := frame.env.valueLookUp(name.name)
-				vals = append(vals, val)
-			}
-		}
-	}
-	vm.popFrame()
-	pushCallResults(vm, vals)
+	postCallFunc(vm)
 }
 
 // TODO deduplicate with handleFuncLit
@@ -322,21 +308,22 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 
 	// take all steps from the call graph in FuncDecl
 	vm.takeAllStartingAt(fd.graph)
+	postCallFunc(vm)
 
-	frame.takeDeferList(vm)
+	//	frame.takeDeferList(vm)
 
-	// take values before popping frame
-	vals := []reflect.Value{} // todo size it
-	if fd.results() != nil {
-		for _, field := range fd.results().List {
-			for _, ident := range field.names {
-				val := frame.env.valueLookUp(ident.name)
-				vals = append(vals, val)
-			}
-		}
-	} // to have a defer statement in the function for testing
-	vm.popFrame()
-	pushCallResults(vm, vals)
+	// // take values before popping frame
+	// vals := []reflect.Value{} // todo size it
+	// if fd.results() != nil {
+	// 	for _, field := range fd.results().List {
+	// 		for _, ident := range field.names {
+	// 			val := frame.env.valueLookUp(ident.name)
+	// 			vals = append(vals, val)
+	// 		}
+	// 	}
+	// } // to have a defer statement in the function for testing
+	// vm.popFrame()
+	// pushCallResults(vm, vals)
 }
 
 func setZeroReturnsForFrame(ft *FuncType, vm *VM, frame *stackFrame) {
@@ -385,22 +372,16 @@ func (c CallExpr) flow(g *graphBuilder) (head Step) {
 		head = funFlow
 	}
 	g.next(c)
-	// g.nextStep(newFuncStep(c.Pos(), func(vm *VM) {
-	// 	vm.currentFrame.takeDeferList(vm)
-	// }))
-	g.nextStep(newFuncStep(c.Pos(), postCallFunc))
+	//g.nextStep(newFuncStep(c.Pos(), postCallFunc))
 	return head
 }
 
 func postCallFunc(vm *VM) {
-	if true {
-		return
-	}
-	if vm.currentFrame.creator == nil {
-		return
-	}
-	creator := vm.currentFrame.creator
 	frame := vm.currentFrame
+	if frame.creator == nil {
+		return
+	}
+	creator := frame.creator
 	frame.takeDeferList(vm)
 
 	// take values before popping frame

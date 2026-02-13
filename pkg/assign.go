@@ -24,7 +24,7 @@ func (a AssignStmt) Eval(vm *VM) {
 		// handle "ok" idiom for map index expressions
 		if len(vm.currentFrame.operands) == 0 {
 			if !lastVal.IsValid() {
-				panic("internal error: missing value for assignment")
+				vm.fatalf("internal error: missing value for assignment:%v", a)
 			}
 			v = reflect.ValueOf(!lastVal.IsZero())
 		} else {

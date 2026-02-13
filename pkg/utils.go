@@ -145,17 +145,11 @@ func format(w io.Writer, verb rune, val any) {
 }
 
 // prints types and values
-func console(v any) {
-	if rt, ok := v.(reflect.Type); ok {
-		fmt.Printf("console: type: %s,%v\n", rt.Name(), rt)
-		return
+func console(all ...any) {
+	fmt.Print("console:\n")
+	for _, v := range all {
+		fmt.Printf("\t%s (%T)\n", stringOf(v), v)
 	}
-	if ts, ok := v.(ToStringer); ok {
-		fmt.Printf("console: %s\n", ts.toString())
-		return
-	}
-	// fallback
-	fmt.Printf("console: %#v (%T)\n", v, v)
 }
 
 func internalVarName(meaning string, seq int) string {

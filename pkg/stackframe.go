@@ -16,6 +16,16 @@ type stackFrame struct {
 	returnTo    Step // the step to return to after this function finishes, or nil if this is the top-level frame
 }
 
+// reset is called before putting the frame back into the pool.
+func (f *stackFrame) reset() {
+	f.creator = nil
+	f.env = nil
+	f.operands = f.operands[:0]
+	f.defers = f.defers[:0]
+	f.currentStep = nil
+	f.returnTo = nil
+}
+
 // push adds a value onto the operand stack.
 func (f *stackFrame) push(v reflect.Value) {
 	f.operands = append(f.operands, v)

@@ -119,12 +119,7 @@ func (vm *VM) popFrame() {
 		clear(env.valueTable)
 		envPool.Put(env)
 	}
-
-	// reset references
-	frame.operands = frame.operands[:0]
-	frame.env = nil
-	frame.creator = nil
-	frame.defers = frame.defers[:0]
+	frame.reset()
 	framePool.Put(frame)
 }
 
