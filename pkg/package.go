@@ -24,14 +24,25 @@ func (p *Package) selectFieldOrMethod(name string) reflect.Value {
 }
 
 func (p *Package) flow(g *graphBuilder) (head Step) {
-	for _, funcDecl := range p.env.inits {
-		s := &callFuncDeclStep{funcDecl: funcDecl}
-		g.nextStep(s)
+	// first all subpackages
+	for _, subpkg := range p.env.packageTable {
+		subFlow := subpkg.flow(g)
 		if head == nil {
-			head = s
+			head = subFlow
+		} else {
+			g.nextStep(subFlow)
 		}
 	}
-	clear(p.env.inits)
+	resolve := &resolveDeclarationsStep{pkg: p}
+	if head == nil {
+		head = resolve
+	} else {
+		g.nextStep(resolve)
+	}
+	for _, funcDecl := range p.env.inits {
+		s := &initStep{pkg: p, funcDecl: funcDecl}
+		g.nextStep(s)
+	}
 	return
 }
 
@@ -46,20 +57,51 @@ func (p *Package) initialize(vm *VM) {
 	vm.takeAllStartingAt(initFlow)
 }
 
-type callFuncDeclStep struct {
+type initStep struct {
 	step
+	pkg      *Package
 	funcDecl *FuncDecl
 }
 
-func (c callFuncDeclStep) take(vm *VM) Step {
+func (c initStep) take(vm *VM) Step {
+	// the function does not need arguments nor does it return anything
+	// 	// remember env
+	oldEnv := vm.currentFrame.env
+	// update with the package env
+	vm.currentFrame.env = c.pkg.env
 	CallExpr{}.handleFuncDecl(vm, c.funcDecl)
+	// put it back
+	vm.currentFrame.env = oldEnv
 	return c.next
 }
-func (c callFuncDeclStep) String() string {
-	return fmt.Sprintf("callFuncDeclStep(%v)", c.funcDecl)
+func (c initStep) String() string {
+	return fmt.Sprintf("~initStep(%v)", c.funcDecl)
 }
-func (c callFuncDeclStep) Pos() token.Pos {
+func (c initStep) Pos() token.Pos {
 	return c.funcDecl.Pos()
+}
+
+type resolveDeclarationsStep struct {
+	step
+	pkg *Package
+}
+
+func (p resolveDeclarationsStep) take(vm *VM) Step {
+	// do not step through resolving
+	// remember env
+	oldEnv := vm.currentFrame.env
+	// update with the package env
+	vm.currentFrame.env = p.pkg.env
+	p.pkg.resolveDeclarations(vm)
+	// put it back
+	vm.currentFrame.env = oldEnv
+	return p.next
+}
+func (p resolveDeclarationsStep) String() string {
+	return fmt.Sprintf("~resolveDeclarationsStep(%v)", p.pkg)
+}
+func (p resolveDeclarationsStep) Pos() token.Pos {
+	return token.NoPos
 }
 
 // try declare all of them until none left
@@ -78,7 +120,6 @@ func (p *Package) resolveDeclarations(vm *VM) {
 			}
 		}
 	}
-	clear(p.env.declarations)
 }
 
 func (p *Package) moveMethodsToInterpretedTypes() error {

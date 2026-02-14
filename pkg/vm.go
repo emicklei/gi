@@ -34,12 +34,12 @@ func NewVM(pkg *Package) *VM {
 		output:    new(bytes.Buffer),
 		callStack: make(stack[*stackFrame], 0, 16),
 		heap:      newHeap()}
-	frame := framePool.Get().(*stackFrame)
-	frame.env = pkg.env
 	// happens in tests
 	if pkg.Package != nil {
 		vm.fileSet = pkg.Fset
 	}
+	frame := framePool.Get().(*stackFrame)
+	frame.env = pkg.env
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
 	return vm
@@ -103,14 +103,13 @@ func (vm *VM) pushNewFrame(f Func) {
 	frame.id = frameIdSeq
 	frameIdSeq++
 	frame.creator = f
-	//frame.returnTo = vm.currentStep.Next()
 	env := envPool.Get().(*Environment)
 	env.parent = vm.currentEnv()
 	frame.env = env
 
 	// remember return
-	if vm.isStepping && vm.currentFrame.currentStep != nil {
-		vm.currentFrame.returnTo = vm.currentFrame.currentStep.Next()
+	if vm.isStepping && vm.currentFrame.step != nil {
+		vm.currentFrame.returnTo = vm.currentFrame.step.Next()
 	}
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
@@ -133,7 +132,7 @@ func (vm *VM) popFrame() {
 		vm.currentFrame = vm.callStack.top()
 		if vm.isStepping {
 			//consume return
-			vm.currentFrame.currentStep = vm.currentFrame.returnTo
+			vm.currentFrame.step = vm.currentFrame.returnTo
 			vm.currentFrame.returnTo = nil
 		}
 	} else {
@@ -172,7 +171,7 @@ func (vm *VM) takeAllStartingAt(head Step) {
 	// TODO stepping will be the default behavior
 
 	if vm.isStepping {
-		vm.currentFrame.currentStep = head
+		vm.currentFrame.step = head
 		return
 	}
 	here := head
@@ -187,7 +186,7 @@ func (vm *VM) takeAllStartingAt(head Step) {
 // take one step
 func (vm *VM) Step() error {
 	frame := vm.currentFrame
-	here := frame.currentStep
+	here := frame.step
 	// EOF means function is done
 	if here == nil {
 		return io.EOF
@@ -197,12 +196,12 @@ func (vm *VM) Step() error {
 	// proceed with next if in same frame
 	// if not the currentStep is reset for the new frame
 	if vm.currentFrame == frame {
-		frame.currentStep = next
+		frame.step = next
 	}
 	return nil
 }
 func (vm *VM) Location() string {
-	s := vm.currentFrame.currentStep
+	s := vm.currentFrame.step
 	if s == nil {
 		return "no current step"
 	}

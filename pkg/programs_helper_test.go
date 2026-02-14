@@ -144,13 +144,10 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 	if getAttr(t, "go.ast") == "true" {
 		writeGoAST(astFileName+".go.ast", pkg.Package)
 	}
-
 	runner.Setup("main", nil)
 	for {
-		fmt.Println(runner.Location())
 		if err := runner.Step(); err != nil {
 			if err == io.EOF {
-				fmt.Println(">> main returned")
 				break
 			}
 			t.Fatal(err)

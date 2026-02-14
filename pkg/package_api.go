@@ -92,11 +92,9 @@ func CallPackageFunction(pkg *Package, functionName string, args []any, optional
 	} else {
 		vm = NewVM(pkg)
 	}
-	for _, subpkg := range pkg.env.packageTable {
-		subvm := NewVM(subpkg)
-		subpkg.initialize(subvm)
-	}
-	pkg.initialize(vm)
+	g := newGraphBuilder(pkg.Package)
+	setup := pkg.flow(g)
+	vm.takeAllStartingAt(setup)
 
 	// TODO maybe let the call do the lookup?
 	fun := pkg.env.valueLookUp(functionName)

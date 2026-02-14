@@ -10,13 +10,13 @@ var frameIdSeq int = 1 // vm is created with frame 0
 
 // stackFrame represents a single frame in the VM's function call stack.
 type stackFrame struct {
-	id          int  // for debugging only, not used by the VM
-	creator     Func // typically a *FuncDecl or *FuncLit
-	env         Env  // current environment with name->value mapping
-	operands    []reflect.Value
-	defers      []funcInvocation
-	currentStep Step // for using the VM to debug a function
-	returnTo    Step // the step to return to after this function finishes, or nil if this is the top-level frame
+	id       int  // for debugging only, not used by the VM
+	creator  Func // typically a *FuncDecl or *FuncLit
+	env      Env  // current environment with name->value mapping
+	operands []reflect.Value
+	defers   []funcInvocation
+	step     Step // for using the VM to debug a function
+	returnTo Step // the step to return to after this function finishes, or nil if this is the top-level frame
 }
 
 // reset is called before putting the frame back into the pool.
@@ -26,7 +26,7 @@ func (f *stackFrame) reset() {
 	f.env = nil
 	f.operands = f.operands[:0]
 	f.defers = f.defers[:0]
-	f.currentStep = nil
+	f.step = nil
 	f.returnTo = nil
 }
 
