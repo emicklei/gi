@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-var frameIdSeq int
+var frameIdSeq int = 1 // vm is created with frame 0
 
 // stackFrame represents a single frame in the VM's function call stack.
 type stackFrame struct {

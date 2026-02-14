@@ -204,14 +204,6 @@ func (p *popEnvironmentStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node 
 	return p.step.traverseWithLabel(g, p.String(), sourceLocation(fs, p.pos), fs)
 }
 
-type returnStep struct {
-	evaluableStep
-}
-
-func (r *returnStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return g.Node(strconv.Itoa(r.evaluableStep.ID())).Label(r.String())
-}
-
 type labeledStep struct {
 	step
 	label string
@@ -254,6 +246,7 @@ func (p popOperandStep) take(vm *VM) Step {
 func (p popOperandStep) String() string {
 	return fmt.Sprintf("%d: ~pop operand", p.ID())
 }
+
 func (p popOperandStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
 	return g.Node(strconv.Itoa(p.ID())).Label(p.String())
 }
@@ -262,13 +255,14 @@ var _ Step = (*funcStep)(nil)
 
 type funcStep struct {
 	step
-	pos token.Pos
-	fun func(vm *VM)
+	pos   token.Pos
+	label string
+	fun   func(vm *VM)
 }
 
 // newFuncStep creates a new funcStep with the given position and function to execute.
-func newFuncStep(pos token.Pos, fun func(vm *VM)) *funcStep {
-	return &funcStep{pos: pos, fun: fun}
+func newFuncStep(pos token.Pos, label string, fun func(vm *VM)) *funcStep {
+	return &funcStep{pos: pos, label: label, fun: fun}
 }
 
 func (p funcStep) take(vm *VM) Step {
@@ -279,6 +273,11 @@ func (p funcStep) take(vm *VM) Step {
 func (e funcStep) Pos() token.Pos {
 	return e.pos
 }
+
 func (e funcStep) String() string {
-	return fmt.Sprintf("%d: ~exec", e.ID())
+	return fmt.Sprintf("%d: ~exec %s", e.ID(), e.label)
+}
+
+func (e funcStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
+	return g.Node(strconv.Itoa(e.ID())).Label(fmt.Sprintf("%2d: ~exec %s", e.ID(), e.label))
 }

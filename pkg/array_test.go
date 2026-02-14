@@ -105,7 +105,7 @@ func TestEllipsisArray(t *testing.T) {
 	testMain(t, `package main
 
 func main() {
-	arr := [...]int{1,2,3}	
+	arr := [...]int{1,2,3}
 	print(arr[0], arr[1], arr[2])
 }
 `, "123")
@@ -148,7 +148,7 @@ func TestCopySliceVariations(t *testing.T) {
 	//t.Skip()
 	testMain(t, `package main
 
-func main() {	
+func main() {
 	var a = [8]int{0, 1, 2, 3, 4, 5, 6, 7}
 	var s = make([]int, 6)
 	var b = make([]byte, 5)

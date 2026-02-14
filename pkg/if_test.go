@@ -22,7 +22,7 @@ func TestIfIf(t *testing.T) {
 func main() {
 	if 1 == 2 {
 		print("unreachable")
-	} 
+	}
 	if 2 == 2 {
 		print("gi")
 	}

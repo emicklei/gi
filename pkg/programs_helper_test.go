@@ -98,11 +98,8 @@ func testProgramIn(t *testing.T, dir string, _ any) {
 	}
 }
 
-func testMain(t *testing.T, source string, wantFuncOrString any) {
-	if os.Getenv("STEP") != "" {
-		testStepping(t, source, wantFuncOrString)
-		return
-	}
+// Deprecated: use testMain
+func testMainLoop(t *testing.T, source string, wantFuncOrString any) {
 	t.Parallel()
 	t.Helper()
 	out := parseAndWalk(t, source)
@@ -118,7 +115,7 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 	}
 }
 
-func testStepping(t *testing.T, source string, wantFuncOrString any) {
+func testMain(t *testing.T, source string, wantFuncOrString any) {
 	t.Parallel()
 	t.Helper()
 	defer func() {
@@ -129,15 +126,34 @@ func testStepping(t *testing.T, source string, wantFuncOrString any) {
 	pkg := buildPackage(t, source)
 	runner := NewVM(pkg)
 	collectPrintOutput(runner)
+
+	if getAttr(t, "dot") != nil {
+		// create dot graph for debugging
+		os.WriteFile(fmt.Sprintf("internal/testgraphs/%s.src", t.Name()), []byte(source), 0644)
+		dotFileName := fmt.Sprintf("internal/testgraphs/%s.dot", t.Name())
+		pkg.writeCallGraph(dotFileName)
+		// will fail in pipeline without graphviz installed
+		exec.Command("dot", "-Tsvg", "-o", dotFileName+".svg", dotFileName).Run()
+		os.Remove(dotFileName)
+	}
+	// create ast dump for debugging, requires test to set attribute(s)
+	astFileName := fmt.Sprintf("internal/testgraphs/%s", t.Name())
+	if getAttr(t, "ast") == "true" {
+		pkg.writeAST(astFileName + ".ast")
+	}
+	if getAttr(t, "go.ast") == "true" {
+		writeGoAST(astFileName+".go.ast", pkg.Package)
+	}
+
 	runner.Setup("main", nil)
 	for {
+		fmt.Println(runner.Location())
 		if err := runner.Step(); err != nil {
 			if err == io.EOF {
-				fmt.Println("Program finished")
+				fmt.Println(">> main returned")
 				break
 			}
 			t.Fatal(err)
 		}
-		fmt.Println(runner.Location())
 	}
 }

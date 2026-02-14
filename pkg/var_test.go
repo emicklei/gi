@@ -96,7 +96,7 @@ const a = 1`, "21")
 func TestMultiVar(t *testing.T) {
 	testMain(t, `package main
 
-func main() {	
+func main() {
 	var b, c int = 1, 2
 	print(b,c)
 }`, "12")

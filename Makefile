@@ -14,6 +14,9 @@ clean:
 skip:
 	cd pkg && go test -v | grep SKIP
 
+unloop:
+	cd pkg &&fgrep testMainLoop *.go
+
 bench:
 	go test -benchmem -bench=. ./pkg
 
@@ -25,7 +28,7 @@ lint:
 	golangci-lint run
 
 # go install golang.org/x/tools/cmd/deadcode@latest
-unused:
+deadcode:
 	cd cmd/gi && deadcode -test .
 
 .PHONY: test clean todo bench install unused examples lint

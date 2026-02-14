@@ -185,7 +185,7 @@ func main() {
 
 func TestDeferInLoop(t *testing.T) {
 	// i must be captured by value in the defer
-	testMain(t, `package main	
+	testMain(t, `package main
 
 func main(){
 	for i := 0; i <= 3; i++ {

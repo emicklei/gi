@@ -33,7 +33,7 @@ func (c CallExpr) Eval(vm *VM) {
 		case ExtendedType:
 			c.handleExtendedType(vm, f)
 		default:
-			vm.fatalf("struct unexpected %T", fn.Interface())
+			vm.fatalf("struct unexpected %s (%T)", stringOf(fn.Interface()), fn.Interface())
 		}
 	case reflect.Pointer:
 		switch f := fn.Interface().(type) {
@@ -47,8 +47,9 @@ func (c CallExpr) Eval(vm *VM) {
 	case reflect.Func:
 		c.handleFunc(vm, fn)
 	default:
-		vm.fatalf("call to unknown function type: %v (%T)", fn.Interface(), fn.Interface())
+		vm.fatalf("struct unexpected %s (%T)", stringOf(fn.Interface()), fn.Interface())
 	}
+	return
 }
 
 func (c CallExpr) handleFunc(vm *VM, fn reflect.Value) {

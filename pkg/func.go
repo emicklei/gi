@@ -63,7 +63,7 @@ func (f *FuncDecl) params() *FieldList {
 func (f FuncDecl) Pos() token.Pos { return f.typ.Pos() }
 
 func (f FuncDecl) String() string {
-	return fmt.Sprintf("*FuncDecl(%s)", f.name.name)
+	return fmt.Sprintf("FuncDecl(%s)", f.name.name)
 }
 
 var _ Expr = FuncType{}

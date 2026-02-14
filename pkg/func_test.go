@@ -3,8 +3,6 @@ package pkg
 import "testing"
 
 func TestFunc(t *testing.T) {
-	trace = true
-	setAttr(t, "dot", "1")
 	testMain(t, `package main
 
 func plus(a int, b int) int {
@@ -42,7 +40,7 @@ func main() {
 }
 
 func TestDeclareFunctionLiteral(t *testing.T) {
-	testMain(t, `package main
+	testMainLoop(t, `package main
 
 func main() {
 	var f func(a int) int
@@ -52,7 +50,7 @@ func main() {
 }
 
 func TestFuncAsPackageVar(t *testing.T) {
-	testMain(t, `package main
+	testMainLoop(t, `package main
 
 const h = "1"
 var f = func() string { return h }

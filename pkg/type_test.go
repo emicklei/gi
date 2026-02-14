@@ -67,7 +67,7 @@ func main() {
 }
 
 func TestTypeDecoratedConstIotaWithMethod(t *testing.T) {
-	testMain(t, `package main
+	testMainLoop(t, `package main
 
 import "fmt"
 
@@ -158,11 +158,11 @@ func main() {
 
 func TestNewNumber(t *testing.T) {
 	testMain(t, `package main
- 
+
 func main() {
 	x := new(int64)
 	*x = 40
-	print(*x)	
+	print(*x)
 }`, "40")
 }
 

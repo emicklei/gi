@@ -31,7 +31,7 @@ func main() {
 
 func TestUnnamedReturn(t *testing.T) {
 	testMain(t, `package main
-		
+
 func f() int { return 1 }
 func main(){
 	g := func() int { return 2 }
@@ -41,7 +41,7 @@ func main(){
 
 func TestNamedReturn(t *testing.T) {
 	testMain(t, `package main
-		
+
 func f() (result int) {
 	result = 1
 	return
@@ -54,7 +54,7 @@ func main(){
 
 func TestNamedEllipsisReturn(t *testing.T) {
 	testMain(t, `package main
-		
+
 func f() (result1, result2 int) {
 	result1 = 1
 	result2 = 2

@@ -3,7 +3,7 @@ package pkg
 import "testing"
 
 func TestSimpleAssign(t *testing.T) {
-	testMain(t, `package main	
+	testMain(t, `package main
 func main() {
 	s := "gi"
 	print(s)
@@ -11,7 +11,7 @@ func main() {
 }
 
 func TestMultiAssign(t *testing.T) {
-	testMain(t, `package main	
+	testMain(t, `package main
 func main() {
 	in1, in2 := "gi", "flow"
 	print(in1, in2)
@@ -30,7 +30,7 @@ func main() {
 
 func TestArrayFuncIndexAssign(t *testing.T) {
 	// t.Skip()
-	testMain(t, `package main	
+	testMain(t, `package main
 func one() int { return 1 }
 func main() {
 	a := [2]int{0,1}

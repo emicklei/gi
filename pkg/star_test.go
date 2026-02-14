@@ -128,18 +128,18 @@ func main() {
 	ptr := ReturnPointer(42)
 	print(*ptr)  // Should be 42
 	print(" ")
-	
+
 	// Test 2: Modify through returned pointer
 	*ptr = 100
 	print(*ptr)  // Should be 100
 	print(" ")
-	
+
 	// Test 3: Pass pointer to function
 	x := 5
 	ModifyThroughPointer(&x)
 	print(x)  // Should be 999
 	print(" ")
-	
+
 	// Test 4: String pointers
 	s := "hello"
 	ps := &s
@@ -170,7 +170,7 @@ func main() {
 	ptr.Y = 99
 	print(p.Y)  // Should be 99
 	print(" ")
-	
+
 	// Test 3: Pointer arithmetic with different types
 	i := 42
 	pi := &i

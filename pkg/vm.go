@@ -62,14 +62,14 @@ func (vm *VM) pushOperand(v reflect.Value) {
 		before := len(vm.currentFrame.operands)
 		if v.IsValid() && v.CanInterface() {
 			if v == reflectNil {
-				fmt.Printf("frame[%d].push [%d->%d]: untyped nil\n", vm.currentFrame.id, before, before+1)
+				fmt.Printf("~~ frame[%d].push [%d->%d]: untyped nil\n", vm.currentFrame.id, before, before+1)
 			} else if isUndeclared(v) {
-				fmt.Printf("frame[%d].push [%d->%d]: %v (undeclared)\n", vm.currentFrame.id, before, before+1, v)
+				fmt.Printf("~~ frame[%d].push [%d->%d]: %v (undeclared)\n", vm.currentFrame.id, before, before+1, v)
 			} else {
-				fmt.Printf("frame[%d].push [%d->%d]: %v (%T)\n", vm.currentFrame.id, before, before+1, v.Interface(), v.Interface())
+				fmt.Printf("~~ frame[%d].push [%d->%d]: %v (%T)\n", vm.currentFrame.id, before, before+1, v.Interface(), v.Interface())
 			}
 		} else {
-			fmt.Printf("frame[%d].push [%d->%d]: %v\n", vm.currentFrame.id, before, before+1, v)
+			fmt.Printf("~~ frame[%d].push [%d->%d]: %v\n", vm.currentFrame.id, before, before+1, v)
 		}
 	}
 	vm.currentFrame.push(v)
@@ -93,7 +93,7 @@ func (vm *VM) popOperand() reflect.Value {
 	popped := vm.currentFrame.pop()
 	if trace {
 		before := len(vm.currentFrame.operands)
-		fmt.Printf("frame[%d].pop [%d->%d]:%s\n", vm.currentFrame.id, before, before-1, stringOf(popped))
+		fmt.Printf("~~ frame[%d].pop [%d->%d]:%s\n", vm.currentFrame.id, before, before-1, stringOf(popped))
 	}
 	return popped
 }
@@ -107,10 +107,15 @@ func (vm *VM) pushNewFrame(f Func) {
 	env := envPool.Get().(*Environment)
 	env.parent = vm.currentEnv()
 	frame.env = env
+
+	// remember return
+	if vm.isStepping && vm.currentFrame.currentStep != nil {
+		vm.currentFrame.returnTo = vm.currentFrame.currentStep.Next()
+	}
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
 	if trace {
-		fmt.Printf("vm.pushNewFrame[%d]:%s", frame.id, stringOf(f))
+		fmt.Printf("vm.pushNewFrame[%d]:%s\n", frame.id, stringOf(f))
 	}
 }
 
@@ -126,6 +131,11 @@ func (vm *VM) popFrame() {
 	}
 	if len(vm.callStack) > 0 {
 		vm.currentFrame = vm.callStack.top()
+		if vm.isStepping {
+			//consume return
+			vm.currentFrame.currentStep = vm.currentFrame.returnTo
+			vm.currentFrame.returnTo = nil
+		}
 	} else {
 		vm.currentFrame = nil
 	}
@@ -159,8 +169,9 @@ func (vm *VM) eval(e Evaluable) {
 }
 
 func (vm *VM) takeAllStartingAt(head Step) {
+	// TODO stepping will be the default behavior
+
 	if vm.isStepping {
-		vm.currentFrame.returnTo = vm.currentFrame.currentStep
 		vm.currentFrame.currentStep = head
 		return
 	}
@@ -175,12 +186,19 @@ func (vm *VM) takeAllStartingAt(head Step) {
 
 // take one step
 func (vm *VM) Step() error {
-	here := vm.currentFrame.currentStep
+	frame := vm.currentFrame
+	here := frame.currentStep
+	// EOF means function is done
 	if here == nil {
 		return io.EOF
 	}
+	// take the step and return the next or nil
 	next := here.take(vm)
-	vm.currentFrame.currentStep = next
+	// proceed with next if in same frame
+	// if not the currentStep is reset for the new frame
+	if vm.currentFrame == frame {
+		frame.currentStep = next
+	}
 	return nil
 }
 func (vm *VM) Location() string {
