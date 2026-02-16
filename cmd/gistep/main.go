@@ -24,8 +24,9 @@ func main() {
 		log.Fatal(err)
 	}
 	runner := pkg.NewVM(ipkg)
-	runner.Setup("main", nil)
+	runner.Setup(ipkg, "main", nil)
 	var b []byte = make([]byte, 1)
+	fmt.Println("Press any key to step, 'q' to quit")
 	for {
 		os.Stdin.Read(b)
 		if b[0] == 'q' {

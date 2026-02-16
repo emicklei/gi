@@ -1,5 +1,5 @@
 run:
-	go run . -cpuprofile output.pprof
+	go run main.go -cpuprofile output.pprof
 
 prof:
-	go tool pprof output.prof
+	go tool pprof output.pprof

@@ -181,11 +181,11 @@ func (p *pushEnvironmentStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node
 
 type popEnvironmentStep struct {
 	step
-	pos token.Pos
+	stmtPos token.Pos
 }
 
 func (p *popEnvironmentStep) Pos() token.Pos {
-	return p.pos
+	return p.stmtPos
 }
 
 func (p *popEnvironmentStep) take(vm *VM) Step {
@@ -201,7 +201,7 @@ func (p *popEnvironmentStep) String() string {
 }
 
 func (p *popEnvironmentStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return p.step.traverseWithLabel(g, p.String(), sourceLocation(fs, p.pos), fs)
+	return p.step.traverseWithLabel(g, p.String(), sourceLocation(fs, p.stmtPos), fs)
 }
 
 type labeledStep struct {

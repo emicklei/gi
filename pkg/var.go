@@ -110,8 +110,8 @@ var _ Expr = new(iotaExpr)
 
 // represents successive untyped integer constants
 type iotaExpr struct {
-	pos   token.Pos
-	count int
+	exprPos token.Pos
+	count   int
 }
 
 func (i *iotaExpr) reset() {
@@ -130,7 +130,7 @@ func (i *iotaExpr) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 func (i *iotaExpr) Pos() token.Pos {
-	return i.pos
+	return i.exprPos
 }
 func (i *iotaExpr) String() string {
 	return fmt.Sprintf("iota(%d)", i.count)

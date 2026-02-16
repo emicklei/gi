@@ -1,7 +1,7 @@
 gen:
 	cd cmd/genstdlib && go run .
 
-test: clean examples
+test: clean examples tools
 	go test -p 16 ./pkg
 
 serial:
@@ -19,6 +19,9 @@ unloop:
 
 bench:
 	go test -benchmem -bench=. ./pkg
+
+tools: install
+	cd cmd/gistep && go install
 
 install:
 	cd cmd/gi && go install

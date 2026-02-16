@@ -49,7 +49,7 @@ func (g *graphBuilder) newLabeledStep(label string, pos token.Pos) *labeledStep 
 
 func (g *graphBuilder) newPopEnvironmentStep(pos token.Pos) *popEnvironmentStep {
 	g.idgen++
-	pop := &popEnvironmentStep{pos: pos}
+	pop := &popEnvironmentStep{stmtPos: pos}
 	pop.SetID(g.idgen)
 	return pop
 }

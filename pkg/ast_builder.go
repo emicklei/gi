@@ -327,7 +327,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			// ensure there is an iotaExpr in the current ConstDecl
 			ie := b.constDecl.iotaExpr
 			if ie == nil {
-				ie = &iotaExpr{pos: n.NamePos}
+				ie = &iotaExpr{exprPos: n.NamePos}
 				b.constDecl.iotaExpr = ie
 			}
 			b.push(ie)

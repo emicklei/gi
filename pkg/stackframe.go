@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"go/token"
 	"reflect"
 	"strings"
 )
@@ -69,6 +70,47 @@ func (f *stackFrame) takeDeferList(vm *VM) {
 		}
 		vm.takeAllStartingAt(invocation.flow)
 	}
+}
+
+// func (f *stackFrame) buildDeferGraph() (head Step) {
+// 	g := newGraphBuilder(nil)
+// 	operands := make([]reflect.Value, 0)
+// 	for i := len(f.defers) - 1; i >= 0; i-- {
+// 		invocation := f.defers[i]
+// 		// push all argument values as operands on the stack
+// 		// make sure first value is on top of the operand stack
+// 		for i := len(invocation.arguments) - 1; i >= 0; i-- {
+// 			operands = append(operands, invocation.arguments[i])
+// 		}
+// 		push := &pushOperandsStep{
+// 			deferPos: invocation.flow.Pos(),
+// 			operands: operands,
+// 		}
+// 		g.nextStep(push)
+// 		if head == nil {
+// 			head = push
+// 		}
+// 		g.nextStep(invocation.flow)
+// 	}
+// }
+
+type pushOperandsStep struct {
+	step
+	deferPos token.Pos
+	operands []reflect.Value
+}
+
+func (p *pushOperandsStep) take(vm *VM) Step {
+	for _, operand := range p.operands {
+		vm.pushOperand(operand)
+	}
+	return p.next
+}
+func (p *pushOperandsStep) Pos() token.Pos {
+	return p.deferPos
+}
+func (p *pushOperandsStep) String() string {
+	return fmt.Sprintf("~pushOperand(%d)", len(p.operands))
 }
 
 func (f *stackFrame) String() string {

@@ -88,7 +88,7 @@ func (r RangeStmt) flow(g *graphBuilder) (head Step) {
 type rangeMapIteratorInitStep struct {
 	step
 	localVarName string
-	pos          token.Pos
+	rangePos     token.Pos
 }
 
 func (r *rangeMapIteratorInitStep) take(vm *VM) Step {
@@ -103,7 +103,7 @@ func (r *rangeMapIteratorInitStep) traverse(g *dot.Graph, fs *token.FileSet) dot
 }
 
 func (r *rangeMapIteratorInitStep) Pos() token.Pos {
-	return r.pos
+	return r.rangePos
 }
 
 func (r *rangeMapIteratorInitStep) String() string {
@@ -185,7 +185,7 @@ func (r RangeStmt) mapFlow(g *graphBuilder) (head Step) {
 	// create the iterator
 	localVarName := internalVarName("mapIter", g.idgen)
 	init := new(rangeMapIteratorInitStep)
-	init.pos = r.Pos()
+	init.rangePos = r.Pos()
 	init.localVarName = localVarName
 	g.nextStep(init)
 

@@ -13,12 +13,12 @@ import (
 var _ Expr = BasicLit{}
 
 type BasicLit struct {
-	pos   token.Pos     // literal position
-	value reflect.Value // cached evaluated value
+	valuePos token.Pos     // literal position
+	value    reflect.Value // cached evaluated value
 }
 
 func newBasicLit(pos token.Pos, v reflect.Value) BasicLit {
-	return BasicLit{pos: pos, value: v}
+	return BasicLit{valuePos: pos, value: v}
 }
 
 func (b BasicLit) eval(vm *VM) {
@@ -56,7 +56,7 @@ func (b BasicLit) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (b BasicLit) Pos() token.Pos { return b.pos }
+func (b BasicLit) Pos() token.Pos { return b.valuePos }
 
 func (b BasicLit) String() string {
 	return fmt.Sprintf("BasicLit(%s,%v)", b.value.Kind(), b.value.Interface())
