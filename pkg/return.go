@@ -13,7 +13,7 @@ type ReturnStmt struct {
 	results   []Expr
 }
 
-func (r ReturnStmt) Eval(vm *VM) {
+func (r ReturnStmt) eval(vm *VM) {
 	if len(r.results) == 0 {
 		return
 	}

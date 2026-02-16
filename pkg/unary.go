@@ -17,7 +17,7 @@ type UnaryExpr struct {
 	unaryFunc UnaryExprFunc // optional function to perform the unary operation
 }
 
-func (u UnaryExpr) Eval(vm *VM) {
+func (u UnaryExpr) eval(vm *VM) {
 	// TODO handle duplicate code (stack work)
 
 	if u.unaryFunc != nil {

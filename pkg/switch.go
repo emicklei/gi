@@ -18,7 +18,7 @@ type SwitchStmt struct {
 
 func (s SwitchStmt) stmtStep() Evaluable { return s }
 
-func (s SwitchStmt) Eval(vm *VM) {
+func (s SwitchStmt) eval(vm *VM) {
 	vm.currentFrame.pushEnv()
 	defer vm.currentFrame.popEnv()
 	if s.init != nil {
@@ -189,7 +189,7 @@ type CaseClause struct {
 	Body    []Stmt
 }
 
-func (c CaseClause) Eval(vm *VM) {}
+func (c CaseClause) eval(vm *VM) {}
 
 func (c CaseClause) flow(g *graphBuilder) (head Step) {
 	// no flow for case clause itself
@@ -211,7 +211,7 @@ type TypeSwitchStmt struct {
 	Body      *BlockStmt
 }
 
-func (s TypeSwitchStmt) Eval(vm *VM) {}
+func (s TypeSwitchStmt) eval(vm *VM) {}
 
 func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 	if s.Init != nil {

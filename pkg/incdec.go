@@ -24,7 +24,7 @@ func (i IncDecStmt) flow(g *graphBuilder) (head Step) {
 	return head
 }
 
-func (i IncDecStmt) Eval(vm *VM) {
+func (i IncDecStmt) eval(vm *VM) {
 	val := vm.popOperand()
 	// propagate undeclared value. this happens when the expression is
 	// used in a package variable or constant declaration

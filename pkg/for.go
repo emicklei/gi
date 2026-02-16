@@ -15,7 +15,7 @@ type ForStmt struct {
 	body   *BlockStmt
 }
 
-func (f ForStmt) Eval(vm *VM) {} // noop
+func (f ForStmt) eval(vm *VM) {} // noop
 
 func (f ForStmt) flow(g *graphBuilder) (head Step) {
 	head = newPushEnvironmentStep(f.Pos())

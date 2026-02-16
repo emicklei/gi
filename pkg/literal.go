@@ -21,7 +21,7 @@ func newBasicLit(pos token.Pos, v reflect.Value) BasicLit {
 	return BasicLit{pos: pos, value: v}
 }
 
-func (b BasicLit) Eval(vm *VM) {
+func (b BasicLit) eval(vm *VM) {
 	vm.pushOperand(b.value)
 }
 
@@ -72,7 +72,7 @@ type CompositeLit struct {
 	Elts       []Expr     // list of composite elements; or nil
 }
 
-func (c CompositeLit) Eval(vm *VM) {
+func (c CompositeLit) eval(vm *VM) {
 
 	// if Type is not present, we put all values on the stack as is
 	if c.Type == nil {

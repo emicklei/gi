@@ -31,7 +31,7 @@ type FuncDecl struct {
 	callsRecover bool
 }
 
-func (f *FuncDecl) Eval(vm *VM) {} // noop
+func (f *FuncDecl) eval(vm *VM) {} // noop
 
 func (f *FuncDecl) flow(g *graphBuilder) (head Step) {
 	head = g.current
@@ -75,7 +75,7 @@ type FuncType struct {
 	Results    *FieldList // (outgoing) results; or nil
 }
 
-func (t FuncType) Eval(vm *VM) {}
+func (t FuncType) eval(vm *VM) {}
 
 func (t FuncType) flow(g *graphBuilder) (head Step) {
 	// TODO
@@ -98,7 +98,7 @@ type Ellipsis struct {
 func (e Ellipsis) String() string {
 	return fmt.Sprintf("Ellipsis(%v)", e.Elt)
 }
-func (e Ellipsis) Eval(vm *VM) {
+func (e Ellipsis) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(e))
 }
 
@@ -138,7 +138,7 @@ type FuncLit struct {
 	callsRecover bool
 }
 
-func (f *FuncLit) Eval(vm *VM) {
+func (f *FuncLit) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(f))
 }
 

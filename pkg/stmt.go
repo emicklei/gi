@@ -14,7 +14,7 @@ type ExprStmt struct {
 
 func (s ExprStmt) stmtStep() Evaluable { return s }
 
-func (s ExprStmt) Eval(vm *VM) {
+func (s ExprStmt) eval(vm *VM) {
 	vm.eval(s.X)
 }
 
@@ -36,7 +36,7 @@ type DeclStmt struct {
 	decl Decl
 }
 
-func (s DeclStmt) Eval(vm *VM) {
+func (s DeclStmt) eval(vm *VM) {
 	s.decl.declStep().declare(vm)
 }
 
@@ -68,7 +68,7 @@ type LabeledStmt struct {
 	statement Stmt
 }
 
-func (s LabeledStmt) Eval(vm *VM) {
+func (s LabeledStmt) eval(vm *VM) {
 	vm.eval(s.statement.stmtStep())
 }
 
@@ -98,7 +98,7 @@ type BranchStmt struct {
 	label  *Ident
 }
 
-func (s BranchStmt) Eval(vm *VM) {} // no-op; flow is handled in graph building
+func (s BranchStmt) eval(vm *VM) {} // no-op; flow is handled in graph building
 
 func (s BranchStmt) flow(g *graphBuilder) (head Step) {
 	switch s.tok {
@@ -153,7 +153,7 @@ type DeferStmt struct {
 	callGraph Step
 }
 
-func (d DeferStmt) Eval(vm *VM) {
+func (d DeferStmt) eval(vm *VM) {
 	frame := vm.currentFrame
 	// create a new env and copy the current argument values
 	env := frame.env.newChild() // TODO needed?
@@ -191,7 +191,7 @@ type BlockStmt struct {
 	list      []Stmt
 }
 
-func (b BlockStmt) Eval(vm *VM) {
+func (b BlockStmt) eval(vm *VM) {
 	for _, stmt := range b.list {
 		vm.eval(stmt.stmtStep())
 	}

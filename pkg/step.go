@@ -42,7 +42,7 @@ func (s *step) SetNext(n Step) {
 	s.next = n
 }
 
-func (s *step) Eval(vm *VM) {}
+func (s *step) eval(vm *VM) {}
 
 func (s *step) take(vm *VM) Step {
 	return s.next
@@ -76,12 +76,12 @@ type evaluableStep struct {
 	Evaluable
 }
 
-func (s *evaluableStep) Eval(vm *VM) {
-	s.Evaluable.Eval(vm)
+func (s *evaluableStep) eval(vm *VM) {
+	s.Evaluable.eval(vm)
 }
 
 func (s *evaluableStep) take(vm *VM) Step {
-	s.Evaluable.Eval(vm)
+	s.Evaluable.eval(vm)
 	return s.next
 }
 

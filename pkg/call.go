@@ -14,7 +14,7 @@ type CallExpr struct {
 	args      []Expr // function arguments; or nil
 }
 
-func (c CallExpr) Eval(vm *VM) {
+func (c CallExpr) eval(vm *VM) {
 	// function fn is either a compiled or an interpreted one
 	fn := vm.popOperand() // see Flow
 

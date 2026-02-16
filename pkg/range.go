@@ -24,7 +24,7 @@ type RangeStmt struct {
 	body       *BlockStmt
 }
 
-func (r RangeStmt) Eval(vm *VM) {} // noop
+func (r RangeStmt) eval(vm *VM) {} // noop
 
 // Flow builds the control flow graph for the RangeStmt.
 // Based on the Kind of X, it will branch into one of three flows:
@@ -455,7 +455,7 @@ func (i *rangeIteratorSwitchStep) traverse(g *dot.Graph, fs *token.FileSet) dot.
 type noExpr struct{}
 
 func (noExpr) Pos() token.Pos { return token.NoPos }
-func (noExpr) Eval(vm *VM)    {} // used?
+func (noExpr) eval(vm *VM)    {} // used?
 func (n noExpr) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
@@ -466,7 +466,7 @@ type reflectLenExpr struct {
 }
 
 func (r reflectLenExpr) Pos() token.Pos { return r.X.Pos() }
-func (r reflectLenExpr) Eval(vm *VM) {
+func (r reflectLenExpr) eval(vm *VM) {
 	val := vm.popOperand()
 	vm.pushOperand(reflect.ValueOf(val.Len()))
 }

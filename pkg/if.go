@@ -15,7 +15,7 @@ type IfStmt struct {
 	elseif Stmt
 }
 
-func (i IfStmt) Eval(vm *VM) {
+func (i IfStmt) eval(vm *VM) {
 	// no op
 }
 

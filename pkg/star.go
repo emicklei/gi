@@ -14,7 +14,7 @@ type StarExpr struct {
 	x       Expr
 }
 
-func (s StarExpr) Eval(vm *VM) {
+func (s StarExpr) eval(vm *VM) {
 	v := vm.popOperand()
 	// Check if this is a heap pointer
 	if hp, ok := v.Interface().(*HeapPointer); ok {
@@ -94,7 +94,7 @@ type ParenExpr struct {
 	X      Expr
 }
 
-func (e ParenExpr) Eval(vm *VM) {} // noop
+func (e ParenExpr) eval(vm *VM) {} // noop
 func (e ParenExpr) flow(g *graphBuilder) (head Step) {
 	return e.X.flow(g)
 }

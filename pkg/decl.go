@@ -33,7 +33,7 @@ func (c ConstDecl) declare(vm *VM) bool {
 	}
 	return done
 }
-func (c ConstDecl) Eval(vm *VM) {} // noop
+func (c ConstDecl) eval(vm *VM) {} // noop
 
 func (c ConstDecl) flow(g *graphBuilder) (head Step) {
 	// process in order of declaration because of iota

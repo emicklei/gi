@@ -14,7 +14,7 @@ type KeyValueExpr struct {
 	Value    Expr
 }
 
-func (k KeyValueExpr) Eval(vm *VM) {
+func (k KeyValueExpr) eval(vm *VM) {
 	key := vm.popOperand()
 	val := vm.popOperand()
 	vm.pushOperand(reflect.ValueOf(keyValue{Key: key, Value: val}))
@@ -46,7 +46,7 @@ type identKey struct {
 	Ident Ident
 }
 
-func (i identKey) Eval(vm *VM) {
+func (i identKey) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(i.Ident))
 }
 func (i identKey) flow(g *graphBuilder) (head Step) {

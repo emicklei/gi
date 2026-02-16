@@ -80,7 +80,7 @@ func (v ValueSpec) declare(vm *VM) bool {
 	return true
 }
 
-func (v ValueSpec) Eval(vm *VM) {}
+func (v ValueSpec) eval(vm *VM) {}
 
 func (v ValueSpec) flow(g *graphBuilder) (head Step) {
 	if v.values != nil {
@@ -122,7 +122,7 @@ func (i *iotaExpr) next() {
 	i.count++
 }
 
-func (i *iotaExpr) Eval(vm *VM) {
+func (i *iotaExpr) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(i.count))
 }
 func (i *iotaExpr) flow(g *graphBuilder) (head Step) {

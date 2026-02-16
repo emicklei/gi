@@ -14,7 +14,7 @@ type Ident struct {
 	name    string
 }
 
-func (i Ident) Eval(vm *VM) {
+func (i Ident) eval(vm *VM) {
 	vm.pushOperand(vm.currentEnv().valueLookUp(i.name))
 }
 

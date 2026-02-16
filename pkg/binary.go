@@ -19,7 +19,7 @@ type BinaryExpr struct {
 	binaryFunc BinaryExprFunc // only set for known (types,operator) combinations
 }
 
-func (b BinaryExpr) Eval(vm *VM) {
+func (b BinaryExpr) eval(vm *VM) {
 	// see Flow for the order
 	right := vm.popOperand()
 	// propagate undeclared value. this happens when the expression is

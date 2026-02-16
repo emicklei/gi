@@ -12,7 +12,7 @@ type Field struct {
 	tag   *string  // field tag; or nil
 }
 
-func (l Field) Eval(vm *VM) {} // noop
+func (l Field) eval(vm *VM) {} // noop
 
 func (l Field) Pos() token.Pos { return token.NoPos } // TODO
 
@@ -44,4 +44,4 @@ func (l FieldList) String() string {
 	}
 	return fmt.Sprintf("FieldList(%s)", strings.Join(names, ","))
 }
-func (l FieldList) Eval(vm *VM) {}
+func (l FieldList) eval(vm *VM) {}

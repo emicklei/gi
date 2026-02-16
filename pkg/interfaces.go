@@ -9,7 +9,7 @@ import (
 
 type Evaluable interface {
 	Pos() token.Pos
-	Eval(vm *VM)
+	eval(vm *VM)
 }
 
 type CanAssign interface {

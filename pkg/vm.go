@@ -164,7 +164,7 @@ func (vm *VM) eval(e Evaluable) {
 	if trace {
 		fmt.Fprintln(os.Stderr, "vm.eval:", e)
 	}
-	e.Eval(vm)
+	e.eval(vm)
 }
 
 func (vm *VM) takeAllStartingAt(head Step) {

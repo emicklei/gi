@@ -16,7 +16,7 @@ type AssignStmt struct {
 	rhsBinFuncs []BinaryExprFunc // computed at build time
 }
 
-func (a AssignStmt) Eval(vm *VM) {
+func (a AssignStmt) eval(vm *VM) {
 	var lastVal reflect.Value
 	for i := 0; i < len(a.lhs); i++ {
 		each := a.lhs[i]

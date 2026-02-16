@@ -64,7 +64,7 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 	vm.fatalf("cannot assign to method %s for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface())
 }
 
-func (s SelectorExpr) Eval(vm *VM) {
+func (s SelectorExpr) eval(vm *VM) {
 	recv := vm.popOperand()
 	// check for pointer to heap value
 	if hp, ok := recv.Interface().(*HeapPointer); ok {

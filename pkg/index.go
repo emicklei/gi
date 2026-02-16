@@ -15,7 +15,7 @@ type IndexExpr struct {
 	index     Expr
 }
 
-func (i IndexExpr) Eval(vm *VM) {
+func (i IndexExpr) eval(vm *VM) {
 	if len(vm.currentFrame.operands) == 0 {
 		vm.eval(i.index)
 		vm.eval(i.x)

@@ -21,7 +21,7 @@ type StructType struct {
 	methods   map[string]*FuncDecl
 }
 
-func (s StructType) Eval(vm *VM) {
+func (s StructType) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(s))
 }
 

@@ -14,7 +14,7 @@ type TypeAssertExpr struct {
 	lparenPos token.Pos
 }
 
-func (e TypeAssertExpr) Eval(vm *VM) {
+func (e TypeAssertExpr) eval(vm *VM) {
 	if e.typ == nil {
 		val := vm.popOperand()
 		valType := val.Type()
@@ -46,7 +46,7 @@ type TypeSpec struct {
 	assignPos  token.Pos
 }
 
-func (s TypeSpec) Eval(vm *VM) {
+func (s TypeSpec) eval(vm *VM) {
 	actualType := vm.returnsEval(s.typ)
 	vm.currentEnv().set(s.name.name, actualType) // use the spec itself as value
 }
@@ -93,7 +93,7 @@ type InterfaceType struct {
 	Methods      *FieldList
 }
 
-func (i InterfaceType) Eval(vm *VM) {
+func (i InterfaceType) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(i))
 }
 
@@ -131,7 +131,7 @@ type MapType struct {
 	Value  Expr
 }
 
-func (m MapType) Eval(vm *VM) {
+func (m MapType) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(m))
 }
 

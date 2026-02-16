@@ -15,7 +15,7 @@ type ArrayType struct {
 }
 
 // Eval creates and pushes an instance of the array or slice type onto the operand stack.
-func (a ArrayType) Eval(vm *VM) {
+func (a ArrayType) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(a))
 }
 
@@ -95,7 +95,7 @@ type SliceExpr struct {
 	slice3 bool // true if 3-index slice (2 colons present)
 }
 
-func (s SliceExpr) Eval(vm *VM) {
+func (s SliceExpr) eval(vm *VM) {
 	// stack has max, high, low, x
 	var high, low, x reflect.Value
 	if s.max != nil {

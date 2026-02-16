@@ -17,7 +17,7 @@ type ChanType struct {
 	valueType Expr        // value type
 }
 
-func (c ChanType) Eval(vm *VM) {
+func (c ChanType) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(c))
 }
 func (c ChanType) flow(g *graphBuilder) (head Step) {
@@ -50,7 +50,7 @@ type SendStmt struct {
 	value    Expr
 }
 
-func (s SendStmt) Eval(vm *VM) {
+func (s SendStmt) eval(vm *VM) {
 	// stack: value, chan
 	val := vm.popOperand()
 	ch := vm.popOperand()
