@@ -24,7 +24,7 @@ func (p *Package) selectFieldOrMethod(name string) reflect.Value {
 }
 
 func (p *Package) flow(g *graphBuilder) (head Step) {
-	// first all subpackages
+	// first all subpackages, recursively, then resolve declarations, then inits
 	for _, subpkg := range p.env.packageTable {
 		subFlow := subpkg.flow(g)
 		if head == nil {
@@ -50,7 +50,6 @@ func (p *Package) initialize(vm *VM) {
 	if p.initialized {
 		return
 	}
-	p.resolveDeclarations(vm)
 	g := newGraphBuilder(p.Package)
 	initFlow := p.flow(g)
 	p.initialized = true

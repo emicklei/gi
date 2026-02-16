@@ -144,7 +144,7 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 	if getAttr(t, "go.ast") == "true" {
 		writeGoAST(astFileName+".go.ast", pkg.Package)
 	}
-	runner.Setup("main", nil)
+	runner.Setup(pkg, "main", nil)
 	for {
 		if err := runner.Step(); err != nil {
 			if err == io.EOF {

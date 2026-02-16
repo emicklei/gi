@@ -214,8 +214,10 @@ func (vm *VM) Location() string {
 	}
 	return fmt.Sprintf("%v @ %s", s, loc)
 }
-func (vm *VM) Setup(funcName string, args []any) {
-	// TODO initialize pkgs
+func (vm *VM) Setup(pkg *Package, funcName string, args []any) {
+	vm.isStepping = false // Temporary
+	pkg.initialize(vm)
+
 	fun := vm.currentEnv().valueLookUp(funcName)
 	call := CallExpr{}
 	if args != nil {
