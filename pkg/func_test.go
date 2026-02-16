@@ -40,7 +40,7 @@ func main() {
 }
 
 func TestDeclareFunctionLiteral(t *testing.T) {
-	testMainLoop(t, `package main
+	testMain(t, `package main
 
 func main() {
 	var f func(a int) int
@@ -50,7 +50,7 @@ func main() {
 }
 
 func TestFuncAsPackageVar(t *testing.T) {
-	testMainLoop(t, `package main
+	testMain(t, `package main
 
 const h = "1"
 var f = func() string { return h }

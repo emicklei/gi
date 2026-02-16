@@ -67,7 +67,7 @@ func main() {
 }
 
 func TestTypeDecoratedConstIotaWithMethod(t *testing.T) {
-	testMainLoop(t, `package main
+	testMain(t, `package main
 
 import "fmt"
 

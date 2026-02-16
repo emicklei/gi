@@ -98,23 +98,6 @@ func testProgramIn(t *testing.T, dir string, _ any) {
 	}
 }
 
-// Deprecated: use testMain
-func testMainLoop(t *testing.T, source string, wantFuncOrString any) {
-	t.Parallel()
-	t.Helper()
-	out := parseAndWalk(t, source)
-	if fn, ok := wantFuncOrString.(func(string) bool); ok {
-		if !fn(out) {
-			t.Errorf("got [%v] which does not match predicate", out)
-		}
-		return
-	}
-	want := wantFuncOrString.(string)
-	if got, want := out, want; got != want {
-		t.Errorf("got [%v] want [%v]", got, want)
-	}
-}
-
 func testMain(t *testing.T, source string, wantFuncOrString any) {
 	t.Parallel()
 	t.Helper()

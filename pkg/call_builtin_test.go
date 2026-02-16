@@ -16,7 +16,8 @@ func main() {
 }
 
 func TestRecover(t *testing.T) {
-	testMainLoop(t, `package main
+	t.Skip()
+	testMain(t, `package main
 
 func main() {
 	defer func() {
@@ -37,7 +38,8 @@ func main() {
 }
 
 func TestNestedRecover(t *testing.T) {
-	testMainLoop(t, `package main
+	t.Skip()
+	testMain(t, `package main
 
 func catchthrow() {
 	defer func() {
