@@ -22,6 +22,7 @@ var framePool = sync.Pool{
 // Runtime represents a virtual machine that can execute Go code.
 type VM struct {
 	callStack    stack[*stackFrame]
+	frameIdSeq   int
 	currentFrame *stackFrame // optimization
 	heap         *Heap
 	output       *bytes.Buffer  // for testing only
@@ -31,9 +32,10 @@ type VM struct {
 
 func NewVM(pkg *Package) *VM {
 	vm := &VM{
-		output:    new(bytes.Buffer),
-		callStack: make(stack[*stackFrame], 0, 16),
-		heap:      newHeap()}
+		frameIdSeq: 1, // vm is created with frame 0
+		output:     new(bytes.Buffer),
+		callStack:  make(stack[*stackFrame], 0, 16),
+		heap:       newHeap()}
 	// happens in tests
 	if pkg.Package != nil {
 		vm.fileSet = pkg.Fset
@@ -100,8 +102,8 @@ func (vm *VM) popOperand() reflect.Value {
 
 func (vm *VM) pushNewFrame(f Func) {
 	frame := framePool.Get().(*stackFrame)
-	frame.id = frameIdSeq
-	frameIdSeq++
+	frame.id = vm.frameIdSeq
+	vm.frameIdSeq++
 	frame.creator = f
 	env := envPool.Get().(*Environment)
 	env.parent = vm.currentEnv()
