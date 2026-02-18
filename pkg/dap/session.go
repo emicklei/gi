@@ -21,6 +21,7 @@ import (
 	"bufio"
 	"log"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -55,6 +56,8 @@ type dapSession struct {
 
 	// vm represents program being debugged
 	vm *pkg.VM
+	// not sure if this is the right place
+	dir string
 }
 
 func (ds *dapSession) handleRequest() error {
@@ -178,6 +181,7 @@ func (ds *dapSession) onLaunchRequest(request *dap.LaunchRequest) {
 		ds.send(resp)
 		return
 	}
+	ds.dir = cwd
 	ds.vm = pkg.NewVM(p)
 	ds.vm.Setup(p, "main", nil)
 	ds.send(resp)
@@ -283,7 +287,7 @@ func (ds *dapSession) onStackTraceRequest(request *dap.StackTraceRequest) {
 	resp := new(dap.StackTraceResponse)
 	resp.Response = *newResponse(request.Seq, request.Command)
 	resp.Body.StackFrames = []dap.StackFrame{
-		{Id: 1, Name: "main.main", Source: &dap.Source{Name: "main.go", Path: "/Users/emicklei/Projects/gi/examples/nestedloop/main.go"}, Line: 12},
+		{Id: 1, Name: "main.main", Source: &dap.Source{Name: "main.go", Path: filepath.Join(ds.dir, "main.go")}, Line: 12},
 	}
 	ds.send(resp)
 }

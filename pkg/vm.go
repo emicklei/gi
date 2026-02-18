@@ -27,12 +27,12 @@ type VM struct {
 	heap         *Heap
 	output       *bytes.Buffer  // for testing only
 	fileSet      *token.FileSet // optional file set for position info
-	isStepping   bool           // whether the VM is currently stepping through code
+	isStepping   bool           // whether the VM is currently stepping
 }
 
 func NewVM(pkg *Package) *VM {
 	vm := &VM{
-		frameIdSeq: 1, // vm is created with frame 0
+		frameIdSeq: 1, // vm is created with frame 0 on stack
 		output:     new(bytes.Buffer),
 		callStack:  make(stack[*stackFrame], 0, 16),
 		heap:       newHeap()}

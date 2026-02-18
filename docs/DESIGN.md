@@ -85,6 +85,9 @@ The first step is the head of the chain.
 - generics: https://ehabterra.github.io/ast-extracting-generic-function-signatures
 - should the unnamed results of a function be named?
 - put generated code in generated package
+- create single command app with flags to control: executor,debugger,repl.
+- deprecate varvoy?
+- introduce routines (threads) in the VM
 
 ## potential blockers
 - reflect structs can only have exposed fields. for that reason StructValues was created but the SDK is not aware of this. For example, fmt.Println might not work correctly with StructValues.
