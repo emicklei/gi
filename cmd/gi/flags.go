@@ -53,3 +53,12 @@ func getLogFlag() bool {
 	}
 	return false
 }
+
+func getREPLFlag() bool {
+	for _, each := range os.Args {
+		if each == "--repl" {
+			return true
+		}
+	}
+	return false
+}
