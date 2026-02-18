@@ -185,8 +185,8 @@ func (vm *VM) takeAllStartingAt(head Step) {
 	}
 }
 
-// take one step
-func (vm *VM) Step() error {
+// Next takes the current step and advances to the next step, returning an error if there are no more steps to take (i.e., EOF).
+func (vm *VM) Next() error {
 	frame := vm.currentFrame
 	here := frame.step
 	// EOF means function is done

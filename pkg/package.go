@@ -50,9 +50,9 @@ func (p *Package) initialize(vm *VM) {
 	if p.initialized {
 		return
 	}
+	p.initialized = true
 	g := newGraphBuilder(p.Package)
 	initFlow := p.flow(g)
-	p.initialized = true
 	vm.takeAllStartingAt(initFlow)
 }
 
@@ -119,6 +119,7 @@ func (p *Package) resolveDeclarations(vm *VM) {
 			}
 		}
 	}
+	clear(p.env.declarations)
 }
 
 func (p *Package) moveMethodsToInterpretedTypes() error {

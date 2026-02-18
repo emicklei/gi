@@ -129,7 +129,7 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 	}
 	runner.Setup(pkg, "main", nil)
 	for {
-		if err := runner.Step(); err != nil {
+		if err := runner.Next(); err != nil {
 			if err == io.EOF {
 				break
 			}

@@ -44,16 +44,16 @@ func (s *Server) Start() error {
 	// see https://github.com/golang/vscode-go/blob/f907536117c3e9fc731be9277e992b8cc7cd74f1/extension/src/goDebugFactory.ts#L558
 	fmt.Println("DAP server listening at:", s.Addr)
 
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println("Connection failed:", err)
-			continue
-		}
-		log.Println("Accepted connection from", conn.RemoteAddr())
-		// Handle multiple client connections concurrently
-		go s.handleConnection(conn)
+	// single session
+	conn, err := listener.Accept()
+	if err != nil {
+		log.Println("Connection failed:", err)
+		return err
 	}
+	log.Println("Accepted connection from", conn.RemoteAddr())
+	// Handle multiple client connections concurrently
+	s.handleConnection(conn)
+	return nil
 }
 
 // handleConnection handles a connection from a single client.

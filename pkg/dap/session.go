@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright (c) 2025 Ernest Micklei
+// Copyright (c) 2026 Ernest Micklei
 // This file contains modified source from https://github.com/google/go-dap
 
 package dap
@@ -63,7 +63,7 @@ func (ds *dapSession) handleRequest() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Received request\n\t%#v\n", request)
+	log.Printf("Received request\n\t%T\n", request)
 	ds.sendWg.Go(func() {
 		ds.dispatchRequest(request)
 	})
@@ -167,17 +167,31 @@ func (ds *dapSession) onLaunchRequest(request *dap.LaunchRequest) {
 		log.Println("load package failed", err)
 		resp.Message = "failed to load package: " + err.Error()
 		resp.Success = false
-	} else {
-		p, err := pkg.BuildPackage(gopkg)
-		if err != nil {
-			log.Println("build package failed", err)
-			resp.Success = false
-		} else {
-			ds.vm = pkg.NewVM(p)
-			pkg.CallPackageFunction(p, "main", nil, ds.vm)
-		}
+		ds.send(resp)
+		return
 	}
+	p, err := pkg.BuildPackage(gopkg)
+	if err != nil {
+		log.Println("build package failed", err)
+		resp.Message = "failed to build package: " + err.Error()
+		resp.Success = false
+		ds.send(resp)
+		return
+	}
+	ds.vm = pkg.NewVM(p)
+	ds.vm.Setup(p, "main", nil)
 	ds.send(resp)
+
+	// TODO simulate hit breakpoint
+	{
+		resp := &dap.StoppedEvent{}
+		resp.Body.Reason = "breakpoint"
+		resp.Body.ThreadId = 1
+		resp.Body.AllThreadsStopped = true
+		resp.Event = *newEvent("stopped")
+		ds.send(resp)
+	}
+
 }
 
 func (ds *dapSession) onAttachRequest(request *dap.AttachRequest) {
@@ -185,11 +199,21 @@ func (ds *dapSession) onAttachRequest(request *dap.AttachRequest) {
 }
 
 func (ds *dapSession) onDisconnectRequest(request *dap.DisconnectRequest) {
-	ds.send(newErrorResponse(request.Seq, request.Command, "DisconnectRequest is not yet supported"))
+	// brutal
+	ds.vm = nil
+	resp := new(dap.DisconnectResponse)
+	resp.Response = *newResponse(request.Seq, request.Command)
+	resp.Success = true
+	ds.send(resp)
 }
 
 func (ds *dapSession) onTerminateRequest(request *dap.TerminateRequest) {
-	ds.send(newErrorResponse(request.Seq, request.Command, "TerminateRequest is not yet supported"))
+	// brutal
+	ds.vm = nil
+	resp := new(dap.TerminateResponse)
+	resp.Response = *newResponse(request.Seq, request.Command)
+	resp.Success = true
+	ds.send(resp)
 }
 
 func (ds *dapSession) onRestartRequest(request *dap.RestartRequest) {
@@ -197,7 +221,10 @@ func (ds *dapSession) onRestartRequest(request *dap.RestartRequest) {
 }
 
 func (ds *dapSession) onSetBreakpointsRequest(request *dap.SetBreakpointsRequest) {
-	log.Println("breakpoint args", request.Arguments)
+	log.Println("breakpoint args")
+	for _, arg := range request.Arguments.Breakpoints {
+		log.Printf("\t%#v\n", arg)
+	}
 	resp := new(dap.SetBreakpointsResponse)
 	ds.send(resp)
 }
@@ -215,7 +242,13 @@ func (ds *dapSession) onContinueRequest(request *dap.ContinueRequest) {
 }
 
 func (ds *dapSession) onNextRequest(request *dap.NextRequest) {
-	ds.send(newErrorResponse(request.Seq, request.Command, "NextRequest is not yet supported"))
+	if ds.vm != nil {
+		ds.vm.Next()
+	}
+	resp := new(dap.NextResponse)
+	resp.Response = *newResponse(request.Seq, request.Command)
+	resp.Success = ds.vm != nil
+	ds.send(resp)
 }
 
 func (ds *dapSession) onStepInRequest(request *dap.StepInRequest) {
@@ -247,7 +280,12 @@ func (ds *dapSession) onPauseRequest(request *dap.PauseRequest) {
 }
 
 func (ds *dapSession) onStackTraceRequest(request *dap.StackTraceRequest) {
-	ds.send(newErrorResponse(request.Seq, request.Command, "StackTraceRequest is not yet supported"))
+	resp := new(dap.StackTraceResponse)
+	resp.Response = *newResponse(request.Seq, request.Command)
+	resp.Body.StackFrames = []dap.StackFrame{
+		{Id: 1, Name: "main.main", Source: &dap.Source{Name: "main.go", Path: "/Users/emicklei/Projects/gi/examples/nestedloop/main.go"}, Line: 12},
+	}
+	ds.send(resp)
 }
 
 func (ds *dapSession) onScopesRequest(request *dap.ScopesRequest) {
@@ -255,7 +293,13 @@ func (ds *dapSession) onScopesRequest(request *dap.ScopesRequest) {
 }
 
 func (ds *dapSession) onVariablesRequest(request *dap.VariablesRequest) {
-	ds.send(newErrorResponse(request.Seq, request.Command, "VariablesRequest is not yet supported"))
+	resp := new(dap.VariablesResponse)
+	resp.Response = *newResponse(request.Seq, request.Command)
+	resp.Body.Variables = []dap.Variable{
+		{Name: "x", Value: "1", Type: "int"},
+		{Name: "y", Value: "2", Type: "int"},
+	}
+	ds.send(resp)
 }
 
 func (ds *dapSession) onSetVariableRequest(request *dap.SetVariableRequest) {
@@ -271,11 +315,24 @@ func (ds *dapSession) onSourceRequest(request *dap.SourceRequest) {
 }
 
 func (ds *dapSession) onThreadsRequest(request *dap.ThreadsRequest) {
-	ds.send(newErrorResponse(request.Seq, request.Command, "ThreadsRequest is not yet supported"))
+	resp := new(dap.ThreadsResponse)
+	resp.Response = *newResponse(request.Seq, request.Command)
+	// check launched
+	if ds.vm != nil {
+		resp.Body.Threads = []dap.Thread{
+			{Id: 1, Name: "main"},
+		}
+	}
+	ds.send(resp)
 }
 
 func (ds *dapSession) onTerminateThreadsRequest(request *dap.TerminateThreadsRequest) {
-	ds.send(newErrorResponse(request.Seq, request.Command, "TerminateRequest is not yet supported"))
+	// brutal
+	ds.vm = nil
+	resp := new(dap.TerminateThreadsResponse)
+	resp.Response = *newResponse(request.Seq, request.Command)
+	resp.Success = true
+	ds.send(resp)
 }
 
 func (ds *dapSession) onEvaluateRequest(request *dap.EvaluateRequest) {

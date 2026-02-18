@@ -32,7 +32,7 @@ func main() {
 		if b[0] == 'q' {
 			os.Exit(0)
 		}
-		if err := runner.Step(); err != nil {
+		if err := runner.Next(); err != nil {
 			if err == io.EOF {
 				return
 			}

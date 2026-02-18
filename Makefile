@@ -21,6 +21,7 @@ bench:
 	go test -benchmem -bench=. ./pkg
 
 tools: install
+	cd cmd/gidap && go install
 	cd cmd/gistep && go install
 
 install:
