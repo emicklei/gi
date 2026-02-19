@@ -39,7 +39,17 @@ See [status](STATUS.md) for the supported Go language features.
 
 ## Use CLI
 
+### run
+
     gi run .
+
+### repl
+
+    gi repl .
+    
+## DAP server
+
+  gi dap --listen=127.0.0.1:52950 --log-dest=3 --log
 
 For development, the following environment variables control the execution and output:
 
@@ -68,6 +78,26 @@ func Hello(name string) int {
 `)
 	answer, err := gi.Call(pkg, "Hello", "3i/Atlas")
 }
+```
+
+### Use of DAP (Debug Adapter Protocol)
+
+```go
+	gopkg, _ := pkg.LoadPackage(".", nil)
+	ipkg, _ := pkg.BuildPackage(gopkg)
+	runner := pkg.NewDAPAccess(pkg.NewVM(ipkg))
+	runner.Launch("main", nil)
+	for {
+		if err := runner.Next(); err != nil {
+			if err == io.EOF {
+				return
+			}
+		}
+		_ = runner.Threads()
+		_ = runner.StackFrames(...)
+		_ = runner.Scopes(...)
+		_ = runner.Variables(...)
+	}
 ```
 
 #### Credits

@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -36,7 +35,15 @@ func getListenFlag() string {
 }
 
 func hasDAPCommand() bool {
-	return slices.Contains(os.Args, "dap")
+	return len(os.Args) > 1 && os.Args[1] == "dap"
+}
+
+func hasRunCommand() bool {
+	return len(os.Args) > 1 && os.Args[1] == "run"
+}
+
+func hasReplCommand() bool {
+	return len(os.Args) > 1 && os.Args[1] == "repl"
 }
 
 func getLogDestFlag() string {
@@ -50,15 +57,6 @@ func getLogDestFlag() string {
 func getLogFlag() bool {
 	for _, each := range os.Args {
 		if each == "--log" {
-			return true
-		}
-	}
-	return false
-}
-
-func getREPLFlag() bool {
-	for _, each := range os.Args {
-		if each == "--repl" {
 			return true
 		}
 	}

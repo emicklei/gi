@@ -21,7 +21,6 @@ import (
 	"bufio"
 	"log"
 	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
@@ -56,8 +55,6 @@ type session struct {
 
 	// vma represents program being debugged
 	vma *pkg.DAPAccess
-	// not sure if this is the right place
-	dir string
 }
 
 func (ds *session) handleRequest() error {
@@ -181,7 +178,6 @@ func (ds *session) onLaunchRequest(request *dap.LaunchRequest) {
 		ds.send(resp)
 		return
 	}
-	ds.dir = cwd
 	ds.vma = pkg.NewDAPAccess(pkg.NewVM(p))
 	ds.vma.Launch("main", nil)
 	ds.send(resp)
@@ -246,12 +242,14 @@ func (ds *session) onContinueRequest(request *dap.ContinueRequest) {
 }
 
 func (ds *session) onNextRequest(request *dap.NextRequest) {
-	if ds.vma != nil {
-		ds.vma.Next()
-	}
 	resp := new(dap.NextResponse)
 	resp.Response = *newResponse(request.Seq, request.Command)
-	resp.Success = ds.vma != nil
+	if ds.vma == nil {
+		resp.Success = false
+		ds.send(resp)
+		return
+	}
+	ds.vma.Next()
 	ds.send(resp)
 }
 
@@ -286,11 +284,12 @@ func (ds *session) onPauseRequest(request *dap.PauseRequest) {
 func (ds *session) onStackTraceRequest(request *dap.StackTraceRequest) {
 	resp := new(dap.StackTraceResponse)
 	resp.Response = *newResponse(request.Seq, request.Command)
-	if ds.vma != nil {
-		resp.Body.StackFrames = []dap.StackFrame{
-			{Id: 1, Name: "main.main", Source: &dap.Source{Name: "main.go", Path: filepath.Join(ds.dir, "main.go")}, Line: 12},
-		}
+	if ds.vma == nil {
+		resp.Success = false
+		ds.send(resp)
+		return
 	}
+	resp.Body.StackFrames = ds.vma.StackFrames(request.Arguments)
 	ds.send(resp)
 }
 
@@ -298,14 +297,13 @@ func (ds *session) onStackTraceRequest(request *dap.StackTraceRequest) {
 func (ds *session) onScopesRequest(request *dap.ScopesRequest) {
 	resp := new(dap.ScopesResponse)
 	resp.Response = *newResponse(request.Seq, request.Command)
-	if ds.vma != nil {
-		// https://microsoft.github.io/debug-adapter-protocol//specification.html#Types_Scope
-		resp.Body.Scopes = []dap.Scope{
-			{Name: "Local", VariablesReference: 1},
-		}
-	} else {
+	if ds.vma == nil {
 		resp.Success = false
+		ds.send(resp)
+		return
 	}
+	// https://microsoft.github.io/debug-adapter-protocol//specification.html#Types_Scope
+	resp.Body.Scopes = ds.vma.Scopes(request.Arguments)
 	ds.send(resp)
 }
 
@@ -313,10 +311,12 @@ func (ds *session) onScopesRequest(request *dap.ScopesRequest) {
 func (ds *session) onVariablesRequest(request *dap.VariablesRequest) {
 	resp := new(dap.VariablesResponse)
 	resp.Response = *newResponse(request.Seq, request.Command)
-	resp.Body.Variables = []dap.Variable{
-		{Name: "x", Value: "1", Type: "int"},
-		{Name: "y", Value: "2", Type: "int"},
+	if ds.vma == nil {
+		resp.Success = false
+		ds.send(resp)
+		return
 	}
+	resp.Body.Variables = ds.vma.Variables(request.Arguments)
 	ds.send(resp)
 }
 
@@ -340,11 +340,12 @@ func (ds *session) onThreadsRequest(request *dap.ThreadsRequest) {
 	resp := new(dap.ThreadsResponse)
 	resp.Response = *newResponse(request.Seq, request.Command)
 	// check launched
-	if ds.vma != nil {
-		resp.Body.Threads = []dap.Thread{
-			{Id: 1, Name: "main"},
-		}
+	if ds.vma == nil {
+		resp.Success = false
+		ds.send(resp)
+		return
 	}
+	resp.Body.Threads = ds.vma.Threads()
 	ds.send(resp)
 }
 

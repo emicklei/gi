@@ -9,25 +9,25 @@ import (
 var _ Stmt = ExprStmt{}
 
 type ExprStmt struct {
-	X Expr
+	x Expr
 }
 
 func (s ExprStmt) stmtStep() Evaluable { return s }
 
 func (s ExprStmt) eval(vm *VM) {
-	vm.eval(s.X)
+	vm.eval(s.x)
 }
 
 func (s ExprStmt) flow(g *graphBuilder) (head Step) {
-	return s.X.flow(g)
+	return s.x.flow(g)
 }
 
 func (s ExprStmt) String() string {
-	return fmt.Sprintf("ExprStmt(%v)", s.X)
+	return fmt.Sprintf("ExprStmt(%v)", s.x)
 }
 
 func (s ExprStmt) Pos() token.Pos {
-	return s.X.Pos()
+	return s.x.Pos()
 }
 
 var _ Stmt = DeclStmt{}

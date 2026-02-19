@@ -319,7 +319,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s := ExprStmt{}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 		b.push(s)
 	case *ast.Ident:
 		// special case for iota
