@@ -41,15 +41,21 @@ See [status](STATUS.md) for the supported Go language features.
 
 ### run
 
-    gi run .
+```bash
+gi run .
+```
 
 ### repl
 
-    gi repl .
-    
+```bash
+gi repl .
+```
+
 ## DAP server
 
-  gi dap --listen=127.0.0.1:52950 --log-dest=3 --log
+```bash
+gi dap --listen=127.0.0.1:52950 --log-dest=3 --log
+```
 
 For development, the following environment variables control the execution and output:
 
@@ -80,7 +86,7 @@ func Hello(name string) int {
 }
 ```
 
-### Use of DAP (Debug Adapter Protocol)
+### use of in-process DAP (Debug Adapter Protocol)
 
 ```go
 	gopkg, _ := pkg.LoadPackage(".", nil)
@@ -104,4 +110,4 @@ func Hello(name string) int {
 
 The build pipeline uses all programs of [Go By Example](https://gobyexample.com/) to check whether they are executable with `gi`.
 
-&copy; 2025. https://ernestmicklei.com . MIT License
+&copy; 2026. https://ernestmicklei.com . MIT License
