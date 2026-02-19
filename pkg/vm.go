@@ -21,6 +21,7 @@ var framePool = sync.Pool{
 
 // Runtime represents a virtual machine that can execute Go code.
 type VM struct {
+	pkg          *Package
 	callStack    stack[*stackFrame]
 	frameIdSeq   int
 	currentFrame *stackFrame // optimization
@@ -32,13 +33,11 @@ type VM struct {
 
 func NewVM(pkg *Package) *VM {
 	vm := &VM{
+		pkg:        pkg,
 		frameIdSeq: 1, // vm is created with frame 0 on stack
 		output:     new(bytes.Buffer),
 		callStack:  make(stack[*stackFrame], 0, 16),
-		heap:       newHeap()}
-	// happens in tests
-	if pkg.Package != nil {
-		vm.fileSet = pkg.Fset
+		heap:       newHeap(),
 	}
 	frame := framePool.Get().(*stackFrame)
 	frame.env = pkg.env
@@ -216,9 +215,11 @@ func (vm *VM) Location() string {
 	}
 	return fmt.Sprintf("%v @ %s", s, loc)
 }
-func (vm *VM) Setup(pkg *Package, funcName string, args []any) {
+
+// Launch sets up the VM for execution of the given function name with the provided arguments.
+func (vm *VM) Launch(funcName string, args []any) {
 	vm.isStepping = false // Temporary
-	pkg.initialize(vm)
+	vm.pkg.initialize(vm)
 
 	fun := vm.currentEnv().valueLookUp(funcName)
 	call := CallExpr{}
@@ -232,7 +233,7 @@ func (vm *VM) Setup(pkg *Package, funcName string, args []any) {
 			vm.pushOperand(reflect.ValueOf(args[i]))
 		}
 	}
-	// until w have breakpoints
+	// until we have breakpoints
 	vm.isStepping = true
 	call.handleFuncDecl(vm, fun.Interface().(*FuncDecl))
 }

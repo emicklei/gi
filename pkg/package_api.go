@@ -85,19 +85,17 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 	return pkg, nil
 }
 
-func CallPackageFunction(pkg *Package, functionName string, args []any, optionalVM *VM) ([]any, error) {
-	var vm *VM
-	if optionalVM != nil {
-		vm = optionalVM
-	} else {
-		vm = NewVM(pkg)
-	}
-	g := newGraphBuilder(pkg.Package)
-	setup := pkg.flow(g)
+func CallPackageFunction(pkg *Package, functionName string, args []any) ([]any, error) {
+	return callPackageFunction(functionName, args, NewVM(pkg))
+}
+
+func callPackageFunction(functionName string, args []any, vm *VM) ([]any, error) {
+	g := newGraphBuilder(vm.pkg.Package)
+	setup := vm.pkg.flow(g)
 	vm.takeAllStartingAt(setup)
 
 	// TODO maybe let the call do the lookup?
-	fun := pkg.env.valueLookUp(functionName)
+	fun := vm.pkg.env.valueLookUp(functionName)
 	if !fun.IsValid() {
 		return nil, fmt.Errorf("%s function definition not found", functionName)
 	}

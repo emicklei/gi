@@ -46,6 +46,6 @@ func main() {
 }`
 	p, _ := gi.ParseSource(src)
 	for range *count {
-		_, _ = pkg.CallPackageFunction(p, "main", nil, nil)
+		_, _ = pkg.CallPackageFunction(p, "main", nil)
 	}
 }

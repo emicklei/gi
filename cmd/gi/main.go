@@ -14,13 +14,13 @@ import (
 // The gi tool has three modes of operation:
 //
 //  1. Start a DAP server for debugging
-//     Mode 1 is activated when the --listen flag is provided.
+//     Mode 1 is activated when the dap sub command is invoked.
 //  2. Start a REPL for interactive terminal-based debugging
 //     Mode 2 is activated when the --repl flag is provided.
 //  3. Run a program from a directory of file
-//     Mode 3 is activated when neither --listen nor --repl flags are provided.
+//     Mode 3 is activated when neither dap nor --repl are provided.
 func main() {
-	if getListenFlag() != "" {
+	if hasDAPCommand() {
 		startDAP()
 	} else if getREPLFlag() {
 		startREPL()
@@ -50,7 +50,7 @@ func startREPL() {
 		log.Fatal(err)
 	}
 	runner := pkg.NewVM(ipkg)
-	runner.Setup(ipkg, "main", nil)
+	runner.Launch("main", nil)
 	var b []byte = make([]byte, 1)
 	fmt.Println("Press any key to step, 'q' to quit")
 	for {

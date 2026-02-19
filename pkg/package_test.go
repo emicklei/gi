@@ -25,7 +25,7 @@ func Hello(name string) (int, string) {
 }
 `
 	pkg := buildPackage(t, source)
-	results, err := CallPackageFunction(pkg, "Hello", []any{"3i/Atlas"}, nil)
+	results, err := CallPackageFunction(pkg, "Hello", []any{"3i/Atlas"})
 	if err != nil {
 		t.Fatalf("CallPackageFunction failed: %v", err)
 	}

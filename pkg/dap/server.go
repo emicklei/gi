@@ -62,7 +62,7 @@ func (s *Server) Start() error {
 // sender goroutine to send resulting messages over the connection
 // back to the client.
 func (s *Server) handleConnection(conn net.Conn) {
-	session := &dapSession{
+	session := &session{
 		rw:           bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)),
 		sendQueue:    make(chan dap.Message),
 		stopStepping: make(chan struct{}),

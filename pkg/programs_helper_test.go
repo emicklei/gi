@@ -58,7 +58,7 @@ func parseAndWalk(t *testing.T, source string) string {
 	if getAttr(t, "go.ast") == "true" {
 		writeGoAST(astFileName+".go.ast", pkg.Package)
 	}
-	if _, err := CallPackageFunction(pkg, "main", nil, vm); err != nil {
+	if _, err := callPackageFunction("main", nil, vm); err != nil {
 		t.Fatal(err)
 	}
 	return vm.output.String()
@@ -92,7 +92,7 @@ func testProgramIn(t *testing.T, dir string, _ any) {
 	if err != nil {
 		t.Fatalf("failed to build package in %s: %v", loc, err)
 	}
-	_, err = CallPackageFunction(pkg, "main", nil, nil)
+	_, err = callPackageFunction("main", nil, NewVM(pkg))
 	if err != nil {
 		t.Fatalf("failed to run package in %s: %v", loc, err)
 	}
@@ -127,7 +127,7 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 	if getAttr(t, "go.ast") == "true" {
 		writeGoAST(astFileName+".go.ast", pkg.Package)
 	}
-	runner.Setup(pkg, "main", nil)
+	runner.Launch("main", nil)
 	for {
 		if err := runner.Next(); err != nil {
 			if err == io.EOF {

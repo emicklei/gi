@@ -18,7 +18,7 @@ func Run(filePath string) error {
 	if err != nil {
 		return err
 	}
-	_, err = pkg.CallPackageFunction(p, "main", nil, nil)
+	_, err = pkg.CallPackageFunction(p, "main", nil)
 	return err
 }
 
@@ -32,7 +32,7 @@ func ParseSource(source string) (*pkg.Package, error) {
 // Call calls a function named funcName in the given package pkg with the provided parameters values.
 // It returns the results of the function call and an error if any occurred during the call.
 func Call(p *pkg.Package, funcName string, params ...any) ([]any, error) {
-	return pkg.CallPackageFunction(p, funcName, params, nil)
+	return pkg.CallPackageFunction(p, funcName, params)
 }
 
 // RegisterPackage registers an external package with its symbols for use within gi-executed code.

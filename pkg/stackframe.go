@@ -70,6 +70,21 @@ func (f *stackFrame) takeDeferList(vm *VM) {
 	}
 }
 
+func (f *stackFrame) String() string {
+	if f == nil {
+		return "stackFrame(<nil>)"
+	}
+	buf := strings.Builder{}
+	if f.creator != nil {
+		fmt.Fprintf(&buf, "%v ", f.creator)
+	} else {
+		fmt.Fprintf(&buf, "? ")
+	}
+	fmt.Fprintf(&buf, "%v ", f.env)
+	fmt.Fprintf(&buf, "ops=%v ", f.operands)
+	return buf.String()
+}
+
 // func (f *stackFrame) buildDeferGraph() (head Step) {
 // 	g := newGraphBuilder(nil)
 // 	operands := make([]reflect.Value, 0)
@@ -109,19 +124,4 @@ func (p *pushOperandsStep) Pos() token.Pos {
 }
 func (p *pushOperandsStep) String() string {
 	return fmt.Sprintf("~pushOperand(%d)", len(p.operands))
-}
-
-func (f *stackFrame) String() string {
-	if f == nil {
-		return "stackFrame(<nil>)"
-	}
-	buf := strings.Builder{}
-	if f.creator != nil {
-		fmt.Fprintf(&buf, "%v ", f.creator)
-	} else {
-		fmt.Fprintf(&buf, "? ")
-	}
-	fmt.Fprintf(&buf, "%v ", f.env)
-	fmt.Fprintf(&buf, "ops=%v ", f.operands)
-	return buf.String()
 }

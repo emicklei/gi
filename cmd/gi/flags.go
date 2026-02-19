@@ -2,13 +2,10 @@ package main
 
 import (
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
-
-func IsTraceEnabled() bool {
-	return getLogFlag()
-}
 
 func flagValueString(f string) string {
 	if !strings.Contains(f, "=") {
@@ -37,6 +34,11 @@ func getListenFlag() string {
 	}
 	return ""
 }
+
+func hasDAPCommand() bool {
+	return slices.Contains(os.Args, "dap")
+}
+
 func getLogDestFlag() string {
 	for _, each := range os.Args {
 		if strings.HasPrefix(each, "--log-dest") {
