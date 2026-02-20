@@ -48,7 +48,7 @@ func (s StructType) tagForField(fieldName string) *string {
 	return nil
 }
 
-func (s StructType) Pos() token.Pos { return s.structPos }
+func (s StructType) pos() token.Pos { return s.structPos }
 
 func (s StructType) String() string {
 	n := s.name
@@ -87,7 +87,7 @@ func (s StructType) makeValue(vm *VM, size int, elements []reflect.Value) reflec
 }
 
 func (s StructType) addMethod(decl *FuncDecl) { // TODO inline
-	s.methods[decl.name.name] = decl
+	s.methods[decl.funcName.name] = decl
 }
 
 func (s StructType) methodsMap() map[string]*FuncDecl {

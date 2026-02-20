@@ -151,11 +151,11 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.Ellipsis:
-		s := Ellipsis{Ellipsis: n}
+		s := Ellipsis{ellipisPos: n.Ellipsis}
 		if n.Elt != nil {
 			b.Visit(n.Elt)
 			e := b.pop()
-			s.Elt = e.(Expr)
+			s.elt = e.(Expr)
 		}
 		b.push(s)
 	case *ast.DeferStmt:
@@ -519,7 +519,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		b.Visit(n.Name)
 		e := b.pop()
 		i := e.(Ident)
-		s.name = &i
+		s.funcName = &i
 
 		b.Visit(n.Type)
 		e = b.pop()
@@ -815,7 +815,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		index := slices.Index(b.funcStack.top().bodyList, ast.Stmt(n))
 		refStep := new(labeledStep)
 		refStep.label = s.label.name
-		refStep.pos = s.Pos()
+		refStep.stmtPos = s.pos()
 		ref := stmtReference{index: index, step: refStep} // has no ID
 		b.funcStack.top().fn.putGotoReference(s.label.name, ref)
 	case *ast.BranchStmt:
@@ -837,13 +837,13 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 // TEMP
 func withEndingReturn(block *BlockStmt) *BlockStmt {
 	if len(block.list) == 0 {
-		emptyReturn := ReturnStmt{returnPos: block.Pos()}
+		emptyReturn := ReturnStmt{returnPos: block.pos()}
 		block.list = append(block.list, emptyReturn)
 		return block
 	}
 	last := block.list[len(block.list)-1]
 	if _, ok := last.(ReturnStmt); !ok {
-		emptyReturn := ReturnStmt{returnPos: block.Pos()}
+		emptyReturn := ReturnStmt{returnPos: block.pos()}
 		block.list = append(block.list, emptyReturn)
 	}
 	return block

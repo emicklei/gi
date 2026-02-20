@@ -156,7 +156,7 @@ func (s SelectorExpr) flow(g *graphBuilder) (head Step) {
 	return head
 }
 
-func (s SelectorExpr) Pos() token.Pos { return s.selector.namePos }
+func (s SelectorExpr) pos() token.Pos { return s.selector.namePos }
 
 func (s SelectorExpr) String() string {
 	return fmt.Sprintf("SelectorExpr(%v, %v)", s.x, s.selector.name)

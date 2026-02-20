@@ -24,7 +24,7 @@ func (i IfStmt) flow(g *graphBuilder) (head Step) {
 		head = i.init.flow(g)
 	}
 	// condition can have its own assigments
-	push := newPushEnvironmentStep(i.Pos())
+	push := newPushEnvironmentStep(i.pos())
 	g.nextStep(push)
 	if head == nil {
 		head = g.current
@@ -35,7 +35,7 @@ func (i IfStmt) flow(g *graphBuilder) (head Step) {
 
 	// true branch
 	i.body.flow(g)
-	pop := g.newPopEnvironmentStep(i.body.Pos())
+	pop := g.newPopEnvironmentStep(i.body.pos())
 	g.nextStep(pop)
 
 	// false branch
@@ -54,7 +54,7 @@ func (i IfStmt) flow(g *graphBuilder) (head Step) {
 
 func (i IfStmt) stmtStep() Evaluable { return i }
 
-func (i IfStmt) Pos() token.Pos { return i.ifPos }
+func (i IfStmt) pos() token.Pos { return i.ifPos }
 
 func (i IfStmt) String() string {
 	return fmt.Sprintf("IfStmt(%v, %v, %v, %v)", i.init, i.cond, i.body, i.elseif)

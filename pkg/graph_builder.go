@@ -44,7 +44,7 @@ func (g *graphBuilder) newStep(e Evaluable) *evaluableStep {
 
 // newLabeledStep creates a labeled step but does not add it to the current flow.
 func (g *graphBuilder) newLabeledStep(label string, pos token.Pos) *labeledStep {
-	return &labeledStep{label: label, pos: pos}
+	return &labeledStep{label: label, stmtPos: pos}
 }
 
 func (g *graphBuilder) newPopEnvironmentStep(pos token.Pos) *popEnvironmentStep {
@@ -70,10 +70,10 @@ func (g *graphBuilder) nextStep(next Step) {
 		if trace {
 			fmt.Printf("fw: %d → %v", g.current.ID(), next)
 			if g.goPkg != nil && g.goPkg.Fset != nil {
-				f := g.goPkg.Fset.File(g.current.Pos())
+				f := g.goPkg.Fset.File(g.current.pos())
 				if f != nil {
 					nodir := filepath.Base(f.Name())
-					fmt.Print(" @ ", nodir, ":", f.Line(g.current.Pos()))
+					fmt.Print(" @ ", nodir, ":", f.Line(g.current.pos()))
 				} else {
 					fmt.Print(" @ bad file info")
 				}

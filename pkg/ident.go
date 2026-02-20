@@ -34,7 +34,7 @@ func (i Ident) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (i Ident) Pos() token.Pos {
+func (i Ident) pos() token.Pos {
 	return i.namePos
 }
 

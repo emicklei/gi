@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go/token"
 	"io"
-	"path/filepath"
+	"path"
 	"reflect"
 	"strings"
 )
@@ -188,14 +188,7 @@ func isPointerToStructValue(v reflect.Value) bool {
 
 // sourceLocation returns a string representation of the source location of the given Evaluable (can be nil).
 func sourceLocation(fs *token.FileSet, pos token.Pos) string {
-	if fs == nil {
-		return "<no file set>"
-	}
-	if f := fs.File(pos); f != nil {
-		nodir := filepath.Base(f.Name())
-		return fmt.Sprintf("%s:%d", nodir, f.Line(pos))
-	}
-	return "<bad pos>"
+	return tokenLocation(fs, pos, "").String()
 }
 
 func stringOf(v any) string {
@@ -239,4 +232,34 @@ func stringOf(v any) string {
 		return ts.toString()
 	}
 	return fmt.Sprintf("%v", v)
+}
+
+type TokenLocation struct {
+	FilePath string
+	FileName string
+	Line     int
+	Column   int
+	Token    string
+}
+
+func (t TokenLocation) String() string {
+	return fmt.Sprintf("%s:%d:%d", t.FileName, t.Line, t.Column)
+}
+
+func tokenLocation(fset *token.FileSet, pos token.Pos, token string) TokenLocation {
+	if fset == nil {
+		return TokenLocation{
+			FilePath: "<no file set>",
+			FileName: "<no file set>",
+			Token:    token,
+		}
+	}
+	f := fset.PositionFor(pos, false)
+	return TokenLocation{
+		FilePath: f.Filename,
+		FileName: path.Base(f.Filename),
+		Line:     f.Line,
+		Column:   f.Column,
+		Token:    token,
+	}
 }

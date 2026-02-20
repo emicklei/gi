@@ -34,7 +34,7 @@ func (c ChanType) literalCompose(vm *VM, composite reflect.Value, values []refle
 	// TODO
 	return composite
 }
-func (c ChanType) Pos() token.Pos {
+func (c ChanType) pos() token.Pos {
 	return c.beginPos
 }
 func (c ChanType) String() string {
@@ -66,7 +66,7 @@ func (s SendStmt) flow(g *graphBuilder) (head Step) {
 
 func (s SendStmt) stmtStep() Evaluable { return s }
 
-func (s SendStmt) Pos() token.Pos {
+func (s SendStmt) pos() token.Pos {
 	return s.arrowPos
 }
 

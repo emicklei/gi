@@ -66,7 +66,7 @@ func (i IndexExpr) flow(g *graphBuilder) (head Step) {
 	return head
 }
 
-func (i IndexExpr) Pos() token.Pos { return i.lbrackPos }
+func (i IndexExpr) pos() token.Pos { return i.lbrackPos }
 
 func (i IndexExpr) String() string {
 	return fmt.Sprintf("IndexExpr(%v, %v)", i.x, i.index)

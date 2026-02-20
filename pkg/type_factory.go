@@ -41,7 +41,7 @@ func makeType(vm *VM, e Evaluable) reflect.Type {
 		return reflect.TypeOf(fn)
 	}
 	if e, ok := e.(Ellipsis); ok {
-		return makeType(vm, e.Elt)
+		return makeType(vm, e.elt)
 	}
 	vm.fatalf("unhandled makeType for %v (%T)", e, e)
 	return nil
@@ -97,7 +97,7 @@ func typeMaker(vm *VM, e Expr) CanMake {
 	}
 
 	if e, ok := e.(Ellipsis); ok {
-		return typeMaker(vm, e.Elt)
+		return typeMaker(vm, e.elt)
 	}
 
 	vm.fatalf("unhandled proxyType for %v (%T)", e, e)

@@ -34,7 +34,7 @@ func (e TypeAssertExpr) String() string {
 	return fmt.Sprintf("TypeAssertExpr(%v,%v)", e.x, e.typ)
 }
 
-func (e TypeAssertExpr) Pos() token.Pos { return e.lparenPos }
+func (e TypeAssertExpr) pos() token.Pos { return e.lparenPos }
 
 var _ CanMake = TypeSpec{}
 var _ Expr = TypeSpec{}
@@ -78,7 +78,7 @@ func (s TypeSpec) String() string {
 	return fmt.Sprintf("TypeSpec(%v,%v,%v)", s.name, s.typeParams, s.typ)
 }
 
-func (s TypeSpec) Pos() token.Pos { return s.assignPos }
+func (s TypeSpec) pos() token.Pos { return s.assignPos }
 
 var (
 	_ Flowable = InterfaceType{}
@@ -113,7 +113,7 @@ func (i InterfaceType) literalCompose(vm *VM, composite reflect.Value, values []
 	return reflectNil
 }
 
-func (i InterfaceType) Pos() token.Pos { return i.InterfacePos }
+func (i InterfaceType) pos() token.Pos { return i.InterfacePos }
 
 func (i InterfaceType) String() string {
 	return fmt.Sprintf("InterfaceType(methods=%v)", i.Methods)
@@ -168,7 +168,7 @@ func (m MapType) literalCompose(vm *VM, composite reflect.Value, values []reflec
 	return composite
 }
 
-func (m MapType) Pos() token.Pos { return m.MapPos }
+func (m MapType) pos() token.Pos { return m.MapPos }
 
 func (m MapType) toString() string {
 	return fmt.Sprintf("MapType(%v,%v)", m.Key, m.Value)
@@ -207,7 +207,7 @@ func (d ExtendedType) literalCompose(vm *VM, composite reflect.Value, values []r
 }
 
 func (d ExtendedType) addMethod(decl *FuncDecl) { // TODO inline
-	d.methods[decl.name.name] = decl
+	d.methods[decl.funcName.name] = decl
 }
 
 func (d ExtendedType) methodsMap() map[string]*FuncDecl {

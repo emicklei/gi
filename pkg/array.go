@@ -76,7 +76,7 @@ func (a ArrayType) literalCompose(vm *VM, composite reflect.Value, values []refl
 
 }
 
-func (a ArrayType) Pos() token.Pos { return a.lbrackPos }
+func (a ArrayType) pos() token.Pos { return a.lbrackPos }
 
 func (a ArrayType) String() string {
 	return fmt.Sprintf("ArrayType(%v,slice=%v)", a.elt, a.len == nil)
@@ -135,7 +135,7 @@ func (s SliceExpr) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-func (s SliceExpr) Pos() token.Pos { return s.lbrackPos }
+func (s SliceExpr) pos() token.Pos { return s.lbrackPos }
 
 func (s SliceExpr) String() string {
 	return fmt.Sprintf("SliceExpr(%v,%v:%v:%v)", s.x, s.low, s.high, s.max)

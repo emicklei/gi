@@ -54,13 +54,13 @@ func (r ReturnStmt) flow(g *graphBuilder) (head Step) {
 		head = g.current
 	}
 	// runs defers and puts result on the operand stack
-	g.nextStep(newFuncStep(r.Pos(), "defer+results", postCallFunc))
+	g.nextStep(newFuncStep(r.pos(), "defer+results", postCallFunc))
 	// no next step after return
 	g.current = nil
 	return
 }
 
-func (r ReturnStmt) Pos() token.Pos {
+func (r ReturnStmt) pos() token.Pos {
 	return r.returnPos
 }
 

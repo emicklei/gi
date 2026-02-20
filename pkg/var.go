@@ -98,7 +98,7 @@ func (v ValueSpec) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-func (v ValueSpec) Pos() token.Pos {
+func (v ValueSpec) pos() token.Pos {
 	return v.namePos
 }
 
@@ -129,7 +129,7 @@ func (i *iotaExpr) flow(g *graphBuilder) (head Step) {
 	g.next(i)
 	return g.current
 }
-func (i *iotaExpr) Pos() token.Pos {
+func (i *iotaExpr) pos() token.Pos {
 	return i.exprPos
 }
 func (i *iotaExpr) String() string {

@@ -35,7 +35,7 @@ func (k KeyValueExpr) flow(g *graphBuilder) (head Step) {
 	return head
 }
 
-func (k KeyValueExpr) Pos() token.Pos { return k.colonPos }
+func (k KeyValueExpr) pos() token.Pos { return k.colonPos }
 
 func (k KeyValueExpr) String() string {
 	return fmt.Sprintf("KeyValueExpr(%v,%v)", k.key, k.Value)
@@ -53,7 +53,7 @@ func (i identKey) flow(g *graphBuilder) (head Step) {
 	g.next(i)
 	return g.current
 }
-func (i identKey) Pos() token.Pos { return i.Ident.Pos() }
+func (i identKey) pos() token.Pos { return i.Ident.pos() }
 
 func (i identKey) String() string {
 	return fmt.Sprintf("~identKey(%v)", i.Ident)

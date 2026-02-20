@@ -49,7 +49,7 @@ func (s *step) take(vm *VM) Step {
 }
 
 func (s *step) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return s.traverseWithLabel(g, s.String(), sourceLocation(fs, s.Pos()), fs)
+	return s.traverseWithLabel(g, s.String(), sourceLocation(fs, s.pos()), fs)
 }
 
 func (s *step) traverseWithLabel(g *dot.Graph, label, edge string, fs *token.FileSet) dot.Node {
@@ -65,7 +65,7 @@ func (s *step) traverseWithLabel(g *dot.Graph, label, edge string, fs *token.Fil
 	return n
 }
 
-func (s *step) Pos() token.Pos {
+func (s *step) pos() token.Pos {
 	return token.NoPos
 }
 
@@ -85,8 +85,8 @@ func (s *evaluableStep) take(vm *VM) Step {
 	return s.next
 }
 
-func (s *evaluableStep) Pos() token.Pos {
-	return s.Evaluable.Pos()
+func (s *evaluableStep) pos() token.Pos {
+	return s.Evaluable.pos()
 }
 
 func (s *evaluableStep) String() string {
@@ -97,7 +97,7 @@ func (s *evaluableStep) String() string {
 }
 
 func (s *evaluableStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return s.traverseWithLabel(g, s.String(), sourceLocation(fs, s.Pos()), fs)
+	return s.traverseWithLabel(g, s.String(), sourceLocation(fs, s.pos()), fs)
 }
 
 type conditionalStep struct {
@@ -134,14 +134,14 @@ func (c *conditionalStep) take(vm *VM) Step {
 	return c.elseFlow
 }
 
-func (c *conditionalStep) Pos() token.Pos {
+func (c *conditionalStep) pos() token.Pos {
 	if c.conditionFlow != nil {
-		return c.conditionFlow.Pos()
+		return c.conditionFlow.pos()
 	}
 	if c.elseFlow != nil {
-		return c.elseFlow.Pos()
+		return c.elseFlow.pos()
 	}
-	return c.step.Pos()
+	return c.step.pos()
 }
 
 func (c *conditionalStep) String() string {
@@ -153,15 +153,15 @@ func (c *conditionalStep) String() string {
 
 type pushEnvironmentStep struct {
 	step
-	pos token.Pos
+	stmtPos token.Pos
 }
 
-func (p *pushEnvironmentStep) Pos() token.Pos {
-	return p.pos
+func (p *pushEnvironmentStep) pos() token.Pos {
+	return p.stmtPos
 }
 
 func newPushEnvironmentStep(pos token.Pos) *pushEnvironmentStep {
-	return &pushEnvironmentStep{pos: pos}
+	return &pushEnvironmentStep{stmtPos: pos}
 }
 
 func (p *pushEnvironmentStep) take(vm *VM) Step {
@@ -176,7 +176,7 @@ func (p *pushEnvironmentStep) String() string {
 	return fmt.Sprintf("%d: ~push env", p.ID())
 }
 func (p *pushEnvironmentStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return p.step.traverseWithLabel(g, p.String(), sourceLocation(fs, p.pos), fs)
+	return p.step.traverseWithLabel(g, p.String(), sourceLocation(fs, p.stmtPos), fs)
 }
 
 type popEnvironmentStep struct {
@@ -184,7 +184,7 @@ type popEnvironmentStep struct {
 	stmtPos token.Pos
 }
 
-func (p *popEnvironmentStep) Pos() token.Pos {
+func (p *popEnvironmentStep) pos() token.Pos {
 	return p.stmtPos
 }
 
@@ -206,16 +206,16 @@ func (p *popEnvironmentStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node 
 
 type labeledStep struct {
 	step
-	label string
-	pos   token.Pos
+	label   string
+	stmtPos token.Pos
 }
 
-func (s *labeledStep) Pos() token.Pos {
-	return s.pos
+func (s *labeledStep) pos() token.Pos {
+	return s.stmtPos
 }
 
 func (s *labeledStep) SetPos(update token.Pos) {
-	s.pos = update
+	s.stmtPos = update
 }
 
 func (s *labeledStep) String() string {
@@ -226,16 +226,16 @@ func (s *labeledStep) String() string {
 }
 
 func (s *labeledStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return s.step.traverseWithLabel(g, s.String(), sourceLocation(fs, s.pos), fs)
+	return s.step.traverseWithLabel(g, s.String(), sourceLocation(fs, s.stmtPos), fs)
 }
 
 type popOperandStep struct {
 	step
-	pos token.Pos
+	stmtPos token.Pos
 }
 
-func (p popOperandStep) Pos() token.Pos {
-	return p.pos
+func (p popOperandStep) pos() token.Pos {
+	return p.stmtPos
 }
 
 func (p popOperandStep) take(vm *VM) Step {
@@ -255,14 +255,14 @@ var _ Step = (*funcStep)(nil)
 
 type funcStep struct {
 	step
-	pos   token.Pos
-	label string
-	fun   func(vm *VM)
+	stmtPos token.Pos
+	label   string
+	fun     func(vm *VM)
 }
 
 // newFuncStep creates a new funcStep with the given position and function to execute.
 func newFuncStep(pos token.Pos, label string, fun func(vm *VM)) *funcStep {
-	return &funcStep{pos: pos, label: label, fun: fun}
+	return &funcStep{stmtPos: pos, label: label, fun: fun}
 }
 
 func (p funcStep) take(vm *VM) Step {
@@ -270,8 +270,8 @@ func (p funcStep) take(vm *VM) Step {
 	return p.next
 }
 
-func (e funcStep) Pos() token.Pos {
-	return e.pos
+func (e funcStep) pos() token.Pos {
+	return e.stmtPos
 }
 
 func (e funcStep) String() string {

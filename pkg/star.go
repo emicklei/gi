@@ -81,7 +81,7 @@ func (s StarExpr) define(vm *VM, value reflect.Value) {
 	vm.fatalf("cannot use := with pointer dereference")
 }
 
-func (s StarExpr) Pos() token.Pos { return s.starPos }
+func (s StarExpr) pos() token.Pos { return s.starPos }
 
 func (s StarExpr) String() string {
 	return fmt.Sprintf("StarExpr(%v)", s.x)
@@ -98,7 +98,7 @@ func (e ParenExpr) eval(vm *VM) {} // noop
 func (e ParenExpr) flow(g *graphBuilder) (head Step) {
 	return e.X.flow(g)
 }
-func (e ParenExpr) Pos() token.Pos { return e.LParen }
+func (e ParenExpr) pos() token.Pos { return e.LParen }
 func (e ParenExpr) String() string {
 	return fmt.Sprintf("ParenExpr(%v)", e.X)
 }

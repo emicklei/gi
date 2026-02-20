@@ -59,7 +59,7 @@ func (b BinaryExpr) String() string {
 	return fmt.Sprintf("BinaryExpr(%v %v %v)", b.x, b.op, b.y)
 }
 
-func (b BinaryExpr) Pos() token.Pos {
+func (b BinaryExpr) pos() token.Pos {
 	return b.opPos
 }
 

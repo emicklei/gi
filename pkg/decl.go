@@ -53,11 +53,11 @@ func (c ConstDecl) callGraph() Step {
 	return c.graph
 }
 func (c ConstDecl) declStep() CanDeclare { return c }
-func (c ConstDecl) Pos() token.Pos {
+func (c ConstDecl) pos() token.Pos {
 	if len(c.specs) == 0 {
 		return token.NoPos
 	}
-	return c.specs[0].Pos()
+	return c.specs[0].pos()
 }
 func (c ConstDecl) String() string {
 	return fmt.Sprintf("ConstDecl(len=%d)", len(c.specs))

@@ -45,10 +45,10 @@ See [status](STATUS.md) for the supported Go language features.
 gi run .
 ```
 
-### repl
+### step
 
 ```bash
-gi repl .
+gi step .
 ```
 
 ## DAP server

@@ -96,7 +96,7 @@ func (f *stackFrame) String() string {
 // 			operands = append(operands, invocation.arguments[i])
 // 		}
 // 		push := &pushOperandsStep{
-// 			deferPos: invocation.flow.Pos(),
+// 			deferPos: invocation.flow.pos(),
 // 			operands: operands,
 // 		}
 // 		g.nextStep(push)
@@ -119,7 +119,7 @@ func (p *pushOperandsStep) take(vm *VM) Step {
 	}
 	return p.next
 }
-func (p *pushOperandsStep) Pos() token.Pos {
+func (p *pushOperandsStep) pos() token.Pos {
 	return p.deferPos
 }
 func (p *pushOperandsStep) String() string {

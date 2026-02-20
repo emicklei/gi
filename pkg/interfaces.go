@@ -8,7 +8,7 @@ import (
 )
 
 type Evaluable interface {
-	Pos() token.Pos
+	pos() token.Pos
 	eval(vm *VM)
 }
 
@@ -67,7 +67,7 @@ type CanMake interface {
 type Decl interface {
 	Flowable
 	declStep() CanDeclare
-	Pos() token.Pos
+	pos() token.Pos
 }
 
 type Step interface {
@@ -98,6 +98,8 @@ type Func interface {
 	gotoReference(label string) stmtReference
 	results() *FieldList
 	params() *FieldList
+	pos() token.Pos
+	name() string
 }
 
 // for gi internal use

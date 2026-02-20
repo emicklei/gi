@@ -14,7 +14,7 @@ type Field struct {
 
 func (l Field) eval(vm *VM) {} // noop
 
-func (l Field) Pos() token.Pos { return token.NoPos } // TODO
+func (l Field) pos() token.Pos { return token.NoPos } // TODO
 
 func (l Field) String() string {
 	return fmt.Sprintf("Field(%v,%v)", l.names, l.typ)
@@ -28,12 +28,12 @@ type FieldList struct {
 func (l FieldList) ensureNamedFields(meaning string) {
 	for i, field := range l.List {
 		if len(field.names) == 0 {
-			field.names = []*Ident{{namePos: l.Pos(), name: internalVarName(meaning, i)}}
+			field.names = []*Ident{{namePos: l.pos(), name: internalVarName(meaning, i)}}
 		}
 	}
 }
 
-func (l FieldList) Pos() token.Pos { return l.OpeningPos }
+func (l FieldList) pos() token.Pos { return l.OpeningPos }
 
 func (l FieldList) String() string {
 	names := []string{}

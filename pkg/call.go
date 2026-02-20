@@ -385,7 +385,7 @@ func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {
 	return
 }
 
-func (c CallExpr) Pos() token.Pos { return c.lparenPos }
+func (c CallExpr) pos() token.Pos { return c.lparenPos }
 
 func (c CallExpr) String() string {
 	return fmt.Sprintf("CallExpr(%v, args=%d)", c.fun, len(c.args))

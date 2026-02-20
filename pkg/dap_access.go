@@ -1,8 +1,6 @@
 package pkg
 
 import (
-	"path/filepath"
-
 	"github.com/google/go-dap"
 )
 
@@ -39,10 +37,22 @@ func (a *DAPAccess) Threads() []dap.Thread {
 }
 
 // StackFrames returns the current call stack for the selected thread.
-func (a *DAPAccess) StackFrames(dap.StackTraceArguments) []dap.StackFrame {
-	return []dap.StackFrame{
-		{Id: 1, Name: "main.main", Source: &dap.Source{Name: "main.go", Path: filepath.Join(a.vm.pkg.Dir, "main.go")}, Line: 12},
+func (a *DAPAccess) StackFrames(dap.StackTraceArguments) (frames []dap.StackFrame) {
+	for _, eachFrame := range a.vm.callStack {
+		tokloc := tokenLocation(a.vm.pkg.Fset, eachFrame.creator.pos(), eachFrame.creator.name())
+		dapFrame := dap.StackFrame{
+			Id:   eachFrame.id,
+			Name: stringOf(eachFrame.creator), // TODO
+			Source: &dap.Source{
+				Name: tokloc.FileName,
+				Path: tokloc.FilePath,
+			},
+			Line:   tokloc.Line,
+			Column: 0,
+		}
+		frames = append(frames, dapFrame)
 	}
+	return
 }
 
 // Scopes describes the variable scopes that are available for the current stack frame.

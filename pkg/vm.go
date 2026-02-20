@@ -3,7 +3,6 @@ package pkg
 import (
 	"bytes"
 	"fmt"
-	"go/token"
 	"io"
 	"os"
 	"reflect"
@@ -26,9 +25,8 @@ type VM struct {
 	frameIdSeq   int
 	currentFrame *stackFrame // optimization
 	heap         *Heap
-	output       *bytes.Buffer  // for testing only
-	fileSet      *token.FileSet // optional file set for position info
-	isStepping   bool           // whether the VM is currently stepping
+	output       *bytes.Buffer // for testing only
+	isStepping   bool          // whether the VM is currently stepping
 }
 
 func NewVM(pkg *Package) *VM {
@@ -63,14 +61,14 @@ func (vm *VM) pushOperand(v reflect.Value) {
 		before := len(vm.currentFrame.operands)
 		if v.IsValid() && v.CanInterface() {
 			if v == reflectNil {
-				fmt.Printf("~~ frame[%d].push [%d->%d]: untyped nil\n", vm.currentFrame.id, before, before+1)
+				fmt.Printf("~~ frame.%d.push [%d->%d]: untyped nil\n", vm.currentFrame.id, before, before+1)
 			} else if isUndeclared(v) {
-				fmt.Printf("~~ frame[%d].push [%d->%d]: %v (undeclared)\n", vm.currentFrame.id, before, before+1, v)
+				fmt.Printf("~~ frame.%d.push [%d->%d]: %v (undeclared)\n", vm.currentFrame.id, before, before+1, v)
 			} else {
-				fmt.Printf("~~ frame[%d].push [%d->%d]: %v (%T)\n", vm.currentFrame.id, before, before+1, v.Interface(), v.Interface())
+				fmt.Printf("~~ frame.%d.push [%d->%d]: %v (%T)\n", vm.currentFrame.id, before, before+1, v.Interface(), v.Interface())
 			}
 		} else {
-			fmt.Printf("~~ frame[%d].push [%d->%d]: %v\n", vm.currentFrame.id, before, before+1, v)
+			fmt.Printf("~~ frame.%d.push [%d->%d]: %v\n", vm.currentFrame.id, before, before+1, v)
 		}
 	}
 	vm.currentFrame.push(v)
@@ -94,7 +92,7 @@ func (vm *VM) popOperand() reflect.Value {
 	popped := vm.currentFrame.pop()
 	if trace {
 		before := len(vm.currentFrame.operands)
-		fmt.Printf("~~ frame[%d].pop [%d->%d]:%s\n", vm.currentFrame.id, before, before-1, stringOf(popped))
+		fmt.Printf("~~ frame.%d.pop [%d->%d]:%s\n", vm.currentFrame.id, before, before-1, stringOf(popped))
 	}
 	return popped
 }
@@ -115,7 +113,7 @@ func (vm *VM) pushNewFrame(f Func) {
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
 	if trace {
-		fmt.Printf("vm.pushNewFrame[%d]:%s\n", frame.id, stringOf(f))
+		fmt.Printf("vm.pushNewFrame.%d:%s\n", frame.id, stringOf(f))
 	}
 }
 
@@ -127,7 +125,7 @@ func (vm *VM) popFrame() {
 	}
 	frame := vm.callStack.pop()
 	if trace {
-		fmt.Printf("vm.popFrame[%d]\n", frame.id)
+		fmt.Printf("vm.popFrame.%d\n", frame.id)
 	}
 	if len(vm.callStack) > 0 {
 		vm.currentFrame = vm.callStack.top()
@@ -178,7 +176,7 @@ func (vm *VM) takeAllStartingAt(head Step) {
 	here := head
 	for here != nil {
 		if trace {
-			fmt.Printf("%v @ %s\n", here, sourceLocation(vm.fileSet, here.Pos()))
+			fmt.Printf("%v @ %v\n", here, tokenLocation(vm.pkg.Fset, here.pos(), ""))
 		}
 		here = here.take(vm)
 	}
@@ -201,20 +199,21 @@ func (vm *VM) Next() error {
 	}
 	return nil
 }
-func (vm *VM) Location() string {
-	s := vm.currentFrame.step
-	if s == nil {
-		return "no current step"
-	}
-	loc := "no fileset"
-	if vm.fileSet != nil {
-		if s.Pos() == token.NoPos {
-			return "no position info"
-		}
-		loc = sourceLocation(vm.fileSet, s.Pos())
-	}
-	return fmt.Sprintf("%v @ %s", s, loc)
-}
+
+// func (vm *VM) Location() string {
+// 	s := vm.currentFrame.step
+// 	if s == nil {
+// 		return "no current step"
+// 	}
+// 	loc := "no fileset"
+// 	if vm.pkg.Fset != nil {
+// 		if s.pos() == token.NoPos {
+// 			return "no position info"
+// 		}
+// 		loc = sourceLocation(vm.pkg.Fset, s.pos())
+// 	}
+// 	return fmt.Sprintf("%v @ %s", s, loc)
+// }
 
 // Launch sets up the VM for execution of the given function name with the provided arguments.
 func (vm *VM) Launch(funcName string, args []any) {
@@ -246,31 +245,31 @@ func (vm *VM) printStack() {
 	frame := vm.currentFrame
 	if env, ok := frame.env.(*PkgEnvironment); ok {
 		for i, decl := range env.declarations {
-			fmt.Printf("pkg.decl[%d]: %v\n", i, decl)
+			fmt.Printf("pkg.decl.%d: %v\n", i, decl)
 			if cd, ok := decl.(ConstDecl); ok {
 				for s, spec := range cd.specs {
 					for n, idn := range spec.names {
-						fmt.Printf("  const.spec[%d][%d]: %v\n", s, n, idn.name)
+						fmt.Printf("  const.spec.%d.%d: %v\n", s, n, idn.name)
 					}
 				}
 			}
 		}
 		for i, method := range env.inits {
-			fmt.Printf("pkg.init[%d]: %v\n", i, method)
+			fmt.Printf("pkg.init.%d: %v\n", i, method)
 		}
 		for i, method := range env.methods {
-			fmt.Printf("pkg.method[%d]: %v\n", i, method)
+			fmt.Printf("pkg.method.%d: %v\n", i, method)
 		}
 	}
 	if env, ok := frame.env.(*Environment); ok {
 		for k, v := range env.valueTable {
 			if v.IsValid() && v.CanInterface() {
 				if v == reflectNil {
-					fmt.Printf("vm.env[%s]: untyped nil\n", k)
+					fmt.Printf("vm.env.%s: untyped nil\n", k)
 					continue
 				}
 				if isUndeclared(v) {
-					fmt.Printf("vm.env[%s]: undeclared value\n", k)
+					fmt.Printf("vm.env.%s: undeclared value\n", k)
 					continue
 				}
 				fmt.Printf("vm.env.%s = %s (%T)\n", k, stringOf(v.Interface()), v.Interface())

@@ -26,8 +26,8 @@ func (s ExprStmt) String() string {
 	return fmt.Sprintf("ExprStmt(%v)", s.x)
 }
 
-func (s ExprStmt) Pos() token.Pos {
-	return s.x.Pos()
+func (s ExprStmt) pos() token.Pos {
+	return s.x.pos()
 }
 
 var _ Stmt = DeclStmt{}
@@ -49,8 +49,8 @@ func (s DeclStmt) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-func (s DeclStmt) Pos() token.Pos {
-	return s.decl.Pos()
+func (s DeclStmt) pos() token.Pos {
+	return s.decl.pos()
 }
 
 func (s DeclStmt) stmtStep() Evaluable { return s }
@@ -81,7 +81,7 @@ func (s LabeledStmt) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-func (s LabeledStmt) Pos() token.Pos { return s.colonPos }
+func (s LabeledStmt) pos() token.Pos { return s.colonPos }
 
 func (s LabeledStmt) String() string {
 	return fmt.Sprintf("LabeledStmt(%v,%v)", s.label, s.statement)
@@ -103,7 +103,7 @@ func (s BranchStmt) eval(vm *VM) {} // no-op; flow is handled in graph building
 func (s BranchStmt) flow(g *graphBuilder) (head Step) {
 	switch s.tok {
 	case token.GOTO:
-		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.label.name), s.Pos())
+		head = g.newLabeledStep(fmt.Sprintf("goto %s", s.label.name), s.pos())
 		g.nextStep(head)
 		fd := g.funcStack.top()
 		ref := fd.gotoReference(s.label.name)
@@ -113,18 +113,18 @@ func (s BranchStmt) flow(g *graphBuilder) (head Step) {
 		return
 	case token.BREAK:
 		target := g.breakStack.top()
-		target.SetPos(s.Pos())
+		target.SetPos(s.pos())
 		g.nextStep(target)
 		g.current = nil
 		return
 	case token.CONTINUE:
 		target := g.continueStack.top()
-		target.SetPos(s.Pos())
+		target.SetPos(s.pos())
 		g.nextStep(target)
 		g.current = nil
 		return
 	case token.FALLTHROUGH:
-		fall := g.newLabeledStep("~fallthrough", s.Pos())
+		fall := g.newLabeledStep("~fallthrough", s.pos())
 		// the next for target will be set in the next case of the switch statement
 		g.fallthroughStack.push(fall)
 		g.nextStep(fall)
@@ -136,7 +136,7 @@ func (s BranchStmt) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (s BranchStmt) Pos() token.Pos { return s.tokPos }
+func (s BranchStmt) pos() token.Pos { return s.tokPos }
 
 func (s BranchStmt) String() string {
 	return fmt.Sprintf("BranchStmt(%v)", s.label)
@@ -176,7 +176,7 @@ func (d DeferStmt) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (d DeferStmt) Pos() token.Pos { return d.deferPos }
+func (d DeferStmt) pos() token.Pos { return d.deferPos }
 
 func (d DeferStmt) String() string {
 	return fmt.Sprintf("DeferStmt(%v)", d.call)
@@ -211,7 +211,7 @@ func (b BlockStmt) flow(g *graphBuilder) (head Step) {
 
 func (b BlockStmt) stmtStep() Evaluable { return b }
 
-func (b BlockStmt) Pos() token.Pos { return b.lbracePos }
+func (b BlockStmt) pos() token.Pos { return b.lbracePos }
 
 func (b BlockStmt) String() string {
 	return fmt.Sprintf("BlockStmt(len=%d)", len(b.list))

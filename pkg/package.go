@@ -76,8 +76,8 @@ func (c initStep) take(vm *VM) Step {
 func (c initStep) String() string {
 	return fmt.Sprintf("~initStep(%v)", c.funcDecl)
 }
-func (c initStep) Pos() token.Pos {
-	return c.funcDecl.Pos()
+func (c initStep) pos() token.Pos {
+	return c.funcDecl.pos()
 }
 
 type resolveDeclarationsStep struct {
@@ -99,7 +99,7 @@ func (p resolveDeclarationsStep) take(vm *VM) Step {
 func (p resolveDeclarationsStep) String() string {
 	return fmt.Sprintf("~resolveDeclarationsStep(%v)", p.pkg)
 }
-func (p resolveDeclarationsStep) Pos() token.Pos {
+func (p resolveDeclarationsStep) pos() token.Pos {
 	return token.NoPos
 }
 

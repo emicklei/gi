@@ -110,4 +110,4 @@ func (u UnaryExpr) String() string {
 	return fmt.Sprintf("UnaryExpr(%s %s)", u.op, u.x)
 }
 
-func (u UnaryExpr) Pos() token.Pos { return u.opPos }
+func (u UnaryExpr) pos() token.Pos { return u.opPos }

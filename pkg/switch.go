@@ -42,7 +42,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 		}
 	}
 	gotoLabel := fmt.Sprintf("switch-end-%d", g.idgen)
-	gotoStep := g.newLabeledStep(gotoLabel, s.Pos())
+	gotoStep := g.newLabeledStep(gotoLabel, s.pos())
 	ref := stmtReference{step: gotoStep} // has no ID
 	g.funcStack.top().putGotoReference(gotoLabel, ref)
 
@@ -55,7 +55,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 			labelIdent := Ident{name: gotoLabel}
 			gotoEnd := BranchStmt{
 				tok:    token.GOTO,
-				tokPos: clause.Pos(),
+				tokPos: clause.pos(),
 				label:  &labelIdent,
 			}
 			list := append(clause.Body, gotoEnd)
@@ -99,7 +99,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 			if s.tag != nil {
 				nextCond = BinaryExpr{
 					op:    token.EQL,
-					opPos: clause.Pos(),
+					opPos: clause.pos(),
 					x:     s.tag,
 					y:     expr,
 				}
@@ -115,7 +115,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 			} else {
 				cond = BinaryExpr{
 					op:    token.LOR,
-					opPos: clause.Pos(),
+					opPos: clause.pos(),
 					x:     cond,
 					y:     nextCond,
 				}
@@ -126,7 +126,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 		labelIdent := Ident{name: gotoLabel}
 		gotoEnd := BranchStmt{
 			tok:    token.GOTO,
-			tokPos: clause.Pos(),
+			tokPos: clause.pos(),
 			label:  &labelIdent,
 		}
 		list := append(clause.Body, gotoEnd)
@@ -141,7 +141,7 @@ func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 
 		// compose if statement for this case
 		when := IfStmt{
-			ifPos: clause.Pos(),
+			ifPos: clause.pos(),
 			cond:  cond,
 			body:  &BlockStmt{list: list},
 		}
@@ -178,7 +178,7 @@ func (c fallThroughDestination) stmtStep() Evaluable {
 func (s SwitchStmt) String() string {
 	return fmt.Sprintf("SwitchStmt(%v,%v,%v)", s.init, s.tag, s.body)
 }
-func (s SwitchStmt) Pos() token.Pos { return s.switchPos }
+func (s SwitchStmt) pos() token.Pos { return s.switchPos }
 
 var _ Flowable = CaseClause{}
 
@@ -196,7 +196,7 @@ func (c CaseClause) flow(g *graphBuilder) (head Step) {
 	return nil
 }
 
-func (c CaseClause) Pos() token.Pos { return c.CasePos }
+func (c CaseClause) pos() token.Pos { return c.CasePos }
 
 func (c CaseClause) stmtStep() Evaluable { return c }
 
@@ -229,11 +229,11 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 		}
 	}
 	gotoLabel := fmt.Sprintf("type-switch-end-%d", g.idgen)
-	gotoStep := g.newLabeledStep(gotoLabel, s.Pos())
+	gotoStep := g.newLabeledStep(gotoLabel, s.pos())
 	ref := stmtReference{step: gotoStep} // has no ID
 	g.funcStack.top().putGotoReference(gotoLabel, ref)
 
-	nameOfType := Ident{namePos: s.Pos(), name: internalVarName("switch-type-name", g.idgen)}
+	nameOfType := Ident{namePos: s.pos(), name: internalVarName("switch-type-name", g.idgen)}
 
 	nameOfTypeAssignment := AssignStmt{
 		tokPos: s.SwitchPos,
@@ -252,7 +252,7 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 			labelIdent := Ident{name: gotoLabel}
 			gotoEnd := BranchStmt{
 				tok:    token.GOTO,
-				tokPos: clause.Pos(),
+				tokPos: clause.pos(),
 				label:  &labelIdent,
 			}
 			list := append(clause.Body, gotoEnd)
@@ -282,7 +282,7 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 			var nextCond Expr
 			nextCond = BinaryExpr{
 				op:    token.EQL,
-				opPos: clause.Pos(),
+				opPos: clause.pos(),
 				x:     nameOfType,
 				y:     identAsStringLiteral(expr.(Ident)), // right is the name of the type
 			}
@@ -298,7 +298,7 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 			} else {
 				cond = BinaryExpr{
 					op:    token.LOR,
-					opPos: clause.Pos(),
+					opPos: clause.pos(),
 					x:     cond,
 					y:     nextCond,
 				}
@@ -309,14 +309,14 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 		labelIdent := Ident{name: gotoLabel}
 		gotoEnd := BranchStmt{
 			tok:    token.GOTO,
-			tokPos: clause.Pos(),
+			tokPos: clause.pos(),
 			label:  &labelIdent,
 		}
 		list := append(clause.Body, gotoEnd)
 
 		// compose if statement for this case
 		when := IfStmt{
-			ifPos: clause.Pos(),
+			ifPos: clause.pos(),
 			cond:  cond,
 			body:  &BlockStmt{list: list},
 		}
@@ -335,7 +335,7 @@ func (s TypeSwitchStmt) flow(g *graphBuilder) (head Step) {
 
 func (s TypeSwitchStmt) stmtStep() Evaluable { return s }
 
-func (s TypeSwitchStmt) Pos() token.Pos { return s.SwitchPos }
+func (s TypeSwitchStmt) pos() token.Pos { return s.SwitchPos }
 
 func (s TypeSwitchStmt) String() string {
 	return fmt.Sprintf("TypeSwitchStmt(%v,%v,%v)", s.Init, s.Assign, s.Body)

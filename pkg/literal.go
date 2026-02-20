@@ -56,7 +56,7 @@ func (b BasicLit) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (b BasicLit) Pos() token.Pos { return b.valuePos }
+func (b BasicLit) pos() token.Pos { return b.valuePos }
 
 func (b BasicLit) String() string {
 	return fmt.Sprintf("BasicLit(%s,%v)", b.value.Kind(), b.value.Interface())
@@ -120,7 +120,7 @@ func (c CompositeLit) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-func (c CompositeLit) Pos() token.Pos { return c.Lbrace }
+func (c CompositeLit) pos() token.Pos { return c.Lbrace }
 
 func (c CompositeLit) String() string {
 	return fmt.Sprintf("CompositeLit(%v,%v)", c.Type, c.Elts)

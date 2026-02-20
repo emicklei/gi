@@ -83,7 +83,7 @@ func (i IncDecStmt) eval(vm *VM) {
 		}
 	}
 }
-func (i IncDecStmt) Pos() token.Pos { return i.tokPos }
+func (i IncDecStmt) pos() token.Pos { return i.tokPos }
 
 func (i IncDecStmt) stmtStep() Evaluable { return i }
 

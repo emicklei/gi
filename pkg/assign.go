@@ -123,7 +123,7 @@ func (a AssignStmt) flow(g *graphBuilder) (head Step) {
 	return head
 }
 
-func (a AssignStmt) Pos() token.Pos { return a.tokPos }
+func (a AssignStmt) pos() token.Pos { return a.tokPos }
 
 func (a AssignStmt) stmtStep() Evaluable { return a }
 

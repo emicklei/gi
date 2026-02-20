@@ -46,6 +46,10 @@ func hasReplCommand() bool {
 	return len(os.Args) > 1 && os.Args[1] == "repl"
 }
 
+func hasStepCommand() bool {
+	return len(os.Args) > 1 && os.Args[1] == "step"
+}
+
 func getLogDestFlag() string {
 	for _, each := range os.Args {
 		if strings.HasPrefix(each, "--log-dest") {

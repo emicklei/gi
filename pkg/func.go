@@ -18,10 +18,10 @@ type stmtReference struct {
 }
 
 type FuncDecl struct {
-	name *Ident
-	recv *FieldList // non-nil for methods
-	body *BlockStmt
-	typ  *FuncType
+	funcName *Ident
+	recv     *FieldList // non-nil for methods
+	body     *BlockStmt
+	typ      *FuncType
 	// control flow graph
 	graph Step
 	// goto targets
@@ -60,10 +60,14 @@ func (f *FuncDecl) results() *FieldList {
 func (f *FuncDecl) params() *FieldList {
 	return f.typ.Params
 }
-func (f FuncDecl) Pos() token.Pos { return f.typ.Pos() }
+func (f FuncDecl) pos() token.Pos { return f.typ.pos() }
+
+func (f FuncDecl) name() string {
+	return f.funcName.name
+}
 
 func (f FuncDecl) String() string {
-	return fmt.Sprintf("FuncDecl(%s)", f.name.name)
+	return fmt.Sprintf("FuncDecl(%s)", f.funcName.name)
 }
 
 var _ Expr = FuncType{}
@@ -82,7 +86,7 @@ func (t FuncType) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (t FuncType) Pos() token.Pos { return t.FuncPos }
+func (t FuncType) pos() token.Pos { return t.FuncPos }
 
 func (t FuncType) String() string {
 	return fmt.Sprintf("FuncType(%v,%v,%v)", t.TypeParams, t.Params, t.Results)
@@ -91,26 +95,29 @@ func (t FuncType) String() string {
 var _ Expr = Ellipsis{}
 
 type Ellipsis struct {
-	*ast.Ellipsis
-	Elt Expr // ellipsis element type (parameter lists only); or nil
+	ellipisPos token.Pos
+	elt        Expr // ellipsis element type (parameter lists only); or nil
 }
 
-func (e Ellipsis) String() string {
-	return fmt.Sprintf("Ellipsis(%v)", e.Elt)
-}
 func (e Ellipsis) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(e))
 }
 
 func (e Ellipsis) flow(g *graphBuilder) (head Step) {
-	if e.Elt != nil {
-		head = e.Elt.flow(g)
+	if e.elt != nil {
+		head = e.elt.flow(g)
 	} else {
 		g.next(e)
 		return g.current
 	}
 	return
 }
+
+func (e Ellipsis) String() string {
+	return fmt.Sprintf("Ellipsis(%v)", e.elt)
+}
+
+func (e Ellipsis) pos() token.Pos { return e.ellipisPos }
 
 // funcInvocation represents a function call instance with its own environment.
 // this used to handle defer statements properly.
@@ -147,8 +154,10 @@ func (f *FuncLit) flow(g *graphBuilder) (head Step) {
 	return g.current
 }
 
-func (f *FuncLit) Pos() token.Pos { return f.Type.Pos() }
-
+func (f *FuncLit) pos() token.Pos { return f.Type.pos() }
+func (f *FuncLit) name() string {
+	return "anonymous function"
+}
 func (f *FuncLit) setHasRecoverCall(bool) { f.callsRecover = true }
 func (f *FuncLit) hasRecoverCall() bool   { return f.callsRecover }
 func (f *FuncLit) putGotoReference(label string, ref stmtReference) {

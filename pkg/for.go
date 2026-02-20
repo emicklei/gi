@@ -18,7 +18,7 @@ type ForStmt struct {
 func (f ForStmt) eval(vm *VM) {} // noop
 
 func (f ForStmt) flow(g *graphBuilder) (head Step) {
-	head = newPushEnvironmentStep(f.Pos())
+	head = newPushEnvironmentStep(f.pos())
 	g.nextStep(head)
 	if f.init != nil {
 		f.init.flow(g)
@@ -62,7 +62,7 @@ func (f ForStmt) flow(g *graphBuilder) (head Step) {
 		g.nextStep(begin.conditionFlow)
 	}
 	// leave the scope of the loop
-	end := g.newPopEnvironmentStep(f.body.Pos())
+	end := g.newPopEnvironmentStep(f.body.pos())
 	// break goes to the end of the loop
 	braek.SetNext(end)
 	// else branch of the condition goes to the end of the loop
@@ -71,7 +71,7 @@ func (f ForStmt) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-func (f ForStmt) Pos() token.Pos {
+func (f ForStmt) pos() token.Pos {
 	return f.forPos
 }
 
