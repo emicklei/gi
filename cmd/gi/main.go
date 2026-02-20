@@ -9,6 +9,7 @@ import (
 	"github.com/emicklei/gi"
 	"github.com/emicklei/gi/pkg"
 	"github.com/emicklei/gi/pkg/dap"
+	"github.com/emicklei/structexplorer"
 	godap "github.com/google/go-dap"
 )
 
@@ -59,9 +60,12 @@ func startREPL() {
 	runner := pkg.NewDAPAccess(pkg.NewVM(ipkg))
 	runner.Launch("main", nil)
 
+	// serve explorer
+	go structexplorer.NewService("vm", runner).Start()
+
 	// loop
 	var b []byte = make([]byte, 1)
-	fmt.Println("press any key to step, 'q' to quit")
+	fmt.Println("Press any key to step, 'q' to quit")
 	for {
 		os.Stdin.Read(b)
 		if b[0] == 'q' {
