@@ -3,6 +3,7 @@ package pkg
 import (
 	"bytes"
 	"fmt"
+	"go/token"
 	"io"
 	"os"
 	"reflect"
@@ -183,7 +184,13 @@ func (vm *VM) takeAllStartingAt(head Step) {
 	here := head
 	for here != nil {
 		if trace {
-			fmt.Printf("%v @ %v\n", here, vm.pkg.Fset.Position(here.pos()))
+			if vm.pkg == nil || vm.pkg.Fset == nil {
+				fmt.Printf("%v @ <no fileset>\n", here)
+			} else if here.pos() == token.NoPos {
+				fmt.Printf("%v @ <no position info>\n", here)
+			} else {
+				fmt.Printf("%v @ %v\n", here, vm.pkg.Fset.Position(here.pos()))
+			}
 		}
 		here = here.take(vm)
 	}

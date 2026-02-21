@@ -27,7 +27,6 @@ func TestIncDec(t *testing.T) {
 		t.Run(tc.tok.String()+" "+tc.start.Kind().String(), func(t *testing.T) {
 			p := &Package{env: newPkgEnvironment(nil)}
 			vm := NewVM(p)
-
 			frame := &stackFrame{env: p.env}
 			vm.callStack.push(frame)
 			vm.currentFrame = frame
@@ -39,9 +38,8 @@ func TestIncDec(t *testing.T) {
 				tok: tc.tok,
 				x:   x,
 			}
-			g := newGraphBuilder(nil)
-			head := n.flow(g)
-			vm.takeAllStartingAt(head)
+			vm.pushOperand(tc.start)
+			n.eval(vm)
 
 			v := vm.currentEnv().valueLookUp("x")
 			if got, want := v.Interface(), tc.end.Interface(); got != want {
