@@ -14,6 +14,17 @@ var (
 	reflectFalse      = reflect.ValueOf(false)
 )
 
+type builtinType struct {
+	// actual type in Go SDK
+	typ reflect.Type
+	// e.g. (*int64)(nil)
+	prtZeroValue reflect.Value
+	// need to store reflect.Value otherwise type info is lost
+	convertFunc reflect.Value
+	// TODO not sure if needed
+	ptrConvertFunc reflect.Value
+}
+
 // https://pkg.go.dev/builtin
 var builtins = map[string]reflect.Value{
 	"string": reflect.ValueOf(builtinType{
@@ -142,23 +153,4 @@ var builtins = map[string]reflect.Value{
 	"true":  reflect.ValueOf(true), // not presented as Literal
 	"nil":   reflectNil,
 	"false": reflect.ValueOf(false), // not presented as Literal
-}
-
-type builtinType struct {
-	// actual type in Go SDK
-	typ reflect.Type
-	// e.g. (*int64)(nil)
-	prtZeroValue reflect.Value
-	// need to store reflect.Value otherwise type info is lost
-	convertFunc reflect.Value
-	// TODO not sure if needed
-	ptrConvertFunc reflect.Value
-}
-
-// reflectCondition converts a boolean to shared reflect.Value.
-func reflectCondition(b bool) reflect.Value {
-	if b {
-		return reflectTrue
-	}
-	return reflectFalse
 }

@@ -27,6 +27,11 @@ func TestIncDec(t *testing.T) {
 		t.Run(tc.tok.String()+" "+tc.start.Kind().String(), func(t *testing.T) {
 			p := &Package{env: newPkgEnvironment(nil)}
 			vm := NewVM(p)
+
+			frame := &stackFrame{env: p.env}
+			vm.callStack.push(frame)
+			vm.currentFrame = frame
+
 			x := Ident{name: "x"}
 			x.define(vm, tc.start)
 

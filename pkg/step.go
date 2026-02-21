@@ -160,6 +160,7 @@ func (p *pushEnvironmentStep) pos() token.Pos {
 	return p.stmtPos
 }
 
+// TODO replace with funcStep
 func newPushEnvironmentStep(pos token.Pos) *pushEnvironmentStep {
 	return &pushEnvironmentStep{stmtPos: pos}
 }
@@ -179,6 +180,7 @@ func (p *pushEnvironmentStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node
 	return p.step.traverseWithLabel(g, p.String(), fs.Position(p.pos()).String(), fs)
 }
 
+// TODO replace with funcStep
 type popEnvironmentStep struct {
 	step
 	stmtPos token.Pos

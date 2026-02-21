@@ -93,6 +93,13 @@ func (p *PkgEnvironment) newChild() Env {
 }
 func (p *PkgEnvironment) markSharedReferenced() {}
 
+func (p *PkgEnvironment) appendScopes(scopes []dap.Scope) []dap.Scope {
+	return append(scopes, dap.Scope{
+		Name:               "package",
+		VariablesReference: p.depth(),
+	})
+}
+
 var envPool = sync.Pool{
 	New: func() any {
 		return &Environment{
@@ -133,12 +140,11 @@ func (e *Environment) String() string {
 }
 
 func (e *Environment) appendScopes(scopes []dap.Scope) []dap.Scope {
-	for k, _ := range e.valueTable { // TODO also has builtin funcs
-		scopes = append(scopes, dap.Scope{
-			Name: k,
-		})
-	}
-	return scopes
+	return append(scopes, dap.Scope{
+		Name:               "locals",
+		VariablesReference: e.depth(),
+		NamedVariables:     len(e.valueTable),
+	})
 }
 
 func (e *Environment) appendVariables(vars []dap.Variable) []dap.Variable {

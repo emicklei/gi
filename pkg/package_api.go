@@ -96,9 +96,13 @@ func callPackageFunction(functionName string, args []any, vm *VM) ([]any, error)
 
 	// TODO maybe let the call do the lookup?
 	fun := vm.pkg.env.valueLookUp(functionName)
+	funValue := fun.Interface().(Func)
 	if !fun.IsValid() {
 		return nil, fmt.Errorf("%s function definition not found", functionName)
 	}
+	vm.pushNewFrame(funValue)
+	defer vm.popFrame()
+
 	// add noop expressions as arguments; the values will be pushed on the operand stack
 	callArgs := make([]Expr, len(args))
 	for i := range len(args) {
@@ -113,12 +117,12 @@ func callPackageFunction(functionName string, args []any, vm *VM) ([]any, error)
 	for i := len(args) - 1; i >= 0; i-- {
 		vm.pushOperand(reflect.ValueOf(args[i]))
 	}
-	call.handleFuncDecl(vm, fun.Interface().(*FuncDecl))
+	call.handleFuncDecl(vm, funValue.(*FuncDecl))
 
 	// collect non-reflection return values
 	top := vm.currentFrame
 	vals := []any{}
-	results := fun.Interface().(Func).results()
+	results := funValue.results()
 	if results != nil {
 		for range len(results.List) {
 			val := top.pop()

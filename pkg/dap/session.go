@@ -19,6 +19,7 @@ package dap
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -332,7 +333,16 @@ func (ds *session) onSetExpressionRequest(request *dap.SetExpressionRequest) {
 
 // https://microsoft.github.io/debug-adapter-protocol//specification.html#Requests_Source
 func (ds *session) onSourceRequest(request *dap.SourceRequest) {
-	ds.send(newErrorResponse(request.Seq, request.Command, "SourceRequest is not yet supported"))
+	resp := new(dap.SourceResponse)
+	resp.Response = *newResponse(request.Seq, request.Command)
+	if ds.vma == nil {
+		resp.Success = false
+		ds.send(resp)
+		return
+	}
+	resp.Body.Content = fmt.Sprintf("%#v", request.Arguments.Source) // TODO SourceRequest should not be sent
+	resp.Success = true
+	ds.send(resp)
 }
 
 // https://microsoft.github.io/debug-adapter-protocol//specification.html#Requests_Threads

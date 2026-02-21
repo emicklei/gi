@@ -53,7 +53,7 @@ func (a *DAPAccess) StackFrames(dap.StackTraceArguments) (frames []dap.StackFram
 			Name: stringOf(eachFrame.creator), // TODO
 			Source: &dap.Source{
 				Name: filepath.Base(tokloc.Filename),
-				Path: filepath.Dir(tokloc.Filename),
+				Path: tokloc.Filename,
 			},
 			Line:   tokloc.Line,
 			Column: tokloc.Column,
@@ -70,10 +70,6 @@ func (a *DAPAccess) Scopes(dap.ScopesArguments) (scopes []dap.Scope) {
 		if here == nil {
 			break
 		}
-		// do not include non-sdk functions in the scopes
-		if here == here.rootPackageEnv() {
-			continue
-		}
 		scopes = here.appendScopes(scopes)
 		here = here.parent()
 	}
@@ -83,13 +79,16 @@ func (a *DAPAccess) Scopes(dap.ScopesArguments) (scopes []dap.Scope) {
 }
 
 // Variables lists the variables for the provided scope reference.
-func (a *DAPAccess) Variables(dap.VariablesArguments) (vars []dap.Variable) {
+func (a *DAPAccess) Variables(args dap.VariablesArguments) (vars []dap.Variable) {
 	here := a.vm.currentFrame.env
 	for {
 		if here == nil {
 			break
 		}
-		vars = here.appendVariables(vars)
+		if args.VariablesReference == here.depth() {
+			vars = here.appendVariables(vars)
+			break
+		}
 		here = here.parent()
 	}
 	// sort by var name

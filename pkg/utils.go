@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+// reflectCondition converts a boolean to shared reflect.Value.
+func reflectCondition(b bool) reflect.Value {
+	if b {
+		return reflectTrue
+	}
+	return reflectFalse
+}
+
 func isEllipsis(t Expr) bool {
 	_, ok := t.(Ellipsis)
 	return ok

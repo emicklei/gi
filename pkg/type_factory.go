@@ -100,6 +100,6 @@ func typeMaker(vm *VM, e Expr) CanMake {
 		return typeMaker(vm, e.elt)
 	}
 
-	vm.fatalf("unhandled proxyType for %v (%T)", e, e)
+	vm.fatalf("unhandled typeMaker for %v (%T)", e, e)
 	return nil
 }

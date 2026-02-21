@@ -87,13 +87,7 @@ type resolveDeclarationsStep struct {
 
 func (p resolveDeclarationsStep) take(vm *VM) Step {
 	// do not step through resolving
-	// remember env
-	oldEnv := vm.currentFrame.env
-	// update with the package env
-	vm.currentFrame.env = p.pkg.env
 	p.pkg.resolveDeclarations(vm)
-	// put it back
-	vm.currentFrame.env = oldEnv
 	return p.next
 }
 func (p resolveDeclarationsStep) String() string {
@@ -106,6 +100,12 @@ func (p resolveDeclarationsStep) pos() token.Pos {
 // try declare all of them until none left
 // a declare may refer to other unseen declares.
 func (p *Package) resolveDeclarations(vm *VM) {
+	// TODO
+	frame := &stackFrame{env: vm.currentEnv()}
+	vm.callStack.push(frame)
+	vm.currentFrame = frame
+	defer vm.popFrame()
+
 	done := false
 	for !done {
 		done = true

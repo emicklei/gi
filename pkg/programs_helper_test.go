@@ -23,7 +23,7 @@ func buildPackage(t *testing.T, source string) *Package {
 
 // this print function outputs are different from the standard and is only used for tests
 func collectPrintOutput(vm *VM) {
-	vm.currentEnv().valueSet("print", reflect.ValueOf(func(args ...any) {
+	vm.pkg.env.valueSet("print", reflect.ValueOf(func(args ...any) {
 		for _, a := range args {
 			fmt.Fprint(vm.output, stringOf(a))
 		}

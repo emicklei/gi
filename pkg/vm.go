@@ -37,15 +37,19 @@ func NewVM(pkg *Package) *VM {
 		callStack:  make(stack[*stackFrame], 0, 16),
 		heap:       newHeap(),
 	}
-	frame := framePool.Get().(*stackFrame)
-	frame.env = pkg.env
-	vm.callStack.push(frame)
-	vm.currentFrame = frame
+	// frame := framePool.Get().(*stackFrame)
+	// frame.env = pkg.env
+	// vm.callStack.push(frame)
+	// vm.currentFrame = frame
 	return vm
 }
 
-// currentEnv returns the current environment from the top stack frame.
+// currentEnv returns the current environment from the top stack frame
+// or the package environment if no frame is available.
 func (vm *VM) currentEnv() Env {
+	if vm.currentFrame == nil {
+		return vm.pkg.env
+	}
 	return vm.currentFrame.env
 }
 
@@ -107,7 +111,7 @@ func (vm *VM) pushNewFrame(f Func) {
 	frame.env = env
 
 	// remember return
-	if vm.isStepping && vm.currentFrame.step != nil {
+	if vm.isStepping && vm.currentFrame != nil && vm.currentFrame.step != nil {
 		vm.currentFrame.returnTo = vm.currentFrame.step.Next()
 	}
 	vm.callStack.push(frame)
@@ -139,12 +143,15 @@ func (vm *VM) popFrame() {
 	}
 
 	// return env to pool
-	env := frame.env.(*Environment)
-	env.parentEnv = nil
-	// do not recycle environments that contain values referenced by a heap pointer
-	if !env.hasHeapPointer {
-		clear(env.valueTable)
-		envPool.Put(env)
+	env, ok := frame.env.(*Environment)
+	// skip PkgEnvironment
+	if ok {
+		env.parentEnv = nil
+		// do not recycle environments that contain values referenced by a heap pointer
+		if !env.hasHeapPointer {
+			clear(env.valueTable)
+			envPool.Put(env)
+		}
 	}
 	frame.reset()
 	framePool.Put(frame)
@@ -183,6 +190,7 @@ func (vm *VM) takeAllStartingAt(head Step) {
 }
 
 // Next takes the current step and advances to the next step, returning an error if there are no more steps to take (i.e., EOF).
+// Pre: vm.currentFrame not nil
 func (vm *VM) Next() error {
 	frame := vm.currentFrame
 	here := frame.step
@@ -221,6 +229,8 @@ func (vm *VM) Launch(funcName string, args []any) {
 	vm.pkg.initialize(vm)
 
 	fun := vm.currentEnv().valueLookUp(funcName)
+	decl := fun.Interface().(*FuncDecl)
+	vm.pushNewFrame(decl)
 	call := CallExpr{}
 	if args != nil {
 		// add noop expressions as arguments; the values will be pushed on the operand stack
@@ -234,7 +244,9 @@ func (vm *VM) Launch(funcName string, args []any) {
 	}
 	// until we have breakpoints
 	vm.isStepping = true
-	call.handleFuncDecl(vm, fun.Interface().(*FuncDecl))
+	call.handleFuncDecl(vm, decl)
+	// t get return values
+	vm.popFrame()
 }
 
 func (vm *VM) printStack() {
