@@ -103,7 +103,7 @@ func (vm *VM) pushNewFrame(f Func) {
 	vm.frameIdSeq++
 	frame.creator = f
 	env := envPool.Get().(*Environment)
-	env.parent = vm.currentEnv()
+	env.parentEnv = vm.currentEnv()
 	frame.env = env
 
 	// remember return
@@ -140,7 +140,7 @@ func (vm *VM) popFrame() {
 
 	// return env to pool
 	env := frame.env.(*Environment)
-	env.parent = nil
+	env.parentEnv = nil
 	// do not recycle environments that contain values referenced by a heap pointer
 	if !env.hasHeapPointer {
 		clear(env.valueTable)
@@ -176,7 +176,7 @@ func (vm *VM) takeAllStartingAt(head Step) {
 	here := head
 	for here != nil {
 		if trace {
-			fmt.Printf("%v @ %v\n", here, tokenLocation(vm.pkg.Fset, here.pos(), ""))
+			fmt.Printf("%v @ %v\n", here, vm.pkg.Fset.Position(here.pos()))
 		}
 		here = here.take(vm)
 	}

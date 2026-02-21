@@ -15,18 +15,18 @@ type Ident struct {
 }
 
 func (i Ident) eval(vm *VM) {
-	vm.pushOperand(vm.currentEnv().valueLookUp(i.name))
+	vm.pushOperand(vm.currentFrame.env.valueLookUp(i.name))
 }
 
 func (i Ident) assign(vm *VM, value reflect.Value) {
 	if i.name == "_" {
 		return
 	}
-	owner := vm.currentEnv().valueOwnerOf(i.name)
-	owner.set(i.name, value)
+	owner := vm.currentFrame.env.valueOwnerOf(i.name)
+	owner.valueSet(i.name, value)
 }
 func (i Ident) define(vm *VM, value reflect.Value) {
-	vm.currentEnv().set(i.name, value)
+	vm.currentFrame.env.valueSet(i.name, value)
 }
 
 func (i Ident) flow(g *graphBuilder) (head Step) {

@@ -94,12 +94,12 @@ type rangeMapIteratorInitStep struct {
 func (r *rangeMapIteratorInitStep) take(vm *VM) Step {
 	rangeable := vm.popOperand()
 	iter := rangeable.MapRange()
-	vm.currentEnv().set(r.localVarName, reflect.ValueOf(iter))
+	vm.currentEnv().valueSet(r.localVarName, reflect.ValueOf(iter))
 	return r.next
 }
 
 func (r *rangeMapIteratorInitStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-init"), sourceLocation(fs, r.pos()), fs)
+	return r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-init"), fs.Position(r.pos()).String(), fs)
 }
 
 func (r *rangeMapIteratorInitStep) pos() token.Pos {
@@ -137,7 +137,7 @@ func (r *rangeMapIteratorNextStep) take(vm *VM) Step {
 }
 
 func (r *rangeMapIteratorNextStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	me := r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-next"), sourceLocation(fs, r.pos()), fs)
+	me := r.step.traverseWithLabel(g, r.step.StringWith("map-iterator-next"), fs.Position(r.pos()).String(), fs)
 	if r.bodyFlow != nil {
 		// no edge if visited before
 		sid := strconv.Itoa(r.bodyFlow.ID())
@@ -416,7 +416,7 @@ func (i *rangeIteratorSwitchStep) take(vm *VM) Step {
 }
 
 func (i *rangeIteratorSwitchStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	me := i.step.traverseWithLabel(g, i.step.StringWith("~range-iterator-switch"), sourceLocation(fs, i.pos()), fs)
+	me := i.step.traverseWithLabel(g, i.step.StringWith("~range-iterator-switch"), fs.Position(i.pos()).String(), fs)
 	if i.mapFlow != nil {
 		// no edge if visited before
 		sid := strconv.Itoa(i.mapFlow.ID())

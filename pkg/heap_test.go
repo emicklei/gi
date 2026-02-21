@@ -55,7 +55,7 @@ func TestHeapReadWrite(t *testing.T) {
 func TestHeapReadWriteEnv(t *testing.T) {
 	h := newHeap()
 	env := newEnvironment(nil)
-	env.set("x", reflect.ValueOf(10))
+	env.valueSet("x", reflect.ValueOf(10))
 
 	hp := h.allocHeapVar(env, "x", reflect.TypeOf(10))
 
@@ -118,7 +118,7 @@ func TestHeapPointerUnmarshalJSON(t *testing.T) {
 		Name string
 	}
 	p := Person{Name: "Alice"}
-	env.set("p", reflect.ValueOf(p))
+	env.valueSet("p", reflect.ValueOf(p))
 
 	hp := &HeapPointer{
 		EnvRef:     env,

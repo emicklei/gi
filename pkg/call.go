@@ -180,7 +180,7 @@ func (c CallExpr) handleBuiltinFunc(vm *VM, bf builtinFunc) {
 		cleared := c.evalClear(vm)
 		// the argument of clear needs to be replaced
 		if identArg, ok := c.args[0].(Ident); ok {
-			vm.currentEnv().set(identArg.name, cleared)
+			vm.currentEnv().valueSet(identArg.name, cleared)
 		} else {
 			vm.fatalf("clear argument must be an identifier")
 		}
@@ -213,7 +213,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 		defer func() {
 			r := recover()
 			// temporary store it in the special variable in the parent env
-			frame.env.getParent().set(internalVarName("recover", 0), reflect.ValueOf(r))
+			frame.env.parent().valueSet(internalVarName("recover", 0), reflect.ValueOf(r))
 			frame.takeDeferList(vm)
 		}()
 	}
@@ -277,16 +277,16 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 		recvName := fd.recv.List[0].names[0].name
 		// check pointer receiver
 		if isPointerExpr(fd.recv.List[0].typ) {
-			frame.env.set(recvName, receiver)
+			frame.env.valueSet(recvName, receiver)
 		} else {
 			// put a copy of the value
 			if sv, ok := receiver.Interface().(StructValue); ok {
 				clone := sv.clone()
-				frame.env.set(recvName, reflect.ValueOf(clone))
+				frame.env.valueSet(recvName, reflect.ValueOf(clone))
 			}
 			if ev, ok := receiver.Interface().(ExtendedValue); ok {
 				// no need to clone value
-				frame.env.set(recvName, reflect.ValueOf(ev))
+				frame.env.valueSet(recvName, reflect.ValueOf(ev))
 			}
 		}
 	}
@@ -298,7 +298,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 		defer func() {
 			if r := recover(); r != nil {
 				// temporary store it in the special variable in the parent env
-				frame.env.getParent().set(internalVarName("recover", 0), reflect.ValueOf(r))
+				frame.env.parent().valueSet(internalVarName("recover", 0), reflect.ValueOf(r))
 				frame.takeDeferList(vm)
 			}
 		}()
@@ -313,7 +313,7 @@ func setZeroReturnsForFrame(ft *FuncType, vm *VM, frame *stackFrame) {
 	for _, field := range ft.Results.List {
 		for _, name := range field.names {
 			val := reflect.Zero(makeType(vm, field.typ)) // TODO put types from gopkg in Field?
-			frame.env.set(name.name, val)
+			frame.env.valueSet(name.name, val)
 		}
 	}
 }
@@ -331,7 +331,7 @@ func setParametersForFrame(ft *FuncType, args []reflect.Value, vm *VM, frame *st
 				// create a zero value of the expected type
 				val = reflect.Zero(makeType(vm, field.typ)) // TODO put types from gopkg in Field?
 			}
-			frame.env.set(name.name, val)
+			frame.env.valueSet(name.name, val)
 			p++
 		}
 	}

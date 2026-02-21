@@ -1,6 +1,11 @@
 package pkg
 
 import (
+	"cmp"
+	"go/token"
+	"path/filepath"
+	"slices"
+
 	"github.com/google/go-dap"
 )
 
@@ -39,16 +44,19 @@ func (a *DAPAccess) Threads() []dap.Thread {
 // StackFrames returns the current call stack for the selected thread.
 func (a *DAPAccess) StackFrames(dap.StackTraceArguments) (frames []dap.StackFrame) {
 	for _, eachFrame := range a.vm.callStack {
-		tokloc := tokenLocation(a.vm.pkg.Fset, eachFrame.creator.pos(), eachFrame.creator.name())
+		var tokloc token.Position
+		if eachFrame.creator != nil {
+			tokloc = a.vm.pkg.Fset.Position(eachFrame.creator.pos())
+		}
 		dapFrame := dap.StackFrame{
 			Id:   eachFrame.id,
 			Name: stringOf(eachFrame.creator), // TODO
 			Source: &dap.Source{
-				Name: tokloc.FileName,
-				Path: tokloc.FilePath,
+				Name: filepath.Base(tokloc.Filename),
+				Path: filepath.Dir(tokloc.Filename),
 			},
 			Line:   tokloc.Line,
-			Column: 0,
+			Column: tokloc.Column,
 		}
 		frames = append(frames, dapFrame)
 	}
@@ -56,16 +64,35 @@ func (a *DAPAccess) StackFrames(dap.StackTraceArguments) (frames []dap.StackFram
 }
 
 // Scopes describes the variable scopes that are available for the current stack frame.
-func (a *DAPAccess) Scopes(dap.ScopesArguments) []dap.Scope {
-	return []dap.Scope{
-		{Name: "Local", VariablesReference: 1},
+func (a *DAPAccess) Scopes(dap.ScopesArguments) (scopes []dap.Scope) {
+	here := a.vm.currentFrame.env
+	for {
+		if here == nil {
+			break
+		}
+		// do not include non-sdk functions in the scopes
+		if here == here.rootPackageEnv() {
+			continue
+		}
+		scopes = here.appendScopes(scopes)
+		here = here.parent()
 	}
+	// sort by scope name
+	slices.SortFunc(scopes, func(s1, s2 dap.Scope) int { return cmp.Compare(s1.Name, s2.Name) })
+	return
 }
 
 // Variables lists the variables for the provided scope reference.
-func (a *DAPAccess) Variables(dap.VariablesArguments) []dap.Variable {
-	return []dap.Variable{
-		{Name: "x", Value: "42", VariablesReference: 0},
-		{Name: "y", Value: "\"hello\"", VariablesReference: 0},
+func (a *DAPAccess) Variables(dap.VariablesArguments) (vars []dap.Variable) {
+	here := a.vm.currentFrame.env
+	for {
+		if here == nil {
+			break
+		}
+		vars = here.appendVariables(vars)
+		here = here.parent()
 	}
+	// sort by var name
+	slices.SortFunc(vars, func(s1, s2 dap.Variable) int { return cmp.Compare(s1.Name, s2.Name) })
+	return
 }

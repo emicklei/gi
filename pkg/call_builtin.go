@@ -201,6 +201,6 @@ func (c CallExpr) evalRecover(vm *VM) {
 		return
 	}
 	val := env.valueLookUp(recoverVarName)
-	env.unset(recoverVarName)
+	env.valueUnset(recoverVarName)
 	vm.pushOperand(val)
 }

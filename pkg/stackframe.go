@@ -44,16 +44,16 @@ func (f *stackFrame) pop() reflect.Value {
 // pushEnv creates and activates a new child environment for the stack frame.
 func (f *stackFrame) pushEnv() {
 	child := envPool.Get().(*Environment)
-	child.parent = f.env // can be nil
+	child.parentEnv = f.env // can be nil
 	f.env = child
 }
 
 // popEnv reverts to the parent environment for the stack frame.
 func (f *stackFrame) popEnv() {
 	child := f.env.(*Environment)
-	f.env = child.getParent() // can become nil
+	f.env = child.parent() // can become nil
 	// return child to pool
-	child.parent = nil
+	child.parentEnv = nil
 	clear(child.valueTable)
 	envPool.Put(child)
 }

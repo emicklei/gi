@@ -42,10 +42,6 @@ func hasRunCommand() bool {
 	return len(os.Args) > 1 && os.Args[1] == "run"
 }
 
-func hasReplCommand() bool {
-	return len(os.Args) > 1 && os.Args[1] == "repl"
-}
-
 func hasStepCommand() bool {
 	return len(os.Args) > 1 && os.Args[1] == "step"
 }

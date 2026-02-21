@@ -48,7 +48,7 @@ type TypeSpec struct {
 
 func (s TypeSpec) eval(vm *VM) {
 	actualType := vm.returnsEval(s.typ)
-	vm.currentEnv().set(s.name.name, actualType) // use the spec itself as value
+	vm.currentEnv().valueSet(s.name.name, actualType) // use the spec itself as value
 }
 
 func (s TypeSpec) flow(g *graphBuilder) (head Step) {

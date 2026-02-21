@@ -2,9 +2,7 @@ package pkg
 
 import (
 	"fmt"
-	"go/token"
 	"io"
-	"path"
 	"reflect"
 	"strings"
 )
@@ -186,11 +184,6 @@ func isPointerToStructValue(v reflect.Value) bool {
 	return true
 }
 
-// sourceLocation returns a string representation of the source location of the given Evaluable (can be nil).
-func sourceLocation(fs *token.FileSet, pos token.Pos) string {
-	return tokenLocation(fs, pos, "").String()
-}
-
 func stringOf(v any) string {
 	// Note: the order of tests is important!
 	if v == undeclaredNil {
@@ -234,32 +227,22 @@ func stringOf(v any) string {
 	return fmt.Sprintf("%v", v)
 }
 
-type TokenLocation struct {
-	FilePath string
-	FileName string
-	Line     int
-	Column   int
-	Token    string
-}
+func typeNameOf(v any) string { return "any" }
 
-func (t TokenLocation) String() string {
-	return fmt.Sprintf("%s:%d:%d", t.FileName, t.Line, t.Column)
-}
-
-func tokenLocation(fset *token.FileSet, pos token.Pos, token string) TokenLocation {
-	if fset == nil {
-		return TokenLocation{
-			FilePath: "<no file set>",
-			FileName: "<no file set>",
-			Token:    token,
-		}
+func isNonSDKFunction(rv reflect.Value) bool {
+	if !rv.IsValid() {
+		return false
 	}
-	f := fset.PositionFor(pos, false)
-	return TokenLocation{
-		FilePath: f.Filename,
-		FileName: path.Base(f.Filename),
-		Line:     f.Line,
-		Column:   f.Column,
-		Token:    token,
+	if !rv.CanInterface() {
+		return false
 	}
+	switch rv.Interface().(type) {
+	case builtinFunc:
+		return true
+	case *FuncDecl:
+		return true
+	case *FuncLit:
+		return true
+	}
+	return false
 }

@@ -7,7 +7,7 @@ import (
 
 func TestPackageEnv(t *testing.T) {
 	global := newEnvironment(nil)
-	global.set("a", reflect.ValueOf(1))
+	global.valueSet("a", reflect.ValueOf(1))
 	pkg := newPkgEnvironment(global)
 	fn := pkg.newChild()
 	one := fn.valueLookUp("a")
@@ -15,10 +15,10 @@ func TestPackageEnv(t *testing.T) {
 		t.Fail()
 	}
 	sub := pkg.newChild()
-	if sub.getParent() != pkg {
-		t.Errorf("sub's parent must be pkg, got %v, want %v", sub.getParent(), pkg)
+	if sub.parent() != pkg {
+		t.Errorf("sub's parent must be pkg, got %v, want %v", sub.parent(), pkg)
 	}
-	if pkg.getParent() != global {
-		t.Errorf("pkg's parent must be global, got %v, want %v", pkg.getParent(), global)
+	if pkg.parent() != global {
+		t.Errorf("pkg's parent must be global, got %v, want %v", pkg.parent(), global)
 	}
 }

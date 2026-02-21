@@ -42,7 +42,7 @@ func Hello(name string) (int, string) {
 
 func TestWriteAST(t *testing.T) {
 	p := Package{env: newPkgEnvironment(nil)}
-	p.env.set("a", reflect.ValueOf(1))
+	p.env.valueSet("a", reflect.ValueOf(1))
 	p.writeAST("testgraphs/test.ast")
 	// file must have: (int) 1
 }

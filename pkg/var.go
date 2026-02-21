@@ -40,7 +40,7 @@ func (v ValueSpec) declare(vm *VM) bool {
 				// this happens when the value expression is referencing an undeclared variable
 				return false
 			}
-			vm.currentEnv().set(idn.name, val)
+			vm.currentEnv().valueSet(idn.name, val)
 		}
 		return true
 	}
@@ -53,28 +53,28 @@ func (v ValueSpec) declare(vm *VM) bool {
 			if val == reflectNil {
 				typ := makeType(vm, v.typ)
 				zv := reflect.Zero(typ)
-				vm.currentEnv().set(idn.name, zv)
+				vm.currentEnv().valueSet(idn.name, zv)
 				continue
 			}
 			if val.Interface() == untypedNil {
 				typ := makeType(vm, v.typ)
 				zv := reflect.Zero(typ)
-				vm.currentEnv().set(idn.name, zv)
+				vm.currentEnv().valueSet(idn.name, zv)
 				continue
 			}
 			mv := typ.makeValue(vm, 0, []reflect.Value{val})
-			vm.currentEnv().set(idn.name, mv)
+			vm.currentEnv().valueSet(idn.name, mv)
 		} else {
 			// if nil then zero
 			if z, ok := v.typ.(CanMake); ok {
 				zv := z.makeValue(vm, 0, nil)
-				vm.currentEnv().set(idn.name, zv)
+				vm.currentEnv().valueSet(idn.name, zv)
 				continue
 			}
 			// zero value
 			typ := makeType(vm, v.typ)
 			zv := reflect.Zero(typ)
-			vm.currentEnv().set(idn.name, zv)
+			vm.currentEnv().valueSet(idn.name, zv)
 		}
 	}
 	return true

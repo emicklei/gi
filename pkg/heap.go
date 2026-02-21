@@ -43,7 +43,7 @@ func (hp *HeapPointer) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, ptr.Interface()); err != nil {
 		return err
 	}
-	hp.EnvRef.set(hp.EnvVarName, ptr.Elem())
+	hp.EnvRef.valueSet(hp.EnvVarName, ptr.Elem())
 	return nil
 }
 
@@ -112,7 +112,7 @@ func (h *Heap) read(hp *HeapPointer) reflect.Value {
 func (h *Heap) write(hp *HeapPointer, value reflect.Value) {
 	// If this is an environment reference, write to the environment
 	if hp.EnvRef != nil {
-		hp.EnvRef.set(hp.EnvVarName, value)
+		hp.EnvRef.valueSet(hp.EnvVarName, value)
 		return
 	}
 	// Otherwise, write to heap storage

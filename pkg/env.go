@@ -5,24 +5,37 @@ import (
 	"os"
 	"reflect"
 	"sync"
+
+	"github.com/google/go-dap"
 )
 
 var trace = os.Getenv("GI_TRACE") != ""
 
 type Env interface {
+	// value access
 	valueLookUp(name string) reflect.Value
-	typeLookUp(name string) reflect.Type
 	valueOwnerOf(name string) Env
-	set(name string, value reflect.Value)
-	unset(name string)
+	valueSet(name string, value reflect.Value)
+	valueUnset(name string)
+	typeLookUp(name string) reflect.Type
+
+	// hierarchy
 	newChild() Env
 	depth() int
-	getParent() Env
-	addCanDeclare(cv CanDeclare)
+	parent() Env
 	rootPackageEnv() *PkgEnvironment
+
+	// others
+	funcLookUp(name string) reflect.Value
+	addCanDeclare(cv CanDeclare)
+
 	// if marked, this env has references that escape to the heap
 	// or is used by funcInvocation in a defer statement
 	markSharedReferenced()
+
+	// collect for debugging
+	appendScopes(scopes []dap.Scope) []dap.Scope
+	appendVariables(scopes []dap.Variable) []dap.Variable
 }
 
 type PkgEnvironment struct {
@@ -35,7 +48,7 @@ type PkgEnvironment struct {
 
 func newBuiltinsEnvironment(parent Env) Env {
 	return &Environment{
-		parent:     parent,
+		parentEnv:  parent,
 		valueTable: builtins,
 	}
 }
@@ -59,13 +72,13 @@ func (p *PkgEnvironment) addCanDeclare(cv CanDeclare) {
 
 // rootPackageEnv returns the top-level package environment.
 func (p *PkgEnvironment) rootPackageEnv() *PkgEnvironment {
-	if p.getParent() == nil {
+	if p.parent() == nil {
 		return p
 	}
-	if _, ok := p.getParent().(*Environment); ok {
+	if _, ok := p.parent().(*Environment); ok {
 		return p
 	}
-	return p.getParent().rootPackageEnv()
+	return p.parent().rootPackageEnv()
 }
 
 func (p *PkgEnvironment) String() string {
@@ -89,27 +102,27 @@ var envPool = sync.Pool{
 }
 
 type Environment struct {
-	parent         Env
-	valueTable     map[string]reflect.Value
+	parentEnv      Env
+	valueTable     map[string]reflect.Value // TODO rename to symbolTable
 	hasHeapPointer bool
 }
 
 func newEnvironment(parentOrNil Env) Env {
 	return &Environment{
-		parent:     parentOrNil,
+		parentEnv:  parentOrNil,
 		valueTable: map[string]reflect.Value{},
 	}
 }
 
-func (e *Environment) getParent() Env {
-	return e.parent
+func (e *Environment) parent() Env {
+	return e.parentEnv
 }
 
 func (e *Environment) depth() int {
-	if e.parent == nil {
+	if e.parentEnv == nil {
 		return 0
 	}
-	return e.parent.depth() + 1
+	return e.parentEnv.depth() + 1
 }
 
 func (e *Environment) String() string {
@@ -119,9 +132,35 @@ func (e *Environment) String() string {
 	return fmt.Sprintf("-- env[depth=%d,len=%d]", e.depth(), len(e.valueTable))
 }
 
+func (e *Environment) appendScopes(scopes []dap.Scope) []dap.Scope {
+	for k, _ := range e.valueTable { // TODO also has builtin funcs
+		scopes = append(scopes, dap.Scope{
+			Name: k,
+		})
+	}
+	return scopes
+}
+
+func (e *Environment) appendVariables(vars []dap.Variable) []dap.Variable {
+	for k, v := range e.valueTable {
+		vars = append(vars, dap.Variable{
+			Name:               k,
+			Value:              stringOf(v),
+			Type:               typeNameOf(v),
+			VariablesReference: e.depth(),
+		})
+	}
+	return vars
+}
+
 func (e *Environment) newChild() Env {
 	return newEnvironment(e)
 }
+
+func (e *Environment) funcLookUp(name string) reflect.Value {
+	return e.valueLookUp(name)
+}
+
 func (e *Environment) valueLookUp(name string) reflect.Value {
 	current := e
 	for current != nil {
@@ -129,15 +168,15 @@ func (e *Environment) valueLookUp(name string) reflect.Value {
 		if ok {
 			return v
 		}
-		if current.parent == nil {
+		if current.parentEnv == nil {
 			return reflectUndeclared
 		}
 		// Continue iteration if parent is also an *Environment
-		if env, ok := current.parent.(*Environment); ok {
+		if env, ok := current.parentEnv.(*Environment); ok {
 			current = env
 		} else {
 			// Parent is a different Env implementation, delegate to it
-			return current.parent.valueLookUp(name)
+			return current.parentEnv.valueLookUp(name)
 		}
 	}
 	return reflectUndeclared
@@ -157,21 +196,21 @@ func (e *Environment) valueOwnerOf(name string) Env {
 		if _, ok := current.valueTable[name]; ok {
 			return current
 		}
-		if current.parent == nil {
+		if current.parentEnv == nil {
 			return nil
 		}
 		// Continue iteration if parent is also an *Environment
-		if env, ok := current.parent.(*Environment); ok {
+		if env, ok := current.parentEnv.(*Environment); ok {
 			current = env
 		} else {
 			// Parent is a different Env implementation, delegate to it
-			return current.parent.valueOwnerOf(name)
+			return current.parentEnv.valueOwnerOf(name)
 		}
 	}
 	return nil
 }
 
-func (e *Environment) set(name string, value reflect.Value) {
+func (e *Environment) valueSet(name string, value reflect.Value) {
 	if name == "_" {
 		return
 	}
@@ -181,17 +220,17 @@ func (e *Environment) set(name string, value reflect.Value) {
 		fmt.Println(e, name, "=", stringOf(value))
 	}
 }
-func (e *Environment) unset(name string) {
+func (e *Environment) valueUnset(name string) {
 	delete(e.valueTable, name)
 }
 
 func (e *Environment) addCanDeclare(cv CanDeclare) {}
 
 func (e *Environment) rootPackageEnv() *PkgEnvironment {
-	if e.parent == nil {
+	if e.parentEnv == nil {
 		return nil
 	}
-	return e.parent.rootPackageEnv()
+	return e.parentEnv.rootPackageEnv()
 }
 
 func (e *Environment) markSharedReferenced() {

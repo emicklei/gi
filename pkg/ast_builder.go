@@ -40,7 +40,7 @@ func (b *astBuilder) pushEnv() {
 }
 
 func (b *astBuilder) popEnv() {
-	b.env = b.env.getParent()
+	b.env = b.env.parent()
 }
 
 func (b *astBuilder) push(s Evaluable) {
@@ -60,7 +60,7 @@ func (b *astBuilder) pop() Evaluable {
 }
 
 func (b *astBuilder) envSet(name string, value reflect.Value) {
-	b.env.set(name, value)
+	b.env.valueSet(name, value)
 }
 
 func (b *astBuilder) pushFunc(fn Func, stmtList []ast.Stmt) {
