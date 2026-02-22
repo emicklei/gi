@@ -49,7 +49,7 @@ func (s *step) take(vm *VM) Step {
 }
 
 func (s *step) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return s.traverseWithLabel(g, s.String(), fs.Position(s.pos()).String(), fs)
+	return s.traverseWithLabel(g, s.String(), cursor(fs, s.pos()), fs)
 }
 
 func (s *step) traverseWithLabel(g *dot.Graph, label, edge string, fs *token.FileSet) dot.Node {
@@ -97,7 +97,7 @@ func (s *evaluableStep) String() string {
 }
 
 func (s *evaluableStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return s.traverseWithLabel(g, s.String(), fs.Position(s.pos()).String(), fs)
+	return s.traverseWithLabel(g, s.String(), cursor(fs, s.pos()), fs)
 }
 
 type conditionalStep struct {
@@ -177,7 +177,7 @@ func (p *pushEnvironmentStep) String() string {
 	return fmt.Sprintf("%d: ~push env", p.ID())
 }
 func (p *pushEnvironmentStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return p.step.traverseWithLabel(g, p.String(), fs.Position(p.pos()).String(), fs)
+	return p.step.traverseWithLabel(g, p.String(), cursor(fs, p.pos()), fs)
 }
 
 // TODO replace with funcStep
@@ -203,7 +203,7 @@ func (p *popEnvironmentStep) String() string {
 }
 
 func (p *popEnvironmentStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return p.step.traverseWithLabel(g, p.String(), fs.Position(p.pos()).String(), fs)
+	return p.step.traverseWithLabel(g, p.String(), cursor(fs, p.pos()), fs)
 }
 
 type labeledStep struct {
@@ -228,7 +228,7 @@ func (s *labeledStep) String() string {
 }
 
 func (s *labeledStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return s.step.traverseWithLabel(g, s.String(), fs.Position(s.pos()).String(), fs)
+	return s.step.traverseWithLabel(g, s.String(), cursor(fs, s.pos()), fs)
 }
 
 type popOperandStep struct {
@@ -281,5 +281,5 @@ func (e funcStep) String() string {
 }
 
 func (e funcStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
-	return g.Node(strconv.Itoa(e.ID())).Label(fmt.Sprintf("%2d: ~exec %s", e.ID(), e.label))
+	return e.step.traverseWithLabel(g, fmt.Sprintf("%2d: ~exec %s", e.ID(), e.label), cursor(fs, e.pos()), fs)
 }

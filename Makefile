@@ -28,7 +28,7 @@ lint:
 	golangci-lint run
 
 # go install golang.org/x/tools/cmd/deadcode@latest
-deadcode:
+dead:
 	cd cmd/gi && deadcode -test .
 
 .PHONY: test clean todo bench install unused examples lint

@@ -205,6 +205,13 @@ func (vm *VM) Next() error {
 	if here == nil {
 		return io.EOF
 	}
+	if trace {
+		if vm.pkg == nil || vm.pkg.Fset == nil {
+			fmt.Printf("%v @ <no fileset>\n", here)
+		} else {
+			fmt.Printf("%v @ %v\n", here, cursor(vm.pkg.Fset, here.pos()))
+		}
+	}
 	// take the step and return the next or nil
 	next := here.take(vm)
 	// proceed with next if in same frame
@@ -215,24 +222,8 @@ func (vm *VM) Next() error {
 	return nil
 }
 
-// func (vm *VM) Location() string {
-// 	s := vm.currentFrame.step
-// 	if s == nil {
-// 		return "no current step"
-// 	}
-// 	loc := "no fileset"
-// 	if vm.pkg.Fset != nil {
-// 		if s.pos() == token.NoPos {
-// 			return "no position info"
-// 		}
-// 		loc = sourceLocation(vm.pkg.Fset, s.pos())
-// 	}
-// 	return fmt.Sprintf("%v @ %s", s, loc)
-// }
-
 // Launch sets up the VM for execution of the given function name with the provided arguments.
 func (vm *VM) Launch(funcName string, args []any) {
-	vm.isStepping = false // Temporary
 	vm.pkg.initialize(vm)
 
 	fun := vm.currentEnv().valueLookUp(funcName)
@@ -249,11 +240,7 @@ func (vm *VM) Launch(funcName string, args []any) {
 			vm.pushOperand(reflect.ValueOf(args[i]))
 		}
 	}
-	// until we have breakpoints
-	vm.isStepping = true
 	call.handleFuncDecl(vm, decl)
-	// t get return values
-	vm.popFrame()
 }
 
 func (vm *VM) printStack() {

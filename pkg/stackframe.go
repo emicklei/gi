@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"fmt"
-	"go/token"
 	"reflect"
 	"strings"
 )
@@ -106,22 +105,3 @@ func (f *stackFrame) String() string {
 // 		g.nextStep(invocation.flow)
 // 	}
 // }
-
-type pushOperandsStep struct {
-	step
-	deferPos token.Pos
-	operands []reflect.Value
-}
-
-func (p *pushOperandsStep) take(vm *VM) Step {
-	for _, operand := range p.operands {
-		vm.pushOperand(operand)
-	}
-	return p.next
-}
-func (p *pushOperandsStep) pos() token.Pos {
-	return p.deferPos
-}
-func (p *pushOperandsStep) String() string {
-	return fmt.Sprintf("~pushOperand(%d)", len(p.operands))
-}

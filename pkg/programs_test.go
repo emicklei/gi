@@ -6,6 +6,19 @@ import (
 	"testing"
 )
 
+func TestDeclareInitMain(t *testing.T) {
+	testMain(t, `package main
+
+const a = 1
+
+func init() {
+	print(a)
+}
+func main() {
+	print(a)
+}`, "11")
+}
+
 func TestAssignmentOperators(t *testing.T) {
 	tests := []struct {
 		op   string
@@ -33,10 +46,7 @@ func TestAssignmentOperators(t *testing.T) {
 				a %s 2
 				print(a)
 			}`, tt.op)
-			out := parseAndWalk(t, src)
-			if got, want := out, tt.want; got != want {
-				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
-			}
+			testMain(t, src, tt.want)
 		})
 	}
 }
@@ -150,7 +160,8 @@ func main() {
 }`, func(out string) bool { return strings.HasPrefix(out, "0x") })
 }
 
-func TestInit(t *testing.T) {
+func TestTwoInits(t *testing.T) {
+	setAttr(t, "dot", true)
 	testMain(t, `package main
 
 func init() {

@@ -17,6 +17,7 @@ type Package struct {
 	*packages.Package // TODO look for actual data used here
 	env               *PkgEnvironment
 	initialized       bool
+	callGraph         Step // the setup flow: declarations and calling inits
 }
 
 func (p *Package) selectFieldOrMethod(name string) reflect.Value {
@@ -29,18 +30,28 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 		subFlow := subpkg.flow(g)
 		if head == nil {
 			head = subFlow
-		} else {
-			g.nextStep(subFlow)
 		}
+		g.nextStep(subFlow)
 	}
-	resolve := &resolveDeclarationsStep{pkg: p}
+	// resolve := &resolveDeclarationsStep{pkg: p}
+
+	resolve := newFuncStep(token.NoPos, fmt.Sprintf("%s.declare", p.Name), func(vm *VM) {
+		p.resolveDeclarations(vm)
+	})
+
 	if head == nil {
 		head = resolve
-	} else {
-		g.nextStep(resolve)
 	}
-	for _, funcDecl := range p.env.inits {
-		s := &initStep{pkg: p, funcDecl: funcDecl}
+	g.nextStep(resolve)
+	for i, funcDecl := range p.env.inits {
+		//s := &initStep{funcDecl: funcDecl}
+
+		s := newFuncStep(funcDecl.pos(), fmt.Sprintf("call %s.init.%d", p.Name, i), func(vm *VM) {
+			vm.pushNewFrame(funcDecl)
+			CallExpr{}.handleFuncDecl(vm, funcDecl)
+			vm.popFrame()
+		})
+
 		g.nextStep(s)
 	}
 	return
@@ -50,51 +61,14 @@ func (p *Package) initialize(vm *VM) {
 	if p.initialized {
 		return
 	}
+	// temporary TODO
+	save := vm.isStepping
+	vm.isStepping = false
+	defer func() {
+		vm.isStepping = save
+	}()
 	p.initialized = true
-	g := newGraphBuilder(p.Package)
-	initFlow := p.flow(g)
-	vm.takeAllStartingAt(initFlow)
-}
-
-type initStep struct {
-	step
-	pkg      *Package
-	funcDecl *FuncDecl
-}
-
-func (c initStep) take(vm *VM) Step {
-	// the function does not need arguments nor does it return anything
-	// 	// remember env
-	oldEnv := vm.currentFrame.env
-	// update with the package env
-	vm.currentFrame.env = c.pkg.env
-	CallExpr{}.handleFuncDecl(vm, c.funcDecl)
-	// put it back
-	vm.currentFrame.env = oldEnv
-	return c.next
-}
-func (c initStep) String() string {
-	return fmt.Sprintf("~initStep(%v)", c.funcDecl)
-}
-func (c initStep) pos() token.Pos {
-	return c.funcDecl.pos()
-}
-
-type resolveDeclarationsStep struct {
-	step
-	pkg *Package
-}
-
-func (p resolveDeclarationsStep) take(vm *VM) Step {
-	// do not step through resolving
-	p.pkg.resolveDeclarations(vm)
-	return p.next
-}
-func (p resolveDeclarationsStep) String() string {
-	return fmt.Sprintf("~resolveDeclarationsStep(%v)", p.pkg)
-}
-func (p resolveDeclarationsStep) pos() token.Pos {
-	return token.NoPos
+	vm.takeAllStartingAt(p.callGraph)
 }
 
 // try declare all of them until none left
@@ -219,8 +193,12 @@ func (p *Package) writeCallGraph(fileName string) {
 	g.NodeInitializer(func(n dot.Node) {
 		n.Box()
 		n.Attr("fillcolor", "#EBFAFF") // https://htmlcolorcodes.com/
-		n.Attr("style", "filled")
+		n.Attr("style", "rounded,filled")
 	})
+	// setup flow
+	sub := g.Subgraph("pkg."+p.Name, dot.ClusterOption{})
+	p.callGraph.traverse(sub, p.Fset)
+
 	// for each function in the package create a subgraph
 	values := p.env.Env.(*Environment).valueTable
 	for k, v := range values {

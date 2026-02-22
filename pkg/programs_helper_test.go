@@ -28,6 +28,11 @@ func collectPrintOutput(vm *VM) {
 			fmt.Fprint(vm.output, stringOf(a))
 		}
 	}))
+	// stdfuncs["fmt"]["Print"] = reflect.ValueOf(func(args ...any) {
+	// 	for _, a := range args {
+	// 		fmt.Fprint(vm.output, stringOf(a))
+	// 	}
+	// })
 }
 
 func parseAndWalk(t *testing.T, source string) string {
@@ -135,5 +140,23 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 			}
 			t.Fatal(err)
 		}
+	}
+
+	// check output
+	got := runner.output.String()
+	var want string
+	switch v := wantFuncOrString.(type) {
+	case string:
+		want = v
+	case func(string) bool:
+		if !v(got) {
+			t.Fatalf("output did not satisfy condition: %s", got)
+		}
+		return
+	default:
+		t.Fatalf("invalid want type: %T", wantFuncOrString)
+	}
+	if got != want {
+		t.Fatalf("unexpected output: got %q, want %q", got, want)
 	}
 }

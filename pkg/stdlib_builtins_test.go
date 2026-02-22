@@ -26,16 +26,12 @@ func TestProgramTypeConvert(t *testing.T) {
 	for i := range tests {
 		tc := tests[i]
 		t.Run(tc.typeName, func(t *testing.T) {
-			t.Parallel()
 			src := fmt.Sprintf(`package main
 			func main() {
 				a := %s(1) + 2
 				print(a)
 			}`, tc.typeName)
-			out := parseAndWalk(t, src)
-			if got, want := out, "3"; got != want {
-				t.Errorf("got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
-			}
+			testMain(t, src, "3")
 		})
 	}
 }
@@ -53,7 +49,6 @@ func TestProgramTypeUnsignedConvert(t *testing.T) {
 	for i := range tests {
 		tc := tests[i]
 		t.Run(tc.typeName, func(t *testing.T) {
-			t.Parallel()
 			src := fmt.Sprintf(`
 			package main
 
@@ -61,10 +56,7 @@ func TestProgramTypeUnsignedConvert(t *testing.T) {
 				a := %s(1) + %s(2)
 				print(a)
 			}`, tc.typeName, tc.typeName)
-			out := parseAndWalk(t, src)
-			if got, want := out, "3"; got != want {
-				t.Errorf("[step] got [%[1]v:%[1]T] want [%[2]v:%[2]T]", got, want)
-			}
+			testMain(t, src, "3")
 		})
 	}
 }

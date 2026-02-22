@@ -73,14 +73,21 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 		}
 	}
 	pkg := &Package{Package: goPkg, env: b.env.(*PkgEnvironment)}
+	// build and store package setup flow
+	gb := newGraphBuilder(goPkg)
+	pkg.callGraph = pkg.flow(gb)
+
+	// reorganize methods so that they are associated with their interpreted types, rather than as standalone functions in the package environment
+	if err := pkg.moveMethodsToInterpretedTypes(); err != nil {
+		return pkg, err
+	}
+
+	// export if requested via env vars, for debugging
 	if callGraphFilename := os.Getenv("GI_CALL"); callGraphFilename != "" {
 		pkg.writeCallGraph(callGraphFilename)
 	}
 	if astFilename := os.Getenv("GI_AST"); astFilename != "" {
 		pkg.writeAST(astFilename)
-	}
-	if err := pkg.moveMethodsToInterpretedTypes(); err != nil {
-		return pkg, err
 	}
 	return pkg, nil
 }
@@ -89,10 +96,9 @@ func CallPackageFunction(pkg *Package, functionName string, args []any) ([]any, 
 	return callPackageFunction(functionName, args, NewVM(pkg))
 }
 
+// only works if stepping = false
 func callPackageFunction(functionName string, args []any, vm *VM) ([]any, error) {
-	g := newGraphBuilder(vm.pkg.Package)
-	setup := vm.pkg.flow(g)
-	vm.takeAllStartingAt(setup)
+	vm.takeAllStartingAt(vm.pkg.callGraph)
 
 	// TODO maybe let the call do the lookup?
 	fun := vm.pkg.env.valueLookUp(functionName)
@@ -132,6 +138,8 @@ func callPackageFunction(functionName string, args []any, vm *VM) ([]any, error)
 	return vals, nil
 }
 
+// ParseSource is a helper function that allows parsing and building a package directly from a source string, without needing to read from the filesystem.
+// It creates a temporary directory, writes the source to a main.go file, and then uses the standard LoadPackage and BuildPackage functions to create the Package struct.
 func ParseSource(source string) (*Package, error) {
 
 	// create a temp dir with a main.go file and go.mod

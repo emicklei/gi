@@ -47,7 +47,6 @@ func TestUnaries(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.op, func(t *testing.T) {
-			t.Parallel()
 			defer func() {
 				if r := recover(); r != nil {
 					t.Errorf("panic occurred: %s: %v", tt.src, r)
@@ -60,10 +59,7 @@ func TestUnaries(t *testing.T) {
 				v := %s
 				print(%sv)
 			}`, tt.src, tt.op)
-			out := parseAndWalk(t, src)
-			if got, want := out, tt.want; got != want {
-				t.Errorf("%s got [%[1]v:%[1]T] want [%[2]v:%[2]T]", tt.src, got, want)
-			}
+			testMain(t, src, tt.want)
 		})
 	}
 }
@@ -95,10 +91,7 @@ func TestUnaryComplex(t *testing.T) {
 			func main() {
 				print(` + tt.src + `)
 			}`
-			out := parseAndWalk(t, src)
-			if got, want := out, tt.want; got != want {
-				t.Errorf("%s got %s want %s", tt.src, got, want)
-			}
+			testMain(t, src, tt.want)
 		})
 	}
 }

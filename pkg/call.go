@@ -49,7 +49,6 @@ func (c CallExpr) eval(vm *VM) {
 	default:
 		vm.fatalf("struct unexpected %s (%T)", stringOf(fn.Interface()), fn.Interface())
 	}
-	return
 }
 
 func (c CallExpr) handleFunc(vm *VM, fn reflect.Value) {

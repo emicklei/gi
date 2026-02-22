@@ -2,7 +2,9 @@ package pkg
 
 import (
 	"fmt"
+	"go/token"
 	"io"
+	"path/filepath"
 	"reflect"
 	"strings"
 )
@@ -253,4 +255,12 @@ func isNonSDKFunction(rv reflect.Value) bool {
 		return true
 	}
 	return false
+}
+
+func cursor(fs *token.FileSet, pos token.Pos) string {
+	if pos == token.NoPos {
+		return "<no position info>"
+	}
+	loc := fs.Position(pos)
+	return fmt.Sprintf("%s:%d:%d", filepath.Base(loc.Filename), loc.Line, loc.Column)
 }
