@@ -9,9 +9,10 @@ import (
 // stackFrame represents a single frame in the VM's function call stack.
 type stackFrame struct {
 	id       int  // for debugging only, not used by the VM
-	creator  Func // typically a *FuncDecl or *FuncLit
+	callee   Func // typically a *FuncDecl or *FuncLit
 	env      Env  // current environment with name->value mapping
 	operands []reflect.Value
+	// results  []reflect.Value // for storing return values of the function
 	defers   []funcInvocation
 	step     Step // for using the VM to debug a function
 	returnTo Step // the step to return to after this function finishes, or nil if this is the top-level frame
@@ -20,7 +21,7 @@ type stackFrame struct {
 // reset is called before putting the frame back into the pool.
 func (f *stackFrame) reset() {
 	f.id = 0
-	f.creator = nil
+	f.callee = nil
 	f.env = nil
 	f.operands = f.operands[:0]
 	f.defers = f.defers[:0]
@@ -74,8 +75,8 @@ func (f *stackFrame) String() string {
 		return "stackFrame(<nil>)"
 	}
 	buf := strings.Builder{}
-	if f.creator != nil {
-		fmt.Fprintf(&buf, "%v ", f.creator)
+	if f.callee != nil {
+		fmt.Fprintf(&buf, "%v ", f.callee)
 	} else {
 		fmt.Fprintf(&buf, "? ")
 	}

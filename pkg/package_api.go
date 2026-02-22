@@ -93,49 +93,7 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 }
 
 func CallPackageFunction(pkg *Package, functionName string, args []any) ([]any, error) {
-	return callPackageFunction(functionName, args, NewVM(pkg))
-}
-
-// only works if stepping = false
-func callPackageFunction(functionName string, args []any, vm *VM) ([]any, error) {
-	vm.takeAllStartingAt(vm.pkg.callGraph)
-
-	// TODO maybe let the call do the lookup?
-	fun := vm.pkg.env.valueLookUp(functionName)
-	funValue := fun.Interface().(Func)
-	if !fun.IsValid() {
-		return nil, fmt.Errorf("%s function definition not found", functionName)
-	}
-	vm.pushNewFrame(funValue)
-	defer vm.popFrame()
-
-	// add noop expressions as arguments; the values will be pushed on the operand stack
-	callArgs := make([]Expr, len(args))
-	for i := range len(args) {
-		callArgs[i] = noExpr{}
-	}
-	// make a CallExpr and reuse its logic to set up the call
-	call := CallExpr{
-		fun:  Ident{name: functionName},
-		args: callArgs,
-	}
-	// push arguments as parameters on the operand stack, in reverse order
-	for i := len(args) - 1; i >= 0; i-- {
-		vm.pushOperand(reflect.ValueOf(args[i]))
-	}
-	call.handleFuncDecl(vm, funValue.(*FuncDecl))
-
-	// collect non-reflection return values
-	top := vm.currentFrame
-	vals := []any{}
-	results := funValue.results()
-	if results != nil {
-		for range len(results.List) {
-			val := top.pop()
-			vals = append(vals, val.Interface())
-		}
-	}
-	return vals, nil
+	return NewVM(pkg).callPackageFunction(functionName, args)
 }
 
 // ParseSource is a helper function that allows parsing and building a package directly from a source string, without needing to read from the filesystem.

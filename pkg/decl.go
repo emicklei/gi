@@ -21,7 +21,7 @@ func (c ConstDecl) declare(vm *VM) bool {
 		c.iotaExpr.reset()
 	}
 	for _, spec := range c.specs {
-		vm.takeAllStartingAt(spec.callGraph())
+		vm.stepThrough(spec.callGraph())
 		if !spec.declare(vm) {
 			done = false
 			// continue trying others; we come back later

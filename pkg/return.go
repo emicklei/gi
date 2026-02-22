@@ -23,7 +23,7 @@ func (r ReturnStmt) eval(vm *VM) {
 		results[i] = val
 	}
 	// bind result values to named results of the function if any
-	fn := vm.currentFrame.creator
+	fn := vm.currentFrame.callee
 	if fn != nil {
 		i := 0
 		for _, fields := range fn.results().List {

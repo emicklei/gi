@@ -7,6 +7,7 @@ import (
 )
 
 func TestDeclareInitMain(t *testing.T) {
+	trace = true
 	testMain(t, `package main
 
 const a = 1

@@ -244,7 +244,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 			elemType := makeType(vm, expectedType)
 			sliceType := reflect.SliceOf(elemType)
 			sliceVal := reflect.MakeSlice(sliceType, len(vals), len(vals))
-			for k := 0; k < len(vals); k++ {
+			for k := range len(vals) {
 				// TODO can also require dereferencing
 				sliceVal.Index(k).Set(vals[k])
 			}
@@ -354,22 +354,21 @@ func (c CallExpr) flow(g *graphBuilder) (head Step) {
 }
 
 // Runs defers and pushes return values on the operand stack after a function call.
-// This needs to happen for interpreted functions (FuncDecl,FuncLit) only.
+// Its pops the current frame and pushes the return values on the operand stack so they can be used by the caller.
+// This is called for interpreted functions (FuncDecl,FuncLit) only right after the return.
 func postCallFunc(vm *VM) {
 	frame := vm.currentFrame
-	if frame.creator == nil {
-		return
-	}
-	creator := frame.creator
 	frame.takeDeferList(vm)
 
 	// take values before popping frame
 	vals := []reflect.Value{}
-	if creator.results() != nil {
-		for _, field := range creator.results().List {
-			for _, name := range field.names {
-				val := frame.env.valueLookUp(name.name)
-				vals = append(vals, val)
+	if frame.callee != nil {
+		if results := frame.callee.results(); results != nil {
+			for _, field := range results.List {
+				for _, name := range field.names {
+					val := frame.env.valueLookUp(name.name)
+					vals = append(vals, val)
+				}
 			}
 		}
 	}

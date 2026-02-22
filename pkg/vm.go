@@ -27,7 +27,6 @@ type VM struct {
 	currentFrame *stackFrame // optimization
 	heap         *Heap
 	output       *bytes.Buffer // for testing only
-	isStepping   bool          // whether the VM is currently stepping
 }
 
 func NewVM(pkg *Package) *VM {
@@ -102,23 +101,23 @@ func (vm *VM) popOperand() reflect.Value {
 	return popped
 }
 
-func (vm *VM) pushNewFrame(f Func) {
+func (vm *VM) pushNewFrame(creator Func) {
 	frame := framePool.Get().(*stackFrame)
 	frame.id = vm.frameIdSeq
 	vm.frameIdSeq++
-	frame.creator = f
+	frame.callee = creator
 	env := envPool.Get().(*Environment)
 	env.parentEnv = vm.currentEnv()
 	frame.env = env
 
 	// remember return
-	if vm.isStepping && vm.currentFrame != nil && vm.currentFrame.step != nil {
+	if vm.currentFrame != nil && vm.currentFrame.step != nil {
 		vm.currentFrame.returnTo = vm.currentFrame.step.Next()
 	}
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
 	if trace {
-		fmt.Printf("vm.pushNewFrame.%d:%s\n", frame.id, stringOf(f))
+		fmt.Printf("vm.pushNewFrame.%d:%s\n", frame.id, stringOf(creator))
 	}
 }
 
@@ -134,11 +133,8 @@ func (vm *VM) popFrame() {
 	}
 	if len(vm.callStack) > 0 {
 		vm.currentFrame = vm.callStack.top()
-		if vm.isStepping {
-			//consume return
-			vm.currentFrame.step = vm.currentFrame.returnTo
-			vm.currentFrame.returnTo = nil
-		}
+		vm.currentFrame.step = vm.currentFrame.returnTo
+		vm.currentFrame.returnTo = nil
 	} else {
 		vm.currentFrame = nil
 	}
@@ -175,25 +171,7 @@ func (vm *VM) eval(e Evaluable) {
 }
 
 func (vm *VM) takeAllStartingAt(head Step) {
-	// TODO stepping will be the default behavior
-
-	if vm.isStepping {
-		vm.currentFrame.step = head
-		return
-	}
-	here := head
-	for here != nil {
-		if trace {
-			if vm.pkg == nil || vm.pkg.Fset == nil {
-				fmt.Printf("%v @ <no fileset>\n", here)
-			} else if here.pos() == token.NoPos {
-				fmt.Printf("%v @ <no position info>\n", here)
-			} else {
-				fmt.Printf("%v @ %v\n", here, vm.pkg.Fset.Position(here.pos()))
-			}
-		}
-		here = here.take(vm)
-	}
+	vm.currentFrame.step = head
 }
 
 // Next takes the current step and advances to the next step, returning an error if there are no more steps to take (i.e., EOF).
@@ -214,33 +192,97 @@ func (vm *VM) Next() error {
 	}
 	// take the step and return the next or nil
 	next := here.take(vm)
-	// proceed with next if in same frame
-	// if not the currentStep is reset for the new frame
-	if vm.currentFrame == frame {
-		frame.step = next
+	if next == nil {
+		vm.currentFrame.step = frame.returnTo
+		frame.returnTo = nil // TODO frame should be dropped
+	} else {
+		// proceed with next if in same frame
+		if vm.currentFrame == frame {
+			frame.step = next
+		} else {
+			// currentFrame already has been updated with new flow
+		}
 	}
 	return nil
 }
 
+func (vm *VM) stepThrough(flow Step) {
+	for here := flow; here != nil; {
+		here = here.take(vm)
+	}
+}
+
 // Launch sets up the VM for execution of the given function name with the provided arguments.
 func (vm *VM) Launch(funcName string, args []any) {
-	vm.pkg.initialize(vm)
+	vm.callPackageFunction(funcName, args)
+}
 
-	fun := vm.currentEnv().valueLookUp(funcName)
-	decl := fun.Interface().(*FuncDecl)
-	vm.pushNewFrame(decl)
-	call := CallExpr{}
-	if args != nil {
-		// add noop expressions as arguments; the values will be pushed on the operand stack
-		for range len(args) {
-			call.args = append(call.args, noExpr{})
+func (vm *VM) callPackageFunction(functionName string, args []any) ([]any, error) {
+
+	vm.launch(functionName, args)
+	for {
+		if err := vm.Next(); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, fmt.Errorf("error during execution: %v", err)
 		}
+	}
+
+	// collect non-reflection return values
+	//	top := vm.currentFrame
+	vals := []any{}
+	// results := funValue.results()
+	// if results != nil {
+	// 	for range len(results.List) {
+	// 		val := top.pop()
+	// 		vals = append(vals, val.Interface())
+	// 	}
+	// }
+	return vals, nil
+}
+
+// launch sets the call flow.
+func (vm *VM) launch(functionName string, args []any) {
+	vm.pushNewFrame(nil)
+
+	initPkg := newFuncStep(token.NoPos, "initpkg", func(vm *VM) {
+		next := vm.currentFrame.step.Next()
+		vm.pushNewFrame(nil)
+		vm.currentFrame.env = vm.pkg.env
+		vm.currentFrame.step = vm.pkg.callGraph
+		vm.currentFrame.returnTo = next
+	})
+
+	pushArgs := newFuncStep(token.NoPos, fmt.Sprintf("push args for %s.%s", vm.pkg.Name, functionName), func(vm *VM) {
 		// push arguments as parameters on the operand stack, in reverse order
 		for i := len(args) - 1; i >= 0; i-- {
 			vm.pushOperand(reflect.ValueOf(args[i]))
 		}
+	})
+
+	pushFunction := newFuncStep(token.NoPos, fmt.Sprintf("push function %s.%s", vm.pkg.Name, functionName), func(vm *VM) {
+		fun := vm.pkg.env.valueLookUp(functionName)
+		vm.pushOperand(fun)
+	})
+
+	// add noop expressions as arguments; the values will be pushed on the operand stack
+	callArgs := make([]Expr, len(args))
+	for i := range len(args) {
+		callArgs[i] = noExpr{}
 	}
-	call.handleFuncDecl(vm, decl)
+	// make a CallExpr and reuse its logic to set up the call
+	call := CallExpr{
+		fun:  Ident{name: functionName},
+		args: callArgs,
+	}
+	gb := newGraphBuilder(vm.pkg.Package)
+	gb.nextStep(initPkg)
+	gb.nextStep(pushArgs)
+	gb.nextStep(pushFunction)
+	call.flow(gb)
+
+	vm.currentFrame.step = initPkg
 }
 
 func (vm *VM) printStack() {

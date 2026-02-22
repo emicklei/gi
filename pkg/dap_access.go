@@ -45,12 +45,12 @@ func (a *DAPAccess) Threads() []dap.Thread {
 func (a *DAPAccess) StackFrames(dap.StackTraceArguments) (frames []dap.StackFrame) {
 	for _, eachFrame := range a.vm.callStack {
 		var tokloc token.Position
-		if eachFrame.creator != nil {
-			tokloc = a.vm.pkg.Fset.Position(eachFrame.creator.pos())
+		if eachFrame.callee != nil {
+			tokloc = a.vm.pkg.Fset.Position(eachFrame.callee.pos())
 		}
 		dapFrame := dap.StackFrame{
 			Id:   eachFrame.id,
-			Name: stringOf(eachFrame.creator), // TODO
+			Name: stringOf(eachFrame.callee), // TODO
 			Source: &dap.Source{
 				Name: filepath.Base(tokloc.Filename),
 				Path: tokloc.Filename,

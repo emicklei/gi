@@ -35,40 +35,6 @@ func collectPrintOutput(vm *VM) {
 	// })
 }
 
-func parseAndWalk(t *testing.T, source string) string {
-	t.Helper()
-	defer func() {
-		if trace {
-			fmt.Println("TESTED:", t.Name())
-		}
-	}()
-	pkg := buildPackage(t, source)
-	vm := NewVM(pkg)
-	collectPrintOutput(vm)
-
-	if getAttr(t, "dot") != nil {
-		// create dot graph for debugging
-		os.WriteFile(fmt.Sprintf("internal/testgraphs/%s.src", t.Name()), []byte(source), 0644)
-		dotFileName := fmt.Sprintf("internal/testgraphs/%s.dot", t.Name())
-		pkg.writeCallGraph(dotFileName)
-		// will fail in pipeline without graphviz installed
-		exec.Command("dot", "-Tsvg", "-o", dotFileName+".svg", dotFileName).Run()
-		os.Remove(dotFileName)
-	}
-	// create ast dump for debugging, requires test to set attribute(s)
-	astFileName := fmt.Sprintf("internal/testgraphs/%s", t.Name())
-	if getAttr(t, "ast") == "true" {
-		pkg.writeAST(astFileName + ".ast")
-	}
-	if getAttr(t, "go.ast") == "true" {
-		writeGoAST(astFileName+".go.ast", pkg.Package)
-	}
-	if _, err := callPackageFunction("main", nil, vm); err != nil {
-		t.Fatal(err)
-	}
-	return vm.output.String()
-}
-
 // Per-test attribute storage
 var testAttrs = sync.Map{}
 
@@ -97,7 +63,7 @@ func testProgramIn(t *testing.T, dir string, _ any) {
 	if err != nil {
 		t.Fatalf("failed to build package in %s: %v", loc, err)
 	}
-	_, err = callPackageFunction("main", nil, NewVM(pkg))
+	_, err = NewVM(pkg).callPackageFunction("main", nil)
 	if err != nil {
 		t.Fatalf("failed to run package in %s: %v", loc, err)
 	}
@@ -132,7 +98,8 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 	if getAttr(t, "go.ast") == "true" {
 		writeGoAST(astFileName+".go.ast", pkg.Package)
 	}
-	runner.Launch("main", nil)
+	runner.launch("main", nil)
+	// walk the steps of the program
 	for {
 		if err := runner.Next(); err != nil {
 			if err == io.EOF {

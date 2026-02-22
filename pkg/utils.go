@@ -264,3 +264,11 @@ func cursor(fs *token.FileSet, pos token.Pos) string {
 	loc := fs.Position(pos)
 	return fmt.Sprintf("%s:%d:%d", filepath.Base(loc.Filename), loc.Line, loc.Column)
 }
+
+func printSteps(head Step) {
+	here := head
+	for here != nil {
+		fmt.Printf("next: %v\n", here)
+		here = here.Next()
+	}
+}
