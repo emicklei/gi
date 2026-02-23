@@ -46,6 +46,7 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 		})
 		g.nextStep(s)
 	}
+	g.nextStep(newFuncStep(token.NoPos, "pop frame", func(vm *VM) { vm.popFrame() }))
 	return
 }
 

@@ -24,7 +24,7 @@ func (c ConstDecl) declare(vm *VM) bool {
 		vm.stepThrough(spec.callGraph())
 		if !spec.declare(vm) {
 			done = false
-			// continue trying others; we come back later
+			// continue trying others; we will come back later
 		}
 		if c.iotaExpr != nil {
 			// if iota was used, advance it

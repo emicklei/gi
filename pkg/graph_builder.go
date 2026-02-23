@@ -75,7 +75,7 @@ func (g *graphBuilder) nextStep(next Step) {
 					nodir := filepath.Base(f.Name())
 					fmt.Print(" @ ", nodir, ":", f.Line(g.current.pos()))
 				} else {
-					fmt.Print(" @ bad file info")
+					fmt.Print(" @ <bad file info>")
 				}
 			}
 			fmt.Println()

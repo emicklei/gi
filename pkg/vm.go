@@ -96,7 +96,7 @@ func (vm *VM) popOperand() reflect.Value {
 	popped := vm.currentFrame.pop()
 	if trace {
 		before := len(vm.currentFrame.operands)
-		fmt.Printf("~~ frame.%d.pop [%d->%d]:%s\n", vm.currentFrame.id, before, before-1, stringOf(popped))
+		fmt.Printf("~~ frame.%d.pop [%d->%d]: %s (%T)\n", vm.currentFrame.id, before+1, before, stringOf(popped), popped.Interface())
 	}
 	return popped
 }
@@ -112,7 +112,10 @@ func (vm *VM) pushNewFrame(creator Func) {
 
 	// remember return
 	if vm.currentFrame != nil && vm.currentFrame.step != nil {
-		vm.currentFrame.returnTo = vm.currentFrame.step.Next()
+		frame.returnTo = vm.currentFrame.step.Next()
+		if trace {
+			fmt.Printf("vm.pushNewFrame.%d: set returnTo to %v\n", frame.id, frame.returnTo)
+		}
 	}
 	vm.callStack.push(frame)
 	vm.currentFrame = frame
@@ -126,15 +129,15 @@ func (vm *VM) popFrame() {
 		if len(vm.callStack) == 0 {
 			vm.fatalf("no frame left on the call stack")
 		}
+		fmt.Printf("vm.popFrame.%d\n", vm.callStack.top().id)
 	}
 	frame := vm.callStack.pop()
-	if trace {
-		fmt.Printf("vm.popFrame.%d\n", frame.id)
-	}
 	if len(vm.callStack) > 0 {
 		vm.currentFrame = vm.callStack.top()
-		vm.currentFrame.step = vm.currentFrame.returnTo
-		vm.currentFrame.returnTo = nil
+		vm.currentFrame.step = frame.returnTo
+		if trace {
+			fmt.Printf("vm.currentFrame.%d.step set to returnTo: %v\n", vm.currentFrame.id, vm.currentFrame.step)
+		}
 	} else {
 		vm.currentFrame = nil
 	}
@@ -150,6 +153,7 @@ func (vm *VM) popFrame() {
 			envPool.Put(env)
 		}
 	}
+	// return frame to pool
 	frame.reset()
 	framePool.Put(frame)
 }
@@ -190,18 +194,13 @@ func (vm *VM) Next() error {
 			fmt.Printf("%v @ %v\n", here, cursor(vm.pkg.Fset, here.pos()))
 		}
 	}
-	// take the step and return the next or nil
-	next := here.take(vm)
-	if next == nil {
-		vm.currentFrame.step = frame.returnTo
-		frame.returnTo = nil // TODO frame should be dropped
+	here.take(vm)
+	// currentFrame may have changed
+	if vm.currentFrame != frame {
+		fmt.Printf("frame changed from %d to %d\n", frame.id, vm.currentFrame.id)
+		fmt.Printf("currentFrame.step: %v\n", vm.currentFrame.step)
 	} else {
-		// proceed with next if in same frame
-		if vm.currentFrame == frame {
-			frame.step = next
-		} else {
-			// currentFrame already has been updated with new flow
-		}
+		frame.step = here.Next()
 	}
 	return nil
 }
@@ -213,12 +212,11 @@ func (vm *VM) stepThrough(flow Step) {
 }
 
 // Launch sets up the VM for execution of the given function name with the provided arguments.
-func (vm *VM) Launch(funcName string, args []any) {
-	vm.callPackageFunction(funcName, args)
+func (vm *VM) Launch(functionName string, args []any) {
+	vm.launch(functionName, args)
 }
 
 func (vm *VM) callPackageFunction(functionName string, args []any) ([]any, error) {
-
 	vm.launch(functionName, args)
 	for {
 		if err := vm.Next(); err != nil {
@@ -230,28 +228,26 @@ func (vm *VM) callPackageFunction(functionName string, args []any) ([]any, error
 	}
 
 	// collect non-reflection return values
-	//	top := vm.currentFrame
+	top := vm.currentFrame
 	vals := []any{}
-	// results := funValue.results()
-	// if results != nil {
-	// 	for range len(results.List) {
-	// 		val := top.pop()
-	// 		vals = append(vals, val.Interface())
-	// 	}
-	// }
+	for len(top.operands) > 0 {
+		val := top.pop()
+		vals = append(vals, val.Interface())
+	}
 	return vals, nil
 }
 
 // launch sets the call flow.
 func (vm *VM) launch(functionName string, args []any) {
 	vm.pushNewFrame(nil)
+	// make sure PkgEnvironment is active
+	vm.currentFrame.env = vm.pkg.env
 
 	initPkg := newFuncStep(token.NoPos, "initpkg", func(vm *VM) {
-		next := vm.currentFrame.step.Next()
 		vm.pushNewFrame(nil)
+		// make sure PkgEnvironment is active
 		vm.currentFrame.env = vm.pkg.env
 		vm.currentFrame.step = vm.pkg.callGraph
-		vm.currentFrame.returnTo = next
 	})
 
 	pushArgs := newFuncStep(token.NoPos, fmt.Sprintf("push args for %s.%s", vm.pkg.Name, functionName), func(vm *VM) {
