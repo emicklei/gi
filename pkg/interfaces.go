@@ -83,7 +83,7 @@ type Step interface {
 }
 
 type StepTaker interface {
-	take(vm *VM) Step
+	take(vm *VM)
 }
 
 type Traverseable interface {

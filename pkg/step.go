@@ -44,8 +44,8 @@ func (s *step) SetNext(n Step) {
 
 func (s *step) eval(vm *VM) {}
 
-func (s *step) take(vm *VM) Step {
-	return s.next
+func (s *step) take(vm *VM) {
+	vm.currentFrame.step = s.next
 }
 
 func (s *step) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
@@ -80,9 +80,13 @@ func (s *evaluableStep) eval(vm *VM) {
 	s.Evaluable.eval(vm)
 }
 
-func (s *evaluableStep) take(vm *VM) Step {
+func (s *evaluableStep) take(vm *VM) {
+	old := vm.currentFrame.step
 	s.Evaluable.eval(vm)
-	return s.next
+	if vm.currentFrame.step == old {
+		// if the evaluable did not change the step, then move to the next step.
+		vm.currentFrame.step = s.next
+	}
 }
 
 func (s *evaluableStep) pos() token.Pos {
@@ -123,15 +127,17 @@ func (c *conditionalStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
 	return me
 }
 
-func (c *conditionalStep) take(vm *VM) Step {
+func (c *conditionalStep) take(vm *VM) {
 	if c.conditionFlow == nil {
-		return c.next
+		vm.currentFrame.step = c.next
+		return
 	}
 	cond := vm.popOperand()
 	if cond.Bool() {
-		return c.next
+		vm.currentFrame.step = c.next
+		return
 	}
-	return c.elseFlow
+	vm.currentFrame.step = c.elseFlow
 }
 
 func (c *conditionalStep) pos() token.Pos {
@@ -165,9 +171,9 @@ func newPushEnvironmentStep(pos token.Pos) *pushEnvironmentStep {
 	return &pushEnvironmentStep{stmtPos: pos}
 }
 
-func (p *pushEnvironmentStep) take(vm *VM) Step {
+func (p *pushEnvironmentStep) take(vm *VM) {
 	vm.currentFrame.pushEnv()
-	return p.next
+	vm.currentFrame.step = p.next
 }
 
 func (p *pushEnvironmentStep) String() string {
@@ -190,9 +196,9 @@ func (p *popEnvironmentStep) pos() token.Pos {
 	return p.stmtPos
 }
 
-func (p *popEnvironmentStep) take(vm *VM) Step {
+func (p *popEnvironmentStep) take(vm *VM) {
 	vm.currentFrame.popEnv()
-	return p.next
+	vm.currentFrame.step = p.next
 }
 
 func (p *popEnvironmentStep) String() string {
@@ -210,6 +216,11 @@ type labeledStep struct {
 	step
 	label   string
 	stmtPos token.Pos
+}
+
+// newLabeledStep creates a labeled step but does not add it to the current flow.
+func newLabeledStep(label string, pos token.Pos) *labeledStep {
+	return &labeledStep{label: label, stmtPos: pos}
 }
 
 func (s *labeledStep) pos() token.Pos {
@@ -240,9 +251,9 @@ func (p popOperandStep) pos() token.Pos {
 	return p.stmtPos
 }
 
-func (p popOperandStep) take(vm *VM) Step {
+func (p popOperandStep) take(vm *VM) {
 	vm.popOperand()
-	return p.next
+	vm.currentFrame.step = p.next
 }
 
 func (p popOperandStep) String() string {
@@ -267,9 +278,13 @@ func newFuncStep(pos token.Pos, label string, fun func(vm *VM)) *funcStep {
 	return &funcStep{stmtPos: pos, label: label, fun: fun}
 }
 
-func (p funcStep) take(vm *VM) Step {
+func (p funcStep) take(vm *VM) {
+	old := vm.currentFrame.step
 	p.fun(vm)
-	return p.next
+	if vm.currentFrame.step == old {
+		// if the function did not change the step, then move to the next step.
+		vm.currentFrame.step = p.next
+	}
 }
 
 func (e funcStep) pos() token.Pos {

@@ -103,3 +103,13 @@ The first step is the head of the chain.
 - Interpreted embedding struct types: type Aircraft struct{ Asset }
 - Interpreted extended builtin types: type Count int
 - Interpreted extended struct types: type Plane Aircraft
+
+
+
+push stackframe
+  - returnTo = currentframe.step
+  - set currentframe step to ..
+
+pop stackframe
+  - drop frame
+  - set currentframe step to returnTo of dropped frame

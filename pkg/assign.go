@@ -93,7 +93,7 @@ func (a AssignStmt) apply(each Expr, vm *VM, v reflect.Value) {
 		result := binaryExprValue{left: current, op: token.AND_NOT, right: v}.eval()
 		target.assign(vm, result)
 	default:
-		panic("unsupported assignment " + a.tok.String())
+		vm.fatalf("unsupported assignment:%v", a.tok)
 	}
 }
 

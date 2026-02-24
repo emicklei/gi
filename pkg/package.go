@@ -54,7 +54,7 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 // a declare may refer to other unseen declares.
 // Pre: current stackframe has package environment.
 func (p *Package) resolveDeclarations(vm *VM) {
-	done := false
+	done := len(p.env.declarations) == 0
 	for !done {
 		done = true
 		for i, decl := range p.env.declarations {
@@ -67,7 +67,6 @@ func (p *Package) resolveDeclarations(vm *VM) {
 			}
 		}
 	}
-	clear(p.env.declarations)
 }
 
 func (p *Package) moveMethodsToInterpretedTypes() error {

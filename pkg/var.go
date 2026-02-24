@@ -32,7 +32,11 @@ func (v ValueSpec) callGraph() Step {
 }
 
 func (v ValueSpec) declare(vm *VM) bool {
-	vm.takeAllStartingAt(v.graph)
+	vm.stepThrough(v.graph) // TODO
+	return v.processLHS(vm)
+}
+
+func (v ValueSpec) processLHS(vm *VM) bool {
 	if v.typ == nil {
 		for _, idn := range v.names {
 			val := vm.popOperand()

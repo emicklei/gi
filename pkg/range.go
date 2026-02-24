@@ -91,11 +91,11 @@ type rangeMapIteratorInitStep struct {
 	rangePos     token.Pos
 }
 
-func (r *rangeMapIteratorInitStep) take(vm *VM) Step {
+func (r *rangeMapIteratorInitStep) take(vm *VM) {
 	rangeable := vm.popOperand()
 	iter := rangeable.MapRange()
 	vm.currentEnv().valueSet(r.localVarName, reflect.ValueOf(iter))
-	return r.next
+	vm.currentFrame.step = r.next
 }
 
 func (r *rangeMapIteratorInitStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
@@ -121,7 +121,7 @@ type rangeMapIteratorNextStep struct {
 	rangePos             token.Pos
 }
 
-func (r *rangeMapIteratorNextStep) take(vm *VM) Step {
+func (r *rangeMapIteratorNextStep) take(vm *VM) {
 	iterator := vm.currentEnv().valueLookUp(r.localVarName).Interface().(*reflect.MapIter)
 	if iterator.Next() {
 		// first value then key to match assignment order
@@ -131,9 +131,10 @@ func (r *rangeMapIteratorNextStep) take(vm *VM) Step {
 		if r.yieldKey {
 			vm.pushOperand(iterator.Key())
 		}
-		return r.bodyFlow
+		vm.currentFrame.step = r.bodyFlow
+		return
 	}
-	return r.next
+	vm.currentFrame.step = r.next
 }
 
 func (r *rangeMapIteratorNextStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
@@ -381,20 +382,20 @@ type rangeIteratorSwitchStep struct {
 	chanFlow         Step
 }
 
-func (i *rangeIteratorSwitchStep) take(vm *VM) Step {
+func (i *rangeIteratorSwitchStep) take(vm *VM) {
 	rangeable := vm.popOperand()
 	if rangeable.Kind() == reflect.Pointer {
 		rangeable = rangeable.Elem()
 	}
 	switch rangeable.Kind() {
 	case reflect.Chan:
-		return i.chanFlow.take(vm)
+		vm.currentFrame.step = i.chanFlow
 	case reflect.Map:
-		return i.mapFlow.take(vm)
+		vm.currentFrame.step = i.mapFlow
 	case reflect.Slice, reflect.Array:
-		return i.sliceOrArrayFlow.take(vm)
+		vm.currentFrame.step = i.sliceOrArrayFlow
 	case reflect.Int:
-		return i.intFlow.take(vm)
+		vm.currentFrame.step = i.intFlow
 	case reflect.String:
 		// iterate over runes
 		str := rangeable.String()
@@ -403,7 +404,7 @@ func (i *rangeIteratorSwitchStep) take(vm *VM) Step {
 			runeSlice = append(runeSlice, r)
 		}
 		vm.pushOperand(reflect.ValueOf(runeSlice))
-		return i.sliceOrArrayFlow.take(vm)
+		vm.currentFrame.step = i.sliceOrArrayFlow
 	case reflect.Func:
 		// TODO
 		// func(yield func(V) bool): //iter.Seq[V any]:
@@ -412,7 +413,6 @@ func (i *rangeIteratorSwitchStep) take(vm *VM) Step {
 	default:
 		vm.fatalf("cannot range over type %v", rangeable.Type())
 	}
-	return nil
 }
 
 func (i *rangeIteratorSwitchStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {

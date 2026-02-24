@@ -182,32 +182,29 @@ func (vm *VM) takeAllStartingAt(head Step) {
 // Pre: vm.currentFrame not nil
 func (vm *VM) Next() error {
 	frame := vm.currentFrame
-	here := frame.step
 	// EOF means function is done
-	if here == nil {
+	if frame.step == nil {
 		return io.EOF
 	}
 	if trace {
 		if vm.pkg == nil || vm.pkg.Fset == nil {
-			fmt.Printf("%v @ <no fileset>\n", here)
+			fmt.Printf("%v @ <no fileset>\n", frame.step)
 		} else {
-			fmt.Printf("%v @ %v\n", here, cursor(vm.pkg.Fset, here.pos()))
+			fmt.Printf("%v @ %v\n", frame.step, cursor(vm.pkg.Fset, frame.step.pos()))
 		}
 	}
-	here.take(vm)
-	// currentFrame may have changed
-	if vm.currentFrame != frame {
-		fmt.Printf("frame changed from %d to %d\n", frame.id, vm.currentFrame.id)
-		fmt.Printf("currentFrame.step: %v\n", vm.currentFrame.step)
-	} else {
-		frame.step = here.Next()
-	}
+	frame.step.take(vm)
 	return nil
 }
 
 func (vm *VM) stepThrough(flow Step) {
-	for here := flow; here != nil; {
-		here = here.take(vm)
+	vm.currentFrame.step = flow
+	for here := vm.currentFrame.step; here != nil; {
+		here.take(vm)
+		if vm.currentFrame.step == here {
+			// if the step did not change, then move to the next step.
+			vm.currentFrame.step = here.Next()
+		}
 	}
 }
 
@@ -257,11 +254,6 @@ func (vm *VM) launch(functionName string, args []any) {
 		}
 	})
 
-	pushFunction := newFuncStep(token.NoPos, fmt.Sprintf("push function %s.%s", vm.pkg.Name, functionName), func(vm *VM) {
-		fun := vm.pkg.env.valueLookUp(functionName)
-		vm.pushOperand(fun)
-	})
-
 	// add noop expressions as arguments; the values will be pushed on the operand stack
 	callArgs := make([]Expr, len(args))
 	for i := range len(args) {
@@ -275,10 +267,9 @@ func (vm *VM) launch(functionName string, args []any) {
 	gb := newGraphBuilder(vm.pkg.Package)
 	gb.nextStep(initPkg)
 	gb.nextStep(pushArgs)
-	gb.nextStep(pushFunction)
 	call.flow(gb)
 
-	vm.currentFrame.step = initPkg
+	vm.currentFrame.step = initPkg // head of flow
 }
 
 func (vm *VM) printStack() {

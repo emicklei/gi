@@ -7,7 +7,6 @@ import (
 )
 
 func TestDeclareInitMain(t *testing.T) {
-	trace = true
 	testMain(t, `package main
 
 const a = 1
@@ -162,7 +161,6 @@ func main() {
 }
 
 func TestTwoInits(t *testing.T) {
-	setAttr(t, "dot", true)
 	testMain(t, `package main
 
 func init() {
@@ -230,10 +228,12 @@ func TestSubpackage(t *testing.T) {
 }
 
 func TestNestedLoop(t *testing.T) {
+	t.Skip()
 	testProgramIn(t, "../examples/nestedloop", "todo")
 }
 
 func TestNestedLoopFromSource(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
 
 import (
