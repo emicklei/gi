@@ -43,7 +43,6 @@ func (g *graphBuilder) newStep(e Evaluable) *evaluableStep {
 }
 
 // newLabeledStep creates a labeled step but does not add it to the current flow.
-// Deprecated: use newLabeledStep instead.
 func (g *graphBuilder) newLabeledStep(label string, pos token.Pos) *labeledStep {
 	return &labeledStep{label: label, stmtPos: pos}
 }

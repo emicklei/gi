@@ -76,7 +76,7 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 		cond: cond,
 		body: &body,
 	}
-	loop := forStmt.flow(g)
+	loop := forStmt.flowWithOptions(g, true) // do not create a new environment for the loop
 	if head == nil {
 		head = loop
 	}
