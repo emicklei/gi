@@ -50,16 +50,19 @@ Gi is designed to interpret a Go program by parsing its source code into an Abst
 
 ### defer
 
-Both function declarations and function literals must handle deferred statements. Because the call of such a statement must capture any function arguments before executing it, a `funcInvocation` is created and added to the list of `defers` field in `*FuncDecl` or `*FuncLit` at ASRT building time.
+Both function declarations and function literals must handle deferred statements. Because the call of such a statement must capture any function arguments before executing it, a `funcInvocation` is created and added to the list of `defers` field in the stackframe created for a `*FuncDecl` or a `*FuncLit` at runtime.
 
+#### panic recovery
 
-## why `flow` returns head
+When a panic occurs, the VM will execute all deferred statements in the current stack frame in LIFO order. If any of these deferred statements themselves cause a panic, the process continues until all deferred statements have been executed. After that, the original panic is re-raised.
+
+### why `flow` returns head
 
 `flow(*graphBuilder)` builds a callgraph for a given Mirror Node (replicated Go AST Node).
 To use that callgraph, one needs to have a reference to the first step of the chain of steps.
 The first step is the head of the chain.
 
-## not all idents are equal
+### not all idents are equal
 
 - new(int)
 - int(0)
@@ -68,36 +71,7 @@ The first step is the head of the chain.
 - j := i.(int)
 
 
-### Dev Notes
 
-- About types: https://github.com/golang/example/tree/master/gotypes
-- how to handle concurrency. (eval -> native, walk -> simulated?)
-- fallthrough cannot be used with a type switch.
-- clear with a pointer to a var?
-- drop StructValues?, use https://stackoverflow.com/questions/57567466/create-a-struct-by-reflection-in-go  this only support Exported fields. Cannot use it.
-. fmt.Println for StructValues needs rework
-- github.com/fatih/structtag replace with some SDK pkg?
-- how to handle makeType of FuncType? and what if FuncType is using local pkg types?
-- handle omitzero
-- stdtypes is now a two-stage map => make it one big map
-- generics: https://ehabterra.github.io/ast-extracting-generic-function-signatures
-- should the unnamed results of a function be named?
-- put generated code in generated package
-- deprecate varvoy?
-- introduce routines (threads) in the VM
-
-## potential blockers
-- reflect structs can only have exposed fields. for that reason StructValues was created but the SDK is not aware of this. For example, fmt.Println might not work correctly with StructValues.
-- stepping happens per go-routine; what to do with the others when controlling one of them?
-- should undeclared know the looked-up name and use it later in the flow?  Price is Selector, not Value.
-
-## external pkg
-- if a program imports external packages then a new `gi` is created using additional generated sources that will setup all exported functions,consts and vars to the environment. this technique is also applied in `varvoy`.
-
-## ideas for Gi Playground
-- https://godbolt.org/
-- call graphs in tab view
-- structexplorer to see all environments and stackframes
 
 ## operand order on stack
 - when a function returns 2 or more values then operands are stacked in reverse order `pushCallResults` ; first is on top.
