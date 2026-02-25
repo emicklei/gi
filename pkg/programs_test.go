@@ -233,7 +233,6 @@ func TestNestedLoop(t *testing.T) {
 }
 
 func TestNestedLoopFromSource(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 import (

@@ -28,6 +28,7 @@ type Env interface {
 	// others
 	funcLookUp(name string) reflect.Value
 	addCanDeclare(cv CanDeclare)
+	addDeclaration(stmt Stmt)
 
 	// if marked, this env has references that escape to the heap
 	// or is used by funcInvocation in a defer statement
@@ -40,10 +41,11 @@ type Env interface {
 
 type PkgEnvironment struct {
 	Env
-	declarations []CanDeclare
-	inits        []*FuncDecl
-	methods      []*FuncDecl
-	packageTable map[string]*Package // path -> *Package
+	declarations  []CanDeclare
+	declarations2 []Stmt
+	inits         []*FuncDecl
+	methods       []*FuncDecl
+	packageTable  map[string]*Package // path -> *Package
 }
 
 func newBuiltinsEnvironment(parent Env) Env {
@@ -68,6 +70,10 @@ func (p *PkgEnvironment) addMethod(f *FuncDecl) {
 
 func (p *PkgEnvironment) addCanDeclare(cv CanDeclare) {
 	p.declarations = append(p.declarations, cv)
+}
+
+func (p *PkgEnvironment) addDeclaration(stmt Stmt) {
+	p.declarations2 = append(p.declarations2, stmt)
 }
 
 // rootPackageEnv returns the top-level package environment.
@@ -231,6 +237,7 @@ func (e *Environment) valueUnset(name string) {
 }
 
 func (e *Environment) addCanDeclare(cv CanDeclare) {}
+func (e *Environment) addDeclaration(stmt Stmt)    {}
 
 func (e *Environment) rootPackageEnv() *PkgEnvironment {
 	if e.parentEnv == nil {

@@ -81,9 +81,8 @@ func (s *evaluableStep) eval(vm *VM) {
 }
 
 func (s *evaluableStep) take(vm *VM) {
-	old := vm.currentFrame.step
 	s.Evaluable.eval(vm)
-	if vm.currentFrame.step == old {
+	if vm.currentFrame.step == s {
 		// if the evaluable did not change the step, then move to the next step.
 		vm.currentFrame.step = s.next
 	}
@@ -278,10 +277,9 @@ func newFuncStep(pos token.Pos, label string, fun func(vm *VM)) *funcStep {
 	return &funcStep{stmtPos: pos, label: label, fun: fun}
 }
 
-func (p funcStep) take(vm *VM) {
-	old := vm.currentFrame.step
+func (p *funcStep) take(vm *VM) {
 	p.fun(vm)
-	if vm.currentFrame.step == old {
+	if vm.currentFrame.step == p {
 		// if the function did not change the step, then move to the next step.
 		vm.currentFrame.step = p.next
 	}

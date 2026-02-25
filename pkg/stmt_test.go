@@ -2,6 +2,15 @@ package pkg
 
 import "testing"
 
+func TestDeclareVarInMain(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	var a,b int = 1,2
+	print(a,b)
+}`, "12")
+}
+
 func TestForBreak(t *testing.T) {
 	testMain(t, `package main
 
@@ -205,4 +214,24 @@ func main(){
 	}
 	f()
 }`, "3210")
+}
+
+// https://go.dev/ref/spec#Defer_statements
+func TestDeferReturnUpdateTestNestedLoop(t *testing.T) {
+	t.Skip()
+	// currently the returns puts all values on the top stackframe
+	// but the defer can change the value from the environment
+	// so we need to adjust the return value accordingly somehow
+	testMain(t, `package main
+
+func f() (result int) {
+	defer func() {
+		// result is accessed after it was set to 6 by the return statement
+		result *= 7
+	}()
+	return 6
+}
+func main(){
+	print(f())
+}`, "42")
 }

@@ -41,12 +41,13 @@ func (s DeclStmt) eval(vm *VM) {
 }
 
 func (s DeclStmt) flow(g *graphBuilder) (head Step) {
-	head = s.decl.flow(g)
-	g.next(s)
-	if head == nil {
-		head = g.current
-	}
-	return
+	return s.decl.flow(g)
+	// head = s.decl.flow(g)
+	// g.next(s)
+	// if head == nil {
+	// 	head = g.current
+	// }
+	// return
 }
 
 func (s DeclStmt) pos() token.Pos {
@@ -192,9 +193,7 @@ type BlockStmt struct {
 }
 
 func (b BlockStmt) eval(vm *VM) {
-	for _, stmt := range b.list {
-		vm.eval(stmt.stmtStep())
-	}
+	// no-op; flow is handled in graph building
 }
 
 func (b BlockStmt) flow(g *graphBuilder) (head Step) {

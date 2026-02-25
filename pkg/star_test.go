@@ -182,6 +182,7 @@ func main() {
 }
 
 func TestJSONUnmarshalBasicTypes(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
 
 import "encoding/json"

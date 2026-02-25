@@ -33,13 +33,55 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 		}
 		g.nextStep(subFlow)
 	}
-	resolve := newFuncStep(token.NoPos, fmt.Sprintf("%s.declare", p.Name), func(vm *VM) {
-		p.resolveDeclarations(vm)
-	})
-	if head == nil {
-		head = resolve
+	// resolve := newFuncStep(token.NoPos, fmt.Sprintf("%s.declare", p.Name), func(vm *VM) {
+	// 	p.resolveDeclarations(vm)
+	// })
+	// if head == nil {
+	// 	head = resolve
+	// }
+
+	// use for statement to eval all declarations until all are declared, then move to inits
+
+	doneVar := Ident{name: internalVarName("done", g.idgen)}
+	trueLit := newBasicLit(token.NoPos, reflectTrue)
+	initDone := AssignStmt{
+		tok:    token.DEFINE,
+		tokPos: token.NoPos,
+		lhs:    []Expr{doneVar},
+		rhs:    []Expr{trueLit},
 	}
-	g.nextStep(resolve)
+	cond := BinaryExpr{
+		x:  doneVar,
+		op: token.EQL,
+		y:  trueLit,
+	}
+	body := BlockStmt{}
+	for _, decl := range p.env.declarations2 {
+		body.list = append(body.list, decl)
+		// each decl will push the result (true,false)
+		updateDone := AssignStmt{
+			tok:    token.ASSIGN,
+			tokPos: token.NoPos,
+			lhs:    []Expr{doneVar},
+			rhs: []Expr{BinaryExpr{
+				x:  doneVar,
+				op: token.LAND,
+				y:  new(popOperandExpr),
+			}},
+		}
+		body.list = append(body.list, updateDone)
+	}
+	forStmt := ForStmt{
+		init: initDone,
+		cond: cond,
+		body: &body,
+	}
+	loop := forStmt.flow(g)
+	if head == nil {
+		head = loop
+	}
+
+	//g.nextStep(resolve)
 	for i, funcDecl := range p.env.inits {
 		s := newFuncStep(funcDecl.pos(), fmt.Sprintf("call %s.init.%d", p.Name, i), func(vm *VM) {
 			CallExpr{}.handleFuncDecl(vm, funcDecl)
@@ -50,23 +92,51 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 	return
 }
 
+// popOperandExpr is an expression that pops the top operand.
+type popOperandExpr struct{}
+
+var _ Expr = popOperandExpr{}
+
+func (p popOperandExpr) eval(vm *VM) {
+	vm.popOperand()
+}
+func (p popOperandExpr) flow(g *graphBuilder) (head Step) {
+	g.next(p)
+	return g.current
+}
+func (p popOperandExpr) pos() token.Pos { return token.NoPos }
+func (p popOperandExpr) String() string { return "popOperand" }
+
 // try declare all of them until none left
 // a declare may refer to other unseen declares.
 // Pre: current stackframe has package environment.
 func (p *Package) resolveDeclarations(vm *VM) {
-	done := len(p.env.declarations) == 0
-	for !done {
-		done = true
-		for i, decl := range p.env.declarations {
-			if decl != nil {
-				if p.env.declarations[i].declare(vm) {
-					p.env.declarations[i] = nil
-				} else {
-					done = false
-				}
-			}
+	// build a flow of all declarations
+	// each will report true = declared, false = not yet
+	b := newGraphBuilder(p.Package)
+	var head Step
+	for _, decl := range p.env.declarations {
+		g := decl.callGraph()
+		if head == nil {
+			head = g
 		}
+		b.newStep(g)
 	}
+	vm.currentFrame.step = head
+
+	// done := len(p.env.declarations) == 0
+	// for !done {
+	// 	done = true
+	// 	for i, decl := range p.env.declarations {
+	// 		if decl != nil {
+	// 			if p.env.declarations[i].declare(vm) {
+	// 				p.env.declarations[i] = nil
+	// 			} else {
+	// 				done = false
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
 
 func (p *Package) moveMethodsToInterpretedTypes() error {
@@ -169,8 +239,12 @@ func (p *Package) writeCallGraph(fileName string) {
 		n.Attr("style", "rounded,filled")
 	})
 	// setup flow
-	sub := g.Subgraph("pkg."+p.Name, dot.ClusterOption{})
-	p.callGraph.traverse(sub, p.Fset)
+	if p.callGraph != nil {
+		sub := g.Subgraph("pkg."+p.Name, dot.ClusterOption{})
+		p.callGraph.traverse(sub, p.Fset)
+	} else {
+		fmt.Println("WARN: no call graph to write for package", p.Name)
+	}
 
 	// for each function in the package create a subgraph
 	values := p.env.Env.(*Environment).valueTable

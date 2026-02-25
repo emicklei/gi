@@ -6,6 +6,8 @@ import (
 )
 
 func TestConst(t *testing.T) {
+	trace = true
+	setAttr(t, "dot", 1)
 	testMain(t, `package main
 
 const (

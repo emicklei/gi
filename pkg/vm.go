@@ -181,19 +181,14 @@ func (vm *VM) takeAllStartingAt(head Step) {
 // Next takes the current step and advances to the next step, returning an error if there are no more steps to take (i.e., EOF).
 // Pre: vm.currentFrame not nil
 func (vm *VM) Next() error {
-	frame := vm.currentFrame
-	// EOF means function is done
-	if frame.step == nil {
+	if vm.currentFrame.step == nil {
+		// EOF means function is done
 		return io.EOF
 	}
 	if trace {
-		if vm.pkg == nil || vm.pkg.Fset == nil {
-			fmt.Printf("%v @ <no fileset>\n", frame.step)
-		} else {
-			fmt.Printf("%v @ %v\n", frame.step, cursor(vm.pkg.Fset, frame.step.pos()))
-		}
+		fmt.Printf("%v @ %v\n", vm.currentFrame.step, cursor(vm.pkg.Fset, vm.currentFrame.step.pos()))
 	}
-	frame.step.take(vm)
+	vm.currentFrame.step.take(vm)
 	return nil
 }
 

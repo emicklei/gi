@@ -65,22 +65,3 @@ func main(){
 	print(r1,r2)
 }`, "12")
 }
-
-// https://go.dev/ref/spec#Defer_statements
-func TestDeferReturnUpdateTestNestedLoop(t *testing.T) {
-	// currently the returns puts all values on the top stackframe
-	// but the defer can change the value from the environment
-	// so we need to adjust the return value accordingly somehow
-	testMain(t, `package main
-
-func f() (result int) {
-	defer func() {
-		// result is accessed after it was set to 6 by the return statement
-		result *= 7
-	}()
-	return 6
-}
-func main(){
-	print(f())
-}`, "42")
-}

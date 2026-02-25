@@ -655,6 +655,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			decl.graph = decl.flow(g)
 			b.constDecl = nil // clear current const decl
 			b.env.addCanDeclare(decl)
+			b.env.addDeclaration(decl)
 		case token.VAR:
 			for _, each := range n.Specs {
 				b.Visit(each)

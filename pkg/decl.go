@@ -14,6 +14,8 @@ type ConstDecl struct {
 	graph    Step
 }
 
+func (c ConstDecl) stmtStep() Evaluable { return c } // needed? TODO
+
 func (c ConstDecl) declare(vm *VM) bool {
 	done := true
 	if c.iotaExpr != nil {

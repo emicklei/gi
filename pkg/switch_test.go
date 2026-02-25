@@ -3,6 +3,7 @@ package pkg
 import "testing"
 
 func TestSwitchOnBool(t *testing.T) {
+	trace = true
 	testMain(t, `package main
 
 func main() {
