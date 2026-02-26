@@ -14,14 +14,21 @@ func isUndeclared(v reflect.Value) bool {
 }
 
 type ConstVar struct {
-	ident   Ident
-	namePos token.Pos
-	typ     Expr
-	value   Expr
+	ident      Ident
+	namePos    token.Pos
+	typ        Expr
+	value      Expr
+	isDeclared bool
 }
 
 // push the result (true,false) of the declaration onto the stack
-func (cv ConstVar) eval(vm *VM) {
+func (cv *ConstVar) eval(vm *VM) {
+	if cv.isDeclared {
+		// no value on the stack
+		vm.printStack()
+		vm.pushOperand(reflectTrue)
+		return
+	}
 	// value is on the stack
 	if cv.typ == nil {
 		val := vm.popOperand()
@@ -31,6 +38,7 @@ func (cv ConstVar) eval(vm *VM) {
 			return
 		}
 		vm.currentEnv().valueSet(cv.ident.name, val)
+		cv.isDeclared = true
 		vm.pushOperand(reflectTrue)
 		return
 	}
@@ -40,6 +48,7 @@ func (cv ConstVar) eval(vm *VM) {
 			typ := makeType(vm, cv.typ)
 			zv := reflect.Zero(typ)
 			vm.currentEnv().valueSet(cv.ident.name, zv)
+			cv.isDeclared = true
 			vm.pushOperand(reflectTrue)
 			return
 		}
@@ -47,6 +56,7 @@ func (cv ConstVar) eval(vm *VM) {
 			typ := makeType(vm, cv.typ)
 			zv := reflect.Zero(typ)
 			vm.currentEnv().valueSet(cv.ident.name, zv)
+			cv.isDeclared = true
 			vm.pushOperand(reflectTrue)
 			return
 		}
@@ -58,6 +68,7 @@ func (cv ConstVar) eval(vm *VM) {
 		if z, ok := cv.typ.(CanMake); ok {
 			zv := z.makeValue(vm, 0, nil)
 			vm.currentEnv().valueSet(cv.ident.name, zv)
+			cv.isDeclared = true
 			vm.pushOperand(reflectTrue)
 			return
 		}
@@ -66,23 +77,33 @@ func (cv ConstVar) eval(vm *VM) {
 		zv := reflect.Zero(typ)
 		vm.currentEnv().valueSet(cv.ident.name, zv)
 	}
+	cv.isDeclared = true
 	vm.pushOperand(reflectTrue)
 }
 
-func (cv ConstVar) flow(g *graphBuilder) (head Step) {
+func (cv *ConstVar) flow(g *graphBuilder) (head Step) {
+	pushDeclared := newFuncStep(cv.pos(), "push declared", func(vm *VM) {
+		vm.pushOperand(reflectCondition(cv.isDeclared))
+	})
+	isDeclaredStep := new(conditionalStep)
+	isDeclaredStep.conditionFlow = pushDeclared
+	// if true then do not eval the value
+	isDeclaredStep.elseFlow = g.newStep(cv)
+	head = isDeclaredStep
+	g.nextStep(isDeclaredStep)
+
 	if cv.value != nil {
-		head = cv.value.flow(g)
+		cv.value.flow(g)
 	}
 	g.next(cv)
-	if head == nil {
-		head = g.current
-	}
+
+	printSteps(head)
 	return
 }
-func (cv ConstVar) pos() token.Pos {
+func (cv *ConstVar) pos() token.Pos {
 	return cv.namePos
 }
-func (cv ConstVar) String() string {
+func (cv *ConstVar) String() string {
 	return fmt.Sprintf("ConstVar(%s)", cv.ident)
 }
 
@@ -96,7 +117,6 @@ type ValueSpec struct {
 	namePos token.Pos
 	typ     Expr
 	values  []Expr
-	graph   Step
 }
 
 func (v ValueSpec) stmtStep() Evaluable { return nil } //  unused
@@ -118,7 +138,7 @@ func (v ValueSpec) eval(vm *VM) {
 // var a,b int = 1,2 => var a = 1 ; var b = 2
 func (v ValueSpec) flow(g *graphBuilder) (head Step) {
 	for i, name := range v.names {
-		cv := ConstVar{
+		cv := &ConstVar{
 			namePos: v.namePos,
 			ident:   name,
 			typ:     v.typ,
@@ -133,20 +153,6 @@ func (v ValueSpec) flow(g *graphBuilder) (head Step) {
 	}
 	g.next(v)
 	return
-
-	// if v.values != nil {
-	// 	// reverse the order, right-to-left, to have first value on top of stack
-	// 	for i := len(v.values) - 1; i >= 0; i-- {
-	// 		valFlow := v.values[i].flow(g)
-	// 		if i == len(v.values)-1 {
-	// 			head = valFlow
-	// 		}
-	// 	}
-	// }
-	// if head == nil {
-	// 	head = g.current
-	// }
-	// return
 }
 
 func (v ValueSpec) pos() token.Pos {

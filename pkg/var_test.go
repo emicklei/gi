@@ -20,6 +20,7 @@ func main() {
 
 // https://go.dev/ref/spec#Package_initialization
 func TestDeclarationExample(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
 
 var (

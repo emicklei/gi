@@ -622,9 +622,6 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 					} else {
 						lastExpr = vs.values[0]
 					}
-					// store call graph in the ValueSpec for initialization
-					g := newGraphBuilder(b.goPkg)
-					vs.graph = vs.flow(g)
 					decl.specs = append(decl.specs, vs)
 				}
 				b.push(decl)
