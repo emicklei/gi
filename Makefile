@@ -14,8 +14,8 @@ clean:
 skip:
 	cd pkg && go test -v | grep SKIP
 
-unloop:
-	cd pkg &&fgrep testMainLoop *.go
+fail:
+	cd pkg && go test -v | grep FAIL
 
 bench:
 	go test -benchmem -bench=. ./pkg

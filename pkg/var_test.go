@@ -20,8 +20,6 @@ func main() {
 
 // https://go.dev/ref/spec#Package_initialization
 func TestDeclarationExample(t *testing.T) {
-	trace = true
-	setAttr(t, "dot", 1)
 	testMain(t, `package main
 
 var (

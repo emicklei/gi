@@ -104,21 +104,6 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-// popOperandExpr is an expression that pops the top operand.
-type popOperandExpr struct{}
-
-var _ Expr = popOperandExpr{}
-
-func (p popOperandExpr) eval(vm *VM) {
-	vm.popOperand()
-}
-func (p popOperandExpr) flow(g *graphBuilder) (head Step) {
-	g.next(p)
-	return g.current
-}
-func (p popOperandExpr) pos() token.Pos { return token.NoPos }
-func (p popOperandExpr) String() string { return "popOperand" }
-
 // try declare all of them until none left
 // a declare may refer to other unseen declares.
 // Pre: current stackframe has package environment.
@@ -135,20 +120,6 @@ func (p *Package) resolveDeclarations(vm *VM) {
 		b.newStep(g)
 	}
 	vm.currentFrame.step = head
-
-	// done := len(p.env.declarations) == 0
-	// for !done {
-	// 	done = true
-	// 	for i, decl := range p.env.declarations {
-	// 		if decl != nil {
-	// 			if p.env.declarations[i].declare(vm) {
-	// 				p.env.declarations[i] = nil
-	// 			} else {
-	// 				done = false
-	// 			}
-	// 		}
-	// 	}
-	// }
 }
 
 func (p *Package) moveMethodsToInterpretedTypes() error {

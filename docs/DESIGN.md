@@ -71,6 +71,12 @@ The first step is the head of the chain.
 - j := i.(int)
 
 
+### package initialization
+
+- declare all constants
+- declare all variables
+- run all inits
+- first repeat for all subpackages, recursively, then for the main package
 
 
 ## operand order on stack

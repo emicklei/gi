@@ -5,18 +5,18 @@ import (
 	"go/token"
 )
 
-var _ CanDeclare = ConstDecl{}
-var _ Decl = ConstDecl{}
+var _ CanDeclare = ConstVarDecl{}
+var _ Decl = ConstVarDecl{}
 
-type ConstDecl struct {
+type ConstVarDecl struct {
 	specs    []ValueSpec
 	iotaExpr *iotaExpr // each const block has its independent iota counter
 	graph    Step
 }
 
-func (c ConstDecl) stmtStep() Evaluable { return c } // needed? TODO
+func (c ConstVarDecl) stmtStep() Evaluable { return c } // needed? TODO
 
-func (c ConstDecl) declare(vm *VM) bool {
+func (c ConstVarDecl) declare(vm *VM) bool {
 	done := true
 	if c.iotaExpr != nil {
 		// reset iota for this const declaration
@@ -35,10 +35,10 @@ func (c ConstDecl) declare(vm *VM) bool {
 	}
 	return done
 }
-func (c ConstDecl) eval(vm *VM) {} // noop
+func (c ConstVarDecl) eval(vm *VM) {} // noop
 
 // when done with this flow, the stack will have a single boolean value indicating whether all declarations were successful
-func (c ConstDecl) flow(g *graphBuilder) (head Step) {
+func (c ConstVarDecl) flow(g *graphBuilder) (head Step) {
 	// empty specs? TODO
 
 	// process in order of declaration because of iota
@@ -47,6 +47,13 @@ func (c ConstDecl) flow(g *graphBuilder) (head Step) {
 	})
 	head = declared
 	g.nextStep(declared)
+
+	resetIota := newFuncStep(c.pos(), "reset iota", func(vm *VM) {
+		if c.iotaExpr != nil {
+			c.iotaExpr.reset()
+		}
+	})
+	g.nextStep(resetIota)
 
 	for _, spec := range c.specs {
 		spec.flow(g)
@@ -64,19 +71,26 @@ func (c ConstDecl) flow(g *graphBuilder) (head Step) {
 			}
 		})
 		g.nextStep(update)
+
+		consumeItoa := newFuncStep(spec.pos(), "consume iota", func(vm *VM) {
+			if c.iotaExpr != nil {
+				c.iotaExpr.next()
+			}
+		})
+		g.nextStep(consumeItoa)
 	}
 	return
 }
-func (c ConstDecl) callGraph() Step {
+func (c ConstVarDecl) callGraph() Step {
 	return c.graph
 }
-func (c ConstDecl) declStep() CanDeclare { return c }
-func (c ConstDecl) pos() token.Pos {
+func (c ConstVarDecl) declStep() CanDeclare { return c }
+func (c ConstVarDecl) pos() token.Pos {
 	if len(c.specs) == 0 {
 		return token.NoPos
 	}
 	return c.specs[0].pos()
 }
-func (c ConstDecl) String() string {
+func (c ConstVarDecl) String() string {
 	return fmt.Sprintf("ConstDecl(len=%d)", len(c.specs))
 }

@@ -276,7 +276,7 @@ func (vm *VM) printStack() {
 	if env, ok := frame.env.(*PkgEnvironment); ok {
 		for i, decl := range env.declarations {
 			fmt.Printf("pkg.decl.%d: %v\n", i, decl)
-			if cd, ok := decl.(ConstDecl); ok {
+			if cd, ok := decl.(ConstVarDecl); ok {
 				for s, spec := range cd.specs {
 					for n, idn := range spec.names {
 						fmt.Printf("  const.spec.%d.%d: %v\n", s, n, idn.name)

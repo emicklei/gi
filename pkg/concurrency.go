@@ -7,9 +7,9 @@ import (
 	"reflect"
 )
 
-var _ Evaluable = ChanType{}
-var _ Flowable = ChanType{}
-var _ CanMake = ChanType{}
+var _ Evaluable = (*ChanType)(nil)
+var _ Flowable = (*ChanType)(nil)
+var _ CanMake = (*ChanType)(nil)
 
 type ChanType struct {
 	beginPos  token.Pos   // position of "chan" keyword or "<-" (whichever comes first)

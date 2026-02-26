@@ -23,8 +23,8 @@ type astBuilder struct {
 	env       Env
 	goPkg     *packages.Package
 	funcStack stack[funcDeclPair]
-	buildErr  error      // capture any error during building
-	constDecl *ConstDecl // current const decl for iota tracking
+	buildErr  error         // capture any error during building
+	constDecl *ConstVarDecl // current const decl for iota tracking
 }
 
 func newASTBuilder(goPkg *packages.Package) astBuilder {
@@ -610,7 +610,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		case token.CONST:
 			if len(b.funcStack) > 0 {
 				// inside function, handle iota differently
-				decl := ConstDecl{}
+				decl := ConstVarDecl{}
 				b.constDecl = &decl // set current const decl for iota tracking
 				var lastExpr Expr
 				for _, each := range n.Specs {
@@ -633,7 +633,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			}
 			// set iota for package level const block
 			// inside function, handle iota differently
-			decl := ConstDecl{}
+			decl := ConstVarDecl{}
 			b.constDecl = &decl // set current const decl for iota tracking
 			var lastExpr Expr
 			for _, each := range n.Specs {
@@ -657,7 +657,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			// b.env.addCanDeclare(decl)
 			b.env.addDeclaration(decl)
 		case token.VAR:
-			decl := ConstDecl{} // TODO rename
+			decl := ConstVarDecl{} // TODO rename
 			for _, each := range n.Specs {
 				b.Visit(each)
 				e := b.pop()
