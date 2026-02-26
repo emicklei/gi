@@ -5,36 +5,15 @@ import (
 	"go/token"
 )
 
-var _ CanDeclare = ConstVarDecl{}
-var _ Decl = ConstVarDecl{}
+var _ Flowable = (*ConstVarDecl)(nil)
 
 type ConstVarDecl struct {
 	specs    []ValueSpec
 	iotaExpr *iotaExpr // each const block has its independent iota counter
-	graph    Step
 }
 
 func (c ConstVarDecl) stmtStep() Evaluable { return c } // needed? TODO
 
-func (c ConstVarDecl) declare(vm *VM) bool {
-	done := true
-	if c.iotaExpr != nil {
-		// reset iota for this const declaration
-		c.iotaExpr.reset()
-	}
-	for _, spec := range c.specs {
-		vm.stepThrough(spec.callGraph())
-		if !spec.declare(vm) {
-			done = false
-			// continue trying others; we will come back later
-		}
-		if c.iotaExpr != nil {
-			// if iota was used, advance it
-			c.iotaExpr.next()
-		}
-	}
-	return done
-}
 func (c ConstVarDecl) eval(vm *VM) {} // noop
 
 // when done with this flow, the stack will have a single boolean value indicating whether all declarations were successful
@@ -81,10 +60,7 @@ func (c ConstVarDecl) flow(g *graphBuilder) (head Step) {
 	}
 	return
 }
-func (c ConstVarDecl) callGraph() Step {
-	return c.graph
-}
-func (c ConstVarDecl) declStep() CanDeclare { return c }
+
 func (c ConstVarDecl) pos() token.Pos {
 	if len(c.specs) == 0 {
 		return token.NoPos

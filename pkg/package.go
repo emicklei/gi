@@ -104,24 +104,6 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-// try declare all of them until none left
-// a declare may refer to other unseen declares.
-// Pre: current stackframe has package environment.
-func (p *Package) resolveDeclarations(vm *VM) {
-	// build a flow of all declarations
-	// each will report true = declared, false = not yet
-	b := newGraphBuilder(p.Package)
-	var head Step
-	for _, decl := range p.env.declarations {
-		g := decl.callGraph()
-		if head == nil {
-			head = g
-		}
-		b.newStep(g)
-	}
-	vm.currentFrame.step = head
-}
-
 func (p *Package) moveMethodsToInterpretedTypes() error {
 	for _, decl := range p.env.methods {
 		recvType := decl.recv.List[0].typ

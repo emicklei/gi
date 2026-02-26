@@ -27,21 +27,19 @@ type Env interface {
 
 	// others
 	funcLookUp(name string) reflect.Value
-	addCanDeclare(cv CanDeclare)
 	addDeclaration(stmt Stmt)
 
 	// if marked, this env has references that escape to the heap
 	// or is used by funcInvocation in a defer statement
 	markSharedReferenced()
 
-	// collect for debugging
+	// collect for DAP
 	appendScopes(scopes []dap.Scope) []dap.Scope
 	appendVariables(scopes []dap.Variable) []dap.Variable
 }
 
 type PkgEnvironment struct {
 	Env
-	declarations  []CanDeclare
 	declarations2 []Stmt
 	inits         []*FuncDecl
 	methods       []*FuncDecl
@@ -66,10 +64,6 @@ func (p *PkgEnvironment) addInit(f *FuncDecl) {
 }
 func (p *PkgEnvironment) addMethod(f *FuncDecl) {
 	p.methods = append(p.methods, f)
-}
-
-func (p *PkgEnvironment) addCanDeclare(cv CanDeclare) {
-	p.declarations = append(p.declarations, cv)
 }
 
 func (p *PkgEnvironment) addDeclaration(stmt Stmt) {
@@ -236,8 +230,7 @@ func (e *Environment) valueUnset(name string) {
 	delete(e.valueTable, name)
 }
 
-func (e *Environment) addCanDeclare(cv CanDeclare) {}
-func (e *Environment) addDeclaration(stmt Stmt)    {}
+func (e *Environment) addDeclaration(stmt Stmt) {}
 
 func (e *Environment) rootPackageEnv() *PkgEnvironment {
 	if e.parentEnv == nil {

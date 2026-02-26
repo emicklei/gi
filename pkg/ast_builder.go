@@ -662,10 +662,6 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				b.Visit(each)
 				e := b.pop()
 				c := e.(ValueSpec)
-				g := newGraphBuilder(b.goPkg)
-				c.graph = c.flow(g)
-				// let the environment know
-				b.env.addCanDeclare(c)
 				decl.specs = append(decl.specs, c)
 				// add to stack as normal
 				b.push(c)
@@ -817,9 +813,8 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 
 		// add label -> statement by index mapping in current function
 		index := slices.Index(b.funcStack.top().bodyList, ast.Stmt(n))
-		refStep := new(labeledStep)
-		refStep.label = s.label.name
-		refStep.stmtPos = s.pos()
+		refStep := newLabeledStep(s.label.name, s.pos())
+
 		ref := stmtReference{index: index, step: refStep} // has no ID
 		b.funcStack.top().fn.putGotoReference(s.label.name, ref)
 	case *ast.BranchStmt:

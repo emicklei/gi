@@ -19,14 +19,6 @@ type CanAssign interface {
 	define(vm *VM, value reflect.Value)
 }
 
-// TODO only ValueSpec implements CanDeclare
-type CanDeclare interface {
-	// Declare declares the variable in the current environment.
-	// It returns true if the declaration set a valid reflect Value.
-	declare(vm *VM) bool
-	callGraph() Step
-}
-
 type Expr interface {
 	Flowable
 	Evaluable
@@ -66,8 +58,7 @@ type CanMake interface {
 
 type Decl interface {
 	Flowable
-	declStep() CanDeclare
-	pos() token.Pos
+	Evaluable
 }
 
 type Step interface {
@@ -97,9 +88,7 @@ type Func interface {
 	putGotoReference(label string, ref stmtReference)
 	gotoReference(label string) stmtReference
 	results() *FieldList
-	params() *FieldList
 	pos() token.Pos
-	name() string
 }
 
 // for gi internal use

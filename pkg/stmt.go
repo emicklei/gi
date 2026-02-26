@@ -36,25 +36,19 @@ type DeclStmt struct {
 	decl Decl
 }
 
+func (s DeclStmt) stmtStep() Evaluable { return s.decl } // needed? TODO
+
 func (s DeclStmt) eval(vm *VM) {
-	s.decl.declStep().declare(vm)
+	// no-op; flow is handled in graph building
 }
 
 func (s DeclStmt) flow(g *graphBuilder) (head Step) {
 	return s.decl.flow(g)
-	// head = s.decl.flow(g)
-	// g.next(s)
-	// if head == nil {
-	// 	head = g.current
-	// }
-	// return
 }
 
 func (s DeclStmt) pos() token.Pos {
 	return s.decl.pos()
 }
-
-func (s DeclStmt) stmtStep() Evaluable { return s }
 
 func (s DeclStmt) String() string {
 	return fmt.Sprintf("DeclStmt(%v)", s.decl)

@@ -57,14 +57,7 @@ func (f *FuncDecl) gotoReference(label string) stmtReference {
 func (f *FuncDecl) results() *FieldList {
 	return f.typ.Results
 }
-func (f *FuncDecl) params() *FieldList {
-	return f.typ.Params
-}
 func (f FuncDecl) pos() token.Pos { return f.typ.pos() }
-
-func (f FuncDecl) name() string {
-	return f.funcName.name
-}
 
 func (f FuncDecl) String() string {
 	return fmt.Sprintf("FuncDecl(%s)", f.funcName.name)
@@ -155,9 +148,7 @@ func (f *FuncLit) flow(g *graphBuilder) (head Step) {
 }
 
 func (f *FuncLit) pos() token.Pos { return f.Type.pos() }
-func (f *FuncLit) name() string {
-	return "anonymous function"
-}
+
 func (f *FuncLit) setHasRecoverCall(bool) { f.callsRecover = true }
 func (f *FuncLit) hasRecoverCall() bool   { return f.callsRecover }
 func (f *FuncLit) putGotoReference(label string, ref stmtReference) {
@@ -172,9 +163,7 @@ func (f *FuncLit) gotoReference(label string) stmtReference {
 func (f *FuncLit) results() *FieldList {
 	return f.Type.Results
 }
-func (f *FuncLit) params() *FieldList {
-	return f.Type.Params
-}
+
 func (f *FuncLit) String() string {
 	return fmt.Sprintf("FuncLit(%v,%v)", f.Type, f.Body)
 }

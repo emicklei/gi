@@ -192,17 +192,6 @@ func (vm *VM) Next() error {
 	return nil
 }
 
-func (vm *VM) stepThrough(flow Step) {
-	vm.currentFrame.step = flow
-	for here := vm.currentFrame.step; here != nil; {
-		here.take(vm)
-		if vm.currentFrame.step == here {
-			// if the step did not change, then move to the next step.
-			vm.currentFrame.step = here.Next()
-		}
-	}
-}
-
 // Launch sets up the VM for execution of the given function name with the provided arguments.
 func (vm *VM) Launch(functionName string, args []any) {
 	vm.launch(functionName, args)
@@ -274,7 +263,7 @@ func (vm *VM) printStack() {
 	}
 	frame := vm.currentFrame
 	if env, ok := frame.env.(*PkgEnvironment); ok {
-		for i, decl := range env.declarations {
+		for i, decl := range env.declarations2 {
 			fmt.Printf("pkg.decl.%d: %v\n", i, decl)
 			if cd, ok := decl.(ConstVarDecl); ok {
 				for s, spec := range cd.specs {

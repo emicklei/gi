@@ -228,7 +228,6 @@ func TestSubpackage(t *testing.T) {
 }
 
 func TestNestedLoop(t *testing.T) {
-	t.Skip()
 	testProgramIn(t, "../examples/nestedloop", "todo")
 }
 

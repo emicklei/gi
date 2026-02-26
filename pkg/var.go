@@ -87,7 +87,6 @@ func (cv ConstVar) String() string {
 }
 
 var _ Decl = ValueSpec{}
-var _ CanDeclare = ValueSpec{}
 
 var _ Stmt = ValueSpec{}
 
@@ -100,65 +99,7 @@ type ValueSpec struct {
 	graph   Step
 }
 
-func (v ValueSpec) stmtStep() Evaluable  { return nil } //  unused
-func (v ValueSpec) declStep() CanDeclare { return v }
-
-func (v ValueSpec) callGraph() Step {
-	return v.graph
-}
-
-func (v ValueSpec) declare(vm *VM) bool {
-	vm.stepThrough(v.graph) // TODO
-	return v.processLHS(vm)
-}
-
-func (v ValueSpec) processLHS(vm *VM) bool {
-	if v.typ == nil {
-		for _, idn := range v.names {
-			val := vm.popOperand()
-			if isUndeclared(val) {
-				// this happens when the value expression is referencing an undeclared variable
-				return false
-			}
-			vm.currentEnv().valueSet(idn.name, val)
-		}
-		return true
-	}
-	typ := typeMaker(vm, v.typ)
-
-	// left to right, see Flow
-	for _, idn := range v.names {
-		if v.values != nil {
-			val := vm.popOperand()
-			if val == reflectNil {
-				typ := makeType(vm, v.typ)
-				zv := reflect.Zero(typ)
-				vm.currentEnv().valueSet(idn.name, zv)
-				continue
-			}
-			if val.Interface() == untypedNil {
-				typ := makeType(vm, v.typ)
-				zv := reflect.Zero(typ)
-				vm.currentEnv().valueSet(idn.name, zv)
-				continue
-			}
-			mv := typ.makeValue(vm, 0, []reflect.Value{val})
-			vm.currentEnv().valueSet(idn.name, mv)
-		} else {
-			// if nil then zero
-			if z, ok := v.typ.(CanMake); ok {
-				zv := z.makeValue(vm, 0, nil)
-				vm.currentEnv().valueSet(idn.name, zv)
-				continue
-			}
-			// zero value
-			typ := makeType(vm, v.typ)
-			zv := reflect.Zero(typ)
-			vm.currentEnv().valueSet(idn.name, zv)
-		}
-	}
-	return true
-}
+func (v ValueSpec) stmtStep() Evaluable { return nil } //  unused
 
 func (v ValueSpec) eval(vm *VM) {
 	// process all declarations results and push true/false on stack
