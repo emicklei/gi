@@ -50,7 +50,7 @@ func TestUntypedNilEqualsNilError(t *testing.T) {
 
 func main() {
 	var e error
-	if nil == e{
+	if nil == e {
 		print("2")
 	}
 
@@ -63,7 +63,7 @@ func TestNilErrorEqualsNilError(t *testing.T) {
 func main() {
 	var e1 error
 	var e2 error
-	if e1 == e2{
+	if e1 == e2 {
 		print("3")
 	}
 }`, "3")
@@ -74,7 +74,7 @@ import "errors"
 func main() {
 	e1 := errors.New("err")
 	var e2 error
-	if e1 != e2{
+	if e1 != e2 {
 		print("4")
 	}
 }`, "4")

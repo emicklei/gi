@@ -36,6 +36,7 @@ func Call(p *pkg.Package, funcName string, params ...any) ([]any, error) {
 }
 
 // RegisterPackage registers an external package with its symbols for use within gi-executed code.
+// This function exist to support generated code and it not meant to be used beyond that.
 func RegisterPackage(pkgPath string, symbols map[string]reflect.Value) {
 	if pkgPath == "" || symbols == nil {
 		panic("pkgPath and symbols must be non-nil/empty")
