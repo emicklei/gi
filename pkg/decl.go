@@ -38,6 +38,7 @@ func (c ConstVarDecl) flow(g *graphBuilder) (head Step) {
 		spec.flow(g)
 		// each spec pushes the result of its declaration on the stack; we pop it and push true if declared, false otherwise
 		update := newFuncStep(spec.pos(), "update declared", func(vm *VM) {
+			// spec result
 			result := vm.popOperand()
 			// take overall result; if any declaration failed, the overall result is false
 			previousResult := vm.popOperand()

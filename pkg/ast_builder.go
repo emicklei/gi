@@ -637,21 +637,14 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				b.Visit(each)
 				// must be ValueSpec because CONST
 				vs := b.pop().(ValueSpec)
+				vs.requiresDeclaration = true
 				if len(vs.values) == 0 {
 					vs.values = append(vs.values, lastExpr)
 				} else {
 					lastExpr = vs.values[0]
 				}
-				// store call graph in the ValueSpec for initialization
-				// g := newGraphBuilder(b.goPkg)
-				// vs.graph = vs.flow(g)
 				decl.specs = append(decl.specs, vs)
 			}
-			// store call graph in the ConstDecl for initialization
-			// g := newGraphBuilder(b.goPkg)
-			// decl.graph = decl.flow(g)
-			// b.constDecl = nil // clear current const decl
-			// b.env.addCanDeclare(decl)
 			b.env.addDeclaration(decl)
 		case token.VAR:
 			decl := ConstVarDecl{} // TODO rename
@@ -659,6 +652,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				b.Visit(each)
 				e := b.pop()
 				c := e.(ValueSpec)
+				c.requiresDeclaration = true
 				decl.specs = append(decl.specs, c)
 				// add to stack as normal
 				b.push(c)

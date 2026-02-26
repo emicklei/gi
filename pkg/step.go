@@ -127,6 +127,7 @@ func (c *conditionalStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
 }
 
 func (c *conditionalStep) take(vm *VM) {
+	// TODO the condition flow is not taken here; must be taken before. Why?
 	if c.conditionFlow == nil {
 		vm.currentFrame.step = c.next
 		return
@@ -153,7 +154,10 @@ func (c *conditionalStep) String() string {
 	if c == nil {
 		return "conditionalStep(<nil>)"
 	}
-	return fmt.Sprintf("%d: ~if", c.ID())
+	if c.elseFlow == nil {
+		return fmt.Sprintf("%d: ~if: %d", c.ID(), c.next.ID())
+	}
+	return fmt.Sprintf("%d: ~if: %d else: %d", c.ID(), c.next.ID(), c.elseFlow.ID())
 }
 
 type pushEnvironmentStep struct {

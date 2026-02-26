@@ -14,11 +14,12 @@ func isUndeclared(v reflect.Value) bool {
 }
 
 type ConstVar struct {
-	ident      Ident
-	namePos    token.Pos
-	typ        Expr
-	value      Expr
-	isDeclared bool
+	ident               Ident
+	namePos             token.Pos
+	typ                 Expr
+	value               Expr
+	isDeclared          bool
+	requiresDeclaration bool
 }
 
 // push the result (true,false) of the declaration onto the stack
@@ -82,22 +83,27 @@ func (cv *ConstVar) eval(vm *VM) {
 }
 
 func (cv *ConstVar) flow(g *graphBuilder) (head Step) {
-	pushDeclared := newFuncStep(cv.pos(), "push declared", func(vm *VM) {
-		vm.pushOperand(reflectCondition(cv.isDeclared))
-	})
-	isDeclaredStep := new(conditionalStep)
-	isDeclaredStep.conditionFlow = pushDeclared
-	// if true then do not eval the value
-	isDeclaredStep.elseFlow = g.newStep(cv)
-	head = isDeclaredStep
-	g.nextStep(isDeclaredStep)
-
-	if cv.value != nil {
-		cv.value.flow(g)
+	if cv.value == nil {
+		g.next(cv)
+		return g.current
 	}
-	g.next(cv)
+	pushNotDeclared := newFuncStep(cv.pos(), "push not declared", func(vm *VM) {
+		vm.pushOperand(reflectCondition(!cv.isDeclared))
+	})
+	g.nextStep(pushNotDeclared)
+	isDeclaredStep := new(conditionalStep)
+	// actual conditionFlow should say: checkCondition = true ; the flow is not taken at all TODO
+	isDeclaredStep.conditionFlow = pushNotDeclared
 
-	printSteps(head)
+	endif := g.newStep(cv)
+	// if declared then do not eval the value
+	isDeclaredStep.elseFlow = endif
+
+	g.nextStep(isDeclaredStep)
+	head = isDeclaredStep
+	cv.value.flow(g)
+	g.nextStep(endif)
+
 	return
 }
 func (cv *ConstVar) pos() token.Pos {
@@ -113,10 +119,11 @@ var _ Stmt = ValueSpec{}
 
 // Const or Var declaration
 type ValueSpec struct {
-	names   []Ident
-	namePos token.Pos
-	typ     Expr
-	values  []Expr
+	names               []Ident
+	namePos             token.Pos
+	typ                 Expr
+	values              []Expr
+	requiresDeclaration bool
 }
 
 func (v ValueSpec) stmtStep() Evaluable { return nil } //  unused
@@ -139,9 +146,10 @@ func (v ValueSpec) eval(vm *VM) {
 func (v ValueSpec) flow(g *graphBuilder) (head Step) {
 	for i, name := range v.names {
 		cv := &ConstVar{
-			namePos: v.namePos,
-			ident:   name,
-			typ:     v.typ,
+			namePos:             v.namePos,
+			ident:               name,
+			typ:                 v.typ,
+			requiresDeclaration: v.requiresDeclaration,
 		}
 		if v.values != nil {
 			cv.value = v.values[i]
