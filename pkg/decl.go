@@ -37,17 +37,33 @@ func (c ConstDecl) declare(vm *VM) bool {
 }
 func (c ConstDecl) eval(vm *VM) {} // noop
 
+// when done with this flow, the stack will have a single boolean value indicating whether all declarations were successful
 func (c ConstDecl) flow(g *graphBuilder) (head Step) {
+	// empty specs? TODO
+
 	// process in order of declaration because of iota
-	for i, spec := range c.specs {
-		s := spec.flow(g)
-		if i == 0 {
-			head = s
-		}
-	}
-	// empty specs?
-	if head == nil {
-		head = g.current
+	declared := newFuncStep(c.pos(), "set declared", func(vm *VM) {
+		vm.pushOperand(reflectTrue)
+	})
+	head = declared
+	g.nextStep(declared)
+
+	for _, spec := range c.specs {
+		spec.flow(g)
+		// each spec pushes the result of its declaration on the stack; we pop it and push true if declared, false otherwise
+		update := newFuncStep(spec.pos(), "update declared", func(vm *VM) {
+			result := vm.popOperand()
+			// take overall result; if any declaration failed, the overall result is false
+			previousResult := vm.popOperand()
+			if result == reflectFalse {
+				// new declared value
+				vm.pushOperand(reflectFalse)
+			} else {
+				// keep previous result of declared
+				vm.pushOperand(previousResult)
+			}
+		})
+		g.nextStep(update)
 	}
 	return
 }

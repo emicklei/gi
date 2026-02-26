@@ -646,17 +646,18 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 					lastExpr = vs.values[0]
 				}
 				// store call graph in the ValueSpec for initialization
-				g := newGraphBuilder(b.goPkg)
-				vs.graph = vs.flow(g)
+				// g := newGraphBuilder(b.goPkg)
+				// vs.graph = vs.flow(g)
 				decl.specs = append(decl.specs, vs)
 			}
 			// store call graph in the ConstDecl for initialization
-			g := newGraphBuilder(b.goPkg)
-			decl.graph = decl.flow(g)
-			b.constDecl = nil // clear current const decl
-			b.env.addCanDeclare(decl)
+			// g := newGraphBuilder(b.goPkg)
+			// decl.graph = decl.flow(g)
+			// b.constDecl = nil // clear current const decl
+			// b.env.addCanDeclare(decl)
 			b.env.addDeclaration(decl)
 		case token.VAR:
+			decl := ConstDecl{} // TODO rename
 			for _, each := range n.Specs {
 				b.Visit(each)
 				e := b.pop()
@@ -665,9 +666,11 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				c.graph = c.flow(g)
 				// let the environment know
 				b.env.addCanDeclare(c)
+				decl.specs = append(decl.specs, c)
 				// add to stack as normal
 				b.push(c)
 			}
+			b.env.addDeclaration(decl)
 		case token.IMPORT:
 			for _, each := range n.Specs {
 				b.Visit(each)

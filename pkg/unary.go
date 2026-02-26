@@ -95,7 +95,7 @@ func (u UnaryExpr) eval(vm *VM) {
 			hp := vm.heap.allocHeapValue(v)
 			vm.pushOperand(reflect.ValueOf(hp))
 		default:
-			vm.fatalf("not implemented: UnaryExpr.Eval:%s", v.Kind().String())
+			vm.fatalf("not implemented: UnaryExpr.Eval:%v %s", u.op, v.Kind().String())
 		}
 	}
 }

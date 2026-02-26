@@ -41,21 +41,37 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 	// }
 
 	// use for statement to eval all declarations until all are declared, then move to inits
-
+	//
+	// done := false
+	// for !done {
+	// 	done = true
+	//  <declare all and update done>
+	// }
 	doneVar := Ident{name: internalVarName("done", g.idgen)}
-	trueLit := newBasicLit(token.NoPos, reflectTrue)
+	falseLit := newBasicLit(token.NoPos, reflectFalse)
 	initDone := AssignStmt{
 		tok:    token.DEFINE,
 		tokPos: token.NoPos,
 		lhs:    []Expr{doneVar},
-		rhs:    []Expr{trueLit},
+		rhs:    []Expr{falseLit},
 	}
-	cond := BinaryExpr{
-		x:  doneVar,
-		op: token.EQL,
-		y:  trueLit,
+	cond := UnaryExpr{
+		x:         doneVar,
+		unaryFunc: unaryFuncs["bool43"], // hack, TODO
+		op:        token.NOT,
 	}
 	body := BlockStmt{}
+
+	// reset done to true at the beginning of the loop; each declaration will set it to false if it is not yet declared
+	trueLit := newBasicLit(token.NoPos, reflectTrue)
+	resetDone := AssignStmt{
+		tok:    token.ASSIGN,
+		tokPos: token.NoPos,
+		lhs:    []Expr{doneVar},
+		rhs:    []Expr{trueLit},
+	}
+	body.list = append(body.list, resetDone)
+
 	for _, decl := range p.env.declarations2 {
 		body.list = append(body.list, decl)
 		// each decl will push the result (true,false)
@@ -63,11 +79,7 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 			tok:    token.ASSIGN,
 			tokPos: token.NoPos,
 			lhs:    []Expr{doneVar},
-			rhs: []Expr{BinaryExpr{
-				x:  doneVar,
-				op: token.LAND,
-				y:  new(popOperandExpr),
-			}},
+			rhs:    []Expr{noExpr{}}, // boolean result is already on stack
 		}
 		body.list = append(body.list, updateDone)
 	}

@@ -10,8 +10,8 @@ var _ Expr = Ident{}
 var _ CanAssign = Ident{}
 
 type Ident struct {
-	namePos token.Pos
 	name    string
+	namePos token.Pos
 }
 
 func (i Ident) eval(vm *VM) {

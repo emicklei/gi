@@ -14,8 +14,8 @@ func isUndeclared(v reflect.Value) bool {
 }
 
 type ConstVar struct {
-	namePos token.Pos
 	ident   Ident
+	namePos token.Pos
 	typ     Expr
 	value   Expr
 }
@@ -89,15 +89,18 @@ func (cv ConstVar) String() string {
 var _ Decl = ValueSpec{}
 var _ CanDeclare = ValueSpec{}
 
+var _ Stmt = ValueSpec{}
+
 // Const or Var declaration
 type ValueSpec struct {
-	namePos token.Pos
 	names   []Ident
+	namePos token.Pos
 	typ     Expr
 	values  []Expr
 	graph   Step
 }
 
+func (v ValueSpec) stmtStep() Evaluable  { return nil } //  unused
 func (v ValueSpec) declStep() CanDeclare { return v }
 
 func (v ValueSpec) callGraph() Step {
@@ -159,6 +162,7 @@ func (v ValueSpec) processLHS(vm *VM) bool {
 
 func (v ValueSpec) eval(vm *VM) {
 	// process all declarations results and push true/false on stack
+	// TODO optimize
 	result := reflectTrue
 	for range v.names {
 		declared := vm.popOperand()
@@ -216,8 +220,8 @@ var _ Expr = new(iotaExpr)
 
 // represents successive untyped integer constants
 type iotaExpr struct {
-	exprPos token.Pos
 	count   int
+	exprPos token.Pos
 }
 
 func (i *iotaExpr) reset() {
