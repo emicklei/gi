@@ -216,7 +216,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 			frame.takeDeferList(vm)
 		}()
 	}
-	vm.takeAllStartingAt(fl.callGraph)
+	vm.currentFrame.step = fl.callGraph
 }
 
 // TODO deduplicate with handleFuncLit
@@ -302,7 +302,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 			}
 		}()
 	}
-	vm.takeAllStartingAt(fd.graph)
+	vm.currentFrame.step = fd.graph
 }
 
 func setZeroReturnsForFrame(ft *FuncType, vm *VM, frame *stackFrame) {

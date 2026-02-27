@@ -37,10 +37,6 @@ func NewVM(pkg *Package) *VM {
 		callStack:  make(stack[*stackFrame], 0, 16),
 		heap:       newHeap(),
 	}
-	// frame := framePool.Get().(*stackFrame)
-	// frame.env = pkg.env
-	// vm.callStack.push(frame)
-	// vm.currentFrame = frame
 	return vm
 }
 
@@ -55,7 +51,8 @@ func (vm *VM) currentEnv() Env {
 
 // returnsEval evaluates the argument and returns the popped value that was pushed onto the operand stack.
 func (vm *VM) returnsEval(e Evaluable) reflect.Value {
-	vm.eval(e)
+	// TODO stepping?
+	e.eval(vm)
 	return vm.popOperand()
 }
 
@@ -167,17 +164,6 @@ func (vm *VM) fatalf(format string, a ...any) {
 	panic(line)
 }
 
-func (vm *VM) eval(e Evaluable) {
-	if trace {
-		fmt.Fprintln(os.Stderr, "vm.eval:", e)
-	}
-	e.eval(vm)
-}
-
-func (vm *VM) takeAllStartingAt(head Step) {
-	vm.currentFrame.step = head
-}
-
 // Next takes the current step and advances to the next step, returning an error if there are no more steps to take (i.e., EOF).
 // Pre: vm.currentFrame not nil
 func (vm *VM) Next() error {
@@ -263,7 +249,7 @@ func (vm *VM) printStack() {
 	}
 	frame := vm.currentFrame
 	if env, ok := frame.env.(*PkgEnvironment); ok {
-		for i, decl := range env.declarations2 {
+		for i, decl := range env.declarations {
 			fmt.Printf("pkg.decl.%d: %v\n", i, decl)
 			if cd, ok := decl.(ConstVarDecl); ok {
 				for s, spec := range cd.specs {

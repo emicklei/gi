@@ -17,8 +17,8 @@ type IndexExpr struct {
 
 func (i IndexExpr) eval(vm *VM) {
 	if len(vm.currentFrame.operands) == 0 {
-		vm.eval(i.index)
-		vm.eval(i.x)
+		i.index.eval(vm)
+		i.x.eval(vm)
 	}
 	index := vm.popOperand()
 	target := vm.popOperand()

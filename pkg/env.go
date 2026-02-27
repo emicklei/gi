@@ -40,10 +40,10 @@ type Env interface {
 
 type PkgEnvironment struct {
 	Env
-	declarations2 []Stmt
-	inits         []*FuncDecl
-	methods       []*FuncDecl
-	packageTable  map[string]*Package // path -> *Package
+	declarations []Stmt
+	inits        []*FuncDecl
+	methods      []*FuncDecl
+	packageTable map[string]*Package // path -> *Package
 }
 
 func newBuiltinsEnvironment(parent Env) Env {
@@ -65,9 +65,8 @@ func (p *PkgEnvironment) addInit(f *FuncDecl) {
 func (p *PkgEnvironment) addMethod(f *FuncDecl) {
 	p.methods = append(p.methods, f)
 }
-
 func (p *PkgEnvironment) addDeclaration(stmt Stmt) {
-	p.declarations2 = append(p.declarations2, stmt)
+	p.declarations = append(p.declarations, stmt)
 }
 
 // rootPackageEnv returns the top-level package environment.

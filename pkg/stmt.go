@@ -15,7 +15,7 @@ type ExprStmt struct {
 func (s ExprStmt) stmtStep() Evaluable { return s }
 
 func (s ExprStmt) eval(vm *VM) {
-	vm.eval(s.x)
+	s.x.eval(vm)
 }
 
 func (s ExprStmt) flow(g *graphBuilder) (head Step) {
@@ -64,7 +64,7 @@ type LabeledStmt struct {
 }
 
 func (s LabeledStmt) eval(vm *VM) {
-	vm.eval(s.statement.stmtStep())
+	s.statement.stmtStep().eval(vm)
 }
 
 func (s LabeledStmt) flow(g *graphBuilder) (head Step) {

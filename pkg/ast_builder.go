@@ -637,7 +637,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				b.Visit(each)
 				// must be ValueSpec because CONST
 				vs := b.pop().(ValueSpec)
-				vs.requiresDeclaration = true
+				vs.requiresResolving = false
 				if len(vs.values) == 0 {
 					vs.values = append(vs.values, lastExpr)
 				} else {
@@ -651,8 +651,11 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			for _, each := range n.Specs {
 				b.Visit(each)
 				e := b.pop()
+				// must be ValueSpec because VAR
 				c := e.(ValueSpec)
-				c.requiresDeclaration = true
+				// when used in package var of const declaration (so not in function scope),
+				// the value may reference other package vars/consts that are not yet resolved
+				c.requiresResolving = len(b.funcStack) == 0
 				decl.specs = append(decl.specs, c)
 				// add to stack as normal
 				b.push(c)

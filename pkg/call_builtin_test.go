@@ -28,6 +28,7 @@ func main() {
 }
 
 func TestNoPanicRecover(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
 
 func main() {

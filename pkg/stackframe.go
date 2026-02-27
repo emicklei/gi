@@ -66,7 +66,7 @@ func (f *stackFrame) takeDeferList(vm *VM) {
 		for i := len(invocation.arguments) - 1; i >= 0; i-- {
 			vm.pushOperand(invocation.arguments[i])
 		}
-		vm.takeAllStartingAt(invocation.flow)
+		vm.currentFrame.step = invocation.flow
 	}
 }
 

@@ -14,19 +14,18 @@ func isUndeclared(v reflect.Value) bool {
 }
 
 type ConstVar struct {
-	ident               Ident
-	namePos             token.Pos
-	typ                 Expr
-	value               Expr
-	isDeclared          bool
-	requiresDeclaration bool
+	ident             Ident
+	namePos           token.Pos
+	typ               Expr
+	value             Expr
+	isResolved        bool
+	requiresResolving bool
 }
 
 // push the result (true,false) of the declaration onto the stack
 func (cv *ConstVar) eval(vm *VM) {
-	if cv.isDeclared {
+	if cv.requiresResolving && cv.isResolved {
 		// no value on the stack
-		vm.printStack()
 		vm.pushOperand(reflectTrue)
 		return
 	}
@@ -39,7 +38,7 @@ func (cv *ConstVar) eval(vm *VM) {
 			return
 		}
 		vm.currentEnv().valueSet(cv.ident.name, val)
-		cv.isDeclared = true
+		cv.isResolved = true
 		vm.pushOperand(reflectTrue)
 		return
 	}
@@ -49,7 +48,7 @@ func (cv *ConstVar) eval(vm *VM) {
 			typ := makeType(vm, cv.typ)
 			zv := reflect.Zero(typ)
 			vm.currentEnv().valueSet(cv.ident.name, zv)
-			cv.isDeclared = true
+			cv.isResolved = true
 			vm.pushOperand(reflectTrue)
 			return
 		}
@@ -57,7 +56,7 @@ func (cv *ConstVar) eval(vm *VM) {
 			typ := makeType(vm, cv.typ)
 			zv := reflect.Zero(typ)
 			vm.currentEnv().valueSet(cv.ident.name, zv)
-			cv.isDeclared = true
+			cv.isResolved = true
 			vm.pushOperand(reflectTrue)
 			return
 		}
@@ -69,7 +68,7 @@ func (cv *ConstVar) eval(vm *VM) {
 		if z, ok := cv.typ.(CanMake); ok {
 			zv := z.makeValue(vm, 0, nil)
 			vm.currentEnv().valueSet(cv.ident.name, zv)
-			cv.isDeclared = true
+			cv.isResolved = true
 			vm.pushOperand(reflectTrue)
 			return
 		}
@@ -78,34 +77,49 @@ func (cv *ConstVar) eval(vm *VM) {
 		zv := reflect.Zero(typ)
 		vm.currentEnv().valueSet(cv.ident.name, zv)
 	}
-	cv.isDeclared = true
+	cv.isResolved = true
 	vm.pushOperand(reflectTrue)
 }
 
 func (cv *ConstVar) flow(g *graphBuilder) (head Step) {
+	if cv.requiresResolving {
+		return cv.flowWithResolving(g)
+	}
+	if cv.value != nil {
+		head = cv.value.flow(g)
+		g.next(cv)
+	} else {
+		g.next(cv)
+		head = g.current
+	}
+	return
+}
+
+func (cv *ConstVar) flowWithResolving(g *graphBuilder) (head Step) {
 	if cv.value == nil {
 		g.next(cv)
 		return g.current
 	}
-	pushNotDeclared := newFuncStep(cv.pos(), "push not declared", func(vm *VM) {
-		vm.pushOperand(reflectCondition(!cv.isDeclared))
+	pushNotResolved := newFuncStep(cv.pos(), "push not resolved", func(vm *VM) {
+		vm.pushOperand(reflectCondition(!cv.isResolved))
 	})
-	g.nextStep(pushNotDeclared)
-	isDeclaredStep := new(conditionalStep)
+	g.nextStep(pushNotResolved)
+	isResolvedStep := new(conditionalStep)
 	// actual conditionFlow should say: checkCondition = true ; the flow is not taken at all TODO
-	isDeclaredStep.conditionFlow = pushNotDeclared
+	isResolvedStep.conditionFlow = pushNotResolved
 
 	endif := g.newStep(cv)
 	// if declared then do not eval the value
-	isDeclaredStep.elseFlow = endif
+	isResolvedStep.elseFlow = endif
 
-	g.nextStep(isDeclaredStep)
-	head = isDeclaredStep
+	g.nextStep(isResolvedStep)
+	head = isResolvedStep
 	cv.value.flow(g)
 	g.nextStep(endif)
 
 	return
 }
+
 func (cv *ConstVar) pos() token.Pos {
 	return cv.namePos
 }
@@ -119,11 +133,11 @@ var _ Stmt = ValueSpec{}
 
 // Const or Var declaration
 type ValueSpec struct {
-	names               []Ident
-	namePos             token.Pos
-	typ                 Expr
-	values              []Expr
-	requiresDeclaration bool
+	names             []Ident
+	namePos           token.Pos
+	typ               Expr
+	values            []Expr
+	requiresResolving bool // when used in package var of const declaration, the value may reference other package vars/consts that are not yet resolved
 }
 
 func (v ValueSpec) stmtStep() Evaluable { return nil } //  unused
@@ -146,10 +160,10 @@ func (v ValueSpec) eval(vm *VM) {
 func (v ValueSpec) flow(g *graphBuilder) (head Step) {
 	for i, name := range v.names {
 		cv := &ConstVar{
-			namePos:             v.namePos,
-			ident:               name,
-			typ:                 v.typ,
-			requiresDeclaration: v.requiresDeclaration,
+			namePos:           v.namePos,
+			ident:             name,
+			typ:               v.typ,
+			requiresResolving: v.requiresResolving,
 		}
 		if v.values != nil {
 			cv.value = v.values[i]
