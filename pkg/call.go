@@ -213,7 +213,7 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 			r := recover()
 			// temporary store it in the special variable in the parent env
 			frame.env.parent().valueSet(internalVarName("recover", 0), reflect.ValueOf(r))
-			frame.takeDeferList(vm)
+			callDefers(vm)
 		}()
 	}
 	vm.currentFrame.step = fl.callGraph
@@ -298,7 +298,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 			if r := recover(); r != nil {
 				// temporary store it in the special variable in the parent env
 				frame.env.parent().valueSet(internalVarName("recover", 0), reflect.ValueOf(r))
-				frame.takeDeferList(vm)
+				callDefers(vm)
 			}
 		}()
 	}
@@ -353,28 +353,78 @@ func (c CallExpr) flow(g *graphBuilder) (head Step) {
 	return head
 }
 
+// DeferCallExpr§ is a wrapper around CallExpr to distinguish defer calls from regular calls in the flow graph.
+// For defer calls, the arguments are evaluated at the time of the defer statement creation.
+type DeferCallExpr struct {
+	CallExpr
+}
+
+func (c DeferCallExpr) flow(g *graphBuilder) (head Step) {
+	head = c.fun.flow(g)
+	g.next(c)
+	return
+}
+
+func (c DeferCallExpr) String() string {
+	return fmt.Sprintf("DeferCallExpr(%v, args=%d)", c.fun, len(c.args))
+}
+
 // Runs defers and pushes return values on the operand stack after a function call.
 // Its pops the current frame and pushes the return values on the operand stack so they can be used by the caller.
 // This is called for interpreted functions (FuncDecl,FuncLit) only right after the return.
 func postCallFunc(vm *VM) {
+	// need to create flow in which each defer function is called.
+	// use statements to build graph
+	//
+	// TODO: alternative: direct graph building??
 	frame := vm.currentFrame
-	frame.takeDeferList(vm)
-
-	// take values before popping frame
-	vals := []reflect.Value{}
-	if frame.callee != nil {
-		if results := frame.callee.results(); results != nil {
-			for _, field := range results.List {
-				for _, name := range field.names {
-					val := frame.env.valueLookUp(name.name)
-					vals = append(vals, val)
+	block := BlockStmt{}
+	for i := len(frame.defers) - 1; i >= 0; i-- {
+		invocation := frame.defers[i]
+		stmt := ExprStmt{x: DeferCallExpr{CallExpr: invocation.call.(CallExpr)}}
+		push := &pushArgumentsStmt{args: invocation.arguments}
+		block.list = append(block.list, push, stmt)
+	}
+	b := newGraphBuilder(nil)
+	head := block.flow(b)
+	// extend graph to push results on parent frame operands
+	pushResults := newFuncStep(token.NoPos, "push results", func(vm *VM) {
+		frame := vm.currentFrame
+		// take values before popping frame
+		vals := []reflect.Value{}
+		if frame.callee != nil {
+			if results := frame.callee.results(); results != nil {
+				for _, field := range results.List {
+					for _, name := range field.names {
+						val := frame.env.valueLookUp(name.name)
+						vals = append(vals, val)
+					}
 				}
 			}
 		}
+		vm.popFrame()
+		vm.pushOperands(vals...)
+	})
+	b.nextStep(pushResults)
+	vm.currentFrame.step = head
+}
+
+// TODO merge with postCallFunc?
+func callDefers(vm *VM) {
+	// need to create flow in which each defer function is called.
+	// use statements to build graph
+	//
+	// TODO: alternative: direct graph building??
+	frame := vm.currentFrame
+	block := BlockStmt{}
+	for i := len(frame.defers) - 1; i >= 0; i-- {
+		invocation := frame.defers[i]
+		stmt := ExprStmt{x: DeferCallExpr{CallExpr: invocation.call.(CallExpr)}}
+		push := &pushArgumentsStmt{args: invocation.arguments}
+		block.list = append(block.list, push, stmt)
 	}
-	// TODO returnStep,currentStep?
-	vm.popFrame()
-	vm.pushOperands(vals...)
+	b := newGraphBuilder(nil)
+	vm.currentFrame.step = block.flow(b)
 }
 
 func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {

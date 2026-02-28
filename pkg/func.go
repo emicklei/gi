@@ -115,6 +115,7 @@ func (e Ellipsis) pos() token.Pos { return e.ellipisPos }
 // funcInvocation represents a function call instance with its own environment.
 // this used to handle defer statements properly.
 type funcInvocation struct {
+	call      Expr
 	flow      Step
 	env       Env
 	arguments []reflect.Value

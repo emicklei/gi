@@ -159,6 +159,7 @@ func (d DeferStmt) eval(vm *VM) {
 	}
 	frame.env.markSharedReferenced()
 	invocation := funcInvocation{
+		call:      d.call,
 		flow:      d.callGraph,
 		env:       env,
 		arguments: vals,

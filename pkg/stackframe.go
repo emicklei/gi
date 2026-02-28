@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"go/token"
 	"reflect"
 	"strings"
 )
@@ -58,16 +59,31 @@ func (f *stackFrame) popEnv() {
 	envPool.Put(child)
 }
 
-func (f *stackFrame) takeDeferList(vm *VM) {
-	for i := len(f.defers) - 1; i >= 0; i-- {
-		invocation := f.defers[i]
-		// push all argument values as operands on the stack
-		// make sure first value is on top of the operand stack
-		for i := len(invocation.arguments) - 1; i >= 0; i-- {
-			vm.pushOperand(invocation.arguments[i])
-		}
-		vm.currentFrame.step = invocation.flow
+var _ Stmt = (*pushArgumentsStmt)(nil)
+
+type pushArgumentsStmt struct {
+	args []reflect.Value
+}
+
+func (p *pushArgumentsStmt) eval(vm *VM) {
+	// push all argument values as operands on the stack
+	// make sure first value is on top of the operand stack
+	for i := len(p.args) - 1; i >= 0; i-- {
+		vm.pushOperand(p.args[i])
 	}
+}
+func (p *pushArgumentsStmt) flow(g *graphBuilder) (head Step) {
+	g.next(p)
+	return g.current
+}
+func (p *pushArgumentsStmt) stmtStep() Evaluable {
+	return p
+}
+func (p *pushArgumentsStmt) pos() token.Pos {
+	return token.NoPos
+}
+func (p *pushArgumentsStmt) String() string {
+	return fmt.Sprintf("pushArguments(len=%d)", len(p.args))
 }
 
 func (f *stackFrame) String() string {

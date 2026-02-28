@@ -155,7 +155,14 @@ func (c *conditionalStep) String() string {
 		return "conditionalStep(<nil>)"
 	}
 	if c.elseFlow == nil {
+		if c.next == nil {
+			return fmt.Sprintf("%d: ~if: nil", c.ID())
+		}
 		return fmt.Sprintf("%d: ~if: %d", c.ID(), c.next.ID())
+	}
+	// elseFlow not nil
+	if c.next == nil {
+		return fmt.Sprintf("%d: ~if: %d else: nil", c.ID(), c.elseFlow.ID())
 	}
 	return fmt.Sprintf("%d: ~if: %d else: %d", c.ID(), c.next.ID(), c.elseFlow.ID())
 }
