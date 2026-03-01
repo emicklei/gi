@@ -14,17 +14,18 @@ func isUndeclared(v reflect.Value) bool {
 }
 
 type ConstVar struct {
-	ident             Ident
-	namePos           token.Pos
-	typ               Expr
-	value             Expr
-	isResolved        bool
-	requiresResolving bool
+	ident   Ident
+	namePos token.Pos
+	typ     Expr
+	value   Expr
+	// runtime when in package scope
+	isResolved     bool
+	needsResolving bool
 }
 
 // push the result (true,false) of the declaration onto the stack
 func (cv *ConstVar) eval(vm *VM) {
-	if cv.requiresResolving && cv.isResolved {
+	if cv.needsResolving && cv.isResolved {
 		// no value on the stack
 		vm.pushOperand(reflectTrue)
 		return
@@ -82,7 +83,7 @@ func (cv *ConstVar) eval(vm *VM) {
 }
 
 func (cv *ConstVar) flow(g *graphBuilder) (head Step) {
-	if cv.requiresResolving {
+	if cv.needsResolving {
 		return cv.flowWithResolving(g)
 	}
 	if cv.value != nil {
@@ -133,11 +134,11 @@ var _ Stmt = ValueSpec{}
 
 // Const or Var declaration
 type ValueSpec struct {
-	names             []Ident
-	namePos           token.Pos
-	typ               Expr
-	values            []Expr
-	requiresResolving bool // when used in package var of const declaration, the value may reference other package vars/consts that are not yet resolved
+	names          []Ident
+	namePos        token.Pos
+	typ            Expr
+	values         []Expr
+	needsResolving bool // when used in package var of const declaration, the value may reference other package vars/consts that are not yet resolved
 }
 
 func (v ValueSpec) stmtStep() Evaluable { return nil } //  unused
@@ -160,10 +161,10 @@ func (v ValueSpec) eval(vm *VM) {
 func (v ValueSpec) flow(g *graphBuilder) (head Step) {
 	for i, name := range v.names {
 		cv := &ConstVar{
-			namePos:           v.namePos,
-			ident:             name,
-			typ:               v.typ,
-			requiresResolving: v.requiresResolving,
+			namePos:        v.namePos,
+			ident:          name,
+			typ:            v.typ,
+			needsResolving: v.needsResolving,
 		}
 		if v.values != nil {
 			cv.value = v.values[i]

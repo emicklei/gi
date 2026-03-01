@@ -54,3 +54,34 @@ func TestConvertStringPointer(t *testing.T) {
 		}
 	}
 }
+
+func TestCallFuncNoReturn(t *testing.T) {
+	trace = true
+	setAttr(t, "dot", true)
+	testMain(t, `package main
+
+func f()() {
+	print("f")
+}
+
+func main() {
+    print("pre-f")
+	f()
+	print("post-f")
+}`, "pre-ffpost-f")
+}
+
+func TestCallFuncWithReturn(t *testing.T) {
+	testMain(t, `package main
+
+func f(in int) (out int) {
+	out = in + 1
+	return
+}
+
+func main() {
+    print("pre-f")
+	print(f(1))
+	print("post-f")
+}`, "pre-f2post-f")
+}

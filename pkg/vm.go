@@ -133,7 +133,7 @@ func (vm *VM) popFrame() {
 		vm.currentFrame = vm.callStack.top()
 		vm.currentFrame.step = frame.returnTo
 		if trace {
-			fmt.Printf("vm.currentFrame.%d.step set to returnTo: %v\n", vm.currentFrame.id, vm.currentFrame.step)
+			fmt.Printf("vm.currentFrame.%d: set to returnTo: %v\n", vm.currentFrame.id, vm.currentFrame.step)
 		}
 	} else {
 		vm.currentFrame = nil

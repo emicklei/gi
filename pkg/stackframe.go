@@ -63,9 +63,11 @@ var _ Stmt = (*pushArgumentsStmt)(nil)
 
 type pushArgumentsStmt struct {
 	args []reflect.Value
+	env  Env
 }
 
 func (p *pushArgumentsStmt) eval(vm *VM) {
+	vm.currentFrame.env = p.env
 	// push all argument values as operands on the stack
 	// make sure first value is on top of the operand stack
 	for i := len(p.args) - 1; i >= 0; i-- {
@@ -100,25 +102,3 @@ func (f *stackFrame) String() string {
 	fmt.Fprintf(&buf, "ops=%v ", f.operands)
 	return buf.String()
 }
-
-// func (f *stackFrame) buildDeferGraph() (head Step) {
-// 	g := newGraphBuilder(nil)
-// 	operands := make([]reflect.Value, 0)
-// 	for i := len(f.defers) - 1; i >= 0; i-- {
-// 		invocation := f.defers[i]
-// 		// push all argument values as operands on the stack
-// 		// make sure first value is on top of the operand stack
-// 		for i := len(invocation.arguments) - 1; i >= 0; i-- {
-// 			operands = append(operands, invocation.arguments[i])
-// 		}
-// 		push := &pushOperandsStep{
-// 			deferPos: invocation.flow.pos(),
-// 			operands: operands,
-// 		}
-// 		g.nextStep(push)
-// 		if head == nil {
-// 			head = push
-// 		}
-// 		g.nextStep(invocation.flow)
-// 	}
-// }

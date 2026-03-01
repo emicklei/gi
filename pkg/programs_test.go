@@ -231,6 +231,7 @@ func TestNestedLoop(t *testing.T) {
 	testProgramIn(t, "../examples/nestedloop", "todo")
 }
 
+// TODO useless test
 func TestNestedLoopFromSource(t *testing.T) {
 	testMain(t, `package main
 

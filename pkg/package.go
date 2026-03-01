@@ -28,74 +28,74 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 		}
 		g.nextStep(subFlow)
 	}
-	// resolve := newFuncStep(token.NoPos, fmt.Sprintf("%s.declare", p.Name), func(vm *VM) {
-	// 	p.resolveDeclarations(vm)
-	// })
-	// if head == nil {
-	// 	head = resolve
-	// }
+	if len(p.env.declarations) > 0 {
+		// use for statement to eval all declarations until all are declared, then move to inits
+		//
+		// done := false
+		// for !done {
+		// 	done = true
+		//  <declare all and update done>
+		// }
+		doneVar := Ident{name: internalVarName("done", g.idgen)}
+		falseLit := newBasicLit(token.NoPos, reflectFalse)
+		initDone := AssignStmt{
+			tok:    token.DEFINE,
+			tokPos: token.NoPos,
+			lhs:    []Expr{doneVar},
+			rhs:    []Expr{falseLit},
+		}
+		cond := UnaryExpr{
+			x:         doneVar,
+			unaryFunc: unaryFuncs["bool43"], // hack, TODO
+			op:        token.NOT,
+		}
+		body := BlockStmt{}
 
-	// use for statement to eval all declarations until all are declared, then move to inits
-	//
-	// done := false
-	// for !done {
-	// 	done = true
-	//  <declare all and update done>
-	// }
-	doneVar := Ident{name: internalVarName("done", g.idgen)}
-	falseLit := newBasicLit(token.NoPos, reflectFalse)
-	initDone := AssignStmt{
-		tok:    token.DEFINE,
-		tokPos: token.NoPos,
-		lhs:    []Expr{doneVar},
-		rhs:    []Expr{falseLit},
-	}
-	cond := UnaryExpr{
-		x:         doneVar,
-		unaryFunc: unaryFuncs["bool43"], // hack, TODO
-		op:        token.NOT,
-	}
-	body := BlockStmt{}
-
-	// reset done to true at the beginning of the loop; each declaration will set it to false if it is not yet resolved
-	trueLit := newBasicLit(token.NoPos, reflectTrue)
-	resetDone := AssignStmt{
-		tok:    token.ASSIGN,
-		tokPos: token.NoPos,
-		lhs:    []Expr{doneVar},
-		rhs:    []Expr{trueLit},
-	}
-	body.list = append(body.list, resetDone)
-
-	for _, decl := range p.env.declarations {
-		body.list = append(body.list, decl)
-		// each decl will push the result (true,false)
-		updateDone := AssignStmt{
+		// reset done to true at the beginning of the loop; each declaration will set it to false if it is not yet resolved
+		trueLit := newBasicLit(token.NoPos, reflectTrue)
+		resetDone := AssignStmt{
 			tok:    token.ASSIGN,
 			tokPos: token.NoPos,
 			lhs:    []Expr{doneVar},
-			rhs:    []Expr{noExpr{}}, // boolean result is already on stack
+			rhs:    []Expr{trueLit},
 		}
-		body.list = append(body.list, updateDone)
-	}
-	forStmt := ForStmt{
-		init: initDone,
-		cond: cond,
-		body: &body,
-	}
-	loop := forStmt.flowWithOptions(g, true) // do not create a new environment for the loop
-	if head == nil {
-		head = loop
-	}
+		body.list = append(body.list, resetDone)
 
-	//g.nextStep(resolve)
+		for _, decl := range p.env.declarations {
+			body.list = append(body.list, decl)
+			// each decl will push the result (true,false)
+			updateDone := AssignStmt{
+				tok:    token.ASSIGN,
+				tokPos: token.NoPos,
+				lhs:    []Expr{doneVar},
+				rhs:    []Expr{noExpr{}}, // boolean result is already on stack
+			}
+			body.list = append(body.list, updateDone)
+		}
+		forStmt := ForStmt{
+			init: initDone,
+			cond: cond,
+			body: &body,
+		}
+		loop := forStmt.flowWithOptions(g, true) // do not create a new environment for the loop
+		if head == nil {
+			head = loop
+		}
+	}
 	for i, funcDecl := range p.env.inits {
 		s := newFuncStep(funcDecl.pos(), fmt.Sprintf("call %s.init.%d", p.Name, i), func(vm *VM) {
 			CallExpr{}.handleFuncDecl(vm, funcDecl)
 		})
+		if head == nil {
+			head = s
+		}
 		g.nextStep(s)
 	}
-	g.nextStep(newFuncStep(token.NoPos, "pop frame", func(vm *VM) { vm.popFrame() }))
+	popFrameStep := newFuncStep(token.NoPos, "pop frame", func(vm *VM) { vm.popFrame() })
+	if head == nil {
+		head = popFrameStep
+	}
+	g.nextStep(popFrameStep)
 	return
 }
 

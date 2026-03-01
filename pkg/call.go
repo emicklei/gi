@@ -381,14 +381,19 @@ func postCallFunc(vm *VM) {
 	block := BlockStmt{}
 	for i := len(frame.defers) - 1; i >= 0; i-- {
 		invocation := frame.defers[i]
+		push := &pushArgumentsStmt{args: invocation.arguments, env: invocation.env} // Not sure if env is needed here TODO
 		stmt := ExprStmt{x: DeferCallExpr{CallExpr: invocation.call.(CallExpr)}}
-		push := &pushArgumentsStmt{args: invocation.arguments}
 		block.list = append(block.list, push, stmt)
 	}
-	b := newGraphBuilder(nil)
+	b := newGraphBuilder(vm.pkg.Package)
 	head := block.flow(b)
 	// extend graph to push results on parent frame operands
-	pushResults := newFuncStep(token.NoPos, "push results", func(vm *VM) {
+	popFrameAndPushResultsStep := newFuncStep(token.NoPos, "pop frame and push results", func(vm *VM) {
+		if frame.callee == nil || frame.callee.results() == nil || len(frame.callee.results().List) == 0 {
+			// no results to push, just pop frame and return
+			vm.popFrame()
+			return
+		}
 		frame := vm.currentFrame
 		// take values before popping frame
 		vals := []reflect.Value{}
@@ -405,7 +410,7 @@ func postCallFunc(vm *VM) {
 		vm.popFrame()
 		vm.pushOperands(vals...)
 	})
-	b.nextStep(pushResults)
+	b.nextStep(popFrameAndPushResultsStep)
 	vm.currentFrame.step = head
 }
 
@@ -423,7 +428,7 @@ func callDefers(vm *VM) {
 		push := &pushArgumentsStmt{args: invocation.arguments}
 		block.list = append(block.list, push, stmt)
 	}
-	b := newGraphBuilder(nil)
+	b := newGraphBuilder(vm.pkg.Package)
 	vm.currentFrame.step = block.flow(b)
 }
 

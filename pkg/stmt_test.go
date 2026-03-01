@@ -218,10 +218,12 @@ func main(){
 
 // https://go.dev/ref/spec#Defer_statements
 func TestDeferReturnUpdateTestNestedLoop(t *testing.T) {
-	t.Skip()
 	// currently the returns puts all values on the top stackframe
 	// but the defer can change the value from the environment
 	// so we need to adjust the return value accordingly somehow
+	//
+	trace = true
+	setAttr(t, "dot", true)
 	testMain(t, `package main
 
 func f() (result int) {
