@@ -60,7 +60,7 @@ func TestCallFuncNoReturn(t *testing.T) {
 	setAttr(t, "dot", true)
 	testMain(t, `package main
 
-func f()() {
+func f(){
 	print("f")
 }
 

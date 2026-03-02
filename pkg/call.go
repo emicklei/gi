@@ -371,22 +371,25 @@ func (c DeferCallExpr) String() string {
 
 // Runs defers and pushes return values on the operand stack after a function call.
 // Its pops the current frame and pushes the return values on the operand stack so they can be used by the caller.
-// This is called for interpreted functions (FuncDecl,FuncLit) only right after the return.
+// This is called for interpreted functions (FuncDecl,FuncLit) only and right after the return.
 func postCallFunc(vm *VM) {
 	// need to create flow in which each defer function is called.
 	// use statements to build graph
 	//
 	// TODO: alternative: direct graph building??
 	frame := vm.currentFrame
-	block := BlockStmt{}
-	for i := len(frame.defers) - 1; i >= 0; i-- {
-		invocation := frame.defers[i]
-		push := &pushArgumentsStmt{args: invocation.arguments, env: invocation.env} // Not sure if env is needed here TODO
-		stmt := ExprStmt{x: DeferCallExpr{CallExpr: invocation.call.(CallExpr)}}
-		block.list = append(block.list, push, stmt)
-	}
 	b := newGraphBuilder(vm.pkg.Package)
-	head := block.flow(b)
+	var head Step
+	if len(frame.defers) > 0 {
+		block := BlockStmt{}
+		for i := len(frame.defers) - 1; i >= 0; i-- {
+			invocation := frame.defers[i]
+			push := &pushArgumentsStmt{args: invocation.arguments, env: invocation.env} // Not sure if env is needed here TODO
+			stmt := ExprStmt{x: DeferCallExpr{CallExpr: invocation.call.(CallExpr)}}
+			block.list = append(block.list, push, stmt)
+		}
+		head = block.flow(b)
+	}
 	// extend graph to push results on parent frame operands
 	popFrameAndPushResultsStep := newFuncStep(token.NoPos, "pop frame and push results", func(vm *VM) {
 		if frame.callee == nil || frame.callee.results() == nil || len(frame.callee.results().List) == 0 {
@@ -410,6 +413,9 @@ func postCallFunc(vm *VM) {
 		vm.popFrame()
 		vm.pushOperands(vals...)
 	})
+	if head == nil {
+		head = popFrameAndPushResultsStep
+	}
 	b.nextStep(popFrameAndPushResultsStep)
 	vm.currentFrame.step = head
 }
