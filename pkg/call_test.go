@@ -56,8 +56,6 @@ func TestConvertStringPointer(t *testing.T) {
 }
 
 func TestCallFuncNoReturn(t *testing.T) {
-	trace = true
-	setAttr(t, "dot", true)
 	testMain(t, `package main
 
 func f(){
