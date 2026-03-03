@@ -22,10 +22,10 @@ func Run(filePath string) error {
 	return err
 }
 
-// ParseSource parses the provided Go source code string and returns a Package representation of it.
+// Parse parses the provided Go source code string and returns a Package representation of it.
 // The source must be valid Go, e.g. main package with a main function.
 // It cannot have external dependencies ; only standard library packages are allowed.
-func ParseSource(source string) (*pkg.Package, error) {
+func Parse(source string) (*pkg.Package, error) {
 	return pkg.ParseSource(source)
 }
 

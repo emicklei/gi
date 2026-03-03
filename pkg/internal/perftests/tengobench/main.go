@@ -41,7 +41,7 @@ func main() {
 	fib(35)
 }
 `
-	p, _ := gi.ParseSource(src)
+	p, _ := gi.Parse(src)
 	for range *count {
 		_, _ = pkg.CallPackageFunction(p, "main", nil)
 	}

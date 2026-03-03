@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	pkg, _ := gi.ParseSource(`package main
+	pkg, _ := gi.Parse(`package main
 
 import "fmt"
 

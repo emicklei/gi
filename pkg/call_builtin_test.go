@@ -17,6 +17,7 @@ func main() {
 
 func TestRecover(t *testing.T) {
 	t.Skip()
+	trace = true
 	testMain(t, `package main
 
 func main() {

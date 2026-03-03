@@ -208,14 +208,6 @@ func (c CallExpr) handleFuncLit(vm *VM, fl *FuncLit) {
 	setParametersForFrame(fl.Type, args, vm, frame)
 	setZeroReturnsForFrame(fl.Type, vm, frame)
 
-	if fl.hasRecoverCall() {
-		defer func() {
-			r := recover()
-			// temporary store it in the special variable in the parent env
-			frame.env.parent().valueSet(internalVarName("recover", 0), reflect.ValueOf(r))
-			callDefers(vm)
-		}()
-	}
 	vm.currentFrame.step = fl.callGraph
 }
 
@@ -293,15 +285,6 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	setParametersForFrame(fd.typ, args, vm, frame)
 	setZeroReturnsForFrame(fd.typ, vm, frame)
 
-	if fd.hasRecoverCall() {
-		defer func() {
-			if r := recover(); r != nil {
-				// temporary store it in the special variable in the parent env
-				frame.env.parent().valueSet(internalVarName("recover", 0), reflect.ValueOf(r))
-				callDefers(vm)
-			}
-		}()
-	}
 	vm.currentFrame.step = fd.graph
 }
 
@@ -436,6 +419,7 @@ func callDefers(vm *VM) {
 	}
 	b := newGraphBuilder(vm.pkg.Package)
 	vm.currentFrame.step = block.flow(b)
+	printSteps(vm.currentFrame.step)
 }
 
 func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {

@@ -36,7 +36,7 @@ examples: install
 	cd examples/api_call && go run .
 	# cd examples/externalpkg && gi run .
 	cd examples/nestedloop && gi run .
-	cd examples/subpkg && GI_TRACE=1 gi run .
+	# cd examples/subpkg && GI_TRACE=1 gi run .
 
 # runs all programs provided by GoByExample and reports failures
 .PHONY: gobyexample

@@ -34,11 +34,11 @@
 | goto | ✅ |
 | min,max with 3 args | ✅ |
 | min,max with string | ✅ |
-| defer | ✅ |
+| defer |  ⬜ | 
 | iota | ✅ |
 | `switch` statement on type | ✅ |
 | type assertion | ✅ |
-| recover | ✅ |
+| recover |  ⬜ | 
 | variadic function | ✅ |
 | break | ✅ |
 | continue | ✅ |

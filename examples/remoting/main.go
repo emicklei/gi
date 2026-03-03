@@ -21,7 +21,7 @@ func handleGi(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	pkg, err := gi.ParseSource(string(src))
+	pkg, err := gi.Parse(string(src))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
