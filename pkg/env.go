@@ -99,6 +99,27 @@ func (p *PkgEnvironment) appendScopes(scopes []dap.Scope) []dap.Scope {
 	})
 }
 
+func (p *PkgEnvironment) appendVariables(vars []dap.Variable) []dap.Variable {
+	for k, v := range p.Env.(*Environment).valueTable {
+		if _, ok := builtins[k]; ok {
+			continue
+		}
+		if _, ok := p.packageTable[k]; ok {
+			continue
+		}
+		if _, ok := v.Interface().(SDKPackage); ok {
+			continue
+		}
+		vars = append(vars, dap.Variable{
+			Name:               k,
+			Value:              stringOf(v),
+			Type:               typeNameOf(v),
+			VariablesReference: p.depth(),
+		})
+	}
+	return vars
+}
+
 var envPool = sync.Pool{
 	New: func() any {
 		return &Environment{
@@ -148,6 +169,9 @@ func (e *Environment) appendScopes(scopes []dap.Scope) []dap.Scope {
 
 func (e *Environment) appendVariables(vars []dap.Variable) []dap.Variable {
 	for k, v := range e.valueTable {
+		if _, ok := builtins[k]; ok {
+			continue
+		}
 		vars = append(vars, dap.Variable{
 			Name:               k,
 			Value:              stringOf(v),

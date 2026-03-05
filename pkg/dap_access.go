@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"cmp"
+	"fmt"
 	"go/token"
 	"path/filepath"
 	"slices"
@@ -58,6 +59,7 @@ func (a *DAPAccess) StackFrames(dap.StackTraceArguments) (frames []dap.StackFram
 			Line:   tokloc.Line,
 			Column: tokloc.Column,
 		}
+		dapFrame.InstructionPointerReference = fmt.Sprintf("%v", eachFrame.step)
 		frames = append(frames, dapFrame)
 	}
 	return
@@ -73,8 +75,8 @@ func (a *DAPAccess) Scopes(dap.ScopesArguments) (scopes []dap.Scope) {
 		scopes = here.appendScopes(scopes)
 		here = here.parent()
 	}
-	// sort by scope name
-	slices.SortFunc(scopes, func(s1, s2 dap.Scope) int { return cmp.Compare(s1.Name, s2.Name) })
+	// reverse to have innermost scope last
+	slices.Reverse(scopes)
 	return
 }
 
