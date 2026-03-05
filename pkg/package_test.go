@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -39,13 +38,6 @@ func Hello(name string) (int, string) {
 	if results[1] != "World" {
 		t.Fatalf("expected result 'World', got %v", results[1])
 	}
-}
-
-func TestWriteAST(t *testing.T) {
-	p := Package{env: newPkgEnvironment(nil)}
-	p.env.valueSet("a", reflect.ValueOf(1))
-	p.writeAST("testgraphs/test.ast")
-	// file must have: (int) 1
 }
 
 func TestLoadEmptyStdPackage(t *testing.T) {

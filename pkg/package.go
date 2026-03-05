@@ -3,8 +3,10 @@ package pkg
 import (
 	"fmt"
 	"go/token"
+	"os"
 	"reflect"
 
+	"github.com/emicklei/dot"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -162,4 +164,33 @@ type ExternalPackage struct {
 
 func (p ExternalPackage) String() string {
 	return fmt.Sprintf("ExternalPackage(%s,%s)", p.name, p.pkgPath)
+}
+
+func (p *Package) writeCallGraph(fileName string) {
+	g := dot.NewGraph(dot.Directed)
+	g.NodeInitializer(func(n dot.Node) {
+		n.Box()
+		n.Attr("fillcolor", "#EBFAFF") // https://htmlcolorcodes.com/
+		n.Attr("style", "rounded,filled")
+	})
+	// setup flow
+	if p.callGraph != nil {
+		sub := g.Subgraph("pkg."+p.Name, dot.ClusterOption{})
+		p.callGraph.traverse(sub, p.Fset)
+	} else {
+		fmt.Println("WARN: no call graph to write for package", p.Name)
+	}
+
+	// for each function in the package create a subgraph
+	values := p.env.Env.(*Environment).valueTable
+	for k, v := range values {
+		if funDecl, ok := v.Interface().(*FuncDecl); ok {
+			if funDecl.graph == nil {
+				continue
+			}
+			sub := g.Subgraph(k, dot.ClusterOption{})
+			funDecl.graph.traverse(sub, p.Fset)
+		}
+	}
+	os.WriteFile(fileName, []byte(g.String()), 0644)
 }

@@ -58,9 +58,6 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 		defer func() {
 			fmt.Printf("pkg.build(%s) took %v\n", goPkg.PkgPath, time.Since(now))
 		}()
-		if astFilename := os.Getenv("GI_AST"); astFilename != "" {
-			writeGoAST(astFilename+".pkg", goPkg)
-		}
 	}
 	b := newASTBuilder(goPkg)
 	for _, stx := range goPkg.Syntax {
@@ -85,9 +82,6 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 	// export if requested via env vars, for debugging
 	if callGraphFilename := os.Getenv("GI_CALL"); callGraphFilename != "" {
 		pkg.writeCallGraph(callGraphFilename)
-	}
-	if astFilename := os.Getenv("GI_AST"); astFilename != "" {
-		pkg.writeAST(astFilename)
 	}
 	return pkg, nil
 }

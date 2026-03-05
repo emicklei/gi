@@ -90,14 +90,6 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 		exec.Command("dot", "-Tsvg", "-o", dotFileName+".svg", dotFileName).Run()
 		os.Remove(dotFileName)
 	}
-	// create ast dump for debugging, requires test to set attribute(s)
-	astFileName := fmt.Sprintf("internal/testgraphs/%s", t.Name())
-	if getAttr(t, "ast") == "true" {
-		pkg.writeAST(astFileName + ".ast")
-	}
-	if getAttr(t, "go.ast") == "true" {
-		writeGoAST(astFileName+".go.ast", pkg.Package)
-	}
 	runner.launch("main", nil)
 	// walk the steps of the program
 	for {
