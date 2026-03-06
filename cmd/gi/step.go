@@ -50,6 +50,7 @@ func startStepper() {
 				}
 				fmt.Println()
 			}
+			fmt.Println()
 		}
 		if err := runner.Next(); err != nil {
 			if err == io.EOF {

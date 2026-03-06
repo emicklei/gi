@@ -63,7 +63,7 @@ var _ Stmt = (*pushArgumentsStmt)(nil)
 
 type pushArgumentsStmt struct {
 	args []reflect.Value
-	env  Env
+	env  Env // TODO why is this needed
 }
 
 func (p *pushArgumentsStmt) eval(vm *VM) {
