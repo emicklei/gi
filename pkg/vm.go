@@ -93,7 +93,11 @@ func (vm *VM) popOperand() reflect.Value {
 	popped := vm.currentFrame.pop()
 	if trace {
 		before := len(vm.currentFrame.operands)
-		fmt.Printf("~~ frame.%d.pop [%d->%d]: %s (%T)\n", vm.currentFrame.id, before+1, before, stringOf(popped), popped.Interface())
+		if popped.IsValid() && popped.CanInterface() {
+			fmt.Printf("~~ frame.%d.pop [%d->%d]: %s (%T)\n", vm.currentFrame.id, before+1, before, stringOf(popped), popped.Interface())
+		} else {
+			fmt.Printf("~~ frame.%d.pop [%d->%d]: %s\n", vm.currentFrame.id, before+1, before, stringOf(popped))
+		}
 	}
 	return popped
 }
@@ -234,12 +238,15 @@ func (vm *VM) launch(functionName string, args []any) {
 		vm.currentFrame.step = vm.pkg.callGraph
 	})
 
-	pushArgs := newFuncStep(token.NoPos, fmt.Sprintf("push args for %s.%s", vm.pkg.Name, functionName), func(vm *VM) {
-		// push arguments as parameters on the operand stack, in reverse order
-		for i := len(args) - 1; i >= 0; i-- {
-			vm.pushOperand(reflect.ValueOf(args[i]))
-		}
-	})
+	var pushArgs Step
+	if len(args) > 0 {
+		pushArgs = newFuncStep(token.NoPos, fmt.Sprintf("push args for %s.%s", vm.pkg.Name, functionName), func(vm *VM) {
+			// push arguments as parameters on the operand stack, in reverse order
+			for i := len(args) - 1; i >= 0; i-- {
+				vm.pushOperand(reflect.ValueOf(args[i]))
+			}
+		})
+	}
 
 	// add noop expressions as arguments; the values will be pushed on the operand stack
 	callArgs := make([]Expr, len(args))
@@ -253,9 +260,13 @@ func (vm *VM) launch(functionName string, args []any) {
 	}
 	gb := newGraphBuilder(vm.pkg.Package)
 	gb.nextStep(initPkg)
-	gb.nextStep(pushArgs)
-	call.flow(gb)
 
+	// only if set
+	if pushArgs != nil {
+		gb.nextStep(pushArgs)
+	}
+
+	call.flow(gb)
 	vm.currentFrame.step = initPkg // head of flow
 }
 

@@ -5,7 +5,7 @@ test: clean examples install
 	go test -p 16 ./pkg
 
 serial:
-	GI_CALL=out.dot GI_AST=test.ast GI_TRACE=1 go test -v -p 1 ./pkg
+	GI_CALL=out.dot GI_TRACE=1 go test -v -p 1 ./pkg
 
 clean:
 	cd pkg/internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast *.ast.pkg

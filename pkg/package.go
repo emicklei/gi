@@ -38,7 +38,8 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 		// 	done = true
 		//  <declare all and update done>
 		// }
-		doneVar := Ident{name: internalVarName("done", g.idgen)}
+		doneVarName := internalVarName("done", g.idgen)
+		doneVar := Ident{name: doneVarName}
 		falseLit := newBasicLit(token.NoPos, reflectFalse)
 		initDone := AssignStmt{
 			tok:    token.DEFINE,
@@ -83,6 +84,10 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 		if head == nil {
 			head = loop
 		}
+		// remove done variable after resolving declarations
+		g.nextStep(newFuncStep(token.NoPos, "unset done", func(vm *VM) {
+			vm.currentEnv().valueUnset(doneVarName)
+		}))
 	}
 	for i, funcDecl := range p.env.inits {
 		s := newFuncStep(funcDecl.pos(), fmt.Sprintf("call %s.init.%d", p.Name, i), func(vm *VM) {
