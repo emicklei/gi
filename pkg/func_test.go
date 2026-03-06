@@ -3,7 +3,7 @@ package pkg
 import "testing"
 
 func TestFunc(t *testing.T) {
-	setAttr(t, "dot", true)
+	//setAttr(t, "dot", true)
 	testMain(t, `package main
 
 func plus(a int, b int) int {

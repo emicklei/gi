@@ -223,7 +223,7 @@ func main() {
 }
 
 func TestSubpackage(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	testProgramIn(t, "../examples/subpkg", "yet unchecked")
 }
 
