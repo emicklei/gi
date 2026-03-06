@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -9,10 +11,12 @@ import (
 	"github.com/emicklei/gi"
 )
 
+var port = flag.Int("port", 7171, "port to listen on")
+
 func main() {
 	http.HandleFunc("POST /gi", handleGi)
-	log.Println("starting remote exec server on http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	log.Printf("starting remote exec server on http://0.0.0.0:%d/gi\n", *port)
+	http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 }
 
 func handleGi(w http.ResponseWriter, r *http.Request) {
