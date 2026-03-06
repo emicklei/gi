@@ -51,6 +51,7 @@ func startStepper() {
 				fmt.Println()
 			}
 			fmt.Println()
+			return
 		}
 		if err := runner.Next(); err != nil {
 			if err == io.EOF {
@@ -61,20 +62,16 @@ func startStepper() {
 		for _, thread := range runner.Threads() {
 			args := godap.StackTraceArguments{ThreadId: thread.Id, StartFrame: 0, Levels: 10}
 			frames := runner.StackFrames(args)
-			for i, frame := range frames {
-				fmt.Printf("%s %d%s %d%s %s :: %s @ %s:%d ",
-					ansiGray("[goroutine"),
-					thread.Id,
-					ansiGray("] [frame"),
-					frame.Id,
-					ansiGray("]"),
-					frame.Name,
-					ansiYellow(frame.InstructionPointerReference),
-					ansiGray(frame.Source.Path), frame.Line)
-				if i < len(frames)-1 { // last
-					fmt.Println()
-				}
-			}
+			frame := frames[len(frames)-1] // last
+			fmt.Printf("%s %d%s %d%s %s :: %s @ %s:%d ",
+				ansiGray("[goroutine"),
+				thread.Id,
+				ansiGray("] [frame"),
+				frame.Id,
+				ansiGray("]"),
+				frame.Name,
+				ansiYellow(frame.InstructionPointerReference),
+				ansiGray(frame.Source.Path), frame.Line)
 		}
 	}
 }

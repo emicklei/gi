@@ -34,11 +34,10 @@
 | goto | ✅ |
 | min,max with 3 args | ✅ |
 | min,max with string | ✅ |
-| defer |  ⬜ | 
+| defer |  ✅ | 
 | iota | ✅ |
 | `switch` statement on type | ✅ |
-| type assertion | ✅ |
-| recover |  ⬜ | 
+| type assertion | ✅ | 
 | variadic function | ✅ |
 | break | ✅ |
 | continue | ✅ |
@@ -47,9 +46,10 @@
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
 | `select` statement | ⬜ |
-| DAP | ⬜ |
+| recover |  ⬜ |
+| DAP | ⬜ | 50%
 
-## interpreted types (itype)
+## interpreted types
 
 | Feature | Implemented |
 |---|---|
