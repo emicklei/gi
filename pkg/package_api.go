@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/spewerspew/spew"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -70,6 +71,23 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 		}
 	}
 	pkg := &Package{Package: goPkg, env: b.env.(*PkgEnvironment)}
+
+	if trace {
+		out, _ := os.Create("gopkg.ast")
+		defer out.Close()
+		spew.Fdump(out, goPkg.Syntax[0].Decls[0])
+
+		out2, _ := os.Create("gi.pkg.ast")
+		defer out2.Close()
+		opts := spew.ConfigState{
+			ContinueOnMethod: true,
+			Indent:           " ",
+			MaxDepth:         10,
+			// SkipStructFieldNames: []string{"reflect.Value.typ_", "reflect.Value.ptr", "reflect.Value.flag"},
+		}
+		opts.Fdump(out2, b.env.valueLookUp("main").Interface())
+	}
+
 	// build and store package setup flow
 	gb := newGraphBuilder(goPkg)
 	pkg.callGraph = pkg.flow(gb)

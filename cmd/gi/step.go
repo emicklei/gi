@@ -21,11 +21,12 @@ func startStepper() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	runner := pkg.NewDAPAccess(pkg.NewVM(ipkg))
+	vm := pkg.NewVM(ipkg)
+	runner := pkg.NewDAPAccess(vm)
 	runner.Launch("main", nil)
 
 	// serve explorer
-	go structexplorer.NewService("vm", runner).Start()
+	go structexplorer.NewService("vm", vm).Start()
 
 	// loop
 	var b []byte = make([]byte, 1)

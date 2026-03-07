@@ -43,6 +43,7 @@
 | continue | ✅ |
 | fallthrough | ✅ |
 | Channels `chan` | ✅ |
+| Range over iterator | ⬜ | 
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
 | `select` statement | ⬜ |

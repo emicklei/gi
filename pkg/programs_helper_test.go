@@ -78,8 +78,8 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 		}
 	}()
 	pkg := buildPackage(t, source)
-	runner := NewVM(pkg)
-	collectPrintOutput(runner)
+	vm := NewVM(pkg)
+	collectPrintOutput(vm)
 
 	if getAttr(t, "dot") != nil {
 		// create dot graph for debugging
@@ -90,19 +90,17 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 		exec.Command("dot", "-Tsvg", "-o", dotFileName+".svg", dotFileName).Run()
 		os.Remove(dotFileName)
 	}
-	runner.launch("main", nil)
-	// walk the steps of the program
+	vm.launch("main", nil)
 	for {
-		if err := runner.Next(); err != nil {
+		if err := vm.Next(); err != nil {
 			if err == io.EOF {
 				break
 			}
 			t.Fatal(err)
 		}
 	}
-
 	// check output
-	got := runner.output.String()
+	got := vm.output.String()
 	var want string
 	switch v := wantFuncOrString.(type) {
 	case string:

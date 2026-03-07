@@ -8,7 +8,7 @@ import (
 // The Go SDK panic is not called.
 func OnPanic(f func(any)) {
 	// TODO make this thread-safe
-	builtinsMap["panic"] = reflect.ValueOf(f)
+	builtins["panic"] = reflect.ValueOf(f)
 }
 
 // OnOsExit sets the function to be called when os.Exit is invoked in the interpreted code.

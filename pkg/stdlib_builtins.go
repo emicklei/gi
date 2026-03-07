@@ -148,6 +148,7 @@ var builtins = map[string]reflect.Value{
 	"print":   reflect.ValueOf(func(args ...any) { fmt.Print(args...) }),
 	"println": reflect.ValueOf(func(args ...any) { fmt.Println(args...) }),
 	"cap":     reflect.ValueOf(func(v any) int { return reflect.ValueOf(v).Cap() }),
+	"close":   reflect.ValueOf(func(ch any) { reflect.ValueOf(ch).Close() }),
 
 	// built-in values implemented as reflect.Value
 	"true":  reflect.ValueOf(true), // not presented as Literal

@@ -6,6 +6,22 @@ import (
 	"testing"
 )
 
+func TestChannelClose(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func main() {
+    ch := make(chan int, 3)
+    ch <- 1
+    ch <- 2
+    ch <- 3
+    close(ch)
+    for v := range ch {
+        print(v)
+    }
+}`, "42")
+}
+
 func TestInterfaceEqualsNilError(t *testing.T) {
 	testMain(t, `package main
 

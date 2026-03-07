@@ -1,12 +1,13 @@
 package main
 
 import (
-	"encoding/json"
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/emicklei/gi"
 )
@@ -31,11 +32,29 @@ func handleGi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	funcName := r.URL.Query().Get("func")
-	result, err := gi.Call(pkg, funcName)
+
+	// capture stdout
+	old := os.Stdout // keep backup of the real stdout
+	or, ow, _ := os.Pipe()
+	os.Stdout = ow
+
+	// call it
+	_, err = gi.Call(pkg, funcName)
+
+	// read stdout
+	ow.Close()
+	os.Stdout = old // restoring the real stdout
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(or)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	fmt.Fprint(w, buf.String())
 }
