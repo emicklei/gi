@@ -13,7 +13,7 @@ var (
 	_ HasMethods = StructType{}
 )
 
-// StructType represents a struct type definition that is interpreted (IType).
+// StructType represents a struct type definition that is interpreted.
 type StructType struct {
 	structPos token.Pos
 	name      string

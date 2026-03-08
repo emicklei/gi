@@ -273,7 +273,7 @@ func main() {
 }
 
 func TestITypeArray(t *testing.T) {
-	t.Skip()
+	t.Skip() // panic: no such field or method: Model [recovered, repanicked]
 	testMain(t, `package main
 type Aircraft struct {Model string}
 func main() {
@@ -313,4 +313,22 @@ func main() {
 	m := map[Count]int{one:1}
 	print(len(m),m[one])
 }`, "11")
+}
+
+func TestExtendedTypePrint(t *testing.T) {
+	testMain(t, `package main
+type Count int
+func main() {
+	one := Count(1)
+	print(one)
+}`, "1")
+}
+
+func TestAliasTypePrint(t *testing.T) {
+	testMain(t, `package main
+type Count = int
+func main() {
+	one := Count(1)
+	print(one)
+}`, "1")
 }
