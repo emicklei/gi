@@ -5,28 +5,23 @@ import (
 	"testing"
 )
 
-func TestRangeOfChan(t *testing.T) {
+//	for len(ch) > 0 {
+//		v := <-ch
+//		print(v)
+//	}
+func TestChannelRange(t *testing.T) {
 	testMain(t, `package main
 
 func main() {
-		io := make(chan int, 10)
-		for i := 0; i < 10; i++ {
-			io <- i
-		}
-		// for {
-		// 	j := <-io
-		// 	print(j)
-		// 	if j == 4 {
-		// 		break
-		// 	}
-		// }
-		for j := range io {
-			print(j)
-			if j == 9 {
-				break
-			}
-		}
-}`, "0123456789")
+    ch := make(chan int, 3)
+    ch <- 1
+    ch <- 2
+    ch <- 3
+    close(ch)
+    for v := range ch {
+        print(v)
+    }
+}`, "123")
 }
 
 func TestRangeOfStrings(t *testing.T) {

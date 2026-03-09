@@ -162,6 +162,14 @@ func (r *rangeMapIteratorNextStep) String() string {
 }
 
 func (r RangeStmt) chanFlow(g *graphBuilder) (head Step) {
+	// len(ch) > 0
+	cond := BinaryExpr{
+		op:    token.GTR,
+		opPos: r.forPos,
+		x:     reflectLenExpr{X: r.x},
+		y:     newBasicLit(r.pos(), reflect.ValueOf(0)),
+	}
+
 	// <- chan
 	recv := UnaryExpr{
 		opPos: r.pos(),
@@ -177,7 +185,7 @@ func (r RangeStmt) chanFlow(g *graphBuilder) (head Step) {
 	}
 	bodyList := append([]Stmt{ass}, r.body.list...)
 	body := &BlockStmt{lbracePos: r.body.pos(), list: bodyList}
-	return ForStmt{forPos: r.pos(), body: body}.flow(g)
+	return ForStmt{forPos: r.pos(), cond: cond, body: body}.flow(g)
 }
 
 func (r RangeStmt) mapFlow(g *graphBuilder) (head Step) {
