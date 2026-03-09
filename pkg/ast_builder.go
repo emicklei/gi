@@ -87,10 +87,10 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		b.push(s)
 
 	case *ast.ParenExpr:
-		s := ParenExpr{LParen: n.Lparen}
+		s := ParenExpr{lparenPos: n.Lparen}
 		b.Visit(n.X)
 		e := b.pop()
-		s.X = e.(Expr)
+		s.x = e.(Expr)
 		b.push(s)
 
 	case *ast.SendStmt:

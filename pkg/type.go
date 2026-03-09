@@ -57,6 +57,7 @@ func (s TypeSpec) flow(g *graphBuilder) (head Step) {
 }
 
 func (s TypeSpec) makeValue(vm *VM, _ int, elements []reflect.Value) reflect.Value {
+	panic("used?")
 	actualType := vm.returnsEval(s.typ).Interface()
 	if i, ok := actualType.(CanMake); ok {
 		structVal := i.makeValue(vm, 0, elements)

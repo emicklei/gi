@@ -90,15 +90,15 @@ func (s StarExpr) String() string {
 var _ Expr = ParenExpr{}
 
 type ParenExpr struct {
-	LParen token.Pos
-	X      Expr
+	lparenPos token.Pos
+	x         Expr
 }
 
 func (e ParenExpr) eval(vm *VM) {} // noop
 func (e ParenExpr) flow(g *graphBuilder) (head Step) {
-	return e.X.flow(g)
+	return e.x.flow(g)
 }
-func (e ParenExpr) pos() token.Pos { return e.LParen }
+func (e ParenExpr) pos() token.Pos { return e.lparenPos }
 func (e ParenExpr) String() string {
-	return fmt.Sprintf("ParenExpr(%v)", e.X)
+	return fmt.Sprintf("ParenExpr(%v)", e.x)
 }

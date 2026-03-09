@@ -166,11 +166,11 @@ func (c CallExpr) evalNew(vm *VM) {
 	valWithType := vm.popOperand()
 	typ := valWithType.Interface()
 	if valWithType.Kind() == reflect.Struct {
-		if ts, ok := typ.(TypeSpec); ok {
-			structVal := ts.makeValue(vm, 0, nil)
-			vm.pushOperand(structVal)
-			return
-		}
+		// if ts, ok := typ.(TypeSpec); ok {
+		// 	structVal := ts.makeValue(vm, 0, nil)
+		// 	vm.pushOperand(structVal)
+		// 	return
+		// }
 		if bt, ok := typ.(builtinType); ok {
 			rv := reflect.New(bt.typ)
 			vm.pushOperand(rv)
