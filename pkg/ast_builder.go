@@ -63,6 +63,19 @@ func (b *astBuilder) envSet(name string, value reflect.Value) {
 	b.env.valueSet(name, value)
 }
 
+func (b *astBuilder) envSetPackage(pkgName string, value reflect.Value) {
+	if pkgName == "." {
+		// append to DotPackages
+		// are we always in a PkgEnvironment here? TODO
+		pkgEnv := b.env.(*PkgEnvironment)
+		dp := pkgEnv.dotPackages
+		pkg := value.Interface().(CanSelect)
+		dp.packages = append(dp.packages, pkg)
+		return
+	}
+	b.env.valueSet(pkgName, value)
+}
+
 func (b *astBuilder) pushFunc(fn Func, stmtList []ast.Stmt) {
 	b.funcStack.push(funcDeclPair{fn: fn, bodyList: stmtList})
 }
@@ -362,6 +375,9 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		if n.Name != nil {
 			pkgName = n.Name.Name
 		}
+		if pkgName == "_" { // blank import, skip
+			break
+		}
 		// HACK TODO
 		if strings.HasSuffix(unq, "v2") {
 			if trace {
@@ -381,7 +397,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			if ok {
 				p.typesTable = typesTable
 			}
-			b.envSet(pkgName, reflect.ValueOf(p))
+			b.envSetPackage(pkgName, reflect.ValueOf(p))
 			break
 		}
 		// check for imported external package
@@ -391,7 +407,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				pkgPath:     unq,
 				symbolTable: symbols,
 			}}
-			b.envSet(pkgName, reflect.ValueOf(p))
+			b.envSetPackage(pkgName, reflect.ValueOf(p))
 			break
 		}
 
@@ -418,7 +434,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			root.packageTable[unq] = pkg
 			ffpkg = pkg
 		}
-		b.envSet(ffpkg.Name, reflect.ValueOf(ffpkg))
+		b.envSetPackage(ffpkg.Name, reflect.ValueOf(ffpkg))
 	case *ast.BasicLit:
 		b.push(newBasicLit(n.ValuePos, basicLitValue(n)))
 	case *ast.BinaryExpr:

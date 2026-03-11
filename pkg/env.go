@@ -12,7 +12,7 @@ import (
 var trace = os.Getenv("GI_TRACE") != ""
 
 type Env interface {
-	// value access
+	// value access, returns reflectUndeclared if not found
 	valueLookUp(name string) reflect.Value
 	valueOwnerOf(name string) Env
 	valueSet(name string, value reflect.Value)
@@ -44,6 +44,7 @@ type PkgEnvironment struct {
 	inits        []*FuncDecl
 	methods      []*FuncDecl
 	packageTable map[string]*Package // path -> *Package
+	dotPackages  *DotPackages
 }
 
 func newBuiltinsEnvironment(parent Env) Env {
@@ -57,6 +58,7 @@ func newPkgEnvironment(parent Env) *PkgEnvironment {
 	return &PkgEnvironment{
 		Env:          newEnvironment(parent),
 		packageTable: map[string]*Package{},
+		dotPackages:  new(DotPackages),
 	}
 }
 func (p *PkgEnvironment) addInit(f *FuncDecl) {
@@ -78,6 +80,16 @@ func (p *PkgEnvironment) rootPackageEnv() *PkgEnvironment {
 		return p
 	}
 	return p.parent().rootPackageEnv()
+}
+
+func (p *PkgEnvironment) valueLookUp(name string) reflect.Value {
+	v := p.Env.valueLookUp(name)
+	if v != reflectUndeclared {
+		return v
+	}
+	// can be a function,const or var from a dot-imported package
+	// TODO check name exported?
+	return p.dotPackages.selectByName(name)
 }
 
 func (p *PkgEnvironment) String() string {

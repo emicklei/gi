@@ -15,9 +15,12 @@ import (
 
 var structValueType = reflect.TypeFor[StructValue]()
 
-var _ fmt.Formatter = StructValue{}
-var _ CanCompose = StructValue{}
-var _ FieldAssignable = StructValue{}
+var (
+	_ fmt.Formatter   = (*StructValue)(nil)
+	_ CanCompose      = (*StructValue)(nil)
+	_ FieldAssignable = (*StructValue)(nil)
+	_ CanSelect       = (*StructValue)(nil)
+)
 
 // StructValue represents an instance of an interpreted struct.
 type StructValue struct {
@@ -44,7 +47,7 @@ func (i StructValue) toString() string {
 }
 
 // TODO maybe return extra bool for ok?
-func (i StructValue) selectFieldOrMethod(name string) reflect.Value {
+func (i StructValue) selectByName(name string) reflect.Value {
 	if v, ok := i.fields[name]; ok {
 		return v
 	}

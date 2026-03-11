@@ -74,7 +74,6 @@ func main() {
 }
 
 func TestDotImport(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 import (
 	. "fmt"

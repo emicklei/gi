@@ -51,7 +51,7 @@ func (s SelectorExpr) assign(vm *VM, val reflect.Value) {
 	}
 	rec, ok := recv.Interface().(CanSelect)
 	if ok {
-		sel := rec.selectFieldOrMethod(s.selector.name)
+		sel := rec.selectByName(s.selector.name)
 		if !sel.IsValid() {
 			vm.fatalf("field %s not found for receiver: %v (%T)", s.selector.name, recv.Interface(), recv.Interface())
 		}
@@ -75,7 +75,7 @@ func (s SelectorExpr) eval(vm *VM) {
 	rec, ok := recv.Interface().(CanSelect)
 	if ok {
 		// can be field or method
-		sel := rec.selectFieldOrMethod(s.selector.name)
+		sel := rec.selectByName(s.selector.name)
 		// check for method
 		if _, ok := sel.Interface().(*FuncDecl); ok {
 			// method value so push receiver as first argument

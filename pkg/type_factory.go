@@ -19,7 +19,7 @@ func makeType(vm *VM, e Evaluable) reflect.Type {
 		typ := vm.currentEnv().valueLookUp(sel.x.(Ident).name)
 		val := typ.Interface()
 		if canSelect, ok := val.(CanSelect); ok {
-			selVal := canSelect.selectFieldOrMethod(sel.selector.name)
+			selVal := canSelect.selectByName(sel.selector.name)
 			return reflect.TypeOf(selVal.Interface())
 		}
 		pkgType := stdtypes[sel.x.(Ident).name][sel.selector.name]
@@ -66,7 +66,7 @@ func typeMaker(vm *VM, e Expr) CanMake {
 		typ := vm.currentEnv().valueLookUp(sel.x.(Ident).name)
 		val := typ.Interface()
 		if canSelect, ok := val.(CanSelect); ok {
-			selVal := canSelect.selectFieldOrMethod(sel.selector.name)
+			selVal := canSelect.selectByName(sel.selector.name)
 			return SDKType{typ: reflect.TypeOf(selVal.Interface())}
 		}
 		pkgType := stdtypes[sel.x.(Ident).name][sel.selector.name]

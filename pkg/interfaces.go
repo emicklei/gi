@@ -42,7 +42,7 @@ type CanCompose interface {
 
 // CanSelect is implemented by types that support selection of fields or methods by name.
 type CanSelect interface {
-	selectFieldOrMethod(name string) reflect.Value
+	selectByName(name string) reflect.Value
 }
 
 type FieldAssignable interface {
