@@ -72,3 +72,14 @@ func main() {
 	print(1)
 }`, "1")
 }
+
+func TestDotImport(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+import (
+	. "fmt"
+)
+func main() {
+	Println("gi")
+}`, "")
+}

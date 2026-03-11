@@ -44,6 +44,7 @@
 | fallthrough | ✅ |
 | Channels `chan` | ✅ |
 | Subpackages | ⬜ |
+| dot imports | ⬜ | 
 | Range over iterator | ⬜ | 
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
