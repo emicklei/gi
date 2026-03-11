@@ -32,12 +32,6 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 	}
 	if len(p.env.declarations) > 0 {
 		// use for statement to eval all declarations until all are declared, then move to inits
-		//
-		// done := false
-		// for !done {
-		// 	done = true
-		//  <declare all and update done>
-		// }
 		doneVarName := internalVarName("done", g.idgen)
 		doneVar := Ident{name: doneVarName}
 		falseLit := newBasicLit(token.NoPos, reflectFalse)

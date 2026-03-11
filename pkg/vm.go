@@ -233,9 +233,9 @@ func (vm *VM) launch(functionName string, args []any) {
 
 	initPkg := newFuncStep(token.NoPos, "initpkg", func(vm *VM) {
 		vm.pushNewFrame(nil)
-		// make sure PkgEnvironment is active
+		// make sure PkgEnvironment is active. Needed?? TODO
 		vm.currentFrame.env = vm.pkg.env
-		vm.currentFrame.step = vm.pkg.callGraph
+		vm.currentFrame.step = vm.buildInitializationGraph()
 	})
 
 	var pushArgs Step
@@ -268,6 +268,22 @@ func (vm *VM) launch(functionName string, args []any) {
 
 	call.flow(gb)
 	vm.currentFrame.step = initPkg // head of flow
+}
+
+// build the graph for initializating all packages recursively
+func (vm *VM) buildInitializationGraph() Step {
+	gb := newGraphBuilder(vm.pkg.Package)
+	seen := make(map[string]bool)
+	vm.buildInitGraph(gb, vm.pkg, seen)
+	return gb.current
+}
+
+func (vm *VM) buildInitGraph(gb *graphBuilder, pkg *Package, seen map[string]bool) {
+	if _, ok := seen[pkg.PkgPath]; ok {
+		return
+	}
+	// TODO
+	gb.current = pkg.callGraph
 }
 
 func (vm *VM) printStack() {

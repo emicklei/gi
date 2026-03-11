@@ -26,6 +26,11 @@ func handleGi(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	fmt.Println("--- begin ---")
+	fmt.Println(string(src))
+	fmt.Println("--- end   ---")
+
 	pkg, err := gi.Parse(string(src))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -15,6 +15,8 @@
 - put generated code in generated package
 - deprecate varvoy?
 - introduce routines (threads) in the VM
+- https://www.geeksforgeeks.org/go-language/reflect-makefunc-function-in-golang-with-examples/
+
 
 ## potential blockers
 - reflect structs can only have exposed fields. for that reason StructValues was created but the SDK is not aware of this. For example, fmt.Println might not work correctly with StructValues.
