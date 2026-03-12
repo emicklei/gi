@@ -125,3 +125,5 @@ func (c CompositeLit) pos() token.Pos { return c.Lbrace }
 func (c CompositeLit) String() string {
 	return fmt.Sprintf("CompositeLit(%v,%v)", c.Type, c.Elts)
 }
+
+type Int64 int64

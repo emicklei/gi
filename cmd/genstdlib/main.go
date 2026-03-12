@@ -15,12 +15,11 @@ import (
 )
 
 var excludedPackages = []string{
-	"unsafe",
 	"debug",
-	"reflect",
-	"runtime",
 	"go",
 	"syscall",
+	"unsafe",
+	"runtime/testdata",
 }
 
 // ExcludedSymbol defines a symbol to be excluded from a specific package.
@@ -29,6 +28,7 @@ type ExcludedSymbol struct {
 	Symbol  string
 }
 
+// because the values do not fit in reflect.Value instance. (int64 NumericOverflow)
 var excludedSymbols = []ExcludedSymbol{
 	{"hash/crc64", "ECMA"},
 	{"hash/crc64", "ISO"},

@@ -105,6 +105,20 @@ func Hello(name string) int {
 	}
 ```
 
+### Limitations
+
+The following features are not supported:
+- no functions/consts/vars from the following packages:
+  - debug
+  - go
+  - syscall
+  - runtime/testdata
+- these symbols are not available because of NumericOverflow in reflect.Value:
+  - hash/crc64.ECMA
+  -	hash/crc64.ISO
+  -	math.MaxUint
+  -	math.MaxUint64
+
 #### Credits
 
 The build pipeline uses all programs of [Go By Example](https://gobyexample.com/) to check whether they are executable with `gi`.

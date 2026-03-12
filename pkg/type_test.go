@@ -166,6 +166,18 @@ func main() {
 }`, "40")
 }
 
+func TestReflect(t *testing.T) {
+	testMain(t, `package main
+
+import "reflect"
+
+func main() {
+	var x int = 42
+	v := reflect.ValueOf(x)
+	print(v.Int())
+}`, "42")
+}
+
 func TestGoType(t *testing.T) {
 	gt := SDKType{typ: reflect.TypeOf(42)}
 	rv := gt.makeValue(nil, 0, nil)

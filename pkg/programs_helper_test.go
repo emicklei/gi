@@ -48,6 +48,14 @@ func getAttr(t *testing.T, key string) any {
 	return v
 }
 
+func debug(t *testing.T) func() {
+	setAttr(t, "dot", 1)
+	trace = true
+	return func() {
+		trace = false
+	}
+}
+
 func testProgramIn(t *testing.T, dir string, _ any) {
 	// cannot be parallel because of os.Chdir
 	t.Helper()

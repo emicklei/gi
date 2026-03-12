@@ -80,20 +80,27 @@ import (
 	i101 "os/exec"
 	i103 "os/user"
 	i106 "plugin"
-	i107 "regexp"
-	i108 "regexp/syntax"
-	i110 "strconv"
-	i111 "strings"
-	i112 "sync"
-	i113 "sync/atomic"
-	i114 "testing"
-	i116 "testing/quick"
-	i119 "text/scanner"
-	i120 "text/tabwriter"
-	i121 "text/template"
-	i122 "text/template/parse"
-	i123 "time"
-	i124 "unicode"
+	i107 "reflect"
+	i108 "regexp"
+	i109 "regexp/syntax"
+	i110 "runtime"
+	i111 "runtime/cgo"
+	i113 "runtime/debug"
+	i114 "runtime/metrics"
+	i115 "runtime/pprof"
+	i116 "runtime/trace"
+	i118 "strconv"
+	i119 "strings"
+	i120 "sync"
+	i121 "sync/atomic"
+	i122 "testing"
+	i124 "testing/quick"
+	i127 "text/scanner"
+	i128 "text/tabwriter"
+	i129 "text/template"
+	i130 "text/template/parse"
+	i131 "time"
+	i132 "unicode"
 )
 
 // stdtypes maps package paths to their exported types as reflect.Value not reflect.Type
@@ -461,6 +468,7 @@ func init() {
 		"Level": makeReflect[i73.Level](),
 		"LevelVar": makeReflect[i73.LevelVar](),
 		"Logger": makeReflect[i73.Logger](),
+		"MultiHandler": makeReflect[i73.MultiHandler](),
 		"Record": makeReflect[i73.Record](),
 		"Source": makeReflect[i73.Source](),
 		"TextHandler": makeReflect[i73.TextHandler](),
@@ -535,6 +543,7 @@ func init() {
 	}
 	stdtypes["net/http"] = map[string]reflect.Value{
 		"Client": makeReflect[i85.Client](),
+		"ClientConn": makeReflect[i85.ClientConn](),
 		"ConnState": makeReflect[i85.ConnState](),
 		"Cookie": makeReflect[i85.Cookie](),
 		"CrossOriginProtection": makeReflect[i85.CrossOriginProtection](),
@@ -639,119 +648,173 @@ func init() {
 		"Plugin": makeReflect[i106.Plugin](),
 		"Symbol": makeReflect[i106.Symbol](),
 	}
-	stdtypes["regexp"] = map[string]reflect.Value{
-		"Regexp": makeReflect[i107.Regexp](),
+	stdtypes["reflect"] = map[string]reflect.Value{
+		"ChanDir": makeReflect[i107.ChanDir](),
+		"Kind": makeReflect[i107.Kind](),
+		"MapIter": makeReflect[i107.MapIter](),
+		"Method": makeReflect[i107.Method](),
+		"SelectCase": makeReflect[i107.SelectCase](),
+		"SelectDir": makeReflect[i107.SelectDir](),
+		"SliceHeader": makeReflect[i107.SliceHeader](),
+		"StringHeader": makeReflect[i107.StringHeader](),
+		"StructField": makeReflect[i107.StructField](),
+		"StructTag": makeReflect[i107.StructTag](),
+		"Value": makeReflect[i107.Value](),
+		"ValueError": makeReflect[i107.ValueError](),
 	}
-	stdtypes["regexp/syntax"] = map[string]reflect.Value{
-		"EmptyOp": makeReflect[i108.EmptyOp](),
-		"Error": makeReflect[i108.Error](),
-		"ErrorCode": makeReflect[i108.ErrorCode](),
-		"Flags": makeReflect[i108.Flags](),
-		"Inst": makeReflect[i108.Inst](),
-		"InstOp": makeReflect[i108.InstOp](),
-		"Op": makeReflect[i108.Op](),
-		"Prog": makeReflect[i108.Prog](),
+	stdtypes["regexp"] = map[string]reflect.Value{
 		"Regexp": makeReflect[i108.Regexp](),
 	}
+	stdtypes["regexp/syntax"] = map[string]reflect.Value{
+		"EmptyOp": makeReflect[i109.EmptyOp](),
+		"Error": makeReflect[i109.Error](),
+		"ErrorCode": makeReflect[i109.ErrorCode](),
+		"Flags": makeReflect[i109.Flags](),
+		"Inst": makeReflect[i109.Inst](),
+		"InstOp": makeReflect[i109.InstOp](),
+		"Op": makeReflect[i109.Op](),
+		"Prog": makeReflect[i109.Prog](),
+		"Regexp": makeReflect[i109.Regexp](),
+	}
+	stdtypes["runtime"] = map[string]reflect.Value{
+		"BlockProfileRecord": makeReflect[i110.BlockProfileRecord](),
+		"Cleanup": makeReflect[i110.Cleanup](),
+		"Frame": makeReflect[i110.Frame](),
+		"Frames": makeReflect[i110.Frames](),
+		"Func": makeReflect[i110.Func](),
+		"MemProfileRecord": makeReflect[i110.MemProfileRecord](),
+		"MemStats": makeReflect[i110.MemStats](),
+		"PanicNilError": makeReflect[i110.PanicNilError](),
+		"Pinner": makeReflect[i110.Pinner](),
+		"StackRecord": makeReflect[i110.StackRecord](),
+		"TypeAssertionError": makeReflect[i110.TypeAssertionError](),
+	}
+	stdtypes["runtime/cgo"] = map[string]reflect.Value{
+		"Handle": makeReflect[i111.Handle](),
+	}
+	stdtypes["runtime/debug"] = map[string]reflect.Value{
+		"BuildInfo": makeReflect[i113.BuildInfo](),
+		"BuildSetting": makeReflect[i113.BuildSetting](),
+		"CrashOptions": makeReflect[i113.CrashOptions](),
+		"GCStats": makeReflect[i113.GCStats](),
+		"Module": makeReflect[i113.Module](),
+	}
+	stdtypes["runtime/metrics"] = map[string]reflect.Value{
+		"Description": makeReflect[i114.Description](),
+		"Float64Histogram": makeReflect[i114.Float64Histogram](),
+		"Sample": makeReflect[i114.Sample](),
+		"Value": makeReflect[i114.Value](),
+		"ValueKind": makeReflect[i114.ValueKind](),
+	}
+	stdtypes["runtime/pprof"] = map[string]reflect.Value{
+		"LabelSet": makeReflect[i115.LabelSet](),
+		"Profile": makeReflect[i115.Profile](),
+	}
+	stdtypes["runtime/trace"] = map[string]reflect.Value{
+		"FlightRecorder": makeReflect[i116.FlightRecorder](),
+		"FlightRecorderConfig": makeReflect[i116.FlightRecorderConfig](),
+		"Region": makeReflect[i116.Region](),
+		"Task": makeReflect[i116.Task](),
+	}
 	stdtypes["strconv"] = map[string]reflect.Value{
-		"NumError": makeReflect[i110.NumError](),
+		"NumError": makeReflect[i118.NumError](),
 	}
 	stdtypes["strings"] = map[string]reflect.Value{
-		"Builder": makeReflect[i111.Builder](),
-		"Reader": makeReflect[i111.Reader](),
-		"Replacer": makeReflect[i111.Replacer](),
+		"Builder": makeReflect[i119.Builder](),
+		"Reader": makeReflect[i119.Reader](),
+		"Replacer": makeReflect[i119.Replacer](),
 	}
 	stdtypes["sync"] = map[string]reflect.Value{
-		"Cond": makeReflect[i112.Cond](),
-		"Map": makeReflect[i112.Map](),
-		"Mutex": makeReflect[i112.Mutex](),
-		"Once": makeReflect[i112.Once](),
-		"Pool": makeReflect[i112.Pool](),
-		"RWMutex": makeReflect[i112.RWMutex](),
-		"WaitGroup": makeReflect[i112.WaitGroup](),
+		"Cond": makeReflect[i120.Cond](),
+		"Map": makeReflect[i120.Map](),
+		"Mutex": makeReflect[i120.Mutex](),
+		"Once": makeReflect[i120.Once](),
+		"Pool": makeReflect[i120.Pool](),
+		"RWMutex": makeReflect[i120.RWMutex](),
+		"WaitGroup": makeReflect[i120.WaitGroup](),
 	}
 	stdtypes["sync/atomic"] = map[string]reflect.Value{
-		"Bool": makeReflect[i113.Bool](),
-		"Int32": makeReflect[i113.Int32](),
-		"Int64": makeReflect[i113.Int64](),
-		"Uint32": makeReflect[i113.Uint32](),
-		"Uint64": makeReflect[i113.Uint64](),
-		"Uintptr": makeReflect[i113.Uintptr](),
-		"Value": makeReflect[i113.Value](),
+		"Bool": makeReflect[i121.Bool](),
+		"Int32": makeReflect[i121.Int32](),
+		"Int64": makeReflect[i121.Int64](),
+		"Uint32": makeReflect[i121.Uint32](),
+		"Uint64": makeReflect[i121.Uint64](),
+		"Uintptr": makeReflect[i121.Uintptr](),
+		"Value": makeReflect[i121.Value](),
 	}
 	stdtypes["testing"] = map[string]reflect.Value{
-		"B": makeReflect[i114.B](),
-		"BenchmarkResult": makeReflect[i114.BenchmarkResult](),
-		"Cover": makeReflect[i114.Cover](),
-		"CoverBlock": makeReflect[i114.CoverBlock](),
-		"F": makeReflect[i114.F](),
-		"InternalBenchmark": makeReflect[i114.InternalBenchmark](),
-		"InternalExample": makeReflect[i114.InternalExample](),
-		"InternalFuzzTarget": makeReflect[i114.InternalFuzzTarget](),
-		"InternalTest": makeReflect[i114.InternalTest](),
-		"M": makeReflect[i114.M](),
-		"PB": makeReflect[i114.PB](),
-		"T": makeReflect[i114.T](),
+		"B": makeReflect[i122.B](),
+		"BenchmarkResult": makeReflect[i122.BenchmarkResult](),
+		"Cover": makeReflect[i122.Cover](),
+		"CoverBlock": makeReflect[i122.CoverBlock](),
+		"F": makeReflect[i122.F](),
+		"InternalBenchmark": makeReflect[i122.InternalBenchmark](),
+		"InternalExample": makeReflect[i122.InternalExample](),
+		"InternalFuzzTarget": makeReflect[i122.InternalFuzzTarget](),
+		"InternalTest": makeReflect[i122.InternalTest](),
+		"M": makeReflect[i122.M](),
+		"PB": makeReflect[i122.PB](),
+		"T": makeReflect[i122.T](),
 	}
 	stdtypes["testing/quick"] = map[string]reflect.Value{
-		"CheckEqualError": makeReflect[i116.CheckEqualError](),
-		"CheckError": makeReflect[i116.CheckError](),
-		"Config": makeReflect[i116.Config](),
-		"SetupError": makeReflect[i116.SetupError](),
+		"CheckEqualError": makeReflect[i124.CheckEqualError](),
+		"CheckError": makeReflect[i124.CheckError](),
+		"Config": makeReflect[i124.Config](),
+		"SetupError": makeReflect[i124.SetupError](),
 	}
 	stdtypes["text/scanner"] = map[string]reflect.Value{
-		"Position": makeReflect[i119.Position](),
-		"Scanner": makeReflect[i119.Scanner](),
+		"Position": makeReflect[i127.Position](),
+		"Scanner": makeReflect[i127.Scanner](),
 	}
 	stdtypes["text/tabwriter"] = map[string]reflect.Value{
-		"Writer": makeReflect[i120.Writer](),
+		"Writer": makeReflect[i128.Writer](),
 	}
 	stdtypes["text/template"] = map[string]reflect.Value{
-		"ExecError": makeReflect[i121.ExecError](),
-		"Template": makeReflect[i121.Template](),
+		"ExecError": makeReflect[i129.ExecError](),
+		"Template": makeReflect[i129.Template](),
 	}
 	stdtypes["text/template/parse"] = map[string]reflect.Value{
-		"ActionNode": makeReflect[i122.ActionNode](),
-		"BoolNode": makeReflect[i122.BoolNode](),
-		"BranchNode": makeReflect[i122.BranchNode](),
-		"BreakNode": makeReflect[i122.BreakNode](),
-		"ChainNode": makeReflect[i122.ChainNode](),
-		"CommandNode": makeReflect[i122.CommandNode](),
-		"CommentNode": makeReflect[i122.CommentNode](),
-		"ContinueNode": makeReflect[i122.ContinueNode](),
-		"DotNode": makeReflect[i122.DotNode](),
-		"FieldNode": makeReflect[i122.FieldNode](),
-		"IdentifierNode": makeReflect[i122.IdentifierNode](),
-		"IfNode": makeReflect[i122.IfNode](),
-		"ListNode": makeReflect[i122.ListNode](),
-		"Mode": makeReflect[i122.Mode](),
-		"NilNode": makeReflect[i122.NilNode](),
-		"NodeType": makeReflect[i122.NodeType](),
-		"NumberNode": makeReflect[i122.NumberNode](),
-		"PipeNode": makeReflect[i122.PipeNode](),
-		"Pos": makeReflect[i122.Pos](),
-		"RangeNode": makeReflect[i122.RangeNode](),
-		"StringNode": makeReflect[i122.StringNode](),
-		"TemplateNode": makeReflect[i122.TemplateNode](),
-		"TextNode": makeReflect[i122.TextNode](),
-		"Tree": makeReflect[i122.Tree](),
-		"VariableNode": makeReflect[i122.VariableNode](),
-		"WithNode": makeReflect[i122.WithNode](),
+		"ActionNode": makeReflect[i130.ActionNode](),
+		"BoolNode": makeReflect[i130.BoolNode](),
+		"BranchNode": makeReflect[i130.BranchNode](),
+		"BreakNode": makeReflect[i130.BreakNode](),
+		"ChainNode": makeReflect[i130.ChainNode](),
+		"CommandNode": makeReflect[i130.CommandNode](),
+		"CommentNode": makeReflect[i130.CommentNode](),
+		"ContinueNode": makeReflect[i130.ContinueNode](),
+		"DotNode": makeReflect[i130.DotNode](),
+		"FieldNode": makeReflect[i130.FieldNode](),
+		"IdentifierNode": makeReflect[i130.IdentifierNode](),
+		"IfNode": makeReflect[i130.IfNode](),
+		"ListNode": makeReflect[i130.ListNode](),
+		"Mode": makeReflect[i130.Mode](),
+		"NilNode": makeReflect[i130.NilNode](),
+		"NodeType": makeReflect[i130.NodeType](),
+		"NumberNode": makeReflect[i130.NumberNode](),
+		"PipeNode": makeReflect[i130.PipeNode](),
+		"Pos": makeReflect[i130.Pos](),
+		"RangeNode": makeReflect[i130.RangeNode](),
+		"StringNode": makeReflect[i130.StringNode](),
+		"TemplateNode": makeReflect[i130.TemplateNode](),
+		"TextNode": makeReflect[i130.TextNode](),
+		"Tree": makeReflect[i130.Tree](),
+		"VariableNode": makeReflect[i130.VariableNode](),
+		"WithNode": makeReflect[i130.WithNode](),
 	}
 	stdtypes["time"] = map[string]reflect.Value{
-		"Duration": makeReflect[i123.Duration](),
-		"Location": makeReflect[i123.Location](),
-		"Month": makeReflect[i123.Month](),
-		"ParseError": makeReflect[i123.ParseError](),
-		"Ticker": makeReflect[i123.Ticker](),
-		"Time": makeReflect[i123.Time](),
-		"Timer": makeReflect[i123.Timer](),
-		"Weekday": makeReflect[i123.Weekday](),
+		"Duration": makeReflect[i131.Duration](),
+		"Location": makeReflect[i131.Location](),
+		"Month": makeReflect[i131.Month](),
+		"ParseError": makeReflect[i131.ParseError](),
+		"Ticker": makeReflect[i131.Ticker](),
+		"Time": makeReflect[i131.Time](),
+		"Timer": makeReflect[i131.Timer](),
+		"Weekday": makeReflect[i131.Weekday](),
 	}
 	stdtypes["unicode"] = map[string]reflect.Value{
-		"CaseRange": makeReflect[i124.CaseRange](),
-		"Range16": makeReflect[i124.Range16](),
-		"Range32": makeReflect[i124.Range32](),
-		"RangeTable": makeReflect[i124.RangeTable](),
+		"CaseRange": makeReflect[i132.CaseRange](),
+		"Range16": makeReflect[i132.Range16](),
+		"Range32": makeReflect[i132.Range32](),
+		"RangeTable": makeReflect[i132.RangeTable](),
 	}
 }
