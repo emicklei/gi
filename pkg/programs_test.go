@@ -223,8 +223,11 @@ func main() {
 }
 
 func TestSubpackage(t *testing.T) {
-	t.Skip()
 	testProgramIn(t, "../examples/subpkg", "yet unchecked")
+}
+
+func TestNestedPackages(t *testing.T) {
+	testProgramIn(t, "../examples/nestedpkgs", "yet unchecked")
 }
 
 func TestNestedLoop(t *testing.T) {

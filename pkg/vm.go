@@ -125,6 +125,8 @@ func (vm *VM) pushNewFrame(creator Func) {
 	}
 }
 
+// popFrame removes the top frame from the call stack and restores the previous frame.
+// by looking at the returnTo field of the popped frame, we can set the step of the new top frame to continue execution after the call.
 func (vm *VM) popFrame() {
 	if trace {
 		if len(vm.callStack) == 0 {
@@ -137,7 +139,7 @@ func (vm *VM) popFrame() {
 		vm.currentFrame = vm.callStack.top()
 		vm.currentFrame.step = frame.returnTo
 		if trace {
-			fmt.Printf("vm.currentFrame.%d: set to returnTo: %v\n", vm.currentFrame.id, vm.currentFrame.step)
+			fmt.Printf("vm.currentFrame.%d: set to returnTo: [%v]\n", vm.currentFrame.id, vm.currentFrame.step)
 		}
 	} else {
 		vm.currentFrame = nil
@@ -145,7 +147,7 @@ func (vm *VM) popFrame() {
 
 	// return env to pool
 	env, ok := frame.env.(*Environment)
-	// skip PkgEnvironment
+	// skip non Environment
 	if ok {
 		env.parentEnv = nil
 		// do not recycle environments that contain values referenced by a heap pointer
@@ -228,16 +230,28 @@ func (vm *VM) callPackageFunction(functionName string, args []any) ([]any, error
 // launch sets the call flow.
 func (vm *VM) launch(functionName string, args []any) {
 	vm.pushNewFrame(nil)
-	// make sure PkgEnvironment is active
+	// make sure PkgEnvironment is active ; not the frame's env.
 	vm.currentFrame.env = vm.pkg.env
 
-	initPkg := newFuncStep(token.NoPos, "initpkg", func(vm *VM) {
-		vm.pushNewFrame(nil)
-		// make sure PkgEnvironment is active. Needed?? TODO
-		vm.currentFrame.env = vm.pkg.env
-		vm.currentFrame.step = vm.buildInitializationGraph()
-	})
+	// create the call graph for all package initializations.
+	gb := newGraphBuilder(vm.pkg.Package)
 
+	var head Step
+
+	// TODO this only works for direct subpackages, we need to recursively initialize all subpackages in the correct order.
+	for _, sub := range vm.pkg.env.packages {
+		initSubPkgStep := sub.initializationStep()
+		if head == nil {
+			head = initSubPkgStep
+		}
+		gb.nextStep(initSubPkgStep)
+	}
+
+	// main as last
+	initPkgStep := vm.pkg.initializationStep()
+	gb.nextStep(initPkgStep)
+
+	// if there are arguments, we need to push them on the operand stack before the call
 	var pushArgs Step
 	if len(args) > 0 {
 		pushArgs = newFuncStep(token.NoPos, fmt.Sprintf("push args for %s.%s", vm.pkg.Name, functionName), func(vm *VM) {
@@ -258,8 +272,6 @@ func (vm *VM) launch(functionName string, args []any) {
 		fun:  Ident{name: functionName},
 		args: callArgs,
 	}
-	gb := newGraphBuilder(vm.pkg.Package)
-	gb.nextStep(initPkg)
 
 	// only if set
 	if pushArgs != nil {
@@ -267,23 +279,10 @@ func (vm *VM) launch(functionName string, args []any) {
 	}
 
 	call.flow(gb)
-	vm.currentFrame.step = initPkg // head of flow
-}
-
-// build the graph for initializating all packages recursively
-func (vm *VM) buildInitializationGraph() Step {
-	gb := newGraphBuilder(vm.pkg.Package)
-	seen := make(map[string]bool)
-	vm.buildInitGraph(gb, vm.pkg, seen)
-	return gb.current
-}
-
-func (vm *VM) buildInitGraph(gb *graphBuilder, pkg *Package, seen map[string]bool) {
-	if _, ok := seen[pkg.PkgPath]; ok {
-		return
+	if head == nil {
+		head = initPkgStep
 	}
-	// TODO
-	gb.current = pkg.callGraph
+	vm.currentFrame.step = head
 }
 
 func (vm *VM) printStack() {

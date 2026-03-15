@@ -268,7 +268,7 @@ func cursor(fs *token.FileSet, pos token.Pos) string {
 func printSteps(head Step) {
 	here := head
 	for here != nil {
-		fmt.Printf("next: %v\n", here)
+		fmt.Printf("step: %v\n", here)
 		here = here.Next()
 	}
 }

@@ -1,7 +1,7 @@
 gen:
 	cd cmd/genstdlib && go run .
 
-test: clean examples install
+test:
 	go test -p 16 ./pkg
 
 serial:

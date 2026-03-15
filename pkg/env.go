@@ -43,7 +43,7 @@ type PkgEnvironment struct {
 	declarations []Stmt
 	inits        []*FuncDecl
 	methods      []*FuncDecl
-	packageTable map[string]*Package // path -> *Package
+	packages     map[string]*Package // path -> *Package
 	dotPackages  *DotPackages
 }
 
@@ -56,9 +56,9 @@ func newBuiltinsEnvironment(parent Env) Env {
 
 func newPkgEnvironment(parent Env) *PkgEnvironment {
 	return &PkgEnvironment{
-		Env:          newEnvironment(parent),
-		packageTable: map[string]*Package{},
-		dotPackages:  new(DotPackages),
+		Env:         newEnvironment(parent),
+		packages:    map[string]*Package{},
+		dotPackages: new(DotPackages),
 	}
 }
 func (p *PkgEnvironment) addInit(f *FuncDecl) {
@@ -93,10 +93,10 @@ func (p *PkgEnvironment) valueLookUp(name string) reflect.Value {
 }
 
 func (p *PkgEnvironment) String() string {
-	if p == nil || p.packageTable == nil {
+	if p == nil || p.packages == nil {
 		return "PkgEnvironment(<nil>)"
 	}
-	return fmt.Sprintf("PkgEnvironment(pkgs=%d)", len(p.packageTable))
+	return fmt.Sprintf("PkgEnvironment(pkgs=%d)", len(p.packages))
 }
 
 func (p *PkgEnvironment) newChild() Env {
@@ -116,7 +116,7 @@ func (p *PkgEnvironment) appendVariables(vars []dap.Variable) []dap.Variable {
 		if _, ok := builtins[k]; ok {
 			continue
 		}
-		if _, ok := p.packageTable[k]; ok {
+		if _, ok := p.packages[k]; ok {
 			continue
 		}
 		if _, ok := v.Interface().(SDKPackage); ok {

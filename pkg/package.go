@@ -24,14 +24,6 @@ func (p *Package) selectByName(name string) reflect.Value {
 }
 
 func (p *Package) flow(g *graphBuilder) (head Step) {
-	// first all subpackages, recursively, then resolve declarations, then inits
-	for _, subpkg := range p.env.packageTable {
-		subFlow := subpkg.flow(g)
-		if head == nil {
-			head = subFlow
-		}
-		g.nextStep(subFlow)
-	}
 	if len(p.env.declarations) > 0 {
 		// use for statement to eval all declarations until all are declared, then move to inits
 		doneVarName := internalVarName("done", g.idgen)
@@ -76,10 +68,7 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 			cond: cond,
 			body: &body,
 		}
-		loop := forStmt.flowWithOptions(g, true) // do not create a new environment for the loop
-		if head == nil {
-			head = loop
-		}
+		head = forStmt.flowWithOptions(g, true) // do not create a new environment for the loop
 		// remove done variable after resolving declarations
 		g.nextStep(newFuncStep(token.NoPos, "unset done", func(vm *VM) {
 			vm.currentEnv().valueUnset(doneVarName)
@@ -100,6 +89,15 @@ func (p *Package) flow(g *graphBuilder) (head Step) {
 	}
 	g.nextStep(popFrameStep)
 	return
+}
+
+func (p *Package) initializationStep() Step {
+	return newFuncStep(token.NoPos, "initialize "+p.Name, func(vm *VM) {
+		vm.pushNewFrame(nil) // this frame is popped in the last step of Package.flow
+		// make sure PkgEnvironment is active.
+		vm.currentFrame.env = p.env
+		vm.currentFrame.step = p.callGraph
+	})
 }
 
 func (p *Package) moveMethodsToInterpretedTypes() error {

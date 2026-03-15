@@ -413,7 +413,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 
 		// handle local file system package
 		root := b.env.rootPackageEnv()
-		ffpkg := root.packageTable[unq]
+		ffpkg := root.packages[unq]
 		if ffpkg == nil {
 			// strip module prefix
 			loc, err := filepath.Abs(filepath.Join("..", unq))
@@ -431,7 +431,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 				b.buildErr = fmt.Errorf("failed to build imported package %s: %v", unq, err)
 				break
 			}
-			root.packageTable[unq] = pkg
+			root.packages[unq] = pkg
 			ffpkg = pkg
 		}
 		b.envSetPackage(ffpkg.Name, reflect.ValueOf(ffpkg))
