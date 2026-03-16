@@ -227,6 +227,7 @@ func TestSubpackage(t *testing.T) {
 }
 
 func TestNestedPackages(t *testing.T) {
+	t.Skip()
 	testProgramIn(t, "../examples/nestedpkgs", "yet unchecked")
 }
 

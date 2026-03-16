@@ -18,12 +18,12 @@ type stmtReference struct {
 }
 
 type FuncDecl struct {
-	funcName *Ident
-	recv     *FieldList // non-nil for methods
-	body     *BlockStmt
-	typ      *FuncType
-	// control flow graph
-	graph Step
+	env       Env // in which this function is declared; needed for lookup of free variables
+	funcName  *Ident
+	recv      *FieldList // non-nil for methods
+	body      *BlockStmt
+	typ       *FuncType
+	callGraph Step
 	// goto targets
 	labelToStmt map[string]stmtReference
 	// for source access of any statement/expression within this function
@@ -43,6 +43,9 @@ func (f *FuncDecl) flow(g *graphBuilder) (head Step) {
 	return
 }
 
+func (f *FuncDecl) parentEnv(vm *VM) Env {
+	return f.env
+}
 func (f *FuncDecl) setHasRecoverCall(bool) { f.callsRecover = true }
 func (f *FuncDecl) hasRecoverCall() bool   { return f.callsRecover }
 func (f *FuncDecl) putGotoReference(label string, ref stmtReference) {
@@ -128,7 +131,8 @@ func isRecoverCall(expr Expr) bool {
 	return false
 }
 
-var _ Expr = &FuncLit{}
+var _ Expr = (*FuncLit)(nil)
+var _ Func = (*FuncLit)(nil)
 
 type FuncLit struct {
 	Type      *FuncType
@@ -150,6 +154,9 @@ func (f *FuncLit) flow(g *graphBuilder) (head Step) {
 
 func (f *FuncLit) pos() token.Pos { return f.Type.pos() }
 
+func (f *FuncLit) parentEnv(vm *VM) Env {
+	return vm.currentEnv()
+}
 func (f *FuncLit) setHasRecoverCall(bool) { f.callsRecover = true }
 func (f *FuncLit) hasRecoverCall() bool   { return f.callsRecover }
 func (f *FuncLit) putGotoReference(label string, ref stmtReference) {

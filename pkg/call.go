@@ -285,7 +285,7 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 	setParametersForFrame(fd.typ, args, vm, frame)
 	setZeroReturnsForFrame(fd.typ, vm, frame)
 
-	vm.currentFrame.step = fd.graph
+	vm.currentFrame.step = fd.callGraph
 }
 
 func setZeroReturnsForFrame(ft *FuncType, vm *VM, frame *stackFrame) {

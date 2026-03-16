@@ -520,8 +520,9 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 	case *ast.FuncDecl:
 		// any declarations inside the function scope
 		b.pushEnv()
-		// create pointer to FuncDecl to allow modification later at buildtime
-		s := &FuncDecl{fileSet: b.goPkg.Fset}
+
+		// take address of FuncDecl to allow modification later at buildtime
+		s := &FuncDecl{env: b.env.parent(), fileSet: b.goPkg.Fset}
 
 		b.pushFunc(s, n.Body.List)
 		defer b.popFunc()
@@ -555,7 +556,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 
 		// store call graph in the FuncDecl
 		g := newGraphBuilder(b.goPkg)
-		s.graph = s.flow(g)
+		s.callGraph = s.flow(g)
 
 		// leave the function scope
 		b.popEnv()

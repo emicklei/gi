@@ -89,6 +89,7 @@ type Func interface {
 	gotoReference(label string) stmtReference
 	results() *FieldList
 	pos() token.Pos
+	parentEnv(vm *VM) Env
 }
 
 // for gi internal use

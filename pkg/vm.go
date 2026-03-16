@@ -108,8 +108,11 @@ func (vm *VM) pushNewFrame(creator Func) {
 	vm.frameIdSeq++
 	frame.callee = creator
 	env := envPool.Get().(*Environment)
-	env.parentEnv = vm.currentEnv()
 	frame.env = env
+	//env.parentEnv = vm.currentEnv()
+	if creator != nil {
+		env.parentEnv = creator.parentEnv(vm)
+	}
 
 	// remember return
 	if vm.currentFrame != nil && vm.currentFrame.step != nil {

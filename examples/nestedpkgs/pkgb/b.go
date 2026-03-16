@@ -10,3 +10,7 @@ func init() {
 	println("init B")
 	println("pkgb refs", pkga.A)
 }
+
+func Print() {
+	println("Printed", B)
+}

@@ -154,11 +154,11 @@ func (p *Package) writeCallGraph(fileName string) {
 	values := p.env.Env.(*Environment).valueTable
 	for k, v := range values {
 		if funDecl, ok := v.Interface().(*FuncDecl); ok {
-			if funDecl.graph == nil {
+			if funDecl.callGraph == nil {
 				continue
 			}
 			sub := g.Subgraph(k, dot.ClusterOption{})
-			funDecl.graph.traverse(sub, p.Fset)
+			funDecl.callGraph.traverse(sub, p.Fset)
 		}
 	}
 	os.WriteFile(fileName, []byte(g.String()), 0644)
