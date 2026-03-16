@@ -10,7 +10,7 @@ var _ Stmt = AssignStmt{}
 
 type AssignStmt struct {
 	tokPos      token.Pos   // position of Tok
-	tok         token.Token // assignment token, DEFINE
+	tok         token.Token // assignment token, DEFINE :=, ASSIGN =, ADD_ASSIGN +=, SUB_ASSIGN -=, etc.
 	lhs         []Expr
 	rhs         []Expr
 	rhsBinFuncs []BinaryExprFunc // computed at build time
