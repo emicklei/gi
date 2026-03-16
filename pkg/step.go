@@ -123,13 +123,8 @@ func (c *conditionalStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
 	}
 	me := c.step.traverseWithLabel(g, c.String(), "true", fs)
 	if c.elseFlow != nil {
-		sid := strconv.Itoa(c.elseFlow.ID())
-		// no edge if visited before
-		_, ok := g.FindNodeById(sid)
-		if !ok {
-			falseN := c.elseFlow.traverse(g, fs)
-			me.Edge(falseN, "false")
-		}
+		falseN := c.elseFlow.traverse(g, fs)
+		me.Edge(falseN, "false")
 	}
 	return me
 }

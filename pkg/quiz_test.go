@@ -7,6 +7,7 @@ import "testing"
 
 func TestQuiz1(t *testing.T) {
 	t.Skip()
+	defer debug(t)()
 	testMain(t, `package main
 
 func main() {
@@ -17,6 +18,17 @@ func main() {
 	                p = &i
 	        }
 	}
+	print(*p)
+}`, "2")
+}
+
+func TestQuiz1Slim(t *testing.T) {
+	testMain(t, `package main
+
+func main() {
+	i := 2
+	var p *int
+	p = &i
 	print(*p)
 }`, "2")
 }
