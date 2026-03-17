@@ -1,6 +1,8 @@
 [![Go](https://github.com/emicklei/gi/actions/workflows/go.yml/badge.svg)](https://github.com/emicklei/gi/actions/workflows/go.yml)
 [![GoDoc](https://pkg.go.dev/badge/github.com/emicklei/gi)](https://pkg.go.dev/github.com/emicklei/gi)
+[![go.mod Go version](https://img.shields.io/github/go-mod/go-version/emicklei/gi)](https://github.com/emicklei/gi)
 [![codecov](https://codecov.io/gh/emicklei/gi/branch/main/graph/badge.svg)](https://codecov.io/gh/emicklei/gi)
+[![Go Report Card](https://goreportcard.com/badge/github.com/emicklei/gi)](https://goreportcard.com/report/github.com/emicklei/gi)
 [![examples](https://img.shields.io/badge/dynamic/json?url=https://ernestmicklei.com/treerunner-report.json&query=$.label&label=gobyexample)](https://ernestmicklei.com/treerunner-report.json)
 
 `gi` is a Go interpreter that creates an executable representation of a Go program from source.
@@ -14,7 +16,6 @@ It offers a virtual machine that can step through such a program and allows acce
 
 ### runtime
 
-- support latest Go SDK
 - support type parameterization (generics)
 - support Go modules (will require pre-compilation)
 
