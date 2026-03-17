@@ -62,14 +62,14 @@ func (vm *VM) pushOperand(v reflect.Value) {
 		before := len(vm.currentFrame.operands)
 		if v.IsValid() && v.CanInterface() {
 			if v == reflectNil {
-				fmt.Printf("~~ frame.%d.push [%d->%d]: untyped nil\n", vm.currentFrame.id, before, before+1)
+				fmt.Printf("   frame.%d.push [%d→%d]: untyped nil\n", vm.currentFrame.id, before, before+1)
 			} else if isUndeclared(v) {
-				fmt.Printf("~~ frame.%d.push [%d->%d]: %v (undeclared)\n", vm.currentFrame.id, before, before+1, v)
+				fmt.Printf("   frame.%d.push [%d→%d]: <undeclared>\n", vm.currentFrame.id, before, before+1)
 			} else {
-				fmt.Printf("~~ frame.%d.push [%d->%d]: %v (%T)\n", vm.currentFrame.id, before, before+1, v.Interface(), v.Interface())
+				fmt.Printf("   frame.%d.push [%d→%d]: %s (%T)\n", vm.currentFrame.id, before, before+1, stringOf(v.Interface()), v.Interface())
 			}
 		} else {
-			fmt.Printf("~~ frame.%d.push [%d->%d]: %v\n", vm.currentFrame.id, before, before+1, v)
+			fmt.Printf("   frame.%d.push [%d→%d]: %v\n", vm.currentFrame.id, before, before+1, v)
 		}
 	}
 	vm.currentFrame.push(v)
@@ -94,9 +94,9 @@ func (vm *VM) popOperand() reflect.Value {
 	if trace {
 		before := len(vm.currentFrame.operands)
 		if popped.IsValid() && popped.CanInterface() {
-			fmt.Printf("~~ frame.%d.pop [%d->%d]: %s (%T)\n", vm.currentFrame.id, before+1, before, stringOf(popped), popped.Interface())
+			fmt.Printf("   frame.%d.pop  [%d→%d]: %s (%T)\n", vm.currentFrame.id, before+1, before, stringOf(popped), popped.Interface())
 		} else {
-			fmt.Printf("~~ frame.%d.pop [%d->%d]: %s\n", vm.currentFrame.id, before+1, before, stringOf(popped))
+			fmt.Printf("   frame.%d.pop  [%d→%d]: %s\n", vm.currentFrame.id, before+1, before, stringOf(popped))
 		}
 	}
 	return popped

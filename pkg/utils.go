@@ -197,10 +197,10 @@ func isPointerToStructValue(v reflect.Value) bool {
 func stringOf(v any) string {
 	// Note: the order of tests is important!
 	if v == undeclaredNil {
-		return "(0x0,0x0)"
+		return "<undeclared>"
 	}
 	if v == untypedNil {
-		return "(0x0,0x0)"
+		return "<untyped nil>"
 	}
 	if v == nil {
 		return "nil"
@@ -237,7 +237,7 @@ func stringOf(v any) string {
 	return fmt.Sprintf("%v", v)
 }
 
-func typeNameOf(v any) string { return "any" }
+func typeNameOf(_ any) string { return "any" }
 
 func isNonSDKFunction(rv reflect.Value) bool {
 	if !rv.IsValid() {
