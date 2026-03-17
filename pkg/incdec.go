@@ -37,6 +37,14 @@ func (i IncDecStmt) eval(vm *VM) {
 			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(int(val.Int()+1)))
 			}
+		case reflect.Int8:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(int8(val.Int()+1)))
+			}
+		case reflect.Int16:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(int16(val.Int()+1)))
+			}
 		case reflect.Int32:
 			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(int32(val.Int()+1)))
@@ -44,6 +52,26 @@ func (i IncDecStmt) eval(vm *VM) {
 		case reflect.Int64:
 			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(int64(val.Int()+1)))
+			}
+		case reflect.Uint:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(uint(val.Uint()+1)))
+			}
+		case reflect.Uint8:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(uint8(val.Uint()+1)))
+			}
+		case reflect.Uint16:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(uint16(val.Uint()+1)))
+			}
+		case reflect.Uint32:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(uint32(val.Uint()+1)))
+			}
+		case reflect.Uint64:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(val.Uint()+1))
 			}
 		case reflect.Float32:
 			if a, ok := i.x.(CanAssign); ok {
@@ -62,6 +90,14 @@ func (i IncDecStmt) eval(vm *VM) {
 			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(int(val.Int()-1)))
 			}
+		case reflect.Int8:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(int8(val.Int()-1)))
+			}
+		case reflect.Int16:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(int16(val.Int()-1)))
+			}
 		case reflect.Int32:
 			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(int32(val.Int()-1)))
@@ -70,13 +106,33 @@ func (i IncDecStmt) eval(vm *VM) {
 			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(val.Int()-1))
 			}
-		case reflect.Float64:
+		case reflect.Uint:
 			if a, ok := i.x.(CanAssign); ok {
-				a.assign(vm, reflect.ValueOf(val.Float()-1))
+				a.assign(vm, reflect.ValueOf(uint(val.Uint()-1)))
+			}
+		case reflect.Uint8:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(uint8(val.Uint()-1)))
+			}
+		case reflect.Uint16:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(uint16(val.Uint()-1)))
+			}
+		case reflect.Uint32:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(uint32(val.Uint()-1)))
+			}
+		case reflect.Uint64:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(val.Uint()-1))
 			}
 		case reflect.Float32:
 			if a, ok := i.x.(CanAssign); ok {
 				a.assign(vm, reflect.ValueOf(float32(val.Float()-1)))
+			}
+		case reflect.Float64:
+			if a, ok := i.x.(CanAssign); ok {
+				a.assign(vm, reflect.ValueOf(val.Float()-1))
 			}
 		default:
 			panic("unsupported type for -- :" + val.Kind().String())
