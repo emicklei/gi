@@ -1,5 +1,3 @@
-![gi logo](docs/gi-logo.png)
-
 [![Go](https://github.com/emicklei/gi/actions/workflows/go.yml/badge.svg)](https://github.com/emicklei/gi/actions/workflows/go.yml)
 [![GoDoc](https://pkg.go.dev/badge/github.com/emicklei/gi)](https://pkg.go.dev/github.com/emicklei/gi)
 [![codecov](https://codecov.io/gh/emicklei/gi/branch/main/graph/badge.svg)](https://codecov.io/gh/emicklei/gi)
@@ -7,6 +5,8 @@
 
 `gi` is a Go interpreter that creates an executable representation of a Go program from source.
 It offers a virtual machine that can step through such a program and allows access to the full stack and scoped variables (environment).
+
+![gi logo](docs/gi-logo.png)
 
 `gi` is implemented using Go reflection API so one can expect 10x slower program execution depending on the complexity.
 
@@ -20,7 +20,7 @@ It offers a virtual machine that can step through such a program and allows acce
 
 ### debugging
 
-- offer a DAP interface
+- offer a [DAP](https://microsoft.github.io/debug-adapter-protocol) interface
 - handle source changes during a debugging session:
 	- change a function definition
 	- change a struct definition
