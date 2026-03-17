@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -124,4 +125,57 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 	if got != want {
 		t.Fatalf("unexpected output: got %q, want %q", got, want)
 	}
+}
+
+func printSteps(head Step) {
+	here := head
+	for here != nil {
+		fmt.Printf("step: %v\n", here)
+		here = here.Next()
+	}
+}
+
+// prints types and values
+func console(all ...any) {
+	fmt.Print("console:\n")
+	for _, v := range all {
+		fmt.Printf("\t%s (%T)\n", stringOf(v), v)
+	}
+}
+
+// used?
+func isPointerToStructValue(v reflect.Value) bool {
+	if v.Kind() != reflect.Pointer {
+		return false
+	}
+	if v.Elem().Kind() != reflect.Struct {
+		return false
+	}
+	if v.Elem().Type().Name() != "StructValue" {
+		return false
+	}
+	// not exact package match to allow source code forks
+	if !strings.HasSuffix(v.Elem().Type().PkgPath(), "/gi/pkg") {
+		return false
+	}
+	return true
+}
+
+// used?
+func isNonSDKFunction(rv reflect.Value) bool {
+	if !rv.IsValid() {
+		return false
+	}
+	if !rv.CanInterface() {
+		return false
+	}
+	switch rv.Interface().(type) {
+	case builtinFunc:
+		return true
+	case *FuncDecl:
+		return true
+	case *FuncLit:
+		return true
+	}
+	return false
 }

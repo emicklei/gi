@@ -15,14 +15,6 @@ type step struct {
 	//pos  token.Pos
 }
 
-func (s *step) tail() Step {
-	var here Step = s
-	for next := here.Next(); next != nil; {
-		here = next
-	}
-	return here
-}
-
 func (s *step) ID() int {
 	return s.id
 }
@@ -314,16 +306,4 @@ func (e funcStep) String() string {
 
 func (e funcStep) traverse(g *dot.Graph, fs *token.FileSet) dot.Node {
 	return e.step.traverseWithLabel(g, fmt.Sprintf("%2d: ~exec %s", e.ID(), e.label), cursor(fs, e.pos()), fs)
-}
-
-// factories
-func newPushFrameStep() *funcStep {
-	return newFuncStep(token.NoPos, "push frame", func(vm *VM) {
-		vm.pushNewFrame(nil)
-	})
-}
-func newPopFrameStep() *funcStep {
-	return newFuncStep(token.NoPos, "pop frame", func(vm *VM) {
-		vm.popFrame()
-	})
 }

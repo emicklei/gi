@@ -110,7 +110,7 @@ func (c CallExpr) handleFunc(vm *VM, fn reflect.Value) {
 		}
 	}
 	vals := fn.Call(args)
-	pushCallResults(vm, vals)
+	vm.pushOperands(vals...)
 }
 
 func (c CallExpr) handleExtendedType(vm *VM, et ExtendedType) {
@@ -125,11 +125,11 @@ func (c CallExpr) handleExtendedType(vm *VM, et ExtendedType) {
 func (c CallExpr) handleBuiltinType(vm *VM, blt builtinType) {
 	arg := vm.popOperand()
 	if arg == reflectNil {
-		pushCallResults(vm, []reflect.Value{blt.prtZeroValue})
+		vm.pushOperands(blt.prtZeroValue)
 		return
 	}
 	vals := blt.convertFunc.Call([]reflect.Value{arg})
-	pushCallResults(vm, vals)
+	vm.pushOperands(vals...)
 }
 
 // pre: not a method from an interface type
@@ -148,7 +148,7 @@ func (c CallExpr) handleReflectMethod(vm *VM, rm reflect.Method) {
 
 	// Call the method using rm.Func
 	vals := rm.Func.Call(args)
-	pushCallResults(vm, vals)
+	vm.pushOperands(vals...)
 }
 
 func (c CallExpr) handleArrayType(vm *VM, at ArrayType) {
@@ -401,25 +401,6 @@ func postCallFunc(vm *VM) {
 	}
 	b.nextStep(popFrameAndPushResultsStep)
 	vm.currentFrame.step = head
-}
-
-// TODO merge with postCallFunc?
-func callDefers(vm *VM) {
-	// need to create flow in which each defer function is called.
-	// use statements to build graph
-	//
-	// TODO: alternative: direct graph building??
-	frame := vm.currentFrame
-	block := BlockStmt{}
-	for i := len(frame.defers) - 1; i >= 0; i-- {
-		invocation := frame.defers[i]
-		stmt := ExprStmt{x: DeferCallExpr{CallExpr: invocation.call.(CallExpr)}}
-		push := &pushArgumentsStmt{args: invocation.arguments}
-		block.list = append(block.list, push, stmt)
-	}
-	b := newGraphBuilder(vm.pkg.Package)
-	vm.currentFrame.step = block.flow(b)
-	printSteps(vm.currentFrame.step)
 }
 
 func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {

@@ -6,7 +6,6 @@ import (
 	"io"
 	"path/filepath"
 	"reflect"
-	"strings"
 )
 
 // reflectCondition converts a boolean to shared reflect.Value.
@@ -51,13 +50,6 @@ func mustIdentName(e Expr) string {
 		return id.name
 	}
 	panic(fmt.Sprintf("expected Ident but got %T", e))
-}
-
-// Deprecated: use vm.pushOerands instead
-func pushCallResults(vm *VM, vals []reflect.Value) {
-	for i := len(vals) - 1; i >= 0; i-- {
-		vm.pushOperand(vals[i])
-	}
 }
 
 // makeReflect is a helper function used in generated code to create reflect.Value of a type T.
@@ -152,14 +144,6 @@ func format(w io.Writer, verb rune, val any) {
 	}
 }
 
-// prints types and values
-func console(all ...any) {
-	fmt.Print("console:\n")
-	for _, v := range all {
-		fmt.Printf("\t%s (%T)\n", stringOf(v), v)
-	}
-}
-
 func internalVarName(meaning string, seq int) string {
 	return fmt.Sprintf("_%s_%d", meaning, seq)
 }
@@ -175,23 +159,6 @@ func fieldTypeExpr(fields *FieldList, index int) Expr {
 		}
 	}
 	return nil
-}
-
-func isPointerToStructValue(v reflect.Value) bool {
-	if v.Kind() != reflect.Pointer {
-		return false
-	}
-	if v.Elem().Kind() != reflect.Struct {
-		return false
-	}
-	if v.Elem().Type().Name() != "StructValue" {
-		return false
-	}
-	// not exact package match to allow source code forks
-	if !strings.HasSuffix(v.Elem().Type().PkgPath(), "/gi/pkg") {
-		return false
-	}
-	return true
 }
 
 func stringOf(v any) string {
@@ -239,36 +206,10 @@ func stringOf(v any) string {
 
 func typeNameOf(_ any) string { return "any" }
 
-func isNonSDKFunction(rv reflect.Value) bool {
-	if !rv.IsValid() {
-		return false
-	}
-	if !rv.CanInterface() {
-		return false
-	}
-	switch rv.Interface().(type) {
-	case builtinFunc:
-		return true
-	case *FuncDecl:
-		return true
-	case *FuncLit:
-		return true
-	}
-	return false
-}
-
 func cursor(fs *token.FileSet, pos token.Pos) string {
 	if pos == token.NoPos {
 		return "<no position info>"
 	}
 	loc := fs.Position(pos)
 	return fmt.Sprintf("%s:%d:%d", filepath.Base(loc.Filename), loc.Line, loc.Column)
-}
-
-func printSteps(head Step) {
-	here := head
-	for here != nil {
-		fmt.Printf("step: %v\n", here)
-		here = here.Next()
-	}
 }

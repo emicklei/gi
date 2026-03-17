@@ -26,7 +26,7 @@ type Env interface {
 	rootPackageEnv() *PkgEnvironment
 
 	// others
-	funcLookUp(name string) reflect.Value
+	//funcLookUp(name string) reflect.Value
 	addDeclaration(stmt Stmt)
 
 	// if marked, this env has references that escape to the heap
