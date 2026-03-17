@@ -268,7 +268,7 @@ func TestNilError(t *testing.T) {
 func main() {
 	var err error = nil
 	print(err)
-}`, "(0x0,0x0)")
+}`, "<untyped nil>")
 }
 
 func TestError(t *testing.T) {
