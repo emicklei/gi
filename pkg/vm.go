@@ -230,62 +230,40 @@ func (vm *VM) callPackageFunction(functionName string, args []any) ([]any, error
 	return vals, nil
 }
 
-// launch sets the call flow.
+// launch sets up the call flow.
 func (vm *VM) launch(functionName string, args []any) {
 	vm.pushNewFrame(nil)
+
 	// make sure PkgEnvironment is active ; not the frame's env.
 	vm.currentFrame.env = vm.pkg.env
 
 	// create the call graph for all package initializations.
 	gb := newGraphBuilder(vm.pkg.Package)
+	vm.pkg.addInitializationStep(gb, map[string]bool{})
 
-	var head Step
-
-	// TODO this only works for direct subpackages, we need to recursively initialize all subpackages in the correct order.
-	for _, sub := range vm.pkg.env.packages {
-		initSubPkgStep := sub.initializationStep()
-		if head == nil {
-			head = initSubPkgStep
-		}
-		gb.nextStep(initSubPkgStep)
-	}
-
-	// main as last
-	initPkgStep := vm.pkg.initializationStep()
-	gb.nextStep(initPkgStep)
+	// make a CallExpr and reuse its logic to set up the call
+	call := CallExpr{fun: Ident{name: functionName}}
 
 	// if there are arguments, we need to push them on the operand stack before the call
-	var pushArgs Step
+	var pushArgsStep Step
 	if len(args) > 0 {
-		pushArgs = newFuncStep(token.NoPos, fmt.Sprintf("push args for %s.%s", vm.pkg.Name, functionName), func(vm *VM) {
+		pushArgsStep = newFuncStep(token.NoPos, fmt.Sprintf("push args for %s.%s", vm.pkg.Name, functionName), func(vm *VM) {
 			// push arguments as parameters on the operand stack, in reverse order
 			for i := len(args) - 1; i >= 0; i-- {
 				vm.pushOperand(reflect.ValueOf(args[i]))
 			}
 		})
+		// add noop expressions as arguments; the values will be pushed on the operand stack
+		callArgs := make([]Expr, len(args))
+		for i := range len(args) {
+			callArgs[i] = noExpr{}
+		}
+		// update the call with actual args
+		call.args = callArgs
+		gb.nextStep(pushArgsStep)
 	}
-
-	// add noop expressions as arguments; the values will be pushed on the operand stack
-	callArgs := make([]Expr, len(args))
-	for i := range len(args) {
-		callArgs[i] = noExpr{}
-	}
-	// make a CallExpr and reuse its logic to set up the call
-	call := CallExpr{
-		fun:  Ident{name: functionName},
-		args: callArgs,
-	}
-
-	// only if set
-	if pushArgs != nil {
-		gb.nextStep(pushArgs)
-	}
-
 	call.flow(gb)
-	if head == nil {
-		head = initPkgStep
-	}
-	vm.currentFrame.step = head
+	vm.currentFrame.step = gb.head
 }
 
 func (vm *VM) printStack() {

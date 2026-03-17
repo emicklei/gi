@@ -100,6 +100,18 @@ func (p *Package) initializationStep() Step {
 	})
 }
 
+// addInitializationStep recursively adds the initializationStep for each imported (interpreted) Package.
+func (p *Package) addInitializationStep(gb *graphBuilder, seen map[string]bool) {
+	if _, ok := seen[p.PkgPath]; ok {
+		return
+	}
+	seen[p.PkgPath] = true
+	for _, sub := range p.env.packages {
+		sub.addInitializationStep(gb, seen)
+	}
+	gb.nextStep(p.initializationStep())
+}
+
 func (p *Package) moveMethodsToInterpretedTypes() error {
 	for _, decl := range p.env.methods {
 		recvType := decl.recv.List[0].typ

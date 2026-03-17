@@ -45,7 +45,7 @@
 | Channels `chan` | ✅ |
 | dot imports | ✅ | 
 | reflect | ✅ |
-| Subpackages | ⬜ |
+| Subpackages | ✅ |
 | Range over iterator | ⬜ | 
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
