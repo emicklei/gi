@@ -127,22 +127,6 @@ func testMain(t *testing.T, source string, wantFuncOrString any) {
 	}
 }
 
-func printSteps(head Step) {
-	here := head
-	for here != nil {
-		fmt.Printf("step: %v\n", here)
-		here = here.Next()
-	}
-}
-
-// prints types and values
-func console(all ...any) {
-	fmt.Print("console:\n")
-	for _, v := range all {
-		fmt.Printf("\t%s (%T)\n", stringOf(v), v)
-	}
-}
-
 // used?
 func isPointerToStructValue(v reflect.Value) bool {
 	if v.Kind() != reflect.Pointer {

@@ -194,13 +194,12 @@ func (c CallExpr) evalNew(vm *VM) {
 
 func (c CallExpr) evalRecover(vm *VM) {
 	recoverVarName := internalVarName("recover", 0) // TODO make constant
-	env := vm.currentEnv().valueOwnerOf(recoverVarName)
+	env, val := vm.currentEnv().valueOwnerOf(recoverVarName)
 	if env == nil {
 		// nothing to recover from
 		vm.pushOperand(reflectNil)
 		return
 	}
-	val := env.valueLookUp(recoverVarName)
 	env.valueUnset(recoverVarName)
 	vm.pushOperand(val)
 }

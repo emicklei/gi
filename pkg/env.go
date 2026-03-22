@@ -14,7 +14,7 @@ var trace = os.Getenv("GI_TRACE") != ""
 type Env interface {
 	// value access, returns reflectUndeclared if not found
 	valueLookUp(name string) reflect.Value
-	valueOwnerOf(name string) Env
+	valueOwnerOf(name string) (Env, reflect.Value)
 	valueSet(name string, value reflect.Value)
 	valueUnset(name string)
 	typeLookUp(name string) reflect.Type
@@ -231,14 +231,15 @@ func (e *Environment) typeLookUp(name string) reflect.Type {
 	return v.Interface().(builtinType).typ
 }
 
-func (e *Environment) valueOwnerOf(name string) Env {
+// returns the Environment and the value by name where it was declared. returns relfectUndeclared if missing.
+func (e *Environment) valueOwnerOf(name string) (owner Env, val reflect.Value) {
 	current := e
 	for current != nil {
-		if _, ok := current.valueTable[name]; ok {
-			return current
+		if v, ok := current.valueTable[name]; ok {
+			return current, v
 		}
 		if current.parentEnv == nil {
-			return nil
+			return nil, reflectUndeclared
 		}
 		// Continue iteration if parent is also an *Environment
 		if env, ok := current.parentEnv.(*Environment); ok {
@@ -248,7 +249,7 @@ func (e *Environment) valueOwnerOf(name string) Env {
 			return current.parentEnv.valueOwnerOf(name)
 		}
 	}
-	return nil
+	return nil, reflectUndeclared
 }
 
 func (e *Environment) valueSet(name string, value reflect.Value) {

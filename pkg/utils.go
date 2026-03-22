@@ -213,3 +213,20 @@ func cursor(fs *token.FileSet, pos token.Pos) string {
 	loc := fs.Position(pos)
 	return fmt.Sprintf("%s:%d:%d", filepath.Base(loc.Filename), loc.Line, loc.Column)
 }
+
+// for debugging
+func printSteps(head Step) {
+	here := head
+	for here != nil {
+		fmt.Printf("step: %v\n", here)
+		here = here.Next()
+	}
+}
+
+// for debugging
+func console(all ...any) {
+	fmt.Print("console:\n")
+	for _, v := range all {
+		fmt.Printf("\t%s (%T)\n", stringOf(v), v)
+	}
+}
