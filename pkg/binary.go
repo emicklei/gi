@@ -35,6 +35,8 @@ func (b BinaryExpr) eval(vm *VM) {
 		vm.pushOperand(left)
 		return
 	}
+	left, right = deref(vm, left), deref(vm, right)
+
 	// if set then use the precompiled function
 	if b.binaryFunc != nil {
 		vm.pushOperand(b.binaryFunc(left, right))
@@ -46,6 +48,16 @@ func (b BinaryExpr) eval(vm *VM) {
 		right: right,
 	}
 	vm.pushOperand(v.eval())
+}
+
+func deref(vm *VM, val reflect.Value) reflect.Value {
+	if val.Kind() != reflect.Pointer {
+		return val
+	}
+	if hp, ok := val.Interface().(*HeapPointer); ok {
+		return vm.heap.read(hp)
+	}
+	return val
 }
 
 func (b BinaryExpr) flow(g *graphBuilder) (head Step) {

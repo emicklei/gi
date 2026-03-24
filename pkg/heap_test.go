@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -100,13 +101,13 @@ func TestAsHeapPointer(t *testing.T) {
 
 func TestHeapPointerString(t *testing.T) {
 	hp := &HeapPointer{Addr: 0x123}
-	if hp.String() != "0x123" {
+	if !strings.HasPrefix(hp.String(), "0x123") {
 		t.Errorf("expected '0x123', got %s", hp.String())
 	}
 
 	hpEnv := &HeapPointer{Addr: 0x456, EnvVarName: "myVar", EnvRef: newEnvironment(nil)}
 	expected := "0x456 (myVar)"
-	if hpEnv.String() != expected {
+	if !strings.HasPrefix(hpEnv.String(), expected) {
 		t.Errorf("expected '%s', got %s", expected, hpEnv.String())
 	}
 }

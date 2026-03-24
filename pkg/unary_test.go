@@ -95,3 +95,14 @@ func TestUnaryComplex(t *testing.T) {
 		})
 	}
 }
+
+func TestHeapVarTest(t *testing.T) {
+	testMain(t, `package main
+
+	func main() {
+	a := 1
+	p := &a
+	a = 2
+	print(*p,a+1)
+}`, "23")
+}

@@ -22,7 +22,17 @@ func (i Ident) assign(vm *VM, value reflect.Value) {
 	if i.name == "_" {
 		return
 	}
-	owner := vm.currentEnv().valueOwnerOf(i.name)
+	// if undeclared then set it
+	owner, oldValue := vm.currentEnv().valueOwnerOf(i.name)
+	if oldValue == reflectUndeclared {
+		owner.valueSet(i.name, value)
+		return
+	}
+	// if allocated on the heap then update the pointers value
+	if hp, ok := oldValue.Interface().(*HeapPointer); ok {
+		vm.heap.write(hp, value)
+		return
+	}
 	owner.valueSet(i.name, value)
 }
 func (i Ident) define(vm *VM, value reflect.Value) {

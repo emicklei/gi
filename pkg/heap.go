@@ -50,7 +50,7 @@ func (hp *HeapPointer) UnmarshalJSON(data []byte) error {
 // String formats the HeapPointer to look like a real pointer address.
 func (hp *HeapPointer) String() string {
 	if hp.EnvRef != nil {
-		return fmt.Sprintf("0x%x (%s)", hp.Addr, hp.EnvVarName)
+		return fmt.Sprintf("0x%x (%s) {%p}", hp.Addr, hp.EnvVarName, hp.EnvRef)
 	}
 	return fmt.Sprintf("0x%x", hp.Addr)
 }
