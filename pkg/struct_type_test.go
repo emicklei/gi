@@ -255,7 +255,7 @@ type Aircraft struct {
 }
 func main() {
 	fmt.Printf("%#v\n",Aircraft{Model: "balloon", Price: 3.14})
-}`, "")
+}`, "Aircraft{Model:\"balloon\", Price:3.14}\n")
 }
 
 func TestSameVarAndField(t *testing.T) {

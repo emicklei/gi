@@ -375,7 +375,7 @@ import "fmt"
 func main() {
 	i := 1
 	fmt.Printf("Count: %d\n", i)
-}`, "")
+}`, "Count: 1\n")
 }
 
 // https://stackoverflow.com/questions/67601236/run-tests-programmatically-in-go
