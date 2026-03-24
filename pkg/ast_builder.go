@@ -694,18 +694,18 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s.decl = e.(Decl)
 		b.push(s)
 	case *ast.CompositeLit:
-		s := CompositeLit{Lbrace: n.Lbrace}
+		s := CompositeLit{lbracePos: n.Lbrace}
 		if n.Type != nil {
 			b.Visit(n.Type)
 			e := b.pop()
-			s.Type = e.(Expr)
-			s.ParserType = b.goPkg.TypesInfo.TypeOf(n.Type)
+			s.typ = e.(Expr)
+			s.parserType = b.goPkg.TypesInfo.TypeOf(n.Type)
 		}
 		if n.Elts != nil {
 			for _, elt := range n.Elts {
 				b.Visit(elt)
 				e := b.pop()
-				s.Elts = append(s.Elts, e.(Expr))
+				s.elts = append(s.elts, e.(Expr))
 			}
 		}
 		b.push(s)

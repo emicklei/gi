@@ -181,7 +181,7 @@ func main() {
 }`, "10 30 99 50 50")
 }
 
-func TestJSONUnmarshalBasicTypes(t *testing.T) {
+func TestJSONUnmarshalBasics(t *testing.T) {
 	t.Skip()
 	testMain(t, `package main
 

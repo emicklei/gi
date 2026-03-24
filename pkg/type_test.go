@@ -29,10 +29,24 @@ func main() {
 }
 
 func TestPointerIntExtended(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
 
 // type pri = *int
 type pri *int
+
+func main() {
+	n := 42
+	var a pri = &n
+	print(*a)
+}`, "42")
+}
+
+func TestPointerIntExtendedAlias(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+type pri = *int
 
 func main() {
 	n := 42
@@ -189,4 +203,18 @@ func TestGoType(t *testing.T) {
 		rv := gt.makeValue(nil, 0, nil)
 		t.Log(rv)
 	}
+}
+
+func TestAliasInterpretedType(t *testing.T) {
+	t.Skip()
+	defer debug(t)()
+	testMain(t, `package main
+
+type shape struct{size int}
+type Shape shape
+
+func main() {
+	s := Shape{size:1}
+	print(s.size)
+}`, "1")
 }

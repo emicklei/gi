@@ -192,11 +192,6 @@ func newExtendedType(name Ident) ExtendedType {
 	}
 }
 func (d ExtendedType) makeValue(vm *VM, size int, elements []reflect.Value) reflect.Value {
-	// TODO rethink
-	if len(d.methods) == 0 {
-		// not extended after all
-		return elements[0]
-	}
 	return reflect.ValueOf(ExtendedValue{
 		typ: d,
 		val: elements[0],

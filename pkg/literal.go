@@ -66,18 +66,18 @@ var _ Flowable = CompositeLit{}
 var _ Expr = CompositeLit{}
 
 type CompositeLit struct {
-	Lbrace     token.Pos  // position of "{"
-	Type       Expr       // literal type; or nil
-	ParserType types.Type // literal type; or nil
-	Elts       []Expr     // list of composite elements; or nil
+	lbracePos  token.Pos  // position of "{"
+	typ        Expr       // literal type; or nil
+	parserType types.Type // literal type; or nil
+	elts       []Expr     // list of composite elements; or nil
 }
 
 func (c CompositeLit) eval(vm *VM) {
 
 	// if Type is not present, we put all values on the stack as is
-	if c.Type == nil {
-		values := make([]reflect.Value, len(c.Elts))
-		for i := range c.Elts {
+	if c.typ == nil {
+		values := make([]reflect.Value, len(c.elts))
+		for i := range c.elts {
 			val := vm.popOperand()
 			values[i] = val
 		}
@@ -85,8 +85,8 @@ func (c CompositeLit) eval(vm *VM) {
 		return
 	}
 
-	values := make([]reflect.Value, len(c.Elts))
-	for i := range c.Elts {
+	values := make([]reflect.Value, len(c.elts))
+	for i := range c.elts {
 		val := vm.popOperand()
 		values[i] = val
 	}
@@ -101,13 +101,13 @@ func (c CompositeLit) eval(vm *VM) {
 }
 
 func (c CompositeLit) flow(g *graphBuilder) (head Step) {
-	if c.Type != nil {
-		head = c.Type.flow(g)
+	if c.typ != nil {
+		head = c.typ.flow(g)
 	}
 	// reverse order to have the first element on top of the stack
-	for i := len(c.Elts) - 1; i >= 0; i-- {
-		eltFlow := c.Elts[i].flow(g)
-		if i == len(c.Elts)-1 {
+	for i := len(c.elts) - 1; i >= 0; i-- {
+		eltFlow := c.elts[i].flow(g)
+		if i == len(c.elts)-1 {
 			if head == nil {
 				head = eltFlow
 			}
@@ -120,10 +120,10 @@ func (c CompositeLit) flow(g *graphBuilder) (head Step) {
 	return
 }
 
-func (c CompositeLit) pos() token.Pos { return c.Lbrace }
+func (c CompositeLit) pos() token.Pos { return c.lbracePos }
 
 func (c CompositeLit) String() string {
-	return fmt.Sprintf("CompositeLit(%v,%v)", c.Type, c.Elts)
+	return fmt.Sprintf("CompositeLit(%v,%v)", c.typ, c.elts)
 }
 
 type Int64 int64
