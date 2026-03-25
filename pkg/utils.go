@@ -6,6 +6,7 @@ import (
 	"io"
 	"path/filepath"
 	"reflect"
+	"runtime"
 )
 
 // reflectCondition converts a boolean to shared reflect.Value.
@@ -225,7 +226,8 @@ func printSteps(head Step) {
 
 // for debugging
 func console(all ...any) {
-	fmt.Print("console:\n")
+	_, file, line, _ := runtime.Caller(1)
+	fmt.Printf("%8s:%d console:\n", filepath.Base(file), line)
 	for _, v := range all {
 		fmt.Printf("\t%s (%T)\n", stringOf(v), v)
 	}

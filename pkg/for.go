@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"go/token"
+	"strings"
 )
 
 var _ Stmt = ForStmt{}
@@ -53,7 +54,33 @@ func (f ForStmt) flowWithOptions(g *graphBuilder, skipNewEnvironment bool) (head
 	g.breakStack.push(braek)
 	defer g.breakStack.pop()
 
+	//  body runs in separate env
+	g.nextStep(newPushEnvironmentStep(f.body.lbracePos))
+	g.nextStep(newFuncStep(f.body.lbracePos, "parent->child", func(vm *VM) {
+		// first make it work
+		target := vm.currentFrame.env
+		source := vm.currentFrame.env.parent().(*Environment)
+		for k, v := range source.valueTable {
+			console("to-child", k, v, target)
+			target.valueSet(k, v)
+		}
+	}))
 	f.body.flow(g)
+	g.nextStep(newFuncStep(f.body.lbracePos, "child->parent", func(vm *VM) {
+		// first make it work
+		target := vm.currentFrame.env.parent()
+		source := vm.currentFrame.env.(*Environment)
+		for k, v := range source.valueTable {
+			if strings.HasPrefix(k, "&") {
+				console("skip-to-parent", k)
+				continue
+			}
+			console("to-parent", k, v, target)
+			target.valueSet(k, v)
+		}
+	}))
+	g.nextStep(g.newPopEnvironmentStep(f.body.lbracePos))
+
 	if f.post != nil {
 		postHead := f.post.flow(g)
 		cont.SetNext(postHead)

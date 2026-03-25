@@ -43,15 +43,19 @@ func (u UnaryExpr) eval(vm *VM) {
 			// Create a heap pointer that references the environment variable
 			env, value := vm.currentEnv().valueOwnerOf(ident.name)
 			if env != nil {
+				// tryout TODO
+				if hpv := env.valueLookUp("&" + ident.name); hpv != reflectUndeclared {
+					console("already declared", u, hpv)
+					vm.pushOperand(hpv)
+					return
+				}
 				env.markSharedReferenced()
+				// first time to take address
 				hp := vm.heap.allocHeapVar(env, ident.name, value.Type())
-				// TODO
-				// TODO val could already be a reflect on heap pointer -> handle in allocHeapValue
-				// console("unary", val)
-				// hp := vm.heap.allocHeapValue(val)
-				//env.valueSet(ident.name, reflect.ValueOf(hp))
-
-				vm.pushOperand(reflect.ValueOf(hp))
+				hpv := reflect.ValueOf(hp)
+				console(u, hpv)
+				env.valueSet("&"+ident.name, hpv)
+				vm.pushOperand(hpv)
 				return
 			}
 		}

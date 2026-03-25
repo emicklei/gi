@@ -51,6 +51,8 @@
 | Goroutines `go` | ⬜ |
 | `select` statement | ⬜ |
 | recover |  ⬜ |
+| loop vars |  ⬜ |
+| slice of func literals |  ⬜ |
 | DAP | ⬜ | 50%
 
 ## interpreted types

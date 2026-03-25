@@ -1,6 +1,9 @@
 package pkg
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestFor(t *testing.T) {
 	testMain(t, `package main
@@ -50,4 +53,54 @@ func main() {
 		return
 	}
 }`, "1")
+}
+
+/*
+Want: each iteration a different address, within the body same address
+0x329faaa24048 0x329faaa24048 0
+0x329faaa24070 0x329faaa24070 1
+*/
+func TestForVarAddress(t *testing.T) {
+	//t.Skip()
+	testMain(t, `package main
+import "fmt"
+func main() {
+		for i := 0; i < 2; i++ {
+			fmt.Printf("%p %p %d\n", &i, &i, i)
+		}
+}`, func(got string) bool {
+		ss := strings.Split(got, " ")
+		return len(ss) > 2 && ss[0] == ss[1]
+	})
+}
+
+func TestPrintWithClosures(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+import "fmt"
+
+func main() {
+		var prints []func()
+		for i := 1; i <= 3; i++ {
+			prints = append(prints, func() { fmt.Println(i, &i) })
+		}
+		for _, print := range prints {
+			print()
+		}
+}
+`, "")
+}
+
+func TestFmtPrintAddress(t *testing.T) {
+	//t.Skip()
+	testMain(t, `package main
+import "fmt"
+func main() {
+	i := 1
+	fmt.Printf("%p %p %d\n", &i, &i, i)
+}`, func(got string) bool {
+		ss := strings.Split(got, " ")
+		return len(ss) > 2 && ss[0] == ss[1]
+	})
 }

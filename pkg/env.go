@@ -168,7 +168,7 @@ func (e *Environment) String() string {
 	if e == nil {
 		return "Environment(<nil>)"
 	}
-	return fmt.Sprintf("-- env[depth=%d,len=%d]", e.depth(), len(e.valueTable))
+	return fmt.Sprintf("-- env[depth=%d,len=%d,ptr=%p]", e.depth(), len(e.valueTable), e)
 }
 
 func (e *Environment) appendScopes(scopes []dap.Scope) []dap.Scope {
