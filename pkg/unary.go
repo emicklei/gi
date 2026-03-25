@@ -45,7 +45,7 @@ func (u UnaryExpr) eval(vm *VM) {
 			if env != nil {
 				// tryout TODO
 				if hpv := env.valueLookUp("&" + ident.name); hpv != reflectUndeclared {
-					console("already declared", u, hpv)
+					// console("already declared", u, hpv)
 					vm.pushOperand(hpv)
 					return
 				}
@@ -53,7 +53,7 @@ func (u UnaryExpr) eval(vm *VM) {
 				// first time to take address
 				hp := vm.heap.allocHeapVar(env, ident.name, value.Type())
 				hpv := reflect.ValueOf(hp)
-				console(u, hpv)
+				// console(u, hpv)
 				env.valueSet("&"+ident.name, hpv)
 				vm.pushOperand(hpv)
 				return

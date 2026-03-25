@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"go/token"
+	"reflect"
 	"strings"
 )
 
@@ -59,25 +60,20 @@ func (f ForStmt) flowWithOptions(g *graphBuilder, skipNewEnvironment bool) (head
 	g.nextStep(newFuncStep(f.body.lbracePos, "parent->child", func(vm *VM) {
 		// first make it work
 		target := vm.currentFrame.env
-		source := vm.currentFrame.env.parent().(*Environment)
-		for k, v := range source.valueTable {
-			console("to-child", k, v, target)
+		vm.currentFrame.env.parent().valuesDo(func(k string, v reflect.Value) {
 			target.valueSet(k, v)
-		}
+		})
 	}))
 	f.body.flow(g)
 	g.nextStep(newFuncStep(f.body.lbracePos, "child->parent", func(vm *VM) {
 		// first make it work
 		target := vm.currentFrame.env.parent()
-		source := vm.currentFrame.env.(*Environment)
-		for k, v := range source.valueTable {
+		vm.currentFrame.env.valuesDo(func(k string, v reflect.Value) {
 			if strings.HasPrefix(k, "&") {
-				console("skip-to-parent", k)
-				continue
+				return
 			}
-			console("to-parent", k, v, target)
 			target.valueSet(k, v)
-		}
+		})
 	}))
 	g.nextStep(g.newPopEnvironmentStep(f.body.lbracePos))
 

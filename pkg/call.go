@@ -69,16 +69,17 @@ func (c CallExpr) handleFunc(vm *VM, fn reflect.Value) {
 			continue
 		}
 		if hp, ok := asHeapPointer(val); ok {
-			hpv := vm.heap.read(hp)
-			if hpv.CanAddr() {
+			val := vm.heap.read(hp)
+			if val.CanAddr() {
 				// TODO
-				args[i] = hpv.Addr()
-			} else if sv, ok := hpv.Interface().(StructValue); ok {
+				args[i] = val.Addr()
+			} else if sv, ok := val.Interface().(StructValue); ok {
 				args[i] = reflect.ValueOf(&sv)
 			} else {
 				// TODO needed?
-				newPtr := reflect.New(hpv.Type())
-				newPtr.Elem().Set(hpv)
+				// why not store newPtr in HeapPointer
+				newPtr := reflect.New(val.Type())
+				newPtr.Elem().Set(val)
 				args[i] = newPtr
 				// after the call use the value of newPtr to write back the heapointer backing value
 				defer func() {

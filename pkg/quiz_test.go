@@ -6,8 +6,6 @@ import "testing"
 // collected by Erik Dubbelboer and are used for testing purposes.
 
 func TestQuiz1(t *testing.T) {
-	t.Skip()
-	defer debug(t)()
 	testMain(t, `package main
 
 func main() {

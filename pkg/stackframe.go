@@ -53,10 +53,13 @@ func (f *stackFrame) pushEnv() {
 func (f *stackFrame) popEnv() {
 	child := f.env.(*Environment)
 	f.env = child.parent() // can become nil
-	// return child to pool
 	child.parentEnv = nil
-	clear(child.valueTable)
-	envPool.Put(child)
+
+	// cannot recycle env if heappointer is referencing it
+	if !child.hasHeapPointer {
+		clear(child.valueTable)
+		envPool.Put(child)
+	}
 }
 
 var _ Stmt = (*pushArgumentsStmt)(nil)

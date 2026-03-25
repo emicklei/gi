@@ -17,6 +17,7 @@ type Env interface {
 	valueOwnerOf(name string) (Env, reflect.Value)
 	valueSet(name string, value reflect.Value)
 	valueUnset(name string)
+	valuesDo(func(key string, val reflect.Value))
 	typeLookUp(name string) reflect.Type
 
 	// hierarchy
@@ -90,6 +91,9 @@ func (p *PkgEnvironment) valueLookUp(name string) reflect.Value {
 	// can be a function,const or var from a dot-imported package
 	// TODO check name exported?
 	return p.dotPackages.selectByName(name)
+}
+func (p *PkgEnvironment) valuesDo(f func(key string, val reflect.Value)) {
+	p.Env.valuesDo(f)
 }
 
 func (p *PkgEnvironment) String() string {
@@ -264,6 +268,12 @@ func (e *Environment) valueSet(name string, value reflect.Value) {
 }
 func (e *Environment) valueUnset(name string) {
 	delete(e.valueTable, name)
+}
+
+func (e *Environment) valuesDo(f func(key string, val reflect.Value)) {
+	for k, v := range e.valueTable {
+		f(k, v)
+	}
 }
 
 func (e *Environment) addDeclaration(stmt Stmt) {}
