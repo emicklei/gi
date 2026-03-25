@@ -55,27 +55,31 @@ func (f ForStmt) flowWithOptions(g *graphBuilder, skipNewEnvironment bool) (head
 	g.breakStack.push(braek)
 	defer g.breakStack.pop()
 
-	//  body runs in separate env
-	g.nextStep(newPushEnvironmentStep(f.body.lbracePos))
-	g.nextStep(newFuncStep(f.body.lbracePos, "parent->child", func(vm *VM) {
-		// first make it work
-		target := vm.currentFrame.env
-		vm.currentFrame.env.parent().valuesDo(func(k string, v reflect.Value) {
-			target.valueSet(k, v)
-		})
-	}))
+	if !skipNewEnvironment {
+		//  body runs in separate env
+		g.nextStep(newPushEnvironmentStep(f.body.lbracePos))
+		g.nextStep(newFuncStep(f.body.lbracePos, "parent->child", func(vm *VM) {
+			// first make it work
+			target := vm.currentFrame.env
+			vm.currentFrame.env.parent().valuesDo(func(k string, v reflect.Value) {
+				target.valueSet(k, v)
+			})
+		}))
+	}
 	f.body.flow(g)
-	g.nextStep(newFuncStep(f.body.lbracePos, "child->parent", func(vm *VM) {
-		// first make it work
-		target := vm.currentFrame.env.parent()
-		vm.currentFrame.env.valuesDo(func(k string, v reflect.Value) {
-			if strings.HasPrefix(k, "&") {
-				return
-			}
-			target.valueSet(k, v)
-		})
-	}))
-	g.nextStep(g.newPopEnvironmentStep(f.body.lbracePos))
+	if !skipNewEnvironment {
+		g.nextStep(newFuncStep(f.body.lbracePos, "child->parent", func(vm *VM) {
+			// first make it work
+			target := vm.currentFrame.env.parent()
+			vm.currentFrame.env.valuesDo(func(k string, v reflect.Value) {
+				if strings.HasPrefix(k, "&") {
+					return
+				}
+				target.valueSet(k, v)
+			})
+		}))
+		g.nextStep(g.newPopEnvironmentStep(f.body.lbracePos))
+	}
 
 	if f.post != nil {
 		postHead := f.post.flow(g)
