@@ -15,9 +15,11 @@ type Env interface {
 	// value access, returns reflectUndeclared if not found
 	valueLookUp(name string) reflect.Value
 	valueOwnerOf(name string) (Env, reflect.Value)
+	// name cannot be empty
 	valueSet(name string, value reflect.Value)
 	valueUnset(name string)
-	valuesDo(func(key string, val reflect.Value))
+	// copies all bindings to the destination environment
+	copyValues(dst Env)
 	typeLookUp(name string) reflect.Type
 
 	// hierarchy
@@ -92,8 +94,9 @@ func (p *PkgEnvironment) valueLookUp(name string) reflect.Value {
 	// TODO check name exported?
 	return p.dotPackages.selectByName(name)
 }
-func (p *PkgEnvironment) valuesDo(f func(key string, val reflect.Value)) {
-	p.Env.valuesDo(f)
+
+func (p *PkgEnvironment) copyValues(dst Env) {
+	p.Env.copyValues(dst)
 }
 
 func (p *PkgEnvironment) String() string {
@@ -202,10 +205,6 @@ func (e *Environment) newChild() Env {
 	return newEnvironment(e)
 }
 
-func (e *Environment) funcLookUp(name string) reflect.Value {
-	return e.valueLookUp(name)
-}
-
 func (e *Environment) valueLookUp(name string) reflect.Value {
 	current := e
 	for current != nil {
@@ -270,9 +269,11 @@ func (e *Environment) valueUnset(name string) {
 	delete(e.valueTable, name)
 }
 
-func (e *Environment) valuesDo(f func(key string, val reflect.Value)) {
+func (e *Environment) copyValues(dst Env) {
 	for k, v := range e.valueTable {
-		f(k, v)
+		if k[0] != '&' {
+			dst.valueSet(k, v)
+		}
 	}
 }
 

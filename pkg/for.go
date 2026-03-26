@@ -3,8 +3,6 @@ package pkg
 import (
 	"fmt"
 	"go/token"
-	"reflect"
-	"strings"
 )
 
 var _ Stmt = ForStmt{}
@@ -56,27 +54,17 @@ func (f ForStmt) flowWithOptions(g *graphBuilder, skipNewEnvironment bool) (head
 	defer g.breakStack.pop()
 
 	if !skipNewEnvironment {
-		//  body runs in separate env
+		// body runs in separate env in which loop vars are copied so they have their own unique address
 		g.nextStep(newPushEnvironmentStep(f.body.lbracePos))
-		g.nextStep(newFuncStep(f.body.lbracePos, "parent->child", func(vm *VM) {
-			// first make it work
-			target := vm.currentFrame.env
-			vm.currentFrame.env.parent().valuesDo(func(k string, v reflect.Value) {
-				target.valueSet(k, v)
-			})
+		g.nextStep(newFuncStep(f.body.lbracePos, "~parent->child", func(vm *VM) {
+			vm.currentFrame.env.parent().copyValues(vm.currentFrame.env)
 		}))
 	}
 	f.body.flow(g)
 	if !skipNewEnvironment {
-		g.nextStep(newFuncStep(f.body.lbracePos, "child->parent", func(vm *VM) {
-			// first make it work
-			target := vm.currentFrame.env.parent()
-			vm.currentFrame.env.valuesDo(func(k string, v reflect.Value) {
-				if strings.HasPrefix(k, "&") {
-					return
-				}
-				target.valueSet(k, v)
-			})
+		// put back copied loop vars so any modifications are visible to the loop condition and loop post.
+		g.nextStep(newFuncStep(f.body.lbracePos, "~child->parent", func(vm *VM) {
+			vm.currentFrame.env.copyValues(vm.currentFrame.env.parent())
 		}))
 		g.nextStep(g.newPopEnvironmentStep(f.body.lbracePos))
 	}

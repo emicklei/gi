@@ -210,18 +210,3 @@ func (b BlockStmt) pos() token.Pos { return b.lbracePos }
 func (b BlockStmt) String() string {
 	return fmt.Sprintf("BlockStmt(len=%d)", len(b.list))
 }
-
-var _ Stmt = funcStmt{}
-
-type funcStmt struct {
-	flowFunc func(g *graphBuilder) (head Step)
-}
-
-func (f funcStmt) pos() token.Pos      { return token.NoPos }
-func (f funcStmt) stmtStep() Evaluable { return f }
-func (f funcStmt) eval(vm *VM) {
-	// no-op; flow is handled in graph building
-}
-func (f funcStmt) flow(g *graphBuilder) (head Step) {
-	return f.flowFunc(g)
-}

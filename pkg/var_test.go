@@ -20,7 +20,6 @@ func main() {
 
 // https://go.dev/ref/spec#Package_initialization
 func TestDeclarationExample(t *testing.T) {
-	defer debug(t)()
 	testMain(t, `package main
 
 var (
