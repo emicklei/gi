@@ -32,15 +32,19 @@ func (s StarExpr) eval(vm *VM) {
 	}
 	// (*int64)(nil)
 	if v.Kind() == reflect.Struct {
-		if _, ok := v.Interface().(builtinType); ok {
+		switch v.Interface().(type) {
+		case builtinType:
 			vm.pushOperand(v)
-			return
-		} else if _, ok := v.Interface().(ExtendedType); ok {
+		case ExtendedType:
 			vm.pushOperand(v)
-			return
-		} else {
+		case ExtendedValue:
+			ev := v.Interface().(ExtendedValue)
+			// Dereference from heap
+			vm.pushOperand(vm.heap.read(ev.val.Interface().(*HeapPointer)))
+		default:
 			vm.fatalf("unhandled struct type: %v (%T)", v.Interface(), v.Interface())
 		}
+		return
 	}
 
 	// Regular pointer dereference - validate it's a pointer

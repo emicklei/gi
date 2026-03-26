@@ -34,7 +34,7 @@ type Env interface {
 
 	// if marked, this env has references that escape to the heap
 	// or is used by funcInvocation in a defer statement
-	markSharedReferenced()
+	markShared() // TODO rename markShared
 
 	// collect for DAP
 	appendScopes(scopes []dap.Scope) []dap.Scope
@@ -52,8 +52,8 @@ type PkgEnvironment struct {
 
 func newBuiltinsEnvironment(parent Env) Env {
 	return &Environment{
-		parentEnv:  parent,
-		valueTable: builtins,
+		parentEnv: parent,
+		values:    builtins,
 	}
 }
 
@@ -109,7 +109,7 @@ func (p *PkgEnvironment) String() string {
 func (p *PkgEnvironment) newChild() Env {
 	return newEnvironment(p)
 }
-func (p *PkgEnvironment) markSharedReferenced() {}
+func (p *PkgEnvironment) markShared() {}
 
 func (p *PkgEnvironment) appendScopes(scopes []dap.Scope) []dap.Scope {
 	return append(scopes, dap.Scope{
@@ -119,7 +119,7 @@ func (p *PkgEnvironment) appendScopes(scopes []dap.Scope) []dap.Scope {
 }
 
 func (p *PkgEnvironment) appendVariables(vars []dap.Variable) []dap.Variable {
-	for k, v := range p.Env.(*Environment).valueTable {
+	for k, v := range p.Env.(*Environment).values {
 		if _, ok := builtins[k]; ok {
 			continue
 		}
@@ -142,21 +142,21 @@ func (p *PkgEnvironment) appendVariables(vars []dap.Variable) []dap.Variable {
 var envPool = sync.Pool{
 	New: func() any {
 		return &Environment{
-			valueTable: map[string]reflect.Value{},
+			values: map[string]reflect.Value{},
 		}
 	},
 }
 
 type Environment struct {
-	parentEnv      Env
-	valueTable     map[string]reflect.Value // TODO rename to symbolTable
-	hasHeapPointer bool
+	parentEnv Env
+	values    map[string]reflect.Value
+	isShared  bool
 }
 
 func newEnvironment(parentOrNil Env) Env {
 	return &Environment{
-		parentEnv:  parentOrNil,
-		valueTable: map[string]reflect.Value{},
+		parentEnv: parentOrNil,
+		values:    map[string]reflect.Value{},
 	}
 }
 
@@ -175,19 +175,19 @@ func (e *Environment) String() string {
 	if e == nil {
 		return "Environment(<nil>)"
 	}
-	return fmt.Sprintf("-- env[depth=%d,len=%d,ptr=%p]", e.depth(), len(e.valueTable), e)
+	return fmt.Sprintf("-- env[depth=%d,len=%d,ptr=%p]", e.depth(), len(e.values), e)
 }
 
 func (e *Environment) appendScopes(scopes []dap.Scope) []dap.Scope {
 	return append(scopes, dap.Scope{
 		Name:               "locals",
 		VariablesReference: e.depth(),
-		NamedVariables:     len(e.valueTable),
+		NamedVariables:     len(e.values),
 	})
 }
 
 func (e *Environment) appendVariables(vars []dap.Variable) []dap.Variable {
-	for k, v := range e.valueTable {
+	for k, v := range e.values {
 		if _, ok := builtins[k]; ok {
 			continue
 		}
@@ -208,7 +208,7 @@ func (e *Environment) newChild() Env {
 func (e *Environment) valueLookUp(name string) reflect.Value {
 	current := e
 	for current != nil {
-		v, ok := current.valueTable[name]
+		v, ok := current.values[name]
 		if ok {
 			return v
 		}
@@ -238,7 +238,7 @@ func (e *Environment) typeLookUp(name string) reflect.Type {
 func (e *Environment) valueOwnerOf(name string) (owner Env, val reflect.Value) {
 	current := e
 	for current != nil {
-		if v, ok := current.valueTable[name]; ok {
+		if v, ok := current.values[name]; ok {
 			return current, v
 		}
 		if current.parentEnv == nil {
@@ -259,18 +259,18 @@ func (e *Environment) valueSet(name string, value reflect.Value) {
 	if name == "_" {
 		return
 	}
-	e.valueTable[name] = value
+	e.values[name] = value
 	// trace after set
 	if trace {
 		fmt.Println(e, name, "=", stringOf(value))
 	}
 }
 func (e *Environment) valueUnset(name string) {
-	delete(e.valueTable, name)
+	delete(e.values, name)
 }
 
 func (e *Environment) copyValues(dst Env) {
-	for k, v := range e.valueTable {
+	for k, v := range e.values {
 		if k[0] != '&' {
 			dst.valueSet(k, v)
 		}
@@ -286,6 +286,9 @@ func (e *Environment) rootPackageEnv() *PkgEnvironment {
 	return e.parentEnv.rootPackageEnv()
 }
 
-func (e *Environment) markSharedReferenced() {
-	e.hasHeapPointer = true
+func (e *Environment) markShared() {
+	e.isShared = true
+	if p := e.parent(); p != nil {
+		p.markShared()
+	}
 }

@@ -53,11 +53,11 @@ func (f *stackFrame) pushEnv() {
 func (f *stackFrame) popEnv() {
 	child := f.env.(*Environment)
 	f.env = child.parent() // can become nil
-	child.parentEnv = nil
 
 	// cannot recycle env if heappointer is referencing it
-	if !child.hasHeapPointer {
-		clear(child.valueTable)
+	if !child.isShared {
+		child.parentEnv = nil
+		clear(child.values)
 		envPool.Put(child)
 	}
 }

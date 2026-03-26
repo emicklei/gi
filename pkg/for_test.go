@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -60,7 +61,6 @@ Want: each iteration a different address, within the body same address
 0x329faaa24070 0x329faaa24070 1
 */
 func TestForVarAddress(t *testing.T) {
-	//t.Skip()
 	testMain(t, `package main
 import "fmt"
 func main() {
@@ -100,9 +100,7 @@ func main() {
 	i := 1
 	fmt.Printf("%p %p %d\n", &i, &i, i)
 }`, func(got string) bool {
-		return true
-		// TODO because HeapPointer does not store pointer value ; it is created on each call when used as argument
-		// ss := strings.Split(got, " ")
-		// return len(ss) > 2 && ss[0] == ss[1]
+		ss := strings.Split(got, " ")
+		return len(ss) > 2 && ss[0] == ss[1]
 	})
 }

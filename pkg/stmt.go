@@ -152,12 +152,15 @@ func (d DeferStmt) eval(vm *VM) {
 	frame := vm.currentFrame
 	// create a new env and copy the current argument values
 	env := frame.env.newChild() // TODO needed?
+
+	env.markShared()
+
 	call := d.call.(CallExpr)
 	vals := make([]reflect.Value, len(call.args))
 	for i, arg := range call.args { // TODO variadic
 		vals[i] = vm.returnsEval(arg)
 	}
-	frame.env.markSharedReferenced()
+	frame.env.markShared()
 	invocation := funcInvocation{
 		call:      d.call,
 		flow:      d.callGraph,

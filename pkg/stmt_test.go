@@ -193,7 +193,6 @@ func main() {
 }
 
 func TestDeferInLoop(t *testing.T) {
-	t.Skip()
 	// i must be captured by value in the defer
 	testMain(t, `package main
 
@@ -205,7 +204,6 @@ func main(){
 }
 
 func TestDeferInLoopInFuncLiteral(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main(){

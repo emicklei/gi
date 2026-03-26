@@ -36,9 +36,7 @@ func makeType(vm *VM, e Evaluable) reflect.Type {
 		}
 	}
 	if _, ok := e.(FuncType); ok {
-		// any function type will do; we just need its reflect.Type
-		fn := func() {}
-		return reflect.TypeOf(fn)
+		return reflect.TypeFor[*FuncLit]()
 	}
 	if e, ok := e.(Ellipsis); ok {
 		return makeType(vm, e.elt)

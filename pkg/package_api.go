@@ -72,7 +72,7 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 	}
 	pkg := &Package{Package: goPkg, env: b.env.(*PkgEnvironment)}
 
-	if trace {
+	if os.Getenv("GI_AST") != "" {
 		out, _ := os.Create("gopkg.ast")
 		defer out.Close()
 		spew.Fdump(out, goPkg.Syntax[0].Decls[0])

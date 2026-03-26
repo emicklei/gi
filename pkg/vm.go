@@ -152,10 +152,10 @@ func (vm *VM) popFrame() {
 	env, ok := frame.env.(*Environment)
 	// skip non Environment
 	if ok {
-		env.parentEnv = nil
 		// do not recycle environments that contain values referenced by a heap pointer
-		if !env.hasHeapPointer {
-			clear(env.valueTable)
+		if !env.isShared {
+			env.parentEnv = nil
+			clear(env.values)
 			envPool.Put(env)
 		}
 	}
@@ -291,7 +291,7 @@ func (vm *VM) printStack() {
 		}
 	}
 	if env, ok := frame.env.(*Environment); ok {
-		for k, v := range env.valueTable {
+		for k, v := range env.values {
 			if v.IsValid() && v.CanInterface() {
 				if v == reflectNil {
 					fmt.Printf("vm.env.%s: untyped nil\n", k)

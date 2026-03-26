@@ -78,11 +78,18 @@ func (c CallExpr) handleFunc(vm *VM, fn reflect.Value) {
 			} else {
 				// TODO needed?
 				// why not store newPtr in HeapPointer
-				newPtr := reflect.New(val.Type())
-				newPtr.Elem().Set(val)
+				//newPtr := reflect.New(val.Type())
+				//newPtr.Elem().Set(val)
+
+				// tryout TODO
+				newPtr := hp.ptrValue
+
 				args[i] = newPtr
 				// after the call use the value of newPtr to write back the heapointer backing value
 				defer func() {
+					// tryout TODO
+					// hp.ptrValue.Elem().Set ...
+
 					vm.heap.write(hp, newPtr.Elem())
 				}()
 			}

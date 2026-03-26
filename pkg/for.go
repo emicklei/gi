@@ -56,14 +56,14 @@ func (f ForStmt) flowWithOptions(g *graphBuilder, skipNewEnvironment bool) (head
 	if !skipNewEnvironment {
 		// body runs in separate env in which loop vars are copied so they have their own unique address
 		g.nextStep(newPushEnvironmentStep(f.body.lbracePos))
-		g.nextStep(newFuncStep(f.body.lbracePos, "~parent->child", func(vm *VM) {
+		g.nextStep(newFuncStep(f.body.lbracePos, "parent->child", func(vm *VM) {
 			vm.currentFrame.env.parent().copyValues(vm.currentFrame.env)
 		}))
 	}
 	f.body.flow(g)
 	if !skipNewEnvironment {
 		// put back copied loop vars so any modifications are visible to the loop condition and loop post.
-		g.nextStep(newFuncStep(f.body.lbracePos, "~child->parent", func(vm *VM) {
+		g.nextStep(newFuncStep(f.body.lbracePos, "child->parent", func(vm *VM) {
 			vm.currentFrame.env.copyValues(vm.currentFrame.env.parent())
 		}))
 		g.nextStep(g.newPopEnvironmentStep(f.body.lbracePos))

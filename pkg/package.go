@@ -163,7 +163,7 @@ func (p *Package) writeCallGraph(fileName string) {
 	}
 
 	// for each function in the package create a subgraph
-	values := p.env.Env.(*Environment).valueTable
+	values := p.env.Env.(*Environment).values
 	for k, v := range values {
 		if funDecl, ok := v.Interface().(*FuncDecl); ok {
 			if funDecl.callGraph == nil {

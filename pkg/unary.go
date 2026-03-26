@@ -49,7 +49,7 @@ func (u UnaryExpr) eval(vm *VM) {
 					vm.pushOperand(hpv)
 					return
 				}
-				env.markSharedReferenced()
+				env.markShared()
 				// first time to take address
 				hp := vm.heap.allocHeapVar(env, ident.name, value.Type())
 				hpv := reflect.ValueOf(hp)
@@ -57,6 +57,8 @@ func (u UnaryExpr) eval(vm *VM) {
 				env.valueSet("&"+ident.name, hpv)
 				vm.pushOperand(hpv)
 				return
+			} else {
+				vm.fatalf("undeclared variable:%s in %v", ident.name, vm.currentEnv())
 			}
 		}
 		if _, ok := u.x.(CompositeLit); ok {
@@ -65,7 +67,7 @@ func (u UnaryExpr) eval(vm *VM) {
 			vm.pushOperand(reflect.ValueOf(hp))
 			return
 		}
-		vm.fatalf("UnaryExpr.Eval todo")
+		vm.fatalf("UnaryExpr.Eval:%v", u)
 	}
 
 	v := vm.popOperand()
