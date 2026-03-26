@@ -337,7 +337,7 @@ func (c CallExpr) flow(g *graphBuilder) (head Step) {
 	return head
 }
 
-// DeferCallExpr§ is a wrapper around CallExpr to distinguish defer calls from regular calls in the flow graph.
+// DeferCallExpr is a wrapper around CallExpr to distinguish defer calls from regular calls in the flow graph.
 // For defer calls, the arguments are evaluated at the time of the defer statement creation.
 type DeferCallExpr struct {
 	CallExpr
@@ -357,18 +357,21 @@ func (c DeferCallExpr) String() string {
 // Its pops the current frame and pushes the return values on the operand stack so they can be used by the caller.
 // This is called for interpreted functions (FuncDecl,FuncLit) only and right after the return.
 func postCallFunc(vm *VM) {
-	// need to create flow in which each defer function is called.
-	// use statements to build graph
-	// TODO optimize to return without graph if not needed
-	//
-	// when no defers and no results then vm.popFrame and return
-	//
-	// TODO: alternative: direct graph building??
 	frame := vm.currentFrame
+	hasDefers := len(frame.defers) > 0
+	hasResults := frame.callee != nil && frame.callee.results() != nil && len(frame.callee.results().List) != 0
+
+	// check for quick return
+	if !hasDefers && !hasResults {
+		vm.popFrame()
+		return
+	}
+
 	b := newGraphBuilder(vm.pkg.Package)
 	var head Step
-	if len(frame.defers) > 0 {
+	if hasDefers {
 		block := BlockStmt{}
+		// reverse order
 		for i := len(frame.defers) - 1; i >= 0; i-- {
 			invocation := frame.defers[i]
 			push := &pushArgumentsStmt{args: invocation.arguments, env: invocation.env} // Not sure if env is needed here TODO
@@ -377,33 +380,26 @@ func postCallFunc(vm *VM) {
 		}
 		head = block.flow(b)
 	}
-	// extend graph to push results on parent frame operands
-	popFrameAndPushResultsStep := newFuncStep(token.NoPos, "pop frame and push results", popFrameAndPushResults)
-	if head == nil {
-		head = popFrameAndPushResultsStep
+	if hasResults {
+		// add step to push results on parent frame operands
+		popFrameAndPushResultsStep := newFuncStep(token.NoPos, "~pop frame and push results", popFrameAndPushResults)
+		if head == nil {
+			head = popFrameAndPushResultsStep
+		}
+		b.nextStep(popFrameAndPushResultsStep)
 	}
-	b.nextStep(popFrameAndPushResultsStep)
 	vm.currentFrame.step = head
 }
 
+// pre: frame.callee.results() != nil
 func popFrameAndPushResults(vm *VM) {
 	frame := vm.currentFrame
-	// TODO: put this in the caller
-	if frame.callee == nil || frame.callee.results() == nil || len(frame.callee.results().List) == 0 {
-		// no results to push, just pop frame and return
-		vm.popFrame()
-		return
-	}
 	// take values before popping frame
 	vals := []reflect.Value{}
-	if frame.callee != nil {
-		if results := frame.callee.results(); results != nil {
-			for _, field := range results.List {
-				for _, name := range field.names {
-					val := frame.env.valueLookUp(name.name)
-					vals = append(vals, val)
-				}
-			}
+	for _, field := range frame.callee.results().List {
+		for _, name := range field.names {
+			val := frame.env.valueLookUp(name.name)
+			vals = append(vals, val)
 		}
 	}
 	vm.popFrame()
