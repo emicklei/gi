@@ -21,11 +21,11 @@ func TestAllocHeapValue(t *testing.T) {
 	val := reflect.ValueOf(42)
 	hp := h.allocHeapValue(val)
 
-	if hp.Addr != 1 {
-		t.Errorf("expected address 1, got %d", hp.Addr)
+	if hp.addr != 1 {
+		t.Errorf("expected address 1, got %d", hp.addr)
 	}
-	if hp.Type != val.Type() {
-		t.Errorf("expected type %v, got %v", val.Type(), hp.Type)
+	if hp.typ != val.Type() {
+		t.Errorf("expected type %v, got %v", val.Type(), hp.typ)
 	}
 	if h.values[1].Int() != 42 {
 		t.Errorf("expected value 42 stored at address 1, got %v", h.values[1])
@@ -100,12 +100,12 @@ func TestAsHeapPointer(t *testing.T) {
 }
 
 func TestHeapPointerString(t *testing.T) {
-	hp := &HeapPointer{Addr: 0x123}
+	hp := &HeapPointer{addr: 0x123}
 	if !strings.HasPrefix(hp.String(), "0x123") {
 		t.Errorf("expected '0x123', got %s", hp.String())
 	}
 
-	hpEnv := &HeapPointer{Addr: 0x456, EnvVarName: "myVar", EnvRef: newEnvironment(nil)}
+	hpEnv := &HeapPointer{addr: 0x456, envVarName: "myVar", env: newEnvironment(nil)}
 	expected := "0x456 (myVar)"
 	if !strings.HasPrefix(hpEnv.String(), expected) {
 		t.Errorf("expected '%s', got %s", expected, hpEnv.String())
@@ -122,8 +122,8 @@ func TestHeapPointerUnmarshalJSON(t *testing.T) {
 	env.valueSet("p", reflect.ValueOf(p))
 
 	hp := &HeapPointer{
-		EnvRef:     env,
-		EnvVarName: "p",
+		env:        env,
+		envVarName: "p",
 	}
 
 	jsonData := []byte(`{"Name": "Bob"}`)
@@ -141,7 +141,7 @@ func TestHeapPointerUnmarshalJSON(t *testing.T) {
 
 func TestHeapInvalidRead(t *testing.T) {
 	h := newHeap()
-	hp := &HeapPointer{Addr: 999} // Invalid address
+	hp := &HeapPointer{addr: 999} // Invalid address
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -153,7 +153,7 @@ func TestHeapInvalidRead(t *testing.T) {
 
 func TestHeapInvalidWrite(t *testing.T) {
 	h := newHeap()
-	hp := &HeapPointer{Addr: 999} // Invalid address
+	hp := &HeapPointer{addr: 999} // Invalid address
 
 	defer func() {
 		if r := recover(); r == nil {
