@@ -359,6 +359,9 @@ func (c DeferCallExpr) String() string {
 func postCallFunc(vm *VM) {
 	// need to create flow in which each defer function is called.
 	// use statements to build graph
+	// TODO optimize to return without graph if not needed
+	//
+	// when no defers and no results then vm.popFrame and return
 	//
 	// TODO: alternative: direct graph building??
 	frame := vm.currentFrame
@@ -375,33 +378,36 @@ func postCallFunc(vm *VM) {
 		head = block.flow(b)
 	}
 	// extend graph to push results on parent frame operands
-	popFrameAndPushResultsStep := newFuncStep(token.NoPos, "pop frame and push results", func(vm *VM) {
-		if frame.callee == nil || frame.callee.results() == nil || len(frame.callee.results().List) == 0 {
-			// no results to push, just pop frame and return
-			vm.popFrame()
-			return
-		}
-		frame := vm.currentFrame
-		// take values before popping frame
-		vals := []reflect.Value{}
-		if frame.callee != nil {
-			if results := frame.callee.results(); results != nil {
-				for _, field := range results.List {
-					for _, name := range field.names {
-						val := frame.env.valueLookUp(name.name)
-						vals = append(vals, val)
-					}
-				}
-			}
-		}
-		vm.popFrame()
-		vm.pushOperands(vals...)
-	})
+	popFrameAndPushResultsStep := newFuncStep(token.NoPos, "pop frame and push results", popFrameAndPushResults)
 	if head == nil {
 		head = popFrameAndPushResultsStep
 	}
 	b.nextStep(popFrameAndPushResultsStep)
 	vm.currentFrame.step = head
+}
+
+func popFrameAndPushResults(vm *VM) {
+	frame := vm.currentFrame
+	// TODO: put this in the caller
+	if frame.callee == nil || frame.callee.results() == nil || len(frame.callee.results().List) == 0 {
+		// no results to push, just pop frame and return
+		vm.popFrame()
+		return
+	}
+	// take values before popping frame
+	vals := []reflect.Value{}
+	if frame.callee != nil {
+		if results := frame.callee.results(); results != nil {
+			for _, field := range results.List {
+				for _, name := range field.names {
+					val := frame.env.valueLookUp(name.name)
+					vals = append(vals, val)
+				}
+			}
+		}
+	}
+	vm.popFrame()
+	vm.pushOperands(vals...)
 }
 
 func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {
