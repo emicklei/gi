@@ -173,5 +173,8 @@ func (f *FuncLit) results() *FieldList {
 }
 
 func (f *FuncLit) String() string {
+	if f == nil {
+		return "FuncLit(nil)"
+	}
 	return fmt.Sprintf("FuncLit(%v,%v)", f.Type, f.Body)
 }
