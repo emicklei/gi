@@ -179,16 +179,16 @@ func (p *Package) writeCallGraph(fileName string) {
 var _ CanSelect = (*SDKPackage)(nil)
 
 type SDKPackage struct {
-	name        string
-	pkgPath     string
-	symbolTable map[string]reflect.Value // const,var,func, not types
-	typesTable  map[string]reflect.Value // not reflect.Type to make Select work uniformly
+	name    string
+	pkgPath string
+	symbols map[string]reflect.Value // const,var,func, not types
+	types   map[string]reflect.Value // not reflect.Type to make Select work uniformly
 }
 
 func (p SDKPackage) selectByName(name string) reflect.Value {
-	v, ok := p.symbolTable[name]
+	v, ok := p.symbols[name]
 	if !ok {
-		t, ok := p.typesTable[name]
+		t, ok := p.types[name]
 		if ok {
 			return t
 		}

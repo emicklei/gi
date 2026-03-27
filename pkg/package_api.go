@@ -14,12 +14,23 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-var importedPkgs = make(map[string]map[string]reflect.Value)
+type valuesAndTypes struct {
+	values map[string]reflect.Value
+	types  map[string]reflect.Value
+}
+
+var importedPkgs = make(map[string]valuesAndTypes)
 var loadMode = packages.NeedName | packages.NeedSyntax | packages.NeedFiles | packages.NeedTypesInfo
 
-func RegisterPackage(pkgPath string, symbols map[string]reflect.Value) {
-	// TODO check for override?
-	importedPkgs[pkgPath] = symbols
+func RegisterPackage(pkgPath string, values map[string]reflect.Value, types map[string]reflect.Type) {
+	typesAsValues := map[string]reflect.Value{}
+	// current design requires a registry of values for types
+	for k, v := range types {
+		typesAsValues[k] = reflect.ValueOf(v)
+	}
+	importedPkgs[pkgPath] = valuesAndTypes{
+		values: values,
+		types:  typesAsValues}
 }
 
 func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package, error) {

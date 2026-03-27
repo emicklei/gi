@@ -1,4 +1,4 @@
-module externalmodule
+module exmod
 
 go 1.26
 

@@ -6,6 +6,16 @@ import (
 	"github.com/emicklei/gi/pkg"
 )
 
+// Loads and builds the Go package located at the specified file path.
+// filePath is the file path to a folder that contains Go files.
+func LoadPackage(filePath string) (*pkg.Package, error) {
+	gopkg, err := pkg.LoadPackage(filePath, nil)
+	if err != nil {
+		return nil, err
+	}
+	return pkg.BuildPackage(gopkg)
+}
+
 // Run loads, builds, and runs the Go package located at the specified file path.
 // filePath is the file path to a folder that contains a main.go file
 // or any Go source file with a main function.
@@ -35,11 +45,11 @@ func Call(p *pkg.Package, funcName string, params ...any) ([]any, error) {
 	return pkg.CallPackageFunction(p, funcName, params)
 }
 
-// RegisterPackage registers an external package with its symbols for use within gi-executed code.
-// This function exist to support generated code and it not meant to be used beyond that.
-func RegisterPackage(pkgPath string, symbols map[string]reflect.Value) {
-	if pkgPath == "" || symbols == nil {
-		panic("pkgPath and symbols must be non-nil/empty")
+// RegisterPackage registers an external package with its values and types for use within gi-executed code.
+// This function exist to support generated code and is not meant to be used beyond that.
+func RegisterPackage(pkgPath string, values map[string]reflect.Value, types map[string]reflect.Type) {
+	if pkgPath == "" || values == nil || types == nil {
+		panic("pkgPath,values and types must be non-nil/empty")
 	}
-	pkg.RegisterPackage(pkgPath, symbols)
+	pkg.RegisterPackage(pkgPath, values, types)
 }
