@@ -47,6 +47,7 @@ Gi is designed to interpret a Go program by parsing its source code into an Abst
 - interface types and interface literals
 - function declarations and function literals
 - range loops
+- loop variable
 
 ### defer
 

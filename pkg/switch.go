@@ -18,17 +18,7 @@ type SwitchStmt struct {
 
 func (s SwitchStmt) stmtStep() Evaluable { return s }
 
-func (s SwitchStmt) eval(vm *VM) {
-	// vm.currentFrame.pushEnv()
-	// defer vm.currentFrame.popEnv()
-	// if s.init != nil {
-	// 	vm.eval(s.init.stmtStep())
-	// }
-	// if s.tag != nil {
-	// 	vm.eval(s.tag)
-	// }
-	// vm.eval(s.body)
-}
+func (s SwitchStmt) eval(vm *VM) {} // noop
 
 func (s SwitchStmt) flow(g *graphBuilder) (head Step) {
 	if s.init != nil {

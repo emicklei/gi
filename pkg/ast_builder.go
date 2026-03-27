@@ -206,8 +206,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			e := b.pop().(BlockStmt)
 			s.Body = &e
 		}
-		// TODO
-		// idea is that every interpreted function ends with a return
+		// every interpreted function ends with a return
 		// the return will have a step to do the postCall
 		// which runs defers and puts result on the operand stack.
 		s.Body = withEndingReturn(s.Body)
@@ -548,12 +547,12 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		e = b.pop()
 		blk := e.(BlockStmt)
 		s.body = &blk
-		// TODO
-		// idea is that every interpreted function ends with a return
+
+		// every interpreted function ends with a return
 		// the return will have a step to do the postCall
 		// which runs defers and puts result on the operand stack.
 		s.body = withEndingReturn(s.body)
-		b.push(s) // TODO ??
+		b.push(s)
 
 		// store call graph in the FuncDecl
 		g := newGraphBuilder(b.goPkg)
@@ -845,7 +844,8 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 	return b
 }
 
-// TEMP
+// creates a new BlockStmt that that has a list that ends with a ReturnStmt
+// TODO modify the parameter?
 func withEndingReturn(block *BlockStmt) *BlockStmt {
 	if len(block.list) == 0 {
 		emptyReturn := ReturnStmt{returnPos: block.pos()}
