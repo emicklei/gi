@@ -183,23 +183,25 @@ func (vm *VM) Next() error {
 	if trace {
 		fmt.Printf("%v @ %v\n", vm.currentFrame.step, cursor(vm.pkg.Fset, vm.currentFrame.step.pos()))
 	}
-	// if callee := vm.currentFrame.callee; callee != nil {
-	// 	if callee.hasRecoverCall() {
-	// 		if vm.currentFrame.env.valueLookUp(internalVarName("recover", 0)) != reflectUndeclared {
-	// 			console("is recovering")
-	// 		} else {
-	// 			// for each step we need to set up a deferred function that will catch a panic.
-	// 			console("callee has recover call")
-	// 			defer func() {
-	// 				if r := recover(); r != nil {
-	// 					// temporary store it in the special variable in the parent env
-	// 					vm.currentFrame.env.parent().valueSet(internalVarName("recover", 0), reflect.ValueOf(r))
-	// 					callDefers(vm)
-	// 				}
-	// 			}()
-	// 		}
-	// 	}
-	// }
+	if callee := vm.currentFrame.callee; callee != nil {
+		if callee.hasRecoverCall() {
+			console("callee has recover call", callee)
+			if vm.currentFrame.env.valueLookUp(internalVarName("recover", 0)) != reflectUndeclared {
+				console("is recovering", callee)
+			} else {
+				// for each step we need to set up a deferred function that will catch a panic.
+				console("need to catch panic", callee)
+				defer func() {
+					if r := recover(); r != nil {
+						console("caught panic", r, callee)
+						// temporary store it in the special variable in the parent env
+						vm.currentFrame.env.parent().valueSet(internalVarName("recover", 0), reflect.ValueOf(r))
+						postCallFunc(vm)
+					}
+				}()
+			}
+		}
+	}
 	vm.currentFrame.step.take(vm)
 	return nil
 }

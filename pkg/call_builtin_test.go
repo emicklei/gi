@@ -16,7 +16,6 @@ func main() {
 }
 
 func TestRecover(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -28,7 +27,6 @@ func main() {
 }
 
 func TestNoPanicRecover(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 
 func main() {
@@ -40,6 +38,7 @@ func main() {
 
 func TestNestedRecover(t *testing.T) {
 	t.Skip()
+	defer debug(t)()
 	testMain(t, `package main
 
 func catchthrow() {

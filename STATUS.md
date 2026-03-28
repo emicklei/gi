@@ -50,7 +50,7 @@
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
 | `select` statement | ⬜ |
-| recover |  ⬜ |
+| nested recover |  ⬜ |
 | loop vars |  ⬜ |
 | slice of func literals |  ⬜ |
 | DAP | ⬜ | 50%

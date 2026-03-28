@@ -357,7 +357,7 @@ func (c DeferCallExpr) flow(g *graphBuilder) (head Step) {
 }
 
 func (c DeferCallExpr) String() string {
-	return fmt.Sprintf("DeferCallExpr(%v, args=%d)", c.fun, len(c.args))
+	return fmt.Sprintf("DeferCallExpr(%v, len=%d)", c.fun, len(c.args))
 }
 
 // Runs defers and pushes return values on the operand stack after a function call.
@@ -422,5 +422,5 @@ func (c CallExpr) deferFlow(g *graphBuilder) (head Step) {
 func (c CallExpr) pos() token.Pos { return c.lparenPos }
 
 func (c CallExpr) String() string {
-	return fmt.Sprintf("CallExpr(%v, args=%d)", c.fun, len(c.args))
+	return fmt.Sprintf("CallExpr(%v, len=%d)", c.fun, len(c.args))
 }

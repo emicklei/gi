@@ -55,7 +55,7 @@ func (r ReturnStmt) flow(g *graphBuilder) (head Step) {
 		head = g.current
 	}
 	// runs defers and puts result on the operand stack
-	g.nextStep(newFuncStep(r.pos(), "defer+results", postCallFunc))
+	g.nextStep(newFuncStep(r.pos(), "defers+results", postCallFunc))
 	// no next step after return
 	g.current = nil
 	return
