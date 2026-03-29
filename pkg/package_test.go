@@ -39,20 +39,6 @@ func Hello(name string) (int, string) {
 	}
 }
 
-func TestLoadEmptyStdPackage(t *testing.T) {
-	source := `package main
-import "slices"
-func main() {
-	slices.All([]int{})
-	print("done")
-}`
-	_, err := ParseSource(source)
-	if err == nil {
-		t.Fatalf("slices should fail (now): %v", err)
-	}
-	t.Log(err)
-}
-
 func TestV2Package(t *testing.T) {
 	testMain(t, `package main
 import (

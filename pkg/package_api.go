@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/spewerspew/spew"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -83,22 +82,6 @@ func BuildPackage(goPkg *packages.Package) (*Package, error) {
 	}
 	pkg := &Package{Package: goPkg, env: b.env.(*PkgEnvironment)}
 
-	if os.Getenv("GI_AST") != "" {
-		out, _ := os.Create("gopkg.ast")
-		defer out.Close()
-		spew.Fdump(out, goPkg.Syntax[0].Decls[0])
-
-		out2, _ := os.Create("gi.pkg.ast")
-		defer out2.Close()
-		opts := spew.ConfigState{
-			ContinueOnMethod: true,
-			Indent:           " ",
-			MaxDepth:         10,
-			// SkipStructFieldNames: []string{"reflect.Value.typ_", "reflect.Value.ptr", "reflect.Value.flag"},
-		}
-		opts.Fdump(out2, b.env.valueLookUp("main").Interface())
-	}
-
 	// build and store package setup flow
 	gb := newGraphBuilder(goPkg)
 	pkg.callGraph = pkg.flow(gb)
@@ -120,8 +103,8 @@ func CallPackageFunction(pkg *Package, functionName string, args []any) ([]any, 
 }
 
 // ParseSource is a helper function that allows parsing and building a package directly from a source string, without needing to read from the filesystem.
-// It creates a temporary directory, writes the source to a main.go file, and then uses the standard LoadPackage and BuildPackage functions to create the Package struct.
-func ParseSource(source string) (*Package, error) {
+// It creates a temporary directory, writes the source to a main.go file, and then uses the standard LoadPackage.
+func ParseSource(source string) (*packages.Package, error) {
 
 	// create a temp dir with a main.go file and go.mod
 	dir, err := os.MkdirTemp("", "gi-temp-dir")
@@ -148,9 +131,5 @@ func ParseSource(source string) (*Package, error) {
 			return parser.ParseFile(fset, filename, src, parser.SkipObjectResolution)
 		},
 	}
-	gopkg, err := LoadPackage(cfg.Dir, cfg)
-	if err != nil {
-		return nil, err
-	}
-	return BuildPackage(gopkg)
+	return LoadPackage(cfg.Dir, cfg)
 }

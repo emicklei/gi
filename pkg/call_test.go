@@ -8,10 +8,14 @@ import (
 func Generic[T any](arg T) (*T, error) { return &arg, nil }
 
 // instantiations of Generic
-func Generic_string(arg string) (*string, error) { return &arg, nil }
+// func Generic_string(arg string) (*string, error) { return &arg, nil }
 
 func TestCallGenericByReflect(t *testing.T) {
-	rv := reflect.ValueOf(Generic_string)
+	// call it
+	//_, _ = Generic("gi")
+
+	rv := reflect.ValueOf(Generic[string])
+
 	arg := "hello"
 	rvArg := reflect.ValueOf(arg)
 	results := rv.Call([]reflect.Value{rvArg})

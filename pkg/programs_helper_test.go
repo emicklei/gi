@@ -15,11 +15,15 @@ import (
 func buildPackage(t *testing.T, source string) *Package {
 	t.Helper()
 
-	locakPkg, err := ParseSource(source)
+	goPkg, err := ParseSource(source)
 	if err != nil {
 		t.Fatalf("failed to parse source: %v", err)
 	}
-	return locakPkg
+	giPkg, err := BuildPackage(goPkg)
+	if err != nil {
+		t.Fatalf("failed to build package: %v", err)
+	}
+	return giPkg
 }
 
 var stdfuncsMutex sync.Mutex

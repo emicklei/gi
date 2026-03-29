@@ -36,7 +36,11 @@ func Run(filePath string) error {
 // The source must be valid Go, e.g. main package with a main function.
 // It cannot have external dependencies ; only standard library packages are allowed.
 func Parse(source string) (*pkg.Package, error) {
-	return pkg.ParseSource(source)
+	goPkg, err := pkg.ParseSource(source)
+	if err != nil {
+		return nil, err
+	}
+	return pkg.BuildPackage(goPkg)
 }
 
 // Call calls a function named funcName in the given package pkg with the provided parameters values.
