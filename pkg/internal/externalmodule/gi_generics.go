@@ -1,7 +1,17 @@
 package main
 
-import "slices"
+import (
+	"reflect"
+	"slices"
 
-func slices_Contains_slice_int(a0 []int, a1 int) bool {
-	return slices.Contains(a0, a1)
+	"github.com/emicklei/gi"
+)
+
+func init() {
+	gi.RegisterFunction(
+		"slices",
+		"Contains[int]",
+		reflect.ValueOf(func(a0 []int, a1 int) bool {
+			return slices.Contains(a0, a1)
+		}))
 }

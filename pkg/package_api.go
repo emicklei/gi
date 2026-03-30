@@ -27,9 +27,25 @@ func RegisterPackage(pkgPath string, values map[string]reflect.Value, types map[
 	for k, v := range types {
 		typesAsValues[k] = reflect.ValueOf(v)
 	}
+	// TODO mutex
 	importedPkgs[pkgPath] = valuesAndTypes{
 		values: values,
 		types:  typesAsValues}
+}
+
+func RegisterFunction(pkgPath string, funcName string, fn reflect.Value) {
+	// TODO mutex
+	vant, ok := importedPkgs[pkgPath]
+	if ok {
+		// append/overwrite
+		vant.values[funcName] = fn
+	} else {
+		vant = valuesAndTypes{
+			values: map[string]reflect.Value{funcName: fn},
+			types:  map[string]reflect.Value{},
+		}
+	}
+	importedPkgs[pkgPath] = vant
 }
 
 func LoadPackage(dir string, optionalConfig *packages.Config) (*packages.Package, error) {

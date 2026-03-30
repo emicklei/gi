@@ -57,3 +57,17 @@ func RegisterPackage(pkgPath string, values map[string]reflect.Value, types map[
 	}
 	pkg.RegisterPackage(pkgPath, values, types)
 }
+
+// RegisterFunction registers an external function for use within gi-executed code.
+// This function exist to support generated code and is not meant to be used beyond that.
+// The funcName argument should be in the format "FuncName[Type1,Type2,...]" for generic functions, where Type1, Type2, etc. are the type parameters used in the function signature.
+// For non-generic functions, it should simply be "FuncName".
+// The fn argument must be a valid reflect.Value representing a function.
+// Example usage for a generic function:
+// RegisterFunction("slices", "Contains[int]", reflect.ValueOf(func(a []int, b int) bool { /* implementation */ }))
+func RegisterFunction(pkgPath string, funcName string, fn reflect.Value) {
+	if pkgPath == "" || funcName == "" || !fn.IsValid() {
+		panic("pkgPath, funcName and fn must be non-nil/empty")
+	}
+	pkg.RegisterFunction(pkgPath, funcName, fn)
+}
