@@ -7,9 +7,12 @@ test:
 serial:
 	GI_CALL=out.dot GI_TRACE=1 go test -v -p 1 ./pkg
 
-clean:
+clean: clean_debug
 	cd pkg/internal/testgraphs && rm -f *.dot *.png *.src *.svg *.ast *.ast.pkg
-	cd pkg && rm -rf *.dot *.png *.src *.svg *.ast *panic.html __debug_bin* *.ast.pkg
+	cd pkg && rm -f *.dot *.png *.src *.svg *.ast *panic.html *.ast.pkg
+
+clean_debug:
+	cd pkg && find . -name "__debug*"| xargs rm
 
 skip:
 	cd pkg && go test -v | grep SKIP

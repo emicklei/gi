@@ -192,7 +192,7 @@ func (p SDKPackage) selectByName(name string) reflect.Value {
 		if ok {
 			return t
 		}
-		panic(fmt.Sprintf("package not found: %s %s", p.pkgPath, name))
+		panic(fmt.Sprintf("symbol not found: %s func/const/var: %s", p.pkgPath, name))
 	}
 	return v
 }
