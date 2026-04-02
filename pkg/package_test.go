@@ -70,7 +70,7 @@ func main() {
 }
 
 func TestDetector(t *testing.T) {
-	//defer debug(t)()
+	defer debug(t)()
 	source := `package main
 import "slices"
 import "fmt"

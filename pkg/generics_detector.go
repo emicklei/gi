@@ -2,19 +2,29 @@ package pkg
 
 import (
 	"go/ast"
+	"go/types"
 	"log"
+	"strconv"
 
 	"golang.org/x/tools/go/packages"
 )
 
+type InferredGenericCallExpr struct {
+	ImportSpec *ast.ImportSpec
+	FuncName   string
+	Signature  *types.Signature
+	ArgTypes   []types.Type
+}
+
 var _ ast.Visitor = (*genericsDetector)(nil)
 
 type genericsDetector struct {
-	goPkg *packages.Package
+	goPkg   *packages.Package
+	imports map[string]*ast.ImportSpec
 }
 
 func newGenericsDetector(goPkg *packages.Package) genericsDetector {
-	return genericsDetector{goPkg: goPkg}
+	return genericsDetector{goPkg: goPkg, imports: map[string]*ast.ImportSpec{}}
 }
 
 // Visit implements the ast.Visitor interface
@@ -24,9 +34,9 @@ func (d genericsDetector) Visit(node ast.Node) ast.Visitor {
 	}
 	switch n := node.(type) {
 	case *ast.CallExpr:
-		if d.isGenericSDKCall(n) {
+		if igc := d.asInferredGenericCallExpr(n); igc != nil {
 			if trace {
-				console("generics call", n.Fun)
+				console("generics SDK call", igc)
 			}
 		}
 		for _, each := range n.Args {
@@ -130,10 +140,17 @@ func (d genericsDetector) Visit(node ast.Node) ast.Visitor {
 		d.Visit(n.Max)
 	case *ast.LabeledStmt:
 		d.Visit(n.Stmt)
+	case *ast.ImportSpec:
+		if n.Name != nil {
+			unq, _ := strconv.Unquote(n.Name.Name)
+			d.imports[unq] = n
+		} else {
+			unq, _ := strconv.Unquote(n.Path.Value)
+			d.imports[unq] = n
+		}
 	case *ast.BranchStmt:
 	case *ast.ChanType:
 	case *ast.TypeSpec:
-	case *ast.ImportSpec:
 	case *ast.BasicLit:
 	case *ast.SelectorExpr:
 	case *ast.Ident:
@@ -143,29 +160,52 @@ func (d genericsDetector) Visit(node ast.Node) ast.Visitor {
 	return d
 }
 
-func (d genericsDetector) isGenericInterpretedCall(f *ast.CallExpr) bool {
-	return false
-}
-
-func (d genericsDetector) isGenericSDKCall(f *ast.CallExpr) bool {
+func (d genericsDetector) asInferredGenericCallExpr(f *ast.CallExpr) *InferredGenericCallExpr {
 	// must be selector expression
 	selex, ok := f.Fun.(*ast.SelectorExpr)
 	if !ok {
-		return false
+		return nil
 	}
 	// must be identifier for package
 	ident, ok := selex.X.(*ast.Ident)
 	if !ok {
-		return false
+		return nil
 	}
 	// if known function then it is not generic
 	if pkg, ok := stdfuncs[ident.Name]; ok {
 		if _, ok := pkg[selex.Sel.Name]; ok {
-			if trace {
-				console("non-generic call", ident.Name, selex.Sel.Name)
-			}
-			return false
+			return nil
 		}
 	}
-	return true
+	ret, ok := d.goPkg.TypesInfo.Types[selex]
+	if !ok {
+		if trace {
+			console("unexpected missing type", selex)
+		}
+		return nil
+	}
+	sig := ret.Type.(*types.Signature)
+	args := []types.Type{}
+	for _, arg := range f.Args {
+		typ, ok := d.goPkg.TypesInfo.Types[arg]
+		if !ok {
+			if trace {
+				console("unexpected missing type", arg)
+			}
+			return nil
+		}
+		args = append(args, typ.Type)
+	}
+	im, ok := d.imports[ident.Name]
+	if !ok {
+		if trace {
+			console("missing import", ident.Name)
+		}
+	}
+	return &InferredGenericCallExpr{
+		ImportSpec: im,
+		FuncName:   selex.Sel.Name,
+		Signature:  sig,
+		ArgTypes:   args,
+	}
 }
