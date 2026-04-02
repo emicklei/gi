@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
-	"go/types"
 	"log/slog"
 	"os"
 	"path"
@@ -479,21 +478,11 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		}
 		b.push(s)
 	case *ast.SelectorExpr:
-		// TODO tryout detect generic func call
-		if obj, ok := b.goPkg.TypesInfo.Uses[n.Sel]; ok {
-			if fun, ok := obj.(*types.Func); ok {
-				if sig, ok := fun.Type().(*types.Signature); ok {
-					if sig.TypeParams() != nil {
-						console("generic call", fun.Pkg().Name(), n.Sel, sig.TypeParams())
-					}
-				}
-			}
-		}
-
 		s := SelectorExpr{selector: &Ident{name: n.Sel.Name, namePos: n.Sel.NamePos}}
 		b.Visit(n.X)
 		e := b.pop()
 		s.x = e.(Expr)
+		console("exp", s.x)
 		b.push(s)
 	case *ast.StarExpr:
 		s := StarExpr{starPos: n.Star}

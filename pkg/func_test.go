@@ -60,3 +60,17 @@ func main() {
 	print(f())
 }`, "1")
 }
+
+func TestGenericAsValue(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+func Even[T int | float64](num T) bool {
+		return num/2 == 0
+}
+
+func main() {
+		ef := Even[float64]
+		print(ef(2.0))
+}`, "false")
+}

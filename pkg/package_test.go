@@ -68,3 +68,29 @@ func main() {
 	Println("gi")
 }`, "")
 }
+
+func TestDetector(t *testing.T) {
+	//defer debug(t)()
+	source := `package main
+import "slices"
+import "fmt"
+
+func Even[T int | float64](num T) bool {
+	return num/2 == 0
+}
+
+func main() {
+	nums := []int{1}
+	for { if true { slices.Contains(nums,1)}}
+	fmt.Println(nums)
+	fmt.Println(Even(3))
+}
+`
+	goPkg, _ := ParseSource(source)
+	d := newGenericsDetector(goPkg)
+	for _, stx := range goPkg.Syntax {
+		for _, decl := range stx.Decls {
+			d.Visit(decl)
+		}
+	}
+}

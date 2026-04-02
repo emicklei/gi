@@ -19,6 +19,15 @@ func buildPackage(t *testing.T, source string) *Package {
 	if err != nil {
 		t.Fatalf("failed to parse source: %v", err)
 	}
+	// TODO until generics is done
+	d := newGenericsDetector(goPkg)
+	for _, stx := range goPkg.Syntax {
+		for _, decl := range stx.Decls {
+			d.Visit(decl)
+		}
+	}
+	// END TODO
+
 	giPkg, err := BuildPackage(goPkg)
 	if err != nil {
 		t.Fatalf("failed to build package: %v", err)
