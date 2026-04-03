@@ -32,6 +32,8 @@ func (c CallExpr) eval(vm *VM) {
 			c.handleReflectMethod(vm, f)
 		case ExtendedType:
 			c.handleExtendedType(vm, f)
+		case FuncDecl:
+			c.handleFuncDecl(vm, &f)
 		default:
 			vm.fatalf("struct unexpected %s (%T)", stringOf(fn.Interface()), fn.Interface())
 		}

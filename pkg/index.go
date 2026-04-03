@@ -32,8 +32,13 @@ func (i IndexExpr) eval(vm *VM) {
 	case reflect.Slice, reflect.Array:
 		vm.pushOperand(target.Index(int(index.Int())))
 	case reflect.String:
+		// index in string -> rune
 		v := reflect.ValueOf(target.String()[int(index.Int())])
 		vm.pushOperand(v)
+	case reflect.Struct:
+		// type parameterized function
+		// TODO
+		vm.pushOperand(target)
 	default:
 		vm.fatalf("expected string,map,slice or array, got %s", target.Kind())
 	}

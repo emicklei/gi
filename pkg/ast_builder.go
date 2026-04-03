@@ -476,13 +476,17 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			e := b.pop()
 			s.args = append(s.args, e.(Expr))
 		}
+		if isGenericCall(n) {
+			selex := s.fun.(SelectorExpr)
+			ident := selex.x.(Ident)
+			console(selex, ident)
+		}
 		b.push(s)
 	case *ast.SelectorExpr:
 		s := SelectorExpr{selector: &Ident{name: n.Sel.Name, namePos: n.Sel.NamePos}}
 		b.Visit(n.X)
 		e := b.pop()
 		s.x = e.(Expr)
-		console("exp", s.x)
 		b.push(s)
 	case *ast.StarExpr:
 		s := StarExpr{starPos: n.Star}

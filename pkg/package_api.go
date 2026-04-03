@@ -8,14 +8,16 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"strings"
 	"time"
 
 	"golang.org/x/tools/go/packages"
 )
 
 type valuesAndTypes struct {
-	values map[string]reflect.Value
-	types  map[string]reflect.Value
+	isGeneric map[string]bool // Set
+	values    map[string]reflect.Value
+	types     map[string]reflect.Value
 }
 
 var importedPkgs = make(map[string]valuesAndTypes)
@@ -29,8 +31,9 @@ func RegisterPackage(pkgPath string, values map[string]reflect.Value, types map[
 	}
 	// TODO mutex
 	importedPkgs[pkgPath] = valuesAndTypes{
-		values: values,
-		types:  typesAsValues}
+		isGeneric: map[string]bool{},
+		values:    values,
+		types:     typesAsValues}
 }
 
 func RegisterFunction(pkgPath string, funcName string, fn reflect.Value) {
@@ -41,9 +44,16 @@ func RegisterFunction(pkgPath string, funcName string, fn reflect.Value) {
 		vant.values[funcName] = fn
 	} else {
 		vant = valuesAndTypes{
-			values: map[string]reflect.Value{funcName: fn},
-			types:  map[string]reflect.Value{},
+			isGeneric: map[string]bool{},
+			values:    map[string]reflect.Value{funcName: fn},
+			types:     map[string]reflect.Value{},
 		}
+	}
+	// remember that it is a type parameterized function
+	paramTypeIndex := strings.Index(funcName, "[")
+	if paramTypeIndex != -1 {
+		// key is without the type info
+		vant.isGeneric[funcName[0:paramTypeIndex]] = true
 	}
 	importedPkgs[pkgPath] = vant
 }

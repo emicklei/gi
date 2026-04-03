@@ -239,6 +239,27 @@ func (d genericsDetector) Visit(node ast.Node) ast.Visitor {
 	return d
 }
 
+func isGenericCall(f *ast.CallExpr) bool {
+	// TODO deduplicate with asInferredGenericCallExpr
+	selex, ok := f.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return false
+	}
+	// must be identifier for package
+	ident, ok := selex.X.(*ast.Ident)
+	if !ok {
+		return false
+	}
+	vant, ok := importedPkgs[ident.Name]
+	if !ok {
+		return false
+	}
+	if _, ok := vant.isGeneric[selex.Sel.Name]; !ok {
+		return false
+	}
+	return true
+}
+
 func (d genericsDetector) asInferredGenericCallExpr(f *ast.CallExpr) *InferredGenericCallExpr {
 	// must be selector expression
 	selex, ok := f.Fun.(*ast.SelectorExpr)
