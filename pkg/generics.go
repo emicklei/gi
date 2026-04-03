@@ -3,17 +3,96 @@ package pkg
 import (
 	"go/ast"
 	"go/types"
+	"io"
 	"log"
+	"os"
 	"strconv"
+	"strings"
 
 	"golang.org/x/tools/go/packages"
 )
 
 type InferredGenericCallExpr struct {
-	ImportSpec *ast.ImportSpec
-	FuncName   string
-	Signature  *types.Signature
-	ArgTypes   []types.Type
+	ImportSpec  *ast.ImportSpec
+	FuncName    string
+	Signature   *types.Signature
+	ArgTypes    []types.Type
+	ReturnTypes []types.Type
+}
+
+func (i *InferredGenericCallExpr) packageName() string {
+	var quoted string
+	if i.ImportSpec.Name != nil {
+		quoted = i.ImportSpec.Name.Name
+	} else {
+		quoted = i.ImportSpec.Path.Value
+	}
+	unq, _ := strconv.Unquote(quoted)
+	return unq
+}
+
+/*
+*
+gi.RegisterFunction(
+
+	"slices",
+	"Contains[int]",
+	reflect.ValueOf(func(a0 []int, a1 int) (bool) {
+		return slices.Contains(a0, a1)
+	}))
+*/
+func (i *InferredGenericCallExpr) emitSource(w io.Writer) {
+	pkg := i.packageName()
+	var b strings.Builder
+	b.WriteString("\tgi.RegisterFunction(\n\t\t")
+	b.WriteString(strconv.Quote(pkg))
+	b.WriteString(",\n\t\t\"")
+	b.WriteString(i.FuncName)
+	b.WriteString("(")
+	// arg types
+	for a, arg := range i.ArgTypes {
+		if a > 0 {
+			b.WriteString(",")
+		}
+		b.WriteString(arg.String())
+	}
+	b.WriteString(")\"")
+	b.WriteString(",\n\t\treflect.ValueOf(func(")
+	// arg
+	for a, arg := range i.ArgTypes {
+		if a > 0 {
+			b.WriteString(",")
+		}
+		b.WriteString("a")
+		b.WriteString(strconv.Itoa(a))
+		b.WriteString(" ")
+		b.WriteString(arg.String())
+	}
+	// returns
+	b.WriteString(") (")
+	results := i.Signature.Results()
+	for r := 0; r < results.Len(); r++ {
+		if r > 0 {
+			b.WriteString(",")
+		}
+		b.WriteString(results.At(r).Type().String())
+	}
+	b.WriteString(") {\n\t\t\treturn ")
+	b.WriteString(pkg)
+	b.WriteString(".")
+	b.WriteString(i.FuncName)
+	b.WriteString("(")
+	// body
+	for a := range len(i.ArgTypes) {
+		if a > 0 {
+			b.WriteString(",")
+		}
+		b.WriteString("a")
+		b.WriteString(strconv.Itoa(a))
+	}
+	// close
+	b.WriteString(")\n\t}))\n")
+	io.WriteString(w, b.String())
 }
 
 var _ ast.Visitor = (*genericsDetector)(nil)
@@ -36,7 +115,7 @@ func (d genericsDetector) Visit(node ast.Node) ast.Visitor {
 	case *ast.CallExpr:
 		if igc := d.asInferredGenericCallExpr(n); igc != nil {
 			if trace {
-				console("generics SDK call", igc)
+				igc.emitSource(os.Stdout)
 			}
 		}
 		for _, each := range n.Args {
