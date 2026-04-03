@@ -54,6 +54,9 @@ func collectPrintOutput(vm *VM) {
 	stdfuncs["fmt"]["Printf"] = reflect.ValueOf(func(args ...any) {
 		fmt.Fprintf(vm.output, args[0].(string), args[1:]...)
 	})
+	stdfuncs["fmt"]["Println"] = reflect.ValueOf(func(args ...any) {
+		fmt.Fprintln(vm.output, args...)
+	})
 }
 
 // Per-test attribute storage

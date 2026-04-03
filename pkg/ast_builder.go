@@ -477,9 +477,23 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			s.args = append(s.args, e.(Expr))
 		}
 		if isGenericCall(n) {
+			// safe casting here
 			selex := s.fun.(SelectorExpr)
-			ident := selex.x.(Ident)
-			console(selex, ident)
+			// compose type-inferred function name
+			sb := new(strings.Builder)
+			sb.WriteString(selex.selector.name)
+			sb.WriteRune('(')
+			for i, arg := range n.Args {
+				if i > 0 {
+					sb.WriteRune(',')
+				}
+				argTAV := b.goPkg.TypesInfo.Types[arg]
+				sb.WriteString(argTAV.Type.String())
+			}
+			sb.WriteRune(')')
+			// replace function name
+			selex.selector.name = sb.String()
+			s.fun = selex
 		}
 		b.push(s)
 	case *ast.SelectorExpr:

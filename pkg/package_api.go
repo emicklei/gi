@@ -53,7 +53,7 @@ func RegisterFunction(pkgPath string, funcName string, fn reflect.Value) {
 	paramTypeIndex := strings.Index(funcName, "[")
 	if paramTypeIndex != -1 {
 		// key is without the type info
-		vant.isGeneric[funcName[0:paramTypeIndex]] = true
+		vant.isGeneric[funcName[0:paramTypeIndex-1]] = true
 	}
 	importedPkgs[pkgPath] = vant
 }

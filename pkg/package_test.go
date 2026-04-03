@@ -66,5 +66,6 @@ import (
 )
 func main() {
 	Println("gi")
-}`, "")
+}`, `gi
+`)
 }

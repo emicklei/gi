@@ -13,11 +13,10 @@ import (
 )
 
 type InferredGenericCallExpr struct {
-	ImportSpec  *ast.ImportSpec
-	FuncName    string
-	Signature   *types.Signature
-	ArgTypes    []types.Type
-	ReturnTypes []types.Type
+	ImportSpec *ast.ImportSpec
+	FuncName   string
+	Signature  *types.Signature
+	ArgTypes   []types.Type
 }
 
 func (i *InferredGenericCallExpr) packageName() string {
@@ -296,11 +295,13 @@ func (d genericsDetector) asInferredGenericCallExpr(f *ast.CallExpr) *InferredGe
 		}
 		args = append(args, typ.Type)
 	}
+	// if not registered then not generic ; may fail later
 	im, ok := d.imports[ident.Name]
 	if !ok {
 		if trace {
-			console("missing import", ident.Name)
+			console("missing import?", ident.Name)
 		}
+		return nil
 	}
 	return &InferredGenericCallExpr{
 		ImportSpec: im,

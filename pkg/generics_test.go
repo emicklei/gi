@@ -7,8 +7,8 @@ import (
 )
 
 func TestDetector(t *testing.T) {
-	t.Skip()
-	defer debug(t)()
+	//t.Skip()
+	//defer debug(t)()
 
 	RegisterFunction(
 		"slices",
@@ -40,10 +40,10 @@ func main() {
 		fmt.Println(Even(3))
 }
 `
-	testMain(t, source, `
+	testMain(t, source, `true
 true
-true
-false`)
+false
+`)
 }
 
 func TestGenericAsValue(t *testing.T) {
