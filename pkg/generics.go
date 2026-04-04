@@ -249,16 +249,23 @@ func isGenericCall(f *ast.CallExpr) bool {
 	if !ok {
 		return false
 	}
+	// must be a registered function
 	vant, ok := importedPkgs[ident.Name]
 	if !ok {
 		return false
 	}
-	if _, ok := vant.isGeneric[selex.Sel.Name]; !ok {
+	// must be a registered generic function (package.func)
+	key := strings.Builder{}
+	key.WriteString(ident.Name)
+	key.WriteRune('.')
+	key.WriteString(selex.Sel.Name)
+	if _, ok := vant.isGeneric[key.String()]; !ok {
 		return false
 	}
 	return true
 }
 
+// asInferredGenericCallExpr returns a InferredGenericCallExpr iff the call represents a Generic function call ; return nil otherwise.
 func (d genericsDetector) asInferredGenericCallExpr(f *ast.CallExpr) *InferredGenericCallExpr {
 	// must be selector expression
 	selex, ok := f.Fun.(*ast.SelectorExpr)
@@ -270,20 +277,28 @@ func (d genericsDetector) asInferredGenericCallExpr(f *ast.CallExpr) *InferredGe
 	if !ok {
 		return nil
 	}
-	// if known function then it is not generic
+	// if known SDK package.function then it is not generic
 	if pkg, ok := stdfuncs[ident.Name]; ok {
 		if _, ok := pkg[selex.Sel.Name]; ok {
 			return nil
 		}
 	}
-	ret, ok := d.goPkg.TypesInfo.Types[selex]
+	// if the package is not imported then not generic
+	importSpec, ok := d.imports[ident.Name]
+	if !ok {
+		if trace {
+			console("missing import?", ident.Name)
+		}
+		return nil
+	}
+	returnTAV, ok := d.goPkg.TypesInfo.Types[selex]
 	if !ok {
 		if trace {
 			console("unexpected missing type", selex)
 		}
 		return nil
 	}
-	sig := ret.Type.(*types.Signature)
+	sig := returnTAV.Type.(*types.Signature)
 	args := []types.Type{}
 	for _, arg := range f.Args {
 		typ, ok := d.goPkg.TypesInfo.Types[arg]
@@ -295,16 +310,8 @@ func (d genericsDetector) asInferredGenericCallExpr(f *ast.CallExpr) *InferredGe
 		}
 		args = append(args, typ.Type)
 	}
-	// if not registered then not generic ; may fail later
-	im, ok := d.imports[ident.Name]
-	if !ok {
-		if trace {
-			console("missing import?", ident.Name)
-		}
-		return nil
-	}
 	return &InferredGenericCallExpr{
-		ImportSpec: im,
+		ImportSpec: importSpec,
 		FuncName:   selex.Sel.Name,
 		Signature:  sig,
 		ArgTypes:   args,

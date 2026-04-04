@@ -15,7 +15,7 @@ import (
 )
 
 type valuesAndTypes struct {
-	isGeneric map[string]bool // Set
+	isGeneric map[string]bool // Set, package-path.func is the key
 	values    map[string]reflect.Value
 	types     map[string]reflect.Value
 }
@@ -29,7 +29,6 @@ func RegisterPackage(pkgPath string, values map[string]reflect.Value, types map[
 	for k, v := range types {
 		typesAsValues[k] = reflect.ValueOf(v)
 	}
-	// TODO mutex
 	importedPkgs[pkgPath] = valuesAndTypes{
 		isGeneric: map[string]bool{},
 		values:    values,
@@ -37,7 +36,6 @@ func RegisterPackage(pkgPath string, values map[string]reflect.Value, types map[
 }
 
 func RegisterFunction(pkgPath string, funcName string, fn reflect.Value) {
-	// TODO mutex
 	vant, ok := importedPkgs[pkgPath]
 	if ok {
 		// append/overwrite
@@ -52,8 +50,13 @@ func RegisterFunction(pkgPath string, funcName string, fn reflect.Value) {
 	// remember that it is a type parameterized function
 	paramTypeIndex := strings.Index(funcName, "[")
 	if paramTypeIndex != -1 {
-		// key is without the type info
-		vant.isGeneric[funcName[0:paramTypeIndex-1]] = true
+		// key is package-path.func
+		key := strings.Builder{}
+		key.WriteString(pkgPath)
+		key.WriteRune('.')
+		// without the type info
+		key.WriteString(funcName[0 : paramTypeIndex-1])
+		vant.isGeneric[key.String()] = true
 	}
 	importedPkgs[pkgPath] = vant
 }

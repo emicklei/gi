@@ -10,7 +10,7 @@ import (
 func init() {
 	gi.RegisterFunction(
 		"slices",
-		"Contains[int]",
+		"Contains([]int,int)",
 		reflect.ValueOf(func(a0 []int, a1 int) bool {
 			return slices.Contains(a0, a1)
 		}))

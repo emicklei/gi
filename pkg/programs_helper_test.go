@@ -19,14 +19,15 @@ func buildPackage(t *testing.T, source string) *Package {
 	if err != nil {
 		t.Fatalf("failed to parse source: %v", err)
 	}
-	// TODO until generics is done
+	// this is actually a test to see the the detector can
+	// handle all ast nodes types used in the program
+	// if will fatal if a missing type is found
 	d := newGenericsDetector(goPkg)
 	for _, stx := range goPkg.Syntax {
 		for _, decl := range stx.Decls {
 			d.Visit(decl)
 		}
 	}
-	// END TODO
 
 	giPkg, err := BuildPackage(goPkg)
 	if err != nil {
