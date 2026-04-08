@@ -5,7 +5,6 @@ import (
 	"go/types"
 	"io"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 
@@ -99,6 +98,7 @@ var _ ast.Visitor = (*genericsDetector)(nil)
 type genericsDetector struct {
 	goPkg   *packages.Package
 	imports map[string]*ast.ImportSpec
+	calls   []*InferredGenericCallExpr
 }
 
 func newGenericsDetector(goPkg *packages.Package) genericsDetector {
@@ -113,9 +113,7 @@ func (d genericsDetector) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 	case *ast.CallExpr:
 		if igc := d.asInferredGenericCallExpr(n); igc != nil {
-			if trace {
-				igc.emitSource(os.Stdout)
-			}
+			d.calls = append(d.calls, igc)
 		}
 		for _, each := range n.Args {
 			d.Visit(each)
