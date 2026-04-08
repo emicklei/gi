@@ -8,6 +8,7 @@ import (
 	"io"
 	"maps"
 	"reflect"
+	"sort"
 	"unicode"
 
 	"github.com/fatih/structtag"
@@ -174,8 +175,18 @@ func (i StructValue) tagFieldName(key string, fieldName string, fieldValue refle
 func (i StructValue) Format(f fmt.State, verb rune) {
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "%s{", i.structType.name)
+
+	// Extract keys and sort them alphabetically
+	fieldNames := make([]string, 0, len(i.fields))
+	for fieldName := range i.fields {
+		fieldNames = append(fieldNames, fieldName)
+	}
+	sort.Strings(fieldNames)
+
 	c := 0
-	for fieldName, val := range i.fields {
+	// Iterate over the sorted keys
+	for _, fieldName := range fieldNames {
+		val := i.fields[fieldName]
 		if unicode.IsUpper(rune(fieldName[0])) {
 			if c > 0 {
 				fmt.Fprint(&buf, ", ")
