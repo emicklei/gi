@@ -303,9 +303,19 @@ func main() {
 }`, "gi")
 }
 
+func TestITypeAsMapKeyAndValue(t *testing.T) {
+	testMain(t, `package main
+import "fmt"
+type A struct{ a string }
+
+func main() {
+		m := map[A]A{}
+		fmt.Print(m)
+}`, "map[]")
+}
+
 // panic: reflect.Value.SetMapIndex: value of type pkg.ExtendedValue is not assignable to type *pkg.StructValue
 func TestExtendedTypeAsMapKey(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 type Count int
 func main() {

@@ -64,6 +64,7 @@
 | struct json | ✅ |
 | struct xml write | ✅ |
 | struct fmt | ✅ |
+| map key,value | ✅ |
 | struct xml read | ⬜ |
 | passing to std | ⬜ |
 | callback from std | ⬜ |

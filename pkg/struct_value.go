@@ -14,7 +14,9 @@ import (
 	"github.com/fatih/structtag"
 )
 
-var structValueType = reflect.TypeFor[StructValue]()
+type structValueKey struct{}
+
+var structValueKeyType = reflect.TypeFor[structValueKey]()
 
 var (
 	_ fmt.Formatter   = (*StructValue)(nil)

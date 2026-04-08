@@ -9,7 +9,7 @@ func makeType(vm *VM, e Evaluable) reflect.Type {
 		if ok {
 			return typ.Interface().(builtinType).typ
 		}
-		return structValueType
+		return structValueKeyType
 	}
 	if star, ok := e.(StarExpr); ok {
 		nonStarType := makeType(vm, star.x)

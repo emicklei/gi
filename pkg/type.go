@@ -147,10 +147,14 @@ func (m MapType) makeValue(vm *VM, _ int, elements []reflect.Value) reflect.Valu
 	// standard or importer types
 	keyType := vm.currentEnv().typeLookUp(keyTypeName)
 	if keyType == nil {
-		// TODO handl custom types as key types
-		keyType = structValueType
+		// must be interpreted type
+		keyType = structValueKeyType
 	}
 	valueType := vm.currentEnv().typeLookUp(valueTypeName)
+	if valueType == nil {
+		// must be interpreted type
+		valueType = structValueKeyType
+	}
 	mapType := reflect.MapOf(keyType, valueType)
 	return reflect.MakeMap(mapType)
 }
