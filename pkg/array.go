@@ -67,6 +67,8 @@ func (a ArrayType) literalCompose(vm *VM, composite reflect.Value, values []refl
 		if needConversion {
 			if v.CanConvert(elementType) {
 				composite.Index(i).Set(v.Convert(elementType))
+			} else {
+				vm.fatalf("cannot convert:%v to %v", v, elementType)
 			}
 		} else {
 			composite.Index(i).Set(v)

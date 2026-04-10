@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -9,14 +8,13 @@ import (
 	"maps"
 	"reflect"
 	"sort"
+	"strings"
 	"unicode"
 
 	"github.com/fatih/structtag"
 )
 
-type structValueKey struct{}
-
-var structValueKeyType = reflect.TypeFor[structValueKey]()
+var structValueKeyType = reflect.TypeFor[StructValue]()
 
 var (
 	_ fmt.Formatter   = (*StructValue)(nil)
@@ -27,19 +25,20 @@ var (
 
 // StructValue represents an instance of an interpreted struct.
 type StructValue struct {
-	structType StructType
-	fields     map[string]reflect.Value
+	structType *StructType               // use pointer to make StructValue comparable
+	fields     *map[string]reflect.Value // use pointer to make StructValue comparable
 }
 
 // InstantiateStructValue creates a new StructValue of the given StructType.
 func InstantiateStructValue(vm *VM, t StructType) StructValue {
-	i := StructValue{structType: t,
-		fields: map[string]reflect.Value{},
+	f := map[string]reflect.Value{}
+	i := StructValue{structType: &t,
+		fields: &f,
 	}
 	for _, field := range t.fields.List {
 		typ := makeType(vm, field.typ)
 		for _, name := range field.names {
-			i.fields[name.name] = reflect.New(typ).Elem()
+			f[name.name] = reflect.New(typ).Elem()
 		}
 	}
 	return i
@@ -51,7 +50,7 @@ func (i StructValue) toString() string {
 
 // TODO maybe return extra bool for ok?
 func (i StructValue) selectByName(name string) reflect.Value {
-	if v, ok := i.fields[name]; ok {
+	if v, ok := (*i.fields)[name]; ok {
 		return v
 	}
 	if method, ok := i.structType.methods[name]; ok {
@@ -61,9 +60,9 @@ func (i StructValue) selectByName(name string) reflect.Value {
 }
 
 func (i StructValue) fieldAssign(fieldName string, val reflect.Value) {
-	if _, ok := i.fields[fieldName]; ok {
+	if _, ok := (*i.fields)[fieldName]; ok {
 		// override, TODO what if HeapPointer?
-		i.fields[fieldName] = val
+		(*i.fields)[fieldName] = val
 		return
 	}
 	panic("no such field: " + fieldName)
@@ -78,7 +77,7 @@ func (i StructValue) literalCompose(vm *VM, composite reflect.Value, values []re
 	if _, ok := values[0].Interface().(keyValue); ok {
 		for _, each := range values {
 			if kv, ok := each.Interface().(keyValue); ok {
-				i.fields[mustString(kv.Key)] = kv.Value
+				(*i.fields)[mustString(kv.Key)] = kv.Value
 			}
 		}
 	} else {
@@ -91,7 +90,7 @@ func (i StructValue) literalCompose(vm *VM, composite reflect.Value, values []re
 		}
 		for valueIndex, each := range values {
 			if valueIndex < len(fieldNames) {
-				i.fields[fieldNames[valueIndex]] = each
+				(*i.fields)[fieldNames[valueIndex]] = each
 			}
 		}
 	}
@@ -100,7 +99,7 @@ func (i StructValue) literalCompose(vm *VM, composite reflect.Value, values []re
 
 func (i StructValue) MarshalJSON() ([]byte, error) {
 	m := map[string]any{}
-	for fieldName, val := range i.fields {
+	for fieldName, val := range *i.fields {
 		tagName, ok := i.tagFieldName("json", fieldName, val)
 		if ok {
 			m[tagName] = val.Interface()
@@ -115,11 +114,11 @@ func (i StructValue) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	for fieldName, val := range i.fields {
+	for fieldName, val := range *i.fields {
 		tagName, ok := i.tagFieldName("json", fieldName, val)
 		if ok {
 			if val, ok := m[tagName]; ok {
-				i.fields[fieldName] = reflect.ValueOf(val)
+				(*i.fields)[fieldName] = reflect.ValueOf(val)
 			}
 		}
 	}
@@ -127,11 +126,11 @@ func (i StructValue) UnmarshalJSON(data []byte) error {
 }
 
 func (i StructValue) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
-	start.Name.Local = i.structType.name
+	start.Name.Local = i.structType.localName()
 	if err := enc.EncodeToken(start); err != nil {
 		return err
 	}
-	for fieldName, val := range i.fields {
+	for fieldName, val := range *i.fields {
 		tagName, ok := i.tagFieldName("xml", fieldName, val)
 		if ok {
 			elem := xml.StartElement{Name: xml.Name{Local: tagName}}
@@ -175,21 +174,26 @@ func (i StructValue) tagFieldName(key string, fieldName string, fieldValue refle
 }
 
 func (i StructValue) Format(f fmt.State, verb rune) {
-	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "%s{", i.structType.name)
+	var buf strings.Builder
+	isSharpV := f.Flag('#')
+	if isSharpV {
+		fmt.Fprintf(&buf, "%s{", i.structType.name)
+	} else {
+		fmt.Fprint(&buf, "{")
+	}
 
 	// Extract keys and sort them alphabetically
-	fieldNames := make([]string, 0, len(i.fields))
-	for fieldName := range i.fields {
+	fieldNames := make([]string, 0, len((*i.fields)))
+	for fieldName := range *i.fields {
 		fieldNames = append(fieldNames, fieldName)
 	}
 	sort.Strings(fieldNames)
 
 	c := 0
 	// Iterate over the sorted keys
-	for _, fieldName := range fieldNames {
-		val := i.fields[fieldName]
-		if unicode.IsUpper(rune(fieldName[0])) {
+	if isSharpV {
+		for _, fieldName := range fieldNames {
+			val := (*i.fields)[fieldName]
 			if c > 0 {
 				fmt.Fprint(&buf, ", ")
 			}
@@ -199,13 +203,14 @@ func (i StructValue) Format(f fmt.State, verb rune) {
 		}
 	}
 	fmt.Fprint(&buf, "}")
-	f.Write(buf.Bytes())
+	io.WriteString(f, buf.String())
 }
 
 func (i StructValue) clone() StructValue {
+	c := maps.Clone((*i.fields))
 	return StructValue{
 		structType: i.structType,
-		fields:     maps.Clone(i.fields),
+		fields:     &c,
 	}
 }
 

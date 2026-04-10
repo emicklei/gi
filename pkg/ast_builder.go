@@ -765,7 +765,7 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 		s.typ = e
 		if st, ok := e.(StructType); ok {
 			// set the name of the struct type
-			st.name = s.name.name
+			st.name = fmt.Sprintf("%s.%s", b.goPkg.Name, s.name.name)
 			b.envSet(s.name.name, reflect.ValueOf(st))
 		} else if idn, ok := e.(Ident); ok {
 			ext := newExtendedType(idn)

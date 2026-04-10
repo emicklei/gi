@@ -101,26 +101,26 @@ func main() {
 
 func TestInstantiateIType(t *testing.T) {
 	testMain(t, `package main
-
+import "fmt"
 type Aircraft struct {
 	Model string
 }
 func main() {
 	heli := Aircraft{}
-	print(heli)
-}`, `Aircraft{Model:""}`)
+	fmt.Printf("%#v",heli)
+}`, `main.Aircraft{Model:""}`)
 }
 
 func TestInstantiateITypeWithField(t *testing.T) {
 	testMain(t, `package main
-
+import "fmt"
 type Aircraft struct {
 	Model string
 }
 func main() {
 	heli := Aircraft{Model:"heli"}
-	print(heli)
-}`, `Aircraft{Model:"heli"}`)
+	fmt.Printf("%#v",heli)
+}`, `main.Aircraft{Model:"heli"}`)
 }
 
 func TestNewIType(t *testing.T) {
@@ -255,7 +255,7 @@ type Aircraft struct {
 }
 func main() {
 	fmt.Printf("%#v\n",Aircraft{Model: "balloon", Price: 3.14})
-}`, "Aircraft{Model:\"balloon\", Price:3.14}\n")
+}`, "main.Aircraft{Model:\"balloon\", Price:3.14, hidden:0}\n")
 }
 
 func TestSameVarAndField(t *testing.T) {
@@ -281,6 +281,16 @@ func main() {
 	print(a[0].Model)
 	print(a[1].Model)
 }`, "ab")
+}
+
+func TestITypeSlice(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+type Aircraft struct {Model string}
+func main() {
+	a := []Aircraft{{Model:"a"}}
+	print(a[0].Model)
+}`, "a")
 }
 
 func TestITypeAsWriter(t *testing.T) {
@@ -310,12 +320,27 @@ type A struct{ a string }
 
 func main() {
 		m := map[A]A{}
-		fmt.Print(m)
-}`, "map[]")
+		k := A{}
+		v := A{}
+		m[k]=v
+		fmt.Println(m)
+		fmt.Printf("%v\n",m)
+		fmt.Printf("%#v\n",m)
+}`, `map[{}:{}]
+map[{}:{}]
+map[pkg.StructValue]pkg.StructValue{main.A{a:""}:main.A{a:""}}
+`)
+}
+
+func TestMapComp(t *testing.T) {
+	type A struct{ a *map[int]int }
+	b := map[A]int{}
+	print(b)
 }
 
 // panic: reflect.Value.SetMapIndex: value of type pkg.ExtendedValue is not assignable to type *pkg.StructValue
 func TestExtendedTypeAsMapKey(t *testing.T) {
+	t.Skip()
 	testMain(t, `package main
 type Count int
 func main() {

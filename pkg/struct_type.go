@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/token"
 	"reflect"
+	"strings"
 )
 
 var (
@@ -19,6 +20,15 @@ type StructType struct {
 	name      string
 	fields    *FieldList
 	methods   map[string]*FuncDecl
+}
+
+// localName returns the name within the package in which it is defined
+func (s StructType) localName() string {
+	dot := strings.Index(s.name, ".")
+	if dot == -1 {
+		return s.name
+	}
+	return s.name[dot+1:]
 }
 
 func (s StructType) eval(vm *VM) {
