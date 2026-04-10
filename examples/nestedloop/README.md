@@ -10,7 +10,4 @@
 
     GI_CALL=call.dot gi run .
     dot -Tsvg -o call.svg call.dot
-
-## how to visualize ast
-
-    GI_AST=ast.txt gi run .
+    open call.svg
