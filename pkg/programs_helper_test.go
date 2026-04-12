@@ -36,8 +36,6 @@ func buildPackage(t *testing.T, source string) *Package {
 	return giPkg
 }
 
-var stdfuncsMutex sync.Mutex
-
 // this print function outputs are different from the standard and is only used for tests
 func collectPrintOutput(vm *VM) {
 	vm.pkg.env.valueSet("print", reflect.ValueOf(func(args ...any) {
@@ -45,19 +43,17 @@ func collectPrintOutput(vm *VM) {
 			fmt.Fprint(vm.output, stringOf(a))
 		}
 	}))
-	// maybe move this TODO
-	stdfuncsMutex.Lock()
-	defer stdfuncsMutex.Unlock()
-
-	stdfuncs["fmt"]["Print"] = reflect.ValueOf(func(args ...any) {
+	replaceStdFunc("fmt", "Print", reflect.ValueOf(func(args ...any) {
 		fmt.Fprint(vm.output, args...)
-	})
-	stdfuncs["fmt"]["Printf"] = reflect.ValueOf(func(args ...any) {
+	}))
+
+	replaceStdFunc("fmt", "Printf", reflect.ValueOf(func(args ...any) {
 		fmt.Fprintf(vm.output, args[0].(string), args[1:]...)
-	})
-	stdfuncs["fmt"]["Println"] = reflect.ValueOf(func(args ...any) {
+	}))
+
+	replaceStdFunc("fmt", "Println", reflect.ValueOf(func(args ...any) {
 		fmt.Fprintln(vm.output, args...)
-	})
+	}))
 }
 
 // Per-test attribute storage
