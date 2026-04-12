@@ -46,14 +46,15 @@
 | dot imports | ✅ | 
 | reflect | ✅ |
 | Subpackages | ✅ |
+| Array of composite literals | ✅ |
+| loop vars |  ✅ |
 | Range over iterator | ⬜ | 
 | Interface type args | ⬜ | 
 | Goroutines `go` | ⬜ |
 | `select` statement | ⬜ |
 | nested recover |  ⬜ |
-| loop vars |  ⬜ |
 | slice of func literals |  ⬜ |
-| DAP | ⬜ | 50%
+| DAP (50%) | ⬜ |
 
 ## interpreted types
 
@@ -61,10 +62,10 @@
 |---|---|
 | Type alias | ✅ |
 | methods | ✅ |
-| struct json | ✅ |
-| struct xml write | ✅ |
 | struct fmt | ✅ |
 | map key,value | ✅ |
+| struct json | ✅ |
+| struct xml write | ✅ |
 | struct xml read | ⬜ |
 | passing to std | ⬜ |
 | callback from std | ⬜ |

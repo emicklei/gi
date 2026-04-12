@@ -273,18 +273,16 @@ func main() {
 }
 
 func TestITypeArray(t *testing.T) {
-	t.Skip() // panic: no such field or method: Model [recovered, repanicked]
 	testMain(t, `package main
-type Aircraft struct {Model string}
+type Aircraft struct {Model string ; Color int}
 func main() {
-	a := [2]Aircraft{{Model:"a"},{Model:"b"}}
+	a := [2]Aircraft{{Model:"a", Color:1},{Model:"b"}}
 	print(a[0].Model)
 	print(a[1].Model)
 }`, "ab")
 }
 
 func TestITypeSlice(t *testing.T) {
-	t.Skip()
 	testMain(t, `package main
 type Aircraft struct {Model string}
 func main() {

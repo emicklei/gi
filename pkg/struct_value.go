@@ -69,6 +69,8 @@ func (i StructValue) fieldAssign(fieldName string, val reflect.Value) {
 }
 
 // composite is (a reflect on) an StructValue
+// values can be keyed or unkeyed. For keyed, the value must be keyValue and the key is used to match the field name.
+// For unkeyed, the values are assigned to fields in the order they are defined in the struct type.
 func (i StructValue) literalCompose(vm *VM, composite reflect.Value, values []reflect.Value) reflect.Value {
 	if len(values) == 0 {
 		return composite

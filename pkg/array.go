@@ -68,7 +68,23 @@ func (a ArrayType) literalCompose(vm *VM, composite reflect.Value, values []refl
 			if v.CanConvert(elementType) {
 				composite.Index(i).Set(v.Convert(elementType))
 			} else {
-				vm.fatalf("cannot convert:%v to %v", v, elementType)
+				// check for keyValue pairs, which are used for keyed elements in composite literals
+				rst := vm.returnsEval(a.elt)
+				if st, ok := rst.Interface().(StructType); ok {
+
+					// create a new StructValue and compose it with the keyValue list
+					sv := InstantiateStructValue(vm, st)
+
+					if list, ok := v.Interface().([]reflect.Value); ok {
+
+						// use the keyValue list to compose the struct value
+						sv.literalCompose(vm, reflect.ValueOf(sv), list)
+
+					}
+					composite.Index(i).Set(reflect.ValueOf(sv))
+				} else {
+					vm.fatalf("cannot convert:%v to %v", v, elementType)
+				}
 			}
 		} else {
 			composite.Index(i).Set(v)
