@@ -73,3 +73,22 @@ func (s SendStmt) pos() token.Pos {
 func (s SendStmt) String() string {
 	return fmt.Sprintf("SendStmt(%v <- %v)", s.chann, s.value)
 }
+
+var _ Stmt = (*SelectStmt)(nil)
+
+type SelectStmt struct {
+	selectPos token.Pos
+	body      *BlockStmt // CommClauses only
+}
+
+// https://www.geeksforgeeks.org/go-language/reflect-select-function-in-golang-with-examples/
+func (s SelectStmt) eval(vm *VM) {}
+
+func (s SelectStmt) flow(g *graphBuilder) (head Step) {
+	return g.current
+}
+func (s SelectStmt) stmtStep() Evaluable { return s }
+
+func (s SelectStmt) pos() token.Pos {
+	return s.selectPos
+}

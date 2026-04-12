@@ -216,3 +216,20 @@ func main() {
 	print(s.size)
 }`, "1")
 }
+
+func TestEmbeddedIType(t *testing.T) {
+	t.Skip()
+	defer debug(t)()
+	testMain(t, `package main
+
+type A struct{a int}
+type B struct{
+	A
+	b string
+}
+
+func main() {
+	s := B{A{a:1}, "b"}
+	print(s.a, s.b)
+}`, "1b")
+}

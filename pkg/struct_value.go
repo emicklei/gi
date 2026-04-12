@@ -25,6 +25,7 @@ var (
 
 // StructValue represents an instance of an interpreted struct.
 type StructValue struct {
+	//embeddedValues *[]StructValue
 	structType *StructType               // use pointer to make StructValue comparable
 	fields     *map[string]reflect.Value // use pointer to make StructValue comparable
 }

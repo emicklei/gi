@@ -855,6 +855,14 @@ func (b *astBuilder) Visit(node ast.Node) ast.Visitor {
 			s.label = &e
 		}
 		b.push(s)
+	case *ast.SelectStmt:
+		s := SelectStmt{selectPos: n.Select}
+		if n.Body != nil {
+			b.Visit(n.Body)
+			e := b.pop().(BlockStmt)
+			s.body = &e
+		}
+		b.push(s)
 	case nil:
 		// end of a branch
 	default:
