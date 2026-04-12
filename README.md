@@ -17,11 +17,11 @@ It offers a virtual machine that can step through such a program and allows acce
 ### runtime
 
 - support type parameterization (generics)
-- support Go modules (will require pre-compilation)
+- support Go modules
 
 ### debugging
 
-- offer a [DAP](https://microsoft.github.io/debug-adapter-protocol) interface
+- provide a [DAP](https://microsoft.github.io/debug-adapter-protocol) interface
 - handle source changes during a debugging session:
 	- change a function definition
 	- change a struct definition
@@ -31,8 +31,8 @@ It offers a virtual machine that can step through such a program and allows acce
 ## status
 
 This is work in progress.
-See [examples](./examples) for runnable examples using the `gi` cli.
-See [status](STATUS.md) for the supported Go language features.
+See [Examples](./examples) for runnable examples using the `gi` cli.
+See [Status](STATUS.md) for the supported Go language features.
 
 ## install
 
@@ -106,9 +106,13 @@ func Hello(name string) int {
 	}
 ```
 
+### Playground
+
+Tryout the interpreter using the [gi playground](https://giplay.flaticols.dev), created by [Denis Panfilov](https://github.com/flaticols).
+
 ### Limitations
 
-The following features are not supported:
+The following is not supported:
 - no functions/consts/vars from the following packages:
   - debug
   - go
