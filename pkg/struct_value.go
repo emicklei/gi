@@ -25,6 +25,7 @@ var (
 
 // StructValue represents an instance of an interpreted struct.
 type StructValue struct {
+	vm *VM // vm that created this StructValue, used for method callbacks
 	//embeddedValues *[]StructValue
 	structType *StructType               // use pointer to make StructValue comparable
 	fields     *map[string]reflect.Value // use pointer to make StructValue comparable
@@ -33,7 +34,7 @@ type StructValue struct {
 // InstantiateStructValue creates a new StructValue of the given StructType.
 func InstantiateStructValue(vm *VM, t StructType) StructValue {
 	f := map[string]reflect.Value{}
-	i := StructValue{structType: &t,
+	i := StructValue{vm: vm, structType: &t,
 		fields: &f,
 	}
 	for _, field := range t.fields.List {
@@ -54,7 +55,7 @@ func (i StructValue) selectByName(name string) reflect.Value {
 	if v, ok := (*i.fields)[name]; ok {
 		return v
 	}
-	if method, ok := i.structType.methods[name]; ok {
+	if method, ok := i.structType.lookupMethod(name); ok {
 		return reflect.ValueOf(method)
 	}
 	panic("no such field or method: " + name)
@@ -180,9 +181,22 @@ func (i StructValue) Format(f fmt.State, verb rune) {
 	var buf strings.Builder
 	isSharpV := f.Flag('#')
 	if isSharpV {
+		/**
+		// check for GoString method
+		if decl, ok := i.structType.lookupMethod("GoString"); ok {
+			// call GoString method
+			// push receiver, no args
+			i.vm.pushOperand(reflect.ValueOf(i))
+			call := CallExpr{}
+			call.handleFuncDecl(i.vm, decl)
+			result := i.vm.popOperand()
+			buf.WriteString(result.Interface().(string))
+			return
+		}
+		**/
 		fmt.Fprintf(&buf, "%s{", i.structType.name)
 	} else {
-		fmt.Fprint(&buf, "{")
+		buf.WriteRune('{')
 	}
 
 	// Extract keys and sort them alphabetically

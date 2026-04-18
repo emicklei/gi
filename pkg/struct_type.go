@@ -31,6 +31,12 @@ func (s StructType) localName() string {
 	return s.name[dot+1:]
 }
 
+func (s StructType) lookupMethod(name string) (method *FuncDecl, ok bool) {
+	// TODO embedded structs
+	method, ok = s.methods[name]
+	return
+}
+
 func (s StructType) eval(vm *VM) {
 	vm.pushOperand(reflect.ValueOf(s))
 }

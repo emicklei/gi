@@ -30,3 +30,26 @@ func main() {
 	print(*p)
 }`, "2")
 }
+
+func TestQuiz16(t *testing.T) {
+	t.Skip()
+	testMain(t, `package main
+
+import "fmt"
+
+type S struct{}
+
+func (s S) String() string {
+        return "String"
+}
+
+func (s S) GoString() string {
+        return "GoString"
+}
+
+func main() {
+        s := S{}
+        fmt.Println(s)
+        fmt.Printf("%#v", s)
+}`, "String\nGoString")
+}
