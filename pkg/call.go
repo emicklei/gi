@@ -258,8 +258,9 @@ func (c CallExpr) handleFuncDecl(vm *VM, fd *FuncDecl) {
 				if isStructValue(val) {
 					if !isPointerExpr(expectedType) {
 						// need to dereference
-						clone := val.Interface().(StructValue).clone()
-						val = reflect.ValueOf(clone)
+						st := val.Interface().(StructValue)
+						// need to clone to have copy semantics
+						val = reflect.ValueOf(st.clone())
 					}
 				}
 			}

@@ -25,7 +25,6 @@ var (
 
 // StructValue represents an instance of an interpreted struct.
 type StructValue struct {
-	vm *VM // vm that created this StructValue, used for method callbacks
 	//embeddedValues *[]StructValue
 	structType *StructType               // use pointer to make StructValue comparable
 	fields     *map[string]reflect.Value // use pointer to make StructValue comparable
@@ -34,7 +33,7 @@ type StructValue struct {
 // InstantiateStructValue creates a new StructValue of the given StructType.
 func InstantiateStructValue(vm *VM, t StructType) StructValue {
 	f := map[string]reflect.Value{}
-	i := StructValue{vm: vm, structType: &t,
+	i := StructValue{structType: &t,
 		fields: &f,
 	}
 	for _, field := range t.fields.List {
