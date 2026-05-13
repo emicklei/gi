@@ -6,6 +6,7 @@ import (
 	"database/sql/driver"
 	"encoding/xml"
 	"fmt"
+	"go/token"
 	"image"
 	"image/color"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"sync"
 	"time"
 )
 
@@ -31,7 +33,18 @@ func (d interfaceDelegate) Read(p []byte) (int, error) {
 	d.vm.pushOperand(reflect.ValueOf(p))
 	d.vm.pushOperand(d.receiver)
 	call := CallExpr{args: []Expr{noExpr{}}}
-	call.handleFuncDecl(d.vm, d.fun)
+	// add a defer to the current frame to unlock the calling goroutine after the call returns
+	wg := new(sync.WaitGroup)
+	wg.Add(1)
+	done := funcInvocation{
+		call: nil, // not backed by an actual call expression, just a placeholder for the defer
+		flow: newFuncStep(token.NoPos, "callback-done", func(vm *VM) {
+			wg.Done()
+		})}
+	// put the done at front ; executed last
+	d.vm.currentFrame.defers = append([]funcInvocation{done}, d.vm.currentFrame.defers...)
+	go call.handleFuncDecl(d.vm, d.fun)
+	wg.Wait()
 	return 0, io.EOF
 }
 
